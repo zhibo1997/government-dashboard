@@ -6,7 +6,7 @@
       <BackgroundImage />
       <!-- Tab导航栏 -->
       <div class="tab-navigation-wrapper">
-        <TabNavigation @tab-change="handleTabChange" />
+        <!-- <TabNavigation @tab-change="handleTabChange" /> -->
       </div>
       <!-- 地图组件 -->
       <MapComponent />

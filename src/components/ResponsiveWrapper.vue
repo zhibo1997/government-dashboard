@@ -28,7 +28,7 @@ function calculateResponsive() {
   const windowHeight = window.innerHeight
   
   // 按高度计算缩放比例
-  const scale = windowHeight / BASE_HEIGHT
+  const scale = windowWidth / BASE_WIDTH
   scaleRatio.value = scale
 }
 

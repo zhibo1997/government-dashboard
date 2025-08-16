@@ -7,7 +7,6 @@
       @load="onImageLoad"
       @error="onImageError"
     />
-    <div class="overlay"></div>
   </div>
 </template>
 
@@ -42,7 +41,7 @@ defineExpose({
   position: relative;
   width: 100%;
   height: 100%;
-  z-index: 1;
+  z-index: 10;
   pointer-events: none; /* 实现交互穿透 */
 }
 
