@@ -63,11 +63,11 @@ const resetView = () => {
 <style scoped>
 .map-tools {
   position: absolute;
-  top: 160px;
+  top: 220px;
   right: 700px;
   display: flex;
   flex-direction: column;
-  z-index: 1000;
+  z-index: 4000;
 }
 
 .tool-button {

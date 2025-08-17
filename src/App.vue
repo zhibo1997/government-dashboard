@@ -1,7 +1,14 @@
 
 <template>
-  <ResponsiveWrapper>
+  <ResponsiveWrapper 
+    :base-width="4000" 
+    :base-height="1125" 
+    :min-scale="0.2"
+    :max-scale="2"
+  >
     <div class="dashboard-container">
+      <!-- 时间显示组件 -->
+      <TimeDisplay />
       <!-- 背景图片组件 -->
       <BackgroundImage />
       <!-- Tab导航栏 -->
@@ -20,6 +27,7 @@ import ResponsiveWrapper from './components/ResponsiveWrapper.vue'
 import MapComponent from './components/MapComponent.vue'
 import BackgroundImage from './components/BackgroundImage.vue'
 import TabNavigation from './components/TabNavigation.vue'
+import TimeDisplay from './components/TimeDisplay.vue'
 
 // 当前激活的tab
 const currentTab = ref('comprehensive')
@@ -86,5 +94,21 @@ function handleTabChange(tabId) {
 .dashboard-container {
   scrollbar-width: thin;
   scrollbar-color: rgba(22, 119, 255, 0.3) rgba(0, 0, 0, 0.1);
+}
+:deep(.tdt-infowindow-content){
+  width: auto !important;
+  margin: 0 !important;
+}
+
+:deep(.tdt-infowindow-content-wrapper){
+  background-color: transparent !important;
+}
+:deep(.tdt-infowindow-close-button){
+      font-size: 26px !important;
+    top: 10px !important;
+    right: 20px !important;
+}
+:deep(.tdt-infowindow-tip){
+  background-color: rgba(0, 0, 0, 0.75) !important;
 }
 </style>
