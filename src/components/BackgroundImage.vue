@@ -43,6 +43,7 @@ defineExpose({
   height: 100%;
   z-index: 10;
   pointer-events: none; /* 实现交互穿透 */
+  user-select: none;
 }
 
 .background-image {
