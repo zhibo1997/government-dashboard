@@ -1,0 +1,13 @@
+# Legacy Components
+
+这个目录包含原有的地图组件，已被新的mapComponents架构替代。
+这些组件保留用于参考和向后兼容，但不应在新开发中使用。
+
+## 迁移状态
+- MapComponent.vue -> mapComponents/CesiumMapComponent.vue
+- MapTools.vue -> mapComponents/CesiumMapTools.vue
+
+## 注意事项
+- 这些组件使用天地图API
+- 新架构使用Cesium引擎
+- 请使用mapComponents目录中的组件进行新开发

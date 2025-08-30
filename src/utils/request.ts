@@ -1,10 +1,24 @@
-import axios from 'axios'
+import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse, AxiosError } from 'axios'
 import { message } from 'ant-design-vue'
 import { useAuthStore } from '../stores/auth'
 import router from '../router'
+import type { ApiResponse } from '@/types'
+
+// 请求配置接口
+interface RequestConfig extends AxiosRequestConfig {
+  skipErrorHandler?: boolean
+}
+
+// 响应数据接口
+interface ResponseData<T = any> {
+  code: number
+  message?: string
+  msg?: string
+  data?: T
+}
 
 // 创建axios实例
-const request = axios.create({
+const request: AxiosInstance = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL || '/clapi',
   timeout: 10000,
   headers: {
@@ -14,10 +28,10 @@ const request = axios.create({
 
 // 请求拦截器
 request.interceptors.request.use(
-  (config) => {
+  (config: AxiosRequestConfig) => {
     // 添加token到请求头
     const authStore = useAuthStore()
-    if (authStore.token) {
+    if (authStore.token && config.headers) {
       config.headers.Authorization = `Bearer ${authStore.token}`
     }
     
@@ -41,7 +55,7 @@ request.interceptors.request.use(
     
     return config
   },
-  (error) => {
+  (error: AxiosError) => {
     console.error('❌ Request Error:', error)
     message.error('请求配置错误')
     return Promise.reject(error)
@@ -50,7 +64,7 @@ request.interceptors.request.use(
 
 // 响应拦截器
 request.interceptors.response.use(
-  (response) => {
+  (response: AxiosResponse<ResponseData>) => {
     const { data } = response
     
     // 开发环境打印响应信息
@@ -87,7 +101,7 @@ request.interceptors.response.use(
     // 直接返回数据
     return data
   },
-  (error) => {
+  (error: AxiosError<ResponseData>) => {
     console.error('❌ Response Error:', error)
     
     // 网络错误
@@ -136,7 +150,7 @@ request.interceptors.response.use(
 export default request
 
 // 导出常用请求方法
-export const get = (url, params = {}) => {
+export const get = <T = any>(url: string, params: Record<string, any> = {}): Promise<ApiResponse<T>> => {
   return request({
     method: 'get',
     url,
@@ -144,7 +158,7 @@ export const get = (url, params = {}) => {
   })
 }
 
-export const post = (url, data = {}) => {
+export const post = <T = any>(url: string, data: Record<string, any> = {}): Promise<ApiResponse<T>> => {
   return request({
     method: 'post',
     url,
@@ -152,7 +166,7 @@ export const post = (url, data = {}) => {
   })
 }
 
-export const put = (url, data = {}) => {
+export const put = <T = any>(url: string, data: Record<string, any> = {}): Promise<ApiResponse<T>> => {
   return request({
     method: 'put',
     url,
@@ -160,7 +174,7 @@ export const put = (url, data = {}) => {
   })
 }
 
-export const del = (url, params = {}) => {
+export const del = <T = any>(url: string, params: Record<string, any> = {}): Promise<ApiResponse<T>> => {
   return request({
     method: 'delete',
     url,
@@ -169,7 +183,7 @@ export const del = (url, params = {}) => {
 }
 
 // 文件上传
-export const upload = (url, formData) => {
+export const upload = <T = any>(url: string, formData: FormData): Promise<ApiResponse<T>> => {
   return request({
     method: 'post',
     url,
@@ -181,11 +195,44 @@ export const upload = (url, formData) => {
 }
 
 // 文件下载
-export const download = (url, params = {}) => {
+export const download = (url: string, params: Record<string, any> = {}): Promise<Blob> => {
   return request({
     method: 'get',
     url,
     params,
     responseType: 'blob'
   })
+}
+
+// 带有自定义配置的请求方法
+export const requestWithConfig = <T = any>(config: RequestConfig): Promise<ApiResponse<T>> => {
+  return request(config)
+}
+
+// 批量请求
+export const batchRequest = async <T = any>(requests: Array<() => Promise<T>>): Promise<T[]> => {
+  try {
+    const results = await Promise.allSettled(requests.map(req => req()))
+    return results.map(result => {
+      if (result.status === 'fulfilled') {
+        return result.value
+      } else {
+        console.error('Batch request failed:', result.reason)
+        throw result.reason
+      }
+    })
+  } catch (error) {
+    console.error('Batch request error:', error)
+    throw error
+  }
+}
+
+// 取消请求的工具函数
+export const createCancelToken = () => {
+  return axios.CancelToken.source()
+}
+
+// 检查是否为取消请求的错误
+export const isCancel = (error: any): boolean => {
+  return axios.isCancel(error)
 }

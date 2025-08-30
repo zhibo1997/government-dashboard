@@ -1,5 +1,5 @@
 <template>
-  <div class="dashboard-container">
+  <div class="cesium-dashboard-container">
     <ResponsiveWrapper>
       <!-- 用户信息栏 -->
       <div class="user-info">
@@ -18,11 +18,8 @@
       <!-- 背景图片 -->
       <BackgroundImage />
       
-      <!-- 地图组件 -->
-      <MapComponent />
-      
-      <!-- 其他组件可以在这里添加 -->
-      <!-- <TabNavigation :current-tab="currentTab" @tab-change="handleTabChange" /> -->
+      <!-- Cesium地图组件 -->
+      <CesiumMapComponent />
     </ResponsiveWrapper>
   </div>
 </template>
@@ -36,19 +33,10 @@ import { useAuthStore } from '../stores/auth'
 import ResponsiveWrapper from '../components/ResponsiveWrapper.vue'
 import TimeDisplay from '../components/TimeDisplay.vue'
 import BackgroundImage from '../components/BackgroundImage.vue'
-import MapComponent from '../components/legacy/MapComponent.vue'
-// import TabNavigation from '../components/TabNavigation.vue'
+import CesiumMapComponent from '../mapComponents/CesiumMapComponent.vue'
 
 const router = useRouter()
 const authStore = useAuthStore()
-
-// 当前选中的标签页
-const currentTab = ref('map')
-
-// 标签页切换处理
-const handleTabChange = (tab) => {
-  currentTab.value = tab
-}
 
 // 退出登录
 const handleLogout = () => {
@@ -59,7 +47,7 @@ const handleLogout = () => {
 </script>
 
 <style lang="scss" scoped>
-.dashboard-container {
+.cesium-dashboard-container {
   width: 100%;
   height: 100vh;
   position: relative;
@@ -95,7 +83,7 @@ const handleLogout = () => {
 
 // 响应式设计
 @media (max-width: 768px) {
-  .dashboard-container {
+  .cesium-dashboard-container {
     .user-info {
       top: 10px;
       right: 10px;

@@ -23,6 +23,15 @@ const routes = [
     }
   },
   {
+    path: '/cesium-map',
+    name: 'CesiumMap',
+    component: () => import('../views/CesiumMapView.vue'),
+    meta: {
+      requiresAuth: true,
+      title: 'Cesium地图 - 政府大屏系统'
+    }
+  },
+  {
     path: '/:pathMatch(.*)*',
     name: 'NotFound',
     redirect: '/'
