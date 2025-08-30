@@ -1,114 +1,42 @@
 
 <template>
-  <ResponsiveWrapper 
-    :base-width="4000" 
-    :base-height="1125" 
-    :min-scale="0.2"
-    :max-scale="2"
-  >
-    <div class="dashboard-container">
-      <!-- 时间显示组件 -->
-      <TimeDisplay />
-      <!-- 背景图片组件 -->
-      <BackgroundImage />
-      <!-- Tab导航栏 -->
-      <div class="tab-navigation-wrapper">
-        <!-- <TabNavigation @tab-change="handleTabChange" /> -->
-      </div>
-      <!-- 地图组件 -->
-      <MapComponent />
-      <!-- 其他内容区域 -->
-    </div>
-  </ResponsiveWrapper>
+  <div id="app">
+    <router-view />
+  </div>
 </template>
+
 <script setup>
-import { ref } from 'vue'
-import ResponsiveWrapper from './components/ResponsiveWrapper.vue'
-import MapComponent from './components/MapComponent.vue'
-import BackgroundImage from './components/BackgroundImage.vue'
-import TabNavigation from './components/TabNavigation.vue'
-import TimeDisplay from './components/TimeDisplay.vue'
-
-// 当前激活的tab
-const currentTab = ref('comprehensive')
-
-// 处理tab切换
-function handleTabChange(tabId) {
-  currentTab.value = tabId
-  console.log('切换到tab:', tabId)
-  // 这里可以添加根据不同tab显示不同内容的逻辑
-}
+// App.vue 现在只负责路由视图的渲染
 </script>
 
 
-<style scoped>
+<style>
+/* 全局样式重置 */
 * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
 }
 
-.dashboard-container {
-  width: 100%;
+html, body {
   height: 100%;
-  position: relative;
-  overflow: auto;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
 }
 
-.tab-navigation-wrapper {
-  position: absolute;
-  top: 20px;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 200;
-  width: auto;
-  max-width: 90%;
+#app {
+  height: 100%;
+  width: 100%;
 }
 
-/* 自定义滚动条样式 */
-.dashboard-container::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
-}
-
-.dashboard-container::-webkit-scrollbar-track {
-  background: rgba(0, 0, 0, 0.1);
-  border-radius: 4px;
-}
-
-.dashboard-container::-webkit-scrollbar-thumb {
-  background: rgba(22, 119, 255, 0.3);
-  border-radius: 4px;
-  transition: background 0.2s ease;
-}
-
-.dashboard-container::-webkit-scrollbar-thumb:hover {
-  background: rgba(22, 119, 255, 0.5);
-}
-
-.dashboard-container::-webkit-scrollbar-corner {
-  background: transparent;
-}
-
-/* Firefox 滚动条样式 */
-.dashboard-container {
-  scrollbar-width: thin;
-  scrollbar-color: rgba(22, 119, 255, 0.3) rgba(0, 0, 0, 0.1);
-}
-:deep(.tdt-infowindow-content){
-  width: auto !important;
-  margin: 0 !important;
-}
-
-:deep(.tdt-infowindow-content-wrapper){
-  background-color: transparent !important;
-}
-:deep(.tdt-infowindow-close-button){
-      font-size: 26px !important;
-    top: 10px !important;
-    right: 20px !important;
-}
-:deep(.tdt-infowindow-tip){
-  background-color: rgba(0, 0, 0, 0.75) !important;
+/* CSS 变量定义 */
+:root {
+  --primary-color: #1677ff;
+  --success-color: #52c41a;
+  --warning-color: #faad14;
+  --error-color: #ff4d4f;
+  --text-primary: rgba(0, 0, 0, 0.88);
+  --text-secondary: rgba(0, 0, 0, 0.65);
+  --border-primary: #d9d9d9;
+  --bg-layout: #f5f5f5;
 }
 </style>

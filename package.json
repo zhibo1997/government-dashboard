@@ -12,11 +12,27 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "vue": "^3.5.18"
+    "@ant-design/icons-vue": "^7.0.1",
+    "ant-design-vue": "^4.2.6",
+    "axios": "^1.11.0",
+    "cesium": "~1.96.0",
+    "dayjs": "^1.11.15",
+    "jsencrypt": "^3.5.4",
+    "lodash-es": "^4.17.21",
+    "pinia": "^3.0.3",
+    "vue": "^3.5.18",
+    "vue-router": "^4.5.1"
   },
   "devDependencies": {
+    "@types/cesium": "^1.70.4",
+    "@typescript-eslint/eslint-plugin": "^8.41.0",
+    "@typescript-eslint/parser": "^8.41.0",
     "@vitejs/plugin-vue": "^6.0.1",
+    "eslint": "^9.34.0",
+    "eslint-plugin-vue": "^10.4.0",
+    "prettier": "^3.6.2",
     "sass": "^1.90.0",
+    "typescript": "^5.9.2",
     "vite": "^7.0.6",
     "vite-plugin-vue-devtools": "^8.0.0"
   }
