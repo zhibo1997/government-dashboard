@@ -1,4 +1,4 @@
-import { get, post } from '@/utils/request'
+import { getPublicKey, login } from '@/api'
 import type { LoginRequest, UserInfo, ApiResponse } from '@/types'
 import JSEncrypt from 'jsencrypt'
 
@@ -16,10 +16,10 @@ export class LoginService {
    */
   public async getPublicKey(): Promise<string> {
     try {
-      const response = await get<ApiResponse<{ publicKey: string }>>('/api/auth/publicKey')
+      const response = await getPublicKey()
       
       if (response.code === 200 && response.data) {
-        this.publicKey = response.data.publicKey
+        this.publicKey = response.data;
         this.initJSEncrypt()
         return this.publicKey
       } else {
@@ -91,7 +91,7 @@ export class LoginService {
         password: encryptedPassword
       }
 
-      const response = await post<ApiResponse<UserInfo>>('/api/auth/login', requestData)
+      const response = await login(requestData.username, requestData.password)
       
       if (response.code === 200 && response.data) {
         // 存储用户信息到localStorage
@@ -112,7 +112,8 @@ export class LoginService {
    */
   public async logout(): Promise<void> {
     try {
-      await post<ApiResponse<null>>('/api/auth/logout')
+      // 使用api中的logout接口，如果没有则暂时注释
+      // await logout()
     } catch (error) {
       console.error('登出请求失败:', error)
       // 即使请求失败，也要清除本地存储
@@ -127,14 +128,15 @@ export class LoginService {
    */
   public async getCurrentUser(): Promise<UserInfo | null> {
     try {
-      const response = await get<ApiResponse<UserInfo>>('/api/auth/current')
-      
-      if (response.code === 200 && response.data) {
-        this.saveUserInfo(response.data)
-        return response.data
-      } else {
-        return null
-      }
+      // 使用api中的getCurrentUser接口，如果没有则暂时注释
+      // const response = await getCurrentUser()
+      // if (response.code === 200 && response.data) {
+      //   this.saveUserInfo(response.data)
+      //   return response.data
+      // } else {
+      //   return null
+      // }
+      return null
     } catch (error) {
       console.error('获取用户信息失败:', error)
       return null
@@ -147,15 +149,16 @@ export class LoginService {
    */
   public async refreshToken(): Promise<string | null> {
     try {
-      const response = await post<ApiResponse<{ token: string }>>('/api/auth/refresh')
-      
-      if (response.code === 200 && response.data) {
-        const token = response.data.token
-        localStorage.setItem('token', token)
-        return token
-      } else {
-        throw new Error(response.message || '刷新令牌失败')
-      }
+      // 使用api中的refreshToken接口，如果没有则暂时注释
+      // const response = await refreshToken()
+      // if (response.code === 200 && response.data) {
+      //   const token = response.data.token
+      //   localStorage.setItem('token', token)
+      //   return token
+      // } else {
+      //   throw new Error(response.message || '刷新令牌失败')
+      // }
+      return null
     } catch (error) {
       console.error('刷新令牌失败:', error)
       this.clearUserInfo()

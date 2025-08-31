@@ -35,9 +35,11 @@ export class CesiumUtils {
       fullscreenButton: false,
       requestRenderMode: true,
       maximumRenderTimeChange: Infinity,
+      // 设置默认2D视角
+      scene3DOnly: false,
       ...options
     }
-
+    // Cesium.Ion.defaultAccessToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiI1Njk0MWFkNy00NjAzLTRhYTAtYWM4Yi04YjM4Njg4M2IyMzEiLCJpZCI6Mjg1NTg3LCJpYXQiOjE3NDIzNTA2NDR9.tZ0ZoIsk2bMtMFtzNrO0WrRhS0VPfBhr0_78mtSYpMo';
     this.viewer = new Cesium.Viewer(containerId, defaultOptions)
     
     // 移除默认底图
@@ -46,12 +48,15 @@ export class CesiumUtils {
     // 添加天地图底图
     this.addTiandituLayers()
     
-    // 设置初始相机位置（信阳县）
+    // 强制设置为2D视角
+    this.viewer.scene.morphTo2D(0)
+    
+    // 设置初始相机位置（阳新县）
     this.viewer.camera.setView({
-      destination: Cesium.Cartesian3.fromDegrees(114.0, 32.1, 100000),
+      destination: Cesium.Cartesian3.fromDegrees(115.133954, 29.823198, 50000),
       orientation: {
         heading: 0,
-        pitch: Cesium.Math.toRadians(-45),
+        pitch: 0, // 2D视角下pitch设为0
         roll: 0
       }
     })
@@ -70,7 +75,7 @@ export class CesiumUtils {
   private addTiandituLayers(): void {
     if (!this.viewer) return
     
-    const tiandituKey = import.meta.env.VITE_TIANDITU_KEY as string
+    const tiandituKey = (import.meta as any).env?.VITE_TIANDITU_KEY as string
     
     // 天地图影像底图
     const imageryProvider = new Cesium.WebMapTileServiceImageryProvider({
@@ -96,6 +101,177 @@ export class CesiumUtils {
     
     this.viewer.imageryLayers.addImageryProvider(imageryProvider)
     this.viewer.imageryLayers.addImageryProvider(labelProvider)
+  }
+
+  /**
+   * 切换底图类型
+   * @param type - 底图类型 ('img' | 'vec' | 'ter')
+   */
+  public switchBaseMap(type: 'img' | 'vec' | 'ter'): void {
+    if (!this.viewer) return
+    
+    // 清除现有底图
+    this.viewer.imageryLayers.removeAll()
+    
+    const tiandituKey = (import.meta as any).env?.VITE_TIANDITU_KEY as string
+    
+    let imageryUrl: string
+    let labelUrl: string
+    
+    switch (type) {
+      case 'img': // 影像底图
+        imageryUrl = `https://t{s}.tianditu.gov.cn/img_w/wmts?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=img&STYLE=default&TILEMATRIXSET=w&FORMAT=tiles&TILEMATRIX={TileMatrix}&TILEROW={TileRow}&TILECOL={TileCol}&tk=${tiandituKey}`
+        labelUrl = `https://t{s}.tianditu.gov.cn/cia_w/wmts?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=cia&STYLE=default&TILEMATRIXSET=w&FORMAT=tiles&TILEMATRIX={TileMatrix}&TILEROW={TileRow}&TILECOL={TileCol}&tk=${tiandituKey}`
+        break
+      case 'vec': // 矢量底图
+        imageryUrl = `https://t{s}.tianditu.gov.cn/vec_w/wmts?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=vec&STYLE=default&TILEMATRIXSET=w&FORMAT=tiles&TILEMATRIX={TileMatrix}&TILEROW={TileRow}&TILECOL={TileCol}&tk=${tiandituKey}`
+        labelUrl = `https://t{s}.tianditu.gov.cn/cva_w/wmts?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=cva&STYLE=default&TILEMATRIXSET=w&FORMAT=tiles&TILEMATRIX={TileMatrix}&TILEROW={TileRow}&TILECOL={TileCol}&tk=${tiandituKey}`
+        break
+      case 'ter': // 地形底图
+        imageryUrl = `https://t{s}.tianditu.gov.cn/ter_w/wmts?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=ter&STYLE=default&TILEMATRIXSET=w&FORMAT=tiles&TILEMATRIX={TileMatrix}&TILEROW={TileRow}&TILECOL={TileCol}&tk=${tiandituKey}`
+        labelUrl = `https://t{s}.tianditu.gov.cn/cta_w/wmts?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=cta&STYLE=default&TILEMATRIXSET=w&FORMAT=tiles&TILEMATRIX={TileMatrix}&TILEROW={TileRow}&TILECOL={TileCol}&tk=${tiandituKey}`
+        break
+      default:
+        return
+    }
+    
+    // 添加新的底图
+    const imageryProvider = new Cesium.WebMapTileServiceImageryProvider({
+      url: imageryUrl,
+      layer: type,
+      style: 'default',
+      format: 'tiles',
+      tileMatrixSetID: 'w',
+      subdomains: ['0', '1', '2', '3', '4', '5', '6', '7'],
+      maximumLevel: 18
+    })
+    
+    const labelProvider = new Cesium.WebMapTileServiceImageryProvider({
+      url: labelUrl,
+      layer: type === 'img' ? 'cia' : type === 'vec' ? 'cva' : 'cta',
+      style: 'default',
+      format: 'tiles',
+      tileMatrixSetID: 'w',
+      subdomains: ['0', '1', '2', '3', '4', '5', '6', '7'],
+      maximumLevel: 18
+    })
+    
+    this.viewer.imageryLayers.addImageryProvider(imageryProvider)
+    this.viewer.imageryLayers.addImageryProvider(labelProvider)
+    
+    console.log(`已切换到${type}底图`)
+  }
+
+  /**
+   * 加载矢量切片图层
+   * @param layerId - 图层ID
+   * @param url - 矢量切片URL
+   * @param options - 图层配置选项
+   */
+  public async loadVectorTileLayer(layerId: string, url: string, options: any = {}): Promise<void> {
+    if (!this.viewer) return
+    
+    try {
+      // 使用Cesium的3D Tiles加载矢量切片
+      const tileset = new Cesium.Cesium3DTileset({
+        url: url,
+        maximumScreenSpaceError: options.maximumScreenSpaceError || 16,
+        maximumMemoryUsage: options.maximumMemoryUsage || 512,
+        cullWithChildrenBounds: options.cullWithChildrenBounds !== false,
+        dynamicScreenSpaceError: options.dynamicScreenSpaceError !== false,
+        preloadWhenHidden: options.preloadWhenHidden || false,
+        preferLeaves: options.preferLeaves || true,
+        progressiveResolutionHeightFraction: options.progressiveResolutionHeightFraction || 0.5
+      })
+      
+      // 设置图层名称用于后续管理（使用自定义属性）
+      ;(tileset as any).layerId = layerId
+      
+      // 添加到场景
+      this.viewer.scene.primitives.add(tileset)
+      
+      // 设置图层样式
+      if (options.style) {
+        tileset.style = new Cesium.Cesium3DTileStyle(options.style)
+      }
+      
+      // 设置图层可见性
+      if (options.visible !== undefined) {
+        tileset.show = options.visible
+      }
+      
+      // 设置图层透明度（使用自定义属性）
+      if (options.alpha !== undefined) {
+        ;(tileset as any).alpha = options.alpha
+      }
+      
+      console.log(`矢量切片图层 ${layerId} 加载成功`)
+      
+      // 飞行到图层范围
+      if (options.flyTo !== false) {
+        this.viewer.flyTo(tileset)
+      }
+      
+    } catch (error) {
+      console.error(`加载矢量切片图层 ${layerId} 失败:`, error)
+      throw error
+    }
+  }
+
+  /**
+   * 移除矢量切片图层
+   * @param layerId - 图层ID
+   */
+  public removeVectorTileLayer(layerId: string): void {
+    if (!this.viewer) return
+    
+    const primitives = this.viewer.scene.primitives
+    for (let i = primitives.length - 1; i >= 0; i--) {
+      const primitive = primitives.get(i)
+      if (primitive && (primitive as any).layerId === layerId) {
+        primitives.remove(primitive)
+        console.log(`矢量切片图层 ${layerId} 已移除`)
+        break
+      }
+    }
+  }
+
+  /**
+   * 设置矢量切片图层可见性
+   * @param layerId - 图层ID
+   * @param visible - 是否可见
+   */
+  public setVectorTileLayerVisibility(layerId: string, visible: boolean): void {
+    if (!this.viewer) return
+    
+    const primitives = this.viewer.scene.primitives
+    for (let i = 0; i < primitives.length; i++) {
+      const primitive = primitives.get(i)
+      if (primitive && (primitive as any).layerId === layerId) {
+        primitive.show = visible
+        console.log(`矢量切片图层 ${layerId} 可见性设置为: ${visible}`)
+        break
+      }
+    }
+  }
+
+  /**
+   * 设置矢量切片图层透明度
+   * @param layerId - 图层ID
+   * @param alpha - 透明度 (0-1)
+   */
+  public setVectorTileLayerAlpha(layerId: string, alpha: number): void {
+    if (!this.viewer) return
+    
+    const primitives = this.viewer.scene.primitives
+    for (let i = 0; i < primitives.length; i++) {
+      const primitive = primitives.get(i)
+      if (primitive && (primitive as any).layerId === layerId) {
+        ;(primitive as any).alpha = Math.max(0, Math.min(1, alpha))
+        console.log(`矢量切片图层 ${layerId} 透明度设置为: ${alpha}`)
+        break
+      }
+    }
   }
 
   /**
@@ -332,7 +508,7 @@ export class CesiumUtils {
     // 添加新的多边形
     this.viewer.entities.add({
       polygon: {
-        hierarchy: this.activePoints,
+        hierarchy: new Cesium.PolygonHierarchy(this.activePoints),
         material: Cesium.Color.RED.withAlpha(0.3),
         outline: true,
         outlineColor: Cesium.Color.RED
@@ -484,10 +660,10 @@ export class CesiumUtils {
         // 设置线样式透明度
         if (entity.polyline) {
           const material = entity.polyline.material
-          if (material && Cesium.defined(material.color)) {
-            const color = material.color.getValue(Cesium.JulianDate.now())
-            if (color) {
-              entity.polyline.material = color.withAlpha(opacity)
+          if (material && Cesium.defined(material)) {
+            // 对于Color类型的material，直接设置透明度
+            if (material instanceof Cesium.Color) {
+              entity.polyline.material = new Cesium.ColorMaterialProperty(material.withAlpha(opacity))
             }
           }
         }
@@ -495,10 +671,10 @@ export class CesiumUtils {
         // 设置面样式透明度
         if (entity.polygon) {
           const material = entity.polygon.material
-          if (material && Cesium.defined(material.color)) {
-            const color = material.color.getValue(Cesium.JulianDate.now())
-            if (color) {
-              entity.polygon.material = color.withAlpha(opacity)
+          if (material && Cesium.defined(material)) {
+            // 对于Color类型的material，直接设置透明度
+            if (material instanceof Cesium.Color) {
+              entity.polygon.material = new Cesium.ColorMaterialProperty(material.withAlpha(opacity))
             }
           }
         }
@@ -537,11 +713,15 @@ export class CesiumUtils {
     if (!this.viewer) return
 
     // 保留基础图层，只清除自定义图层
-    const dataSourcesToRemove = this.viewer.dataSources.values.filter(ds => 
-      ds.name && ds.name !== 'default'
-    )
+    const dataSourcesToRemove: Cesium.DataSource[] = []
+    for (let i = 0; i < this.viewer.dataSources.length; i++) {
+      const ds = this.viewer.dataSources.get(i)
+      if (ds && ds.name && ds.name !== 'default') {
+        dataSourcesToRemove.push(ds)
+      }
+    }
     
-    dataSourcesToRemove.forEach(ds => {
+    dataSourcesToRemove.forEach((ds: Cesium.DataSource) => {
       this.viewer!.dataSources.remove(ds)
     })
   }

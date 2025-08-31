@@ -25,7 +25,7 @@ import CesiumMapTools from "./CesiumMapTools.vue";
 import InfoWindow from "../components/InfoWindow.vue";
 import yangxinGeoJson from "../assets/yangxin.json";
 import { useMapStore } from "../stores/mapStore";
-import { cesiumUtils } from "../mapUtils/cesiumUtils";
+import { cesiumUtils } from "@/mapUtils/cesiumUtils";
 import { dataUtils } from "../mapUtils/dataUtils";
 
 // 导入图标资源
@@ -56,7 +56,6 @@ const geoJsonData = [
 function initCesiumMap() {
   try {
     mapStore.setMapLoading(true);
-    
     // 使用cesiumUtils初始化viewer
     const viewer = cesiumUtils.initViewer("cesium-container");
     
@@ -68,11 +67,17 @@ function initCesiumMap() {
     cesiumUtils.flyTo(115.133954, 29.823198, 50000);
     
     // 地图加载完成后加载数据
-    setTimeout(() => {
-      console.log("开始加载GeoJSON数据...");
-      loadGeoJsonData();
-      loadPOIMarkers();
-      mapStore.setMapLoading(false);
+    setTimeout(async () => {
+      console.log("开始加载地图数据...");
+      try {
+        await loadGeoJsonData();
+        await loadPOIMarkers();
+        await loadVectorTileLayers();
+      } catch (error) {
+        console.error("加载地图数据时发生错误:", error);
+      } finally {
+        mapStore.setMapLoading(false);
+      }
     }, 500);
   } catch (error) {
     console.error("Cesium地图初始化失败:", error);
@@ -121,6 +126,50 @@ async function loadGeoJsonData() {
     loadPOIMarkers();
   } catch (error) {
     console.error("加载GeoJSON数据失败:", error);
+  }
+}
+
+// 加载矢量切片图层
+async function loadVectorTileLayers() {
+  try {
+    const viewer = mapStore.viewer;
+    if (!viewer) {
+      console.error("Viewer未初始化");
+      return;
+    }
+
+    console.log("开始加载矢量切片图层...");
+
+    // 桥梁图层
+    await cesiumUtils.loadVectorTileLayer(
+      'bridge_layer',
+      'http://192.168.3.249:8080/geoserver/gwc/service/tms/1.0.0/CSSMX_ZT%3Agspsp_dtrans_bridgebscinfo@EPSG%3A4326@pbf/{z}/{x}/{y}.pbf',
+      {
+        maximumScreenSpaceError: 16,
+        maximumMemoryUsage: 512,
+        visible: true,
+        alpha: 1.0,
+        flyTo: false
+      }
+    );
+
+    // 井盖图层
+    await cesiumUtils.loadVectorTileLayer(
+      'manhole_layer',
+      'http://192.168.3.249:8080/geoserver/gwc/service/tms/1.0.0/CSSMX_ZT%3Agspsp_dtrans_manholecoverbasetinfo@EPSG%3A4326@pbf/{z}/{x}/{y}.pbf',
+      {
+        maximumScreenSpaceError: 16,
+        maximumMemoryUsage: 512,
+        visible: true,
+        alpha: 1.0,
+        flyTo: false
+      }
+    );
+
+    console.log("矢量切片图层加载完成");
+
+  } catch (error) {
+    console.error("加载矢量切片图层失败:", error);
   }
 }
 
@@ -269,7 +318,9 @@ function loadPOIMarkers() {
     cesiumUtils.addPOIMarkers(poiData);
     
     // 更新store中的POI数据
-    mapStore.setPOIData(poiData);
+    poiData.forEach(poi => {
+      mapStore.addPOIMarker(poi);
+    });
 
     console.log(`成功加载 ${poiData.length} 个POI标注`);
 
@@ -357,14 +408,12 @@ onUnmounted(() => {
 <style scoped>
 .cesium-map-container {
   position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
+  top: 0;
+  left: 0;
   overflow: hidden;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
   z-index: 1;
   height: 100%;
-  width: 2400px;
+  width: 100%;
 }
 
 .cesium-instance {

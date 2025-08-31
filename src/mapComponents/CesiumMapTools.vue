@@ -2,150 +2,483 @@
   <div class="cesium-map-tools">
     <!-- 工具栏容器 -->
     <div class="tools-container">
-      <!-- 地图工具 -->
-      <div v-for="group in mapTools" :key="group.title" class="tool-group">
-        <div class="tool-title">{{ group.title }}</div>
+      <!-- 视图控制 -->
+      <div class="tool-group">
+        <div class="tool-title">视图控制</div>
         <div class="tool-buttons">
-          <button
-            v-for="tool in group.tools"
+          <a-tooltip
+            v-for="tool in viewTools"
             :key="tool.id"
-            :class="['tool-btn', { active: tool.active }]"
-            @click="handleToolClick(tool)"
+            :title="tool.name"
+            placement="right"
           >
-            <i :class="tool.icon"></i>
-            <span class="btn-text">{{ tool.name }}</span>
-          </button>
+            <a-button
+              :class="['tool-btn', { active: tool.active }]"
+              @click="handleViewToolClick(tool)"
+              size="large"
+              type="text"
+              shape="circle"
+            >
+              <template #icon>
+                <component :is="tool.icon" />
+              </template>
+            </a-button>
+          </a-tooltip>
         </div>
       </div>
-      
-      <!-- 图层控制工具 -->
-      <LayerControls />
-      
+
       <!-- 测量工具 -->
-      <MeasureTools ref="measureToolsRef" />
-      
-      <!-- 视图控制 -->
-      <ViewControls />
+      <div class="tool-group">
+        <div class="tool-title">测量工具</div>
+        <div class="tool-buttons">
+          <a-tooltip
+            v-for="tool in measureTools"
+            :key="tool.id"
+            :title="tool.name"
+            placement="right"
+          >
+            <a-button
+              :class="['tool-btn', { active: tool.active }]"
+              @click="handleMeasureToolClick(tool)"
+              size="large"
+              type="text"
+              shape="circle"
+            >
+              <template #icon>
+                <component :is="tool.icon" />
+              </template>
+            </a-button>
+          </a-tooltip>
+        </div>
+      </div>
+
+      <!-- 绘制工具 -->
+      <div class="tool-group">
+        <div class="tool-title">绘制工具</div>
+        <div class="tool-buttons">
+          <a-tooltip
+            v-for="tool in drawTools"
+            :key="tool.id"
+            :title="tool.name"
+            placement="right"
+          >
+            <a-button
+              :class="['tool-btn', { active: tool.active }]"
+              @click="handleDrawToolClick(tool)"
+              size="large"
+              type="text"
+              shape="circle"
+            >
+              <template #icon>
+                <component :is="tool.icon" />
+              </template>
+            </a-button>
+          </a-tooltip>
+        </div>
+      </div>
+
+      <!-- 图层控制 -->
+      <div class="tool-group">
+        <div class="tool-title">图层控制</div>
+        <div class="tool-buttons">
+          <a-tooltip
+            v-for="tool in layerTools"
+            :key="tool.id"
+            :title="tool.name"
+            placement="right"
+          >
+            <a-button
+              :class="['tool-btn', { active: tool.active }]"
+              @click="handleLayerToolClick(tool)"
+              size="large"
+              type="text"
+              shape="circle"
+            >
+              <template #icon>
+                <component :is="tool.icon" />
+              </template>
+            </a-button>
+          </a-tooltip>
+        </div>
+      </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref } from "vue";
-import LayerControls from "./LayerControls.vue";
-import MeasureTools from "./MeasureTools.vue";
-import ViewControls from "./ViewControls.vue";
-import { useMapStore } from "../stores/mapStore";
-import { cesiumUtils } from "../mapUtils/cesiumUtils";
+import { ref, inject, onMounted, onUnmounted } from 'vue'
+import { useMapStore } from '@/stores/map/mapStore'
+import { 
+  CompressOutlined, 
+  HomeOutlined, 
+  MinusOutlined, 
+  BorderOutlined, 
+  AimOutlined,
+  EyeOutlined,
+  EyeInvisibleOutlined,
+  ClearOutlined
+} from '@ant-design/icons-vue'
 
 // 使用地图store
-const mapStore = useMapStore();
+const mapStore = useMapStore()
 
-// 测量工具组件引用
-const measureToolsRef = ref(null);
+// 注入地图实例
+const mapInstance = inject('mapInstance')
 
-// 定义事件
-const emit = defineEmits(['tool-click']);
-
-// 工具配置
-const mapTools = ref([
-  {
-    title: '图层控制',
-    tools: [
-      { id: 'satellite', name: '卫星图层', icon: 'icon-satellite', type: 'toggle', active: false },
-      { id: 'label', name: '标注图层', icon: 'icon-label', type: 'toggle', active: false },
-      { id: 'boundary', name: '边界图层', icon: 'icon-boundary', type: 'toggle', active: false },
-      { id: 'marker', name: 'POI标记', icon: 'icon-marker', type: 'toggle', active: false }
-    ]
+// 视图控制工具
+const viewTools = ref([
+  { 
+    id: '2d3d', 
+    name: '2D/3D', 
+    icon: CompressOutlined, 
+    active: false,
+    description: '切换2D/3D视图模式'
   },
-  {
-    title: '交互工具',
-    tools: [
-      { id: 'pan', name: '平移', icon: 'icon-pan', type: 'radio', active: true },
-      { id: 'identify', name: '识别', icon: 'icon-identify', type: 'radio', active: false },
-      { id: 'draw', name: '绘制', icon: 'icon-draw', type: 'radio', active: false },
-      { id: 'clear', name: '清除', icon: 'icon-clear', type: 'action', active: false }
-    ]
+  { 
+    id: 'home', 
+    name: '重置视角', 
+    icon: HomeOutlined, 
+    active: false,
+    description: '重置到默认视角'
   }
-]);
+])
 
-// 处理工具点击
-const handleToolClick = (tool) => {
-  const viewer = mapStore.viewer;
-  if (!viewer) return;
+// 测量工具
+const measureTools = ref([
+  { 
+    id: 'distance', 
+    name: '距离测量', 
+    icon: MinusOutlined, 
+    active: false,
+    description: '测量两点间距离'
+  },
+  { 
+    id: 'area', 
+    name: '面积测量', 
+    icon: BorderOutlined, 
+    active: false,
+    description: '测量多边形面积'
+  }
+])
+
+// 绘制工具
+const drawTools = ref([
+  { 
+    id: 'point', 
+    name: '绘制点', 
+    icon: AimOutlined, 
+    active: false,
+    description: '在地图上绘制点'
+  },
+  { 
+    id: 'line', 
+    name: '绘制线', 
+    icon: MinusOutlined, 
+    active: false,
+    description: '在地图上绘制线'
+  },
+  { 
+    id: 'polygon', 
+    name: '绘制面', 
+    icon: BorderOutlined, 
+    active: false,
+    description: '在地图上绘制多边形'
+  }
+])
+
+// 图层控制工具
+const layerTools = ref([
+  { 
+    id: 'toggleLabels', 
+    name: '标注开关', 
+    icon: EyeOutlined, 
+    active: true,
+    description: '显示/隐藏地图标注'
+  },
+  { 
+    id: 'toggleBridge', 
+    name: '桥梁图层', 
+    icon: EyeOutlined, 
+    active: true,
+    description: '显示/隐藏桥梁图层'
+  },
+  { 
+    id: 'toggleManhole', 
+    name: '井盖图层', 
+    icon: EyeOutlined, 
+    active: true,
+    description: '显示/隐藏井盖图层'
+  },
+  { 
+    id: 'switchMap', 
+    name: '切换底图', 
+    icon: EyeOutlined, 
+    active: false,
+    description: '切换地图底图类型'
+  },
+  { 
+    id: 'clear', 
+    name: '清除绘制', 
+    icon: ClearOutlined, 
+    active: false,
+    description: '清除所有绘制内容'
+  }
+])
+
+// 重置所有工具状态
+const resetAllTools = () => {
+  viewTools.value.forEach(tool => tool.active = false)
+  measureTools.value.forEach(tool => tool.active = false)
+  drawTools.value.forEach(tool => tool.active = false)
+  layerTools.value.forEach(tool => {
+    if (tool.id !== 'toggleLabels') tool.active = false
+  })
+}
+
+// 视图控制工具点击处理
+const handleViewToolClick = (tool) => {
+  resetAllTools()
+  tool.active = true
   
-  console.log('Tool clicked:', tool.name);
-  
-  // 根据工具类型执行相应操作
   switch (tool.id) {
-    case 'satellite':
-      cesiumUtils.toggleImageryLayer('satellite');
-      tool.active = !tool.active;
-      mapStore.setLayerState('satellite', tool.active);
-      break;
-    case 'label':
-      cesiumUtils.toggleImageryLayer('label');
-      tool.active = !tool.active;
-      mapStore.setLayerState('label', tool.active);
-      break;
-    case 'boundary':
-      cesiumUtils.toggleImageryLayer('boundary');
-      tool.active = !tool.active;
-      mapStore.setLayerState('boundary', tool.active);
-      break;
-    case 'marker':
-      cesiumUtils.togglePOIMarkers();
-      tool.active = !tool.active;
-      mapStore.setLayerState('poi', tool.active);
-      break;
-    case 'pan':
-      cesiumUtils.setInteractionMode('pan');
-      updateToolStates('pan');
-      mapStore.setMapState('interactionMode', 'pan');
-      break;
-    case 'identify':
-      cesiumUtils.setInteractionMode('identify');
-      updateToolStates('identify');
-      mapStore.setMapState('interactionMode', 'identify');
-      break;
-    case 'draw':
-      cesiumUtils.setInteractionMode('draw');
-      updateToolStates('draw');
-      mapStore.setMapState('interactionMode', 'draw');
-      break;
-    case 'clear':
-      cesiumUtils.clearAllData();
-      mapStore.clearAllData();
-      break;
-    default:
-      // 切换工具激活状态
-      if (tool.type === 'toggle') {
-        tool.active = !tool.active;
-      }
-      break;
-  }
-  
-  // 发送事件给父组件
-  emit('tool-click', tool);
-};
-
-// 更新工具状态
-const updateToolStates = (activeToolId) => {
-  mapTools.value.forEach(group => {
-    group.tools.forEach(tool => {
-      if (tool.type === 'radio') {
-        tool.active = tool.id === activeToolId;
-      }
-    });
-  });
-};
-
-// 清除测量结果
-function clearMeasureResults() {
-  if (measureToolsRef.value) {
-    measureToolsRef.value.clearMeasureResults();
+    case '2d3d':
+      handle2D3DToggle()
+      break
+    case 'home':
+      handleResetView()
+      break
   }
 }
+
+// 测量工具点击处理
+const handleMeasureToolClick = (tool) => {
+  resetAllTools()
+  tool.active = true
+  
+  // 设置测量工具状态
+  console.log("🚀 ~ handleMeasureToolClick ~ mapStore:", mapStore)
+  mapStore.setMeasureTool(tool.id)
+  
+  switch (tool.id) {
+    case 'distance':
+      startDistanceMeasure()
+      break
+    case 'area':
+      startAreaMeasure()
+      break
+  }
+}
+
+// 绘制工具点击处理
+const handleDrawToolClick = (tool) => {
+  resetAllTools()
+  tool.active = true
+  
+  switch (tool.id) {
+    case 'point':
+      startPointDraw()
+      break
+    case 'line':
+      startLineDraw()
+      break
+    case 'polygon':
+      startPolygonDraw()
+      break
+  }
+}
+
+// 图层控制工具点击处理
+const handleLayerToolClick = (tool) => {
+  switch (tool.id) {
+    case 'toggleLabels':
+      handleToggleLabels()
+      break
+    case 'toggleBridge':
+      handleToggleBridge()
+      break
+    case 'toggleManhole':
+      handleToggleManhole()
+      break
+    case 'switchMap':
+      handleSwitchMap()
+      break
+    case 'clear':
+      handleClearDrawings()
+      break
+  }
+}
+
+// 2D/3D切换
+const handle2D3DToggle = () => {
+  if (!mapInstance?.value) return
+  
+  const currentView = mapStore.mapState.currentView
+  const newView = currentView === '2D' ? '3D' : '2D'
+  
+  if (newView === '2D') {
+    mapInstance.value.scene.morphTo2D(1.0)
+  } else {
+    mapInstance.value.scene.morphTo3D(1.0)
+  }
+  
+  mapStore.toggleView()
+  console.log(`切换到${newView}视图`)
+}
+
+// 重置视角
+const handleResetView = () => {
+  if (!mapInstance?.value) return
+  
+  mapInstance.value.camera.flyTo({
+    destination: Cesium.Cartesian3.fromDegrees(115.133954, 29.823198, 50000),
+    duration: 2
+  })
+  
+  console.log('视角已重置')
+}
+
+// 开始距离测量
+const startDistanceMeasure = async () => {
+  if (!mapInstance?.value) return
+  
+  // 使用cesiumUtils的测量功能
+  const { cesiumUtils } = await import('@/mapUtils/cesiumUtils')
+  cesiumUtils.startDistanceMeasure((result) => {
+    mapStore.addMeasureResult(result)
+    console.log('距离测量结果:', result)
+  })
+}
+
+// 开始面积测量
+const startAreaMeasure = async () => {
+  if (!mapInstance?.value) return
+  
+  // 使用cesiumUtils的测量功能
+  const { cesiumUtils } = await import('@/mapUtils/cesiumUtils')
+  cesiumUtils.startAreaMeasure((result) => {
+    mapStore.addMeasureResult(result)
+    console.log('面积测量结果:', result)
+  })
+}
+
+// 开始绘制点
+const startPointDraw = () => {
+  if (!mapInstance?.value) return
+  
+  console.log('开始绘制点')
+  // TODO: 实现点绘制逻辑
+}
+
+// 开始绘制线
+const startLineDraw = () => {
+  if (!mapInstance?.value) return
+  
+  console.log('开始绘制线')
+  // TODO: 实现线绘制逻辑
+}
+
+// 开始绘制多边形
+const startPolygonDraw = () => {
+  if (!mapInstance?.value) return
+  
+  console.log('开始绘制多边形')
+  // TODO: 实现多边形绘制逻辑
+}
+
+// 切换标注显示
+const handleToggleLabels = () => {
+  const tool = layerTools.value.find(t => t.id === 'toggleLabels')
+  if (tool) {
+    tool.active = !tool.active
+    tool.icon = tool.active ? EyeOutlined : EyeInvisibleOutlined
+    tool.name = tool.active ? '隐藏标注' : '显示标注'
+  }
+  
+  mapStore.toggleLayer('labels')
+  console.log('标注显示状态已切换')
+}
+
+// 切换桥梁图层显示
+const handleToggleBridge = async () => {
+  const tool = layerTools.value.find(t => t.id === 'toggleBridge')
+  if (tool) {
+    tool.active = !tool.active
+    tool.icon = tool.active ? EyeOutlined : EyeInvisibleOutlined
+    tool.name = tool.active ? '隐藏桥梁' : '显示桥梁'
+  }
+  
+  // 使用cesiumUtils切换桥梁图层可见性
+  const { cesiumUtils } = await import('@/mapUtils/cesiumUtils')
+  cesiumUtils.setVectorTileLayerVisibility('bridge_layer', tool.active)
+  
+  console.log('桥梁图层显示状态已切换')
+}
+
+// 切换井盖图层显示
+const handleToggleManhole = async () => {
+  const tool = layerTools.value.find(t => t.id === 'toggleManhole')
+  if (tool) {
+    tool.active = !tool.active
+    tool.icon = tool.active ? EyeOutlined : EyeInvisibleOutlined
+    tool.name = tool.active ? '隐藏井盖' : '显示井盖'
+  }
+  
+  // 使用cesiumUtils切换井盖图层可见性
+  const { cesiumUtils } = await import('@/mapUtils/cesiumUtils')
+  cesiumUtils.setVectorTileLayerVisibility('manhole_layer', tool.active)
+  
+  console.log('井盖图层显示状态已切换')
+}
+
+// 切换底图
+const handleSwitchMap = async () => {
+  if (!mapInstance?.value) return
+  
+  // 使用cesiumUtils切换底图
+  const { cesiumUtils } = await import('@/mapUtils/cesiumUtils')
+  
+  // 循环切换底图类型
+  const currentMapType = mapStore.layerState.currentBaseLayer
+  let newMapType
+  
+  switch (currentMapType) {
+    case 'img':
+      newMapType = 'vec'
+      break
+    case 'vec':
+      newMapType = 'ter'
+      break
+    case 'ter':
+      newMapType = 'img'
+      break
+    default:
+      newMapType = 'img'
+  }
+  
+  cesiumUtils.switchBaseMap(newMapType)
+  mapStore.setBaseLayer(newMapType)
+  
+  console.log(`已切换到${newMapType}底图`)
+}
+
+// 清除绘制内容
+const handleClearDrawings = async () => {
+  if (!mapInstance?.value) return
+  
+  // 使用cesiumUtils清除绘制内容
+  const { cesiumUtils } = await import('@/mapUtils/cesiumUtils')
+  cesiumUtils.clearMeasure()
+  
+  console.log('绘制内容已清除')
+}
+
+onMounted(() => {
+  console.log('CesiumMapTools 组件已挂载')
+})
+
+onUnmounted(() => {
+  console.log('CesiumMapTools 组件已卸载')
+})
 </script>
 
 <style scoped>
@@ -159,12 +492,13 @@ function clearMeasureResults() {
 }
 
 .tools-container {
-  background: rgba(0, 0, 0, 0.8);
-  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 12px;
   padding: 16px;
-  min-width: 200px;
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  min-width: 80px;
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
 }
 
 .tool-group {
@@ -176,97 +510,77 @@ function clearMeasureResults() {
 }
 
 .tool-title {
-  color: var(--text-primary, rgba(255, 255, 255, 0.9));
-  font-size: 14px;
+  color: #333;
+  font-size: 12px;
   font-weight: 600;
   margin-bottom: 12px;
   padding-bottom: 8px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  text-align: center;
 }
 
 .tool-buttons {
   display: flex;
   flex-direction: column;
   gap: 8px;
+  align-items: center;
 }
 
 .tool-btn {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 10px 12px;
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 6px;
-  color: var(--text-secondary, rgba(255, 255, 255, 0.7));
-  font-size: 13px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  min-height: 40px;
-}
-
-.tool-btn:hover {
-  background: rgba(255, 255, 255, 0.15);
-  border-color: var(--primary-color, #1677ff);
-  color: var(--text-primary, rgba(255, 255, 255, 0.9));
-  transform: translateY(-1px);
-}
-
-.tool-btn.active {
-  background: var(--primary-color, #1677ff);
-  border-color: var(--primary-color, #1677ff);
-  color: #ffffff;
-  box-shadow: 0 2px 8px rgba(22, 119, 255, 0.3);
-}
-
-.tool-btn i {
-  width: 16px;
-  height: 16px;
+  width: 48px;
+  height: 48px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 14px;
+  background: rgba(255, 255, 255, 0.8);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 50%;
+  color: #666;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
-.btn-text {
-  flex: 1;
-  text-align: left;
-  white-space: nowrap;
+.tool-btn:hover {
+  background: rgba(255, 255, 255, 1);
+  border-color: #1677ff;
+  color: #1677ff;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(22, 119, 255, 0.2);
 }
 
-/* 图标样式 - 使用字体图标或者可以替换为实际的图标字体 */
-.icon-satellite::before { content: "🛰️"; }
-.icon-label::before { content: "🏷️"; }
-.icon-boundary::before { content: "🗺️"; }
-.icon-marker::before { content: "📍"; }
-.icon-pan::before { content: "✋"; }
-.icon-identify::before { content: "🔍"; }
-.icon-draw::before { content: "✏️"; }
-.icon-clear::before { content: "🗑️"; }
-.icon-distance::before { content: "📏"; }
-.icon-area::before { content: "📐"; }
-.icon-height::before { content: "📊"; }
-.icon-home::before { content: "🏠"; }
-.icon-fullscreen::before { content: "⛶"; }
-.icon-3d::before { content: "🎲"; }
-.icon-2d::before { content: "🗂️"; }
+.tool-btn.active {
+  background: #1677ff;
+  border-color: #1677ff;
+  color: #ffffff;
+  box-shadow: 0 4px 16px rgba(22, 119, 255, 0.4);
+}
+
+.tool-btn .anticon {
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+}
 
 /* 滚动条样式 */
 .tools-container::-webkit-scrollbar {
-  width: 6px;
+  width: 4px;
 }
 
 .tools-container::-webkit-scrollbar-track {
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 3px;
+  background: rgba(0, 0, 0, 0.05);
+  border-radius: 2px;
 }
 
 .tools-container::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.3);
-  border-radius: 3px;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 2px;
 }
 
 .tools-container::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.5);
+  background: rgba(0, 0, 0, 0.3);
 }
 </style>

@@ -117,7 +117,7 @@ export interface LoginResponse {
 
 // 登录请求参数类型
 export interface LoginParams {
-  username: string
+  account: string
   password: string
   code?: string
   uuid?: string
@@ -135,6 +135,7 @@ export interface CesiumViewerOptions {
   fullscreenButton?: boolean
   requestRenderMode?: boolean
   maximumRenderTimeChange?: number
+  scene3DOnly?: boolean
 }
 
 // GeoJSON 加载选项

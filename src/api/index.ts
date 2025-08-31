@@ -1,12 +1,17 @@
-import { get, post } from '@/utils/request'
-import type { ApiResponse, PublicKeyResponse, LoginResponse, LoginParams } from '@/types'
+import { get, post } from "@/utils/request";
+import type {
+  ApiResponse,
+  PublicKeyResponse,
+  LoginResponse,
+  LoginParams,
+} from "@/types";
 
 /**
  * 获取公钥
  * @returns Promise<ApiResponse<PublicKeyResponse>> 公钥信息
  */
-export function getPublicKey(): Promise<ApiResponse<PublicKeyResponse>> {
-  return get<PublicKeyResponse>('/login/publickey')
+export function getPublicKey(): Promise<ApiResponse<string>> {
+  return get<string>("/login/publickey");
 }
 
 /**
@@ -24,13 +29,13 @@ export function login(
   uuid?: string
 ): Promise<ApiResponse<LoginResponse>> {
   const data: LoginParams = {
-    username,
+    account: username,
     password,
     code,
-    uuid
-  }
-  
-  return post<LoginResponse>('/login', data)
+    uuid,
+  };
+
+  return post<LoginResponse>("/login", data);
 }
 
 /**
@@ -38,6 +43,8 @@ export function login(
  * @param params 登录参数对象
  * @returns Promise<ApiResponse<LoginResponse>> 登录结果
  */
-export function loginWithParams(params: LoginParams): Promise<ApiResponse<LoginResponse>> {
-  return post<LoginResponse>('/login', params)
+export function loginWithParams(
+  params: LoginParams
+): Promise<ApiResponse<LoginResponse>> {
+  return post<LoginResponse>("/login", params);
 }

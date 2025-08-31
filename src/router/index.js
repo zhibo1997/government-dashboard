@@ -18,7 +18,7 @@ const routes = [
     name: 'Home',
     component: () => import('../views/DashboardView.vue'),
     meta: {
-      requiresAuth: true,
+      // requiresAuth: true,
       title: '政府大屏系统'
     }
   },
@@ -27,7 +27,7 @@ const routes = [
     name: 'CesiumMap',
     component: () => import('../views/CesiumMapView.vue'),
     meta: {
-      requiresAuth: true,
+      // requiresAuth: true,
       title: 'Cesium地图 - 政府大屏系统'
     }
   },

@@ -24,17 +24,17 @@ import {
   createApp,
 } from "vue";
 import MapTools from "./MapTools.vue";
-import InfoWindow from "./InfoWindow.vue";
-import yangxinGeoJson from "../assets/yangxin.json";
+import InfoWindow from "../InfoWindow.vue";
+import yangxinGeoJson from "@/assets/yangxin.json";
 // 导入图标资源
-import dizhizaihaiyinghuandianIcon from "../assets/icons/dizhizaihaiyinghuandian.png";
-import weixianyuanIcon from "../assets/icons/weixianyuan.png";
-import yiliaoweishengIcon from "../assets/icons/yiliaoweisheng.png";
-import yingjbihusuoIcon from "../assets/icons/yingjibihusuo.png";
-import shexiangtouIcon from "../assets/icons/shexiangtou.png";
-import yongjicangkuIcon from "../assets/icons/yongjicangku.png";
-import yunshubaozhangIcon from "../assets/icons/yunshubaozhang.png";
-import fanghumubiaoIcon from "../assets/icons/fanghumubiao.png";
+import dizhizaihaiyinghuandianIcon from "@/assets/icons/dizhizaihaiyinghuandian.png";
+import weixianyuanIcon from "@/assets/icons/weixianyuan.png";
+import yiliaoweishengIcon from "@/assets/icons/yiliaoweisheng.png";
+import yingjbihusuoIcon from "@/assets/icons/yingjibihusuo.png";
+import shexiangtouIcon from "@/assets/icons/shexiangtou.png";
+import yongjicangkuIcon from "@/assets/icons/yongjicangku.png";
+import yunshubaozhangIcon from "@/assets/icons/yunshubaozhang.png";
+import fanghumubiaoIcon from "@/assets/icons/fanghumubiao.png";
 // import { POI_TYPES, RISK_LEVELS, markerStyles, poiData } from '../data/poiData.js'
 
 // 图层管理

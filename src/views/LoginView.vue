@@ -86,9 +86,9 @@ const handleLogin = async (values) => {
 
   try {
     // 调用登录服务
-    const result = await loginService.login(values.username, values.password);
+    const result = await loginService.login(values);
 
-    if (result.success) {
+    if (result) {
       // 保存登录状态
       authStore.login({
         username: values.username,

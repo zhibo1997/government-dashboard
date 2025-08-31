@@ -1,6 +1,6 @@
 <template>
   <div class="cesium-dashboard-container">
-    <ResponsiveWrapper>
+    <!-- <ResponsiveWrapper> -->
       <!-- 用户信息栏 -->
       <div class="user-info">
         <span class="welcome-text">欢迎，{{ authStore.user?.username }}</span>
@@ -12,15 +12,13 @@
         </a-button>
       </div>
       
-      <!-- 时间显示 -->
-      <TimeDisplay />
       
       <!-- 背景图片 -->
-      <BackgroundImage />
+      <!-- <BackgroundImage /> -->
       
       <!-- Cesium地图组件 -->
       <CesiumMapComponent />
-    </ResponsiveWrapper>
+    <!-- </ResponsiveWrapper> -->
   </div>
 </template>
 
