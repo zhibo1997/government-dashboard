@@ -85,7 +85,7 @@ const handleTabClick = (tab) => {
 
   // 左侧导航区域
   .left-nav {
-    width: 1220px;
+    width: 1160px;
     height: 100%;
     position: relative;
     z-index: 10;

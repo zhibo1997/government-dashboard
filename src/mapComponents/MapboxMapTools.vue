@@ -170,16 +170,4 @@ function handleFullscreen() {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
-/* 响应式设计 */
-@media (max-width: 768px) {
-  .mapbox-tools-container {
-    top: 10px;
-    right: 10px;
-  }
-  
-  .tool-button {
-    width: 36px;
-    height: 36px;
-  }
-}
 </style>

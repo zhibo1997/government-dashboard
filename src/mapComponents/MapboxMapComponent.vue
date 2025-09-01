@@ -1,10 +1,5 @@
 <template>
-  <div class="mapbox-map-container">
-    <div id="mapbox-container" class="mapbox-instance">
-      <!-- Mapbox地图工具 -->
-      <!-- <MapboxMapTools /> -->
-    </div>
-  </div>
+    <div id="mapbox-container" class="mapbox-instance"></div>
 </template>
 
 <script setup>
@@ -61,6 +56,12 @@ function initMapboxMap() {
     
     console.log("地图容器找到，开始创建地图实例...");
     console.log("容器尺寸:", container.offsetWidth, "x", container.offsetHeight);
+    console.log("容器样式:", {
+      width: container.style.width,
+      height: container.style.height,
+      computedWidth: getComputedStyle(container).width,
+      computedHeight: getComputedStyle(container).height
+    });
     
     // 使用mapboxUtils初始化map
     const map = mapboxUtils.initMap("mapbox-container");
@@ -240,9 +241,9 @@ function clearAllDataSources() {
 
 // 组件挂载时初始化地图
 onMounted(() => {
-  nextTick(() => {
+  setTimeout(() => {
     initMapboxMap();
-  });
+  },500);
 });
 
 // 组件卸载时清理资源
@@ -260,17 +261,11 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
-.mapbox-map-container {
-  width: 100%;
-  height: 100%;
-  position: relative;
-  overflow: hidden;
-}
-
 .mapbox-instance {
   width: 100%;
   height: 100%;
   position: relative;
+  min-height: calc(100vh - 148px); /* 确保最小高度 */
 }
 
 .map-mask {
@@ -296,6 +291,8 @@ onUnmounted(() => {
 /* Mapbox GL JS 样式覆盖 */
 :deep(.mapboxgl-canvas) {
   border-radius: 8px;
+  width: 100% !important;
+  height: 100% !important;
 }
 
 :deep(.mapboxgl-popup) {
