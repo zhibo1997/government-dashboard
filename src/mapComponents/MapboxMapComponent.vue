@@ -63,7 +63,6 @@ function initMapboxMap() {
         });
         
         await loadGeoJSONData();
-        await loadVectorTileLayers();
         
         // 添加指北针控件
         mapboxUtils.addCompassControl(map, 'top-right');
@@ -131,41 +130,7 @@ async function loadGeoJsonData() {
   }
 }
 
-// 加载矢量切片图层
-async function loadVectorTileLayers() {
-  try {
-    const map = mapStore.map;
-    if (!map) {
-      console.error("Map未初始化");
-      return;
-    }
 
-    // 桥梁图层
-    await mapboxUtils.loadVectorTileLayer(
-      map,
-      'bridge_layer',
-      'http://192.168.3.249:8080/geoserver/gwc/service/tms/1.0.0/CSSMX_ZT%3Agspsp_dtrans_bridgebscinfo@EPSG%3A4326@pbf/{z}/{x}/{y}.pbf',
-      {
-        visible: true,
-        opacity: 1.0,
-      }
-    );
-
-    // 井盖图层
-    await mapboxUtils.loadVectorTileLayer(
-      map,
-      'manhole_layer',
-      'http://192.168.3.249:8080/geoserver/gwc/service/tms/1.0.0/CSSMX_ZT%3Agspsp_dtrans_manholecoverbasetinfo@EPSG%3A4326@pbf/{z}/{x}/{y}.pbf',
-      {
-        visible: true,
-        opacity: 1.0,
-      }
-    );
-
-  } catch (error) {
-    console.error("加载矢量切片图层失败:", error);
-  }
-}
 
 
 // 清除所有数据源

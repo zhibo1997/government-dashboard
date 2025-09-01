@@ -40,6 +40,7 @@
         <!-- 中间地图区域 -->
         <div class="center-map">
           <MapboxMapComponent />
+          <MapboxMapTools />
         </div>
 
         <!-- 右侧内容区域 -->
@@ -67,6 +68,7 @@
 <script setup>
 import ResponsiveWrapper from "../components/ResponsiveWrapper.vue";
 import MapboxMapComponent from "../mapComponents/MapboxMapComponent.vue";
+import MapboxMapTools from "../mapComponents/MapboxMapTools.vue";
 import TimeDisplay from "../components/TimeDisplay.vue";
 
 // 头部点击时间
