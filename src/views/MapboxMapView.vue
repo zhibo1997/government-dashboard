@@ -1,0 +1,87 @@
+<template>
+  <div class="mapbox-dashboard-container">
+    <!-- 用户信息栏 -->
+    <div class="user-info">
+      <span class="welcome-text">欢迎，{{ authStore.user?.username }}</span>
+      <a-button type="text" @click="handleLogout" class="logout-btn">
+        <template #icon>
+          <LogoutOutlined />
+        </template>
+        退出登录
+      </a-button>
+    </div>
+    
+    <!-- Mapbox地图组件 -->
+    <MapboxMapComponent />
+  </div>
+</template>
+
+<script setup>
+import { ref } from 'vue'
+import { useRouter } from 'vue-router'
+import { message } from 'ant-design-vue'
+import { LogoutOutlined } from '@ant-design/icons-vue'
+import { useAuthStore } from '../stores/auth'
+import MapboxMapComponent from '../mapComponents/MapboxMapComponent.vue'
+
+const router = useRouter()
+const authStore = useAuthStore()
+
+// 退出登录
+const handleLogout = () => {
+  authStore.logout()
+  message.success('已退出登录')
+  router.push('/login')
+}
+</script>
+
+<style lang="scss" scoped>
+.mapbox-dashboard-container {
+  width: 100%;
+  height: 100vh;
+  position: relative;
+  
+  .user-info {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    background: rgba(0, 0, 0, 0.3);
+    padding: 8px 16px;
+    border-radius: 6px;
+    backdrop-filter: blur(10px);
+    
+    .welcome-text {
+      color: #fff;
+      font-size: 14px;
+    }
+    
+    .logout-btn {
+      color: #fff;
+      
+      &:hover {
+        color: var(--primary-color);
+        background: rgba(255, 255, 255, 0.1);
+      }
+    }
+  }
+}
+
+// 响应式设计
+@media (max-width: 768px) {
+  .mapbox-dashboard-container {
+    .user-info {
+      top: 10px;
+      right: 10px;
+      padding: 6px 12px;
+      
+      .welcome-text {
+        font-size: 12px;
+      }
+    }
+  }
+}
+</style>

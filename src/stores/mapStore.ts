@@ -13,17 +13,17 @@ import type {
 
 /**
  * 地图状态管理 Store
- * 管理 Cesium viewer 实例、地图状态、图层状态、测量工具状态、POI 数据状态和 GeoJSON 数据状态
+ * 管理 Mapbox map 实例、地图状态、图层状态、测量工具状态、POI 数据状态和 GeoJSON 数据状态
  */
 export const useMapStore = defineStore('map', () => {
-  // Cesium viewer 实例
-  const viewer = ref<any>(null)
+  // Mapbox map 实例
+  const map = ref<any>(null)
 
   // 地图状态
   const mapState = ref<MapState>({
     isInitialized: false,
     isLoading: false,
-    viewMode: '3D',
+    viewMode: '2D',
     isFullscreen: false
   })
 
@@ -32,7 +32,7 @@ export const useMapStore = defineStore('map', () => {
     satellite: true,
     terrain: false,
     labels: true,
-    baseMap: 'tianditu',
+    baseMap: 'mapbox',
     customLayers: new Map()
   })
 
@@ -66,8 +66,8 @@ export const useMapStore = defineStore('map', () => {
   })
 
   // Computed properties
-  const isViewerReady = computed(() => {
-    return viewer.value !== null && mapState.value.isInitialized
+  const isMapReady = computed(() => {
+    return map.value !== null && mapState.value.isInitialized
   })
 
   const activeMeasureTool = computed(() => {
@@ -91,8 +91,8 @@ export const useMapStore = defineStore('map', () => {
   })
 
   // Actions
-  const setViewer = (cesiumViewer: any): void => {
-    viewer.value = cesiumViewer
+  const setMap = (mapboxMap: any): void => {
+    map.value = mapboxMap
   }
 
   const setMapInitialized = (initialized: boolean): void => {
@@ -103,7 +103,7 @@ export const useMapStore = defineStore('map', () => {
     mapState.value.isLoading = loading
   }
 
-  const setViewMode = (mode: '2D' | '3D' | 'Columbus'): void => {
+  const setViewMode = (mode: '2D' | '3D'): void => {
     mapState.value.viewMode = mode
   }
 
@@ -224,7 +224,7 @@ export const useMapStore = defineStore('map', () => {
     mapState.value = {
       isInitialized: false,
       isLoading: false,
-      viewMode: '3D',
+      viewMode: '2D',
       isFullscreen: false
     }
   }
@@ -234,7 +234,7 @@ export const useMapStore = defineStore('map', () => {
       satellite: true,
       terrain: false,
       labels: true,
-      baseMap: 'tianditu',
+      baseMap: 'mapbox',
       customLayers: new Map()
     }
   }
@@ -337,7 +337,7 @@ export const useMapStore = defineStore('map', () => {
 
   return {
     // State
-    viewer,
+    map,
     mapState,
     layerState,
     layerTreeState,
@@ -346,7 +346,7 @@ export const useMapStore = defineStore('map', () => {
     geoJsonState,
     
     // Computed
-    isViewerReady,
+    isMapReady,
     activeMeasureTool,
     visiblePOIs,
     totalDataSources,
@@ -354,7 +354,7 @@ export const useMapStore = defineStore('map', () => {
     layerTreeNodes,
     
     // Actions
-    setViewer,
+    setMap,
     setMapInitialized,
     setMapLoading,
     setViewMode,

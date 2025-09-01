@@ -123,21 +123,6 @@ export interface LoginParams {
   uuid?: string
 }
 
-// Cesium 相关类型扩展
-export interface CesiumViewerOptions {
-  timeline?: boolean
-  animation?: boolean
-  geocoder?: boolean
-  homeButton?: boolean
-  sceneModePicker?: boolean
-  baseLayerPicker?: boolean
-  navigationHelpButton?: boolean
-  fullscreenButton?: boolean
-  requestRenderMode?: boolean
-  maximumRenderTimeChange?: number
-  scene3DOnly?: boolean
-}
-
 // GeoJSON 加载选项
 export interface GeoJsonLoadOptions {
   stroke?: string

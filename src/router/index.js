@@ -23,12 +23,12 @@ const routes = [
     }
   },
   {
-    path: '/cesium-map',
-    name: 'CesiumMap',
-    component: () => import('../views/CesiumMapView.vue'),
+    path: '/mapboxmap',
+    name: 'MapboxMap',
+    component: () => import('../views/MapboxMapView.vue'),
     meta: {
       // requiresAuth: true,
-      title: 'Cesium地图 - 政府大屏系统'
+      title: 'Mapbox地图 - 政府大屏系统'
     }
   },
   {
