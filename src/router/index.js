@@ -16,11 +16,7 @@ const routes = [
   {
     path: '/',
     name: 'Home',
-    component: () => import('../views/DashboardView.vue'),
-    meta: {
-      // requiresAuth: true,
-      title: '政府大屏系统'
-    }
+    redirect: '/new-dashboard'
   },
   {
     path: '/new-dashboard',
@@ -31,24 +27,8 @@ const routes = [
       title: '新Dashboard - 政府大屏系统'
     }
   },
-  {
-    path: '/mapboxmap',
-    name: 'MapboxMap',
-    component: () => import('../views/MapboxMapView.vue'),
-    meta: {
-      // requiresAuth: true,
-      title: 'Mapbox地图 - 政府大屏系统'
-    }
-  },
-  {
-    path: '/test-scale',
-    name: 'TestScale',
-    component: () => import('../views/TestScaleView.vue'),
-    meta: {
-      // requiresAuth: true,
-      title: '缩放测试 - 政府大屏系统'
-    }
-  },
+
+
   {
     path: '/:pathMatch(.*)*',
     name: 'NotFound',

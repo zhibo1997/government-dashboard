@@ -12,21 +12,12 @@ import {
 } from "vue";
 import mapboxgl from "mapbox-gl";
 import MapboxMapTools from "./MapboxMapTools.vue";
-import InfoWindow from "../components/InfoWindow.vue";
 import yangxinGeoJson from "../assets/yangxin.json";
 import { useMapStore } from "../stores/mapStore";
 import { mapboxUtils } from "@/mapUtils/mapboxUtils";
 import { dataUtils } from "../mapUtils/dataUtils";
 
-// 导入图标资源
-import dizhizaihaiyinghuandianIcon from "../assets/icons/dizhizaihaiyinghuandian.png";
-import weixianyuanIcon from "../assets/icons/weixianyuan.png";
-import yiliaoweishengIcon from "../assets/icons/yiliaoweisheng.png";
-import yingjbihusuoIcon from "../assets/icons/yingjibihusuo.png";
-import shexiangtouIcon from "../assets/icons/shexiangtou.png";
-import yongjicangkuIcon from "../assets/icons/yongjicangku.png";
-import yunshubaozhangIcon from "../assets/icons/yunshubaozhang.png";
-import fanghumubiaoIcon from "../assets/icons/fanghumubiao.png";
+
 
 // 使用地图store
 const mapStore = useMapStore();
@@ -45,7 +36,7 @@ const geoJsonData = [
 // 初始化Mapbox地图
 function initMapboxMap() {
   try {
-    console.log("开始初始化Mapbox地图...");
+    console.log("初始化Mapbox地图...");
     mapStore.setMapLoading(true);
     
     // 检查容器是否存在
@@ -54,19 +45,8 @@ function initMapboxMap() {
       throw new Error("地图容器不存在: mapbox-container");
     }
     
-    console.log("地图容器找到，开始创建地图实例...");
-    console.log("容器尺寸:", container.offsetWidth, "x", container.offsetHeight);
-    console.log("容器样式:", {
-      width: container.style.width,
-      height: container.style.height,
-      computedWidth: getComputedStyle(container).width,
-      computedHeight: getComputedStyle(container).height
-    });
-    
     // 使用mapboxUtils初始化map
     const map = mapboxUtils.initMap("mapbox-container");
-    
-    console.log("地图实例创建成功:", map);
     
     // 设置到store和ref
     mapStore.setMap(map);
@@ -74,7 +54,6 @@ function initMapboxMap() {
     
     // 地图加载完成后加载数据
     map.on('load', async () => {
-      console.log("地图加载完成，开始加载数据...");
       try {
         // 地图加载完成后，设置默认相机位置
         map.flyTo({
@@ -83,20 +62,17 @@ function initMapboxMap() {
           duration: 2000
         });
         
-        console.log("相机位置设置完成");
-        
         await loadGeoJSONData();
         await loadVectorTileLayers();
         
         // 添加指北针控件
         mapboxUtils.addCompassControl(map, 'top-right');
         
-        console.log("所有数据加载完成");
+        console.log("地图初始化完成");
       } catch (error) {
         console.error("加载地图数据时发生错误:", error);
       } finally {
         mapStore.setMapLoading(false);
-        console.log("地图初始化完成");
       }
     });
 
@@ -104,25 +80,6 @@ function initMapboxMap() {
     map.on('error', (error) => {
       console.error('地图加载错误:', error);
       mapStore.setMapLoading(false);
-    });
-
-    // 添加样式加载完成事件
-    map.on('styledata', () => {
-      console.log("地图样式加载完成");
-    });
-
-    // 添加数据加载事件
-    map.on('sourcedata', (event) => {
-      if (event.isSourceLoaded) {
-        console.log("数据源加载完成:", event.sourceId);
-      }
-    });
-
-    // 添加渲染事件
-    map.on('render', () => {
-      if (!map.isStyleLoaded()) {
-        console.log("地图样式正在加载中...");
-      }
     });
 
   } catch (error) {
@@ -183,8 +140,6 @@ async function loadVectorTileLayers() {
       return;
     }
 
-    console.log("开始加载矢量切片图层...");
-
     // 桥梁图层
     await mapboxUtils.loadVectorTileLayer(
       map,
@@ -206,8 +161,6 @@ async function loadVectorTileLayers() {
         opacity: 1.0,
       }
     );
-
-    console.log("矢量切片图层加载完成");
 
   } catch (error) {
     console.error("加载矢量切片图层失败:", error);
@@ -233,7 +186,6 @@ function clearAllDataSources() {
     // 清除POI标注
     mapboxUtils.clearPOIMarkers(map);
 
-    console.log("所有数据源已清除");
   } catch (error) {
     console.error("清除数据源失败:", error);
   }
