@@ -1,29 +1,131 @@
-# government-dashboard
+# 阳新县政府数据可视化大屏
 
-This template should help get you started developing with Vue 3 in Vite.
+## 🎯 项目简介
+基于Vue3 + Mapbox GL JS的政府数据可视化大屏项目，提供地图展示、数据分析和交互式操作功能。
 
-## Recommended IDE Setup
+## ✨ 主要功能
 
-[VSCode](https://code.visualstudio.com/) + [Volar](https://marketplace.visualstudio.com/items?itemName=Vue.volar) (and disable Vetur).
+### 🗺️ 地图功能
+- **多底图支持**：天地图矢量、影像、地形底图
+- **智能回退**：网络异常时自动切换到OSM底图
+- **图层管理**：支持GeoJSON、矢量切片等多种数据源
+- **POI标注**：支持自定义图标和弹出窗口
 
-## Customize configuration
+### 🛠️ 地图工具
+- **复位工具**：一键回到初始位置和视角
+- **指北针控件**：显示地图方向指示器
+- **测距工具**：测量地图上两点间距离
+- **全屏显示**：支持地图全屏查看
 
-See [Vite Configuration Reference](https://vite.dev/config/).
+### 📊 数据可视化
+- **行政区划展示**：阳新县行政区划边界
+- **基础设施图层**：桥梁、井盖等基础设施信息
+- **响应式设计**：支持多种屏幕尺寸
 
-## Project Setup
+## 🚀 技术栈
 
-```sh
-npm install
+- **前端框架**：Vue 3 + Composition API
+- **地图引擎**：Mapbox GL JS v1.13.3
+- **UI组件库**：Ant Design Vue v4.2.6
+- **构建工具**：Vite
+- **样式预处理**：SCSS
+- **类型支持**：TypeScript
+
+## 📁 项目结构
+
+```
+src/
+├── components/          # 通用组件
+├── mapComponents/       # 地图相关组件
+├── mapUtils/           # 地图工具类
+├── stores/             # 状态管理
+├── views/              # 页面视图
+├── assets/             # 静态资源
+└── types/              # 类型定义
 ```
 
-### Compile and Hot-Reload for Development
+## 🎨 设计规范
 
-```sh
+### 色彩体系
+- **主色**：#1677ff（拂晓蓝）
+- **成功色**：#52c41a（极光绿）
+- **警告色**：#faad14（金盏花）
+- **错误色**：#ff4d4f（薄暮红）
+
+### 地图配置
+- **默认中心**：[115.133954, 29.823198]（阳新县）
+- **默认缩放**：10级
+- **支持底图**：天地图(vec/img/ter)、OSM
+
+## 🚀 快速开始
+
+### 环境要求
+- Node.js >= 16.0.0
+- npm >= 8.0.0
+
+### 安装依赖
+```bash
+npm install
+# 或使用 enpm（推荐）
+enpm install
+```
+
+### 启动开发服务器
+```bash
 npm run dev
 ```
 
-### Compile and Minify for Production
-
-```sh
+### 构建生产版本
+```bash
 npm run build
 ```
+
+## 📖 使用说明
+
+### 地图工具使用
+1. **复位工具**：点击复位按钮回到初始位置
+2. **指北针**：自动显示在地图右上角
+3. **测距工具**：点击启用，选择两点测量距离
+
+### 底图切换
+支持三种天地图底图类型：
+- `vec`：矢量底图
+- `img`：影像底图  
+- `ter`：地形底图
+
+## 🔧 开发指南
+
+### 添加新的地图工具
+```typescript
+// 在 mapboxUtils.ts 中添加新方法
+export const mapboxUtils = {
+  // 新工具方法
+  newTool(map: mapboxgl.Map): void {
+    // 实现逻辑
+  }
+};
+```
+
+### 自定义样式
+项目使用Ant Design设计系统，所有组件样式都遵循设计规范。
+
+## 📝 更新日志
+
+### v1.0.0 (2025-09-01)
+- ✨ 初始版本发布
+- 🗺️ 集成Mapbox GL JS地图引擎
+- 🛠️ 实现地图复位、指北针、测距工具
+- 🎨 遵循Ant Design设计规范
+- 📱 支持响应式设计
+
+## 🤝 贡献指南
+
+欢迎提交Issue和Pull Request来改进项目！
+
+## 📄 许可证
+
+MIT License
+
+## 📞 联系方式
+
+如有问题，请通过GitHub Issues联系我们。

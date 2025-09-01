@@ -89,7 +89,6 @@ function initMapboxMap() {
         console.log("相机位置设置完成");
         
         await loadGeoJSONData();
-        await loadPOIMarkers();
         await loadVectorTileLayers();
         
         // 添加指北针控件
@@ -218,98 +217,6 @@ async function loadVectorTileLayers() {
   }
 }
 
-// 加载POI标注
-function loadPOIMarkers() {
-  try {
-    const map = mapStore.map;
-    if (!map) {
-      console.error("Map未初始化");
-      return;
-    }
-
-    // POI数据
-    const poiData = [
-      {
-        id: "poi_1",
-        name: "地质灾害隐患点1",
-        position: [115.2167, 29.8333],
-        type: "disaster_point",
-        description: "地址：阳新县兴国镇政府附近<br/>风险等级：中等<br/>监测状态：正常<br/>负责人：张三 13800138001",
-        icon: dizhizaihaiyinghuandianIcon,
-      },
-      {
-        id: "poi_2",
-        name: "地质灾害隐患点2",
-        position: [115.12, 29.78],
-        type: "disaster_point",
-        description: "地址：阳新县白沙镇山区<br/>风险等级：高<br/>监测状态：预警<br/>负责人：李四 13800138002",
-        icon: dizhizaihaiyinghuandianIcon,
-      },
-      {
-        id: "poi_3",
-        name: "危险源监测点",
-        position: [115.25, 29.85],
-        type: "hazard_source",
-        description: "地址：阳新县工业园区<br/>监测类型：化学品<br/>风险等级：高<br/>负责人：王五 13800138003",
-        icon: weixianyuanIcon,
-      },
-      {
-        id: "poi_4",
-        name: "医疗卫生点",
-        position: [115.15, 29.82],
-        type: "medical",
-        description: "地址：阳新县人民医院<br/>服务类型：综合医院<br/>床位：500张<br/>负责人：赵六 13800138004",
-        icon: yiliaoweishengIcon,
-      },
-      {
-        id: "poi_5",
-        name: "应急避难所",
-        position: [115.18, 29.79],
-        type: "emergency_shelter",
-        description: "地址：阳新县体育中心<br/>容纳人数：2000人<br/>设施：医疗、餐饮<br/>负责人：钱七 13800138005",
-        icon: yingjbihusuoIcon,
-      },
-      {
-        id: "poi_6",
-        name: "监控摄像头",
-        position: [115.22, 29.81],
-        type: "camera",
-        description: "地址：阳新县主要路口<br/>监控范围：500米<br/>状态：正常<br/>负责人：孙八 13800138006",
-        icon: shexiangtouIcon,
-      },
-      {
-        id: "poi_7",
-        name: "应急物资仓库",
-        position: [115.16, 29.84],
-        type: "warehouse",
-        description: "地址：阳新县物流园区<br/>物资类型：救援装备<br/>库存：充足<br/>负责人：周九 13800138007",
-        icon: yongjicangkuIcon,
-      },
-      {
-        id: "poi_8",
-        name: "运输保障点",
-        position: [115.19, 29.77],
-        type: "transport",
-        description: "地址：阳新县交通枢纽<br/>车辆数量：50辆<br/>状态：待命<br/>负责人：吴十 13800138008",
-        icon: yunshubaozhangIcon,
-      },
-      {
-        id: "poi_9",
-        name: "防护目标点",
-        position: [115.21, 29.83],
-        type: "protection_target",
-        description: "地址：阳新县重要设施<br/>保护等级：一级<br/>措施：24小时监控<br/>负责人：郑十一 13800138009",
-        icon: fanghumubiaoIcon,
-      },
-    ];
-
-    // 使用mapboxUtils添加POI标注
-    mapboxUtils.addPOIMarkers(map, poiData);
-
-  } catch (error) {
-    console.error("加载POI标注失败:", error);
-  }
-}
 
 // 清除所有数据源
 function clearAllDataSources() {
