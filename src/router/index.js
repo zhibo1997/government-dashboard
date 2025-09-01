@@ -41,6 +41,15 @@ const routes = [
     }
   },
   {
+    path: '/test-scale',
+    name: 'TestScale',
+    component: () => import('../views/TestScaleView.vue'),
+    meta: {
+      // requiresAuth: true,
+      title: '缩放测试 - 政府大屏系统'
+    }
+  },
+  {
     path: '/:pathMatch(.*)*',
     name: 'NotFound',
     redirect: '/'

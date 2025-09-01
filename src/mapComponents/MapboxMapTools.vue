@@ -47,7 +47,7 @@
           title="测距工具"
         >
           <template #icon>
-            <RulerOutlined />
+            <BorderOutlined />
           </template>
         </a-button>
         
@@ -74,7 +74,7 @@ import {
   FullscreenOutlined, 
   ReloadOutlined, 
   CompassOutlined, 
-  RulerOutlined 
+  BorderOutlined 
 } from "@ant-design/icons-vue";
 import { mapboxUtils } from "../mapUtils/mapboxUtils";
 

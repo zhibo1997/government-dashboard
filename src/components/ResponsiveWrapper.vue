@@ -15,7 +15,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted, computed } from 'vue'
+import { ref, onMounted, onUnmounted, computed, watch } from 'vue'
 
 // 定义props
 const props = defineProps({
@@ -72,11 +72,12 @@ function calculateResponsive() {
   const windowHeight = window.innerHeight
   
   let scale = 1
+  
   if (currentScaleMode.value === 'width') {
-    // 按宽度缩放
+    // 按宽度缩放：屏幕宽度 / 基准宽度
     scale = windowWidth / actualBaseWidth.value
-  } else {
-    // 按高度缩放
+  } else if (currentScaleMode.value === 'height') {
+    // 按高度缩放：屏幕高度 / 基准高度
     scale = windowHeight / actualBaseHeight.value
   }
   
@@ -84,6 +85,22 @@ function calculateResponsive() {
   scale = Math.max(props.minScale, Math.min(props.maxScale, scale))
   
   scaleRatio.value = scale
+  
+  console.log('缩放计算:', {
+    mode: currentScaleMode.value,
+    windowSize: `${windowWidth}x${windowHeight}`,
+    baseSize: `${actualBaseWidth.value}x${actualBaseHeight.value}`,
+    scale: scale
+  })
+}
+
+// 监听URL参数变化
+function watchUrlParams() {
+  const newMode = getScaleMode()
+  if (newMode !== currentScaleMode.value) {
+    currentScaleMode.value = newMode
+    calculateResponsive()
+  }
 }
 
 // 防抖处理
@@ -100,6 +117,10 @@ const debouncedCalculate = debounce(calculateResponsive, 100)
 onMounted(() => {
   calculateResponsive()
   window.addEventListener('resize', debouncedCalculate)
+  
+  // 监听URL变化
+  const observer = new MutationObserver(watchUrlParams)
+  observer.observe(document, { subtree: true, childList: true })
 })
 
 onUnmounted(() => {
@@ -108,20 +129,15 @@ onUnmounted(() => {
 
 // 暴露响应式数据供父组件使用
 defineExpose({
-  scaleRatio
+  scaleRatio,
+  currentScaleMode
 })
 </script>
 
 <style scoped>
 .responsive-wrapper {
-  width: 100vw;
-  height: 100vh;
   overflow-x: auto;
-  overflow-y: hidden;
   position: relative;
-  display: flex;
-  align-items: flex-start;
-  justify-content: flex-start;
 }
 
 /* 外层滚动条样式优化 */
@@ -158,10 +174,9 @@ defineExpose({
 }
 
 .scale-content {
-  position: absolute;
-  top: 0;
-  left: 0;
+  position: relative;
   transform-origin: top left;
   will-change: transform;
+  display: inline-block;
 }
 </style>

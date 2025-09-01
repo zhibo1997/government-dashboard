@@ -1,3 +1,10 @@
+<!--
+ * @Author: Do not edit
+ * @Date: 2025-09-01 20:25:59
+ * @LastEditors: 王志博
+ * @LastEditTime: 2025-09-01 21:13:00
+ * @Description: 
+-->
 <template>
   <div class="time-display">
     <div class="time-content">
@@ -49,11 +56,9 @@ onUnmounted(() => {
 <style scoped>
 .time-display {
   background-color: transparent;
-  border: 1px solid #d9d9d9;
   border-radius: 8px;
   padding: 12px 16px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  backdrop-filter: blur(8px);
   transition: all 0.2s ease;
   font-family: 'Microsoft YaHei', sans-serif;
 }

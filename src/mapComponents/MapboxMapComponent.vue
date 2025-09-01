@@ -1,12 +1,8 @@
 <template>
   <div class="mapbox-map-container">
     <div id="mapbox-container" class="mapbox-instance">
-      <!-- 左侧遮挡层 -->
-      <div class="map-mask-left map-mask"></div>
-      <!-- 右侧遮挡层 -->
-      <div class="map-mask-right map-mask"></div>
       <!-- Mapbox地图工具 -->
-      <MapboxMapTools />
+      <!-- <MapboxMapTools /> -->
     </div>
   </div>
 </template>
