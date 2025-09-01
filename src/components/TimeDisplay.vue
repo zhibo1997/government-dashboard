@@ -48,10 +48,6 @@ onUnmounted(() => {
 
 <style scoped>
 .time-display {
-  position: fixed;
-  top: 30px;
-  left: 20px;
-  z-index: 1000;
   background-color: transparent;
   border: 1px solid #d9d9d9;
   border-radius: 8px;

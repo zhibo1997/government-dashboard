@@ -23,6 +23,15 @@ const routes = [
     }
   },
   {
+    path: '/new-dashboard',
+    name: 'NewDashboard',
+    component: () => import('../views/NewDashboardView.vue'),
+    meta: {
+      // requiresAuth: true,
+      title: '新Dashboard - 政府大屏系统'
+    }
+  },
+  {
     path: '/mapboxmap',
     name: 'MapboxMap',
     component: () => import('../views/MapboxMapView.vue'),

@@ -4,282 +4,87 @@ import mapboxgl from 'mapbox-gl';
 declare module 'mapbox-gl' {
   interface Map {
     _poiMarkers?: mapboxgl.Marker[];
+    _distanceEventHandlers?: Array<{
+      type: string;
+      handler: (e: any) => void;
+    }>;
   }
 }
 
 // Mapbox地图工具类
 export const mapboxUtils = {
-  // 创建天地图样式
+  // 创建天地图样式（简化版）
   createTiandituStyle(type: 'vec' | 'img' | 'ter' = 'vec'): any {
-    const tiandituKey = (import.meta as any).env?.VITE_TIANDITU_KEY || 'YOUR_TIANDITU_KEY'
+    // 从环境变量获取key，如果没有则返回OSM样式
+    const key = import.meta.env?.VITE_TIANDITU_KEY
+    console.log("🚀 ~ createTiandituStyle ~ key:", key)
     
-    let baseLayer: string
-    let labelLayer: string
+    const layers = { vec: 'cva', img: 'cia', ter: 'cta' }
     
-    switch (type) {
-      case 'vec': // 矢量底图
-        baseLayer = 'vec'
-        labelLayer = 'cva'
-        break
-      case 'img': // 影像底图
-        baseLayer = 'img'
-        labelLayer = 'cia'
-        break
-      case 'ter': // 地形底图
-        baseLayer = 'ter'
-        labelLayer = 'cta'
-        break
-      default:
-        baseLayer = 'vec'
-        labelLayer = 'cva'
-    }
-    
-    // 使用v1.13.3的简化配置
     return {
       version: 8,
-      name: `Tianditu ${type.toUpperCase()} Style`,
       sources: {
-        [`tianditu-${baseLayer}`]: {
+        base: {
           type: 'raster',
-          tiles: [
-            `https://t0.tianditu.gov.cn/${baseLayer}_w/wmts?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=${baseLayer}&STYLE=default&TILEMATRIXSET=w&FORMAT=tiles&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}&tk=${tiandituKey}`,
-            `https://t1.tianditu.gov.cn/${baseLayer}_w/wmts?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=${baseLayer}&STYLE=default&TILEMATRIXSET=w&FORMAT=tiles&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}&tk=${tiandituKey}`,
-            `https://t2.tianditu.gov.cn/${baseLayer}_w/wmts?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=${baseLayer}&STYLE=default&TILEMATRIXSET=w&FORMAT=tiles&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}&tk=${tiandituKey}`,
-            `https://t3.tianditu.gov.cn/${baseLayer}_w/wmts?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=${baseLayer}&STYLE=default&TILEMATRIXSET=w&FORMAT=tiles&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}&tk=${tiandituKey}`,
-            `https://t4.tianditu.gov.cn/${baseLayer}_w/wmts?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=${baseLayer}&STYLE=default&TILEMATRIXSET=w&FORMAT=tiles&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}&tk=${tiandituKey}`,
-            `https://t5.tianditu.gov.cn/${baseLayer}_w/wmts?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=${baseLayer}&STYLE=default&TILEMATRIXSET=w&FORMAT=tiles&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}&tk=${tiandituKey}`,
-            `https://t6.tianditu.gov.cn/${baseLayer}_w/wmts?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=${baseLayer}&STYLE=default&TILEMATRIXSET=w&FORMAT=tiles&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}&tk=${tiandituKey}`,
-            `https://t7.tianditu.gov.cn/${baseLayer}_w/wmts?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=${baseLayer}&STYLE=default&TILEMATRIXSET=w&FORMAT=tiles&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}&tk=${tiandituKey}`
-          ],
-          tileSize: 256,
-          attribution: '© 天地图'
+          tiles: [`https://t0.tianditu.gov.cn/${type}_w/wmts?tk=${key}&SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=${type}&STYLE=default&TILEMATRIXSET=w&FORMAT=tiles&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}`],
+          tileSize: 256
         },
-        [`tianditu-${labelLayer}`]: {
-          type: 'raster',
-          tiles: [
-            `https://t0.tianditu.gov.cn/${labelLayer}_w/wmts?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=${labelLayer}&STYLE=default&TILEMATRIXSET=w&FORMAT=tiles&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}&tk=${tiandituKey}`,
-            `https://t1.tianditu.gov.cn/${labelLayer}_w/wmts?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=${labelLayer}&STYLE=default&TILEMATRIXSET=w&FORMAT=tiles&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}&tk=${tiandituKey}`,
-            `https://t2.tianditu.gov.cn/${labelLayer}_w/wmts?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=${labelLayer}&STYLE=default&TILEMATRIXSET=w&FORMAT=tiles&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}&tk=${tiandituKey}`,
-            `https://t3.tianditu.gov.cn/${labelLayer}_w/wmts?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=${labelLayer}&STYLE=default&TILEMATRIXSET=w&FORMAT=tiles&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}&tk=${tiandituKey}`,
-            `https://t4.tianditu.gov.cn/${labelLayer}_w/wmts?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=${labelLayer}&STYLE=default&TILEMATRIXSET=w&FORMAT=tiles&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}&tk=${tiandituKey}`,
-            `https://t5.tianditu.gov.cn/${labelLayer}_w/wmts?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=${labelLayer}&STYLE=default&TILEMATRIXSET=w&FORMAT=tiles&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}&tk=${tiandituKey}`,
-            `https://t6.tianditu.gov.cn/${labelLayer}_w/wmts?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=${labelLayer}&STYLE=default&TILEMATRIXSET=w&FORMAT=tiles&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}&tk=${tiandituKey}`,
-            `https://t7.tianditu.gov.cn/${labelLayer}_w/wmts?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=${labelLayer}&STYLE=default&TILEMATRIXSET=w&FORMAT=tiles&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}&tk=${tiandituKey}`
-          ],
-          tileSize: 256,
-          attribution: '© 天地图'
+        label: {
+          type: 'raster', 
+          tiles: [`https://t0.tianditu.gov.cn/${layers[type]}_w/wmts?tk=${key}&SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=${layers[type]}&STYLE=default&TILEMATRIXSET=w&FORMAT=tiles&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}`],
+          tileSize: 256
         }
       },
       layers: [
-        {
-          id: `tianditu-${baseLayer}-layer`,
-          type: 'raster',
-          source: `tianditu-${baseLayer}`,
-          minzoom: 0,
-          maxzoom: 18
-        },
-        {
-          id: `tianditu-${labelLayer}-layer`,
-          type: 'raster',
-          source: `tianditu-${labelLayer}`,
-          minzoom: 0,
-          maxzoom: 18
-        }
+        { id: 'base', type: 'raster', source: 'base' },
+        { id: 'label', type: 'raster', source: 'label' }
       ]
     }
   },
 
-  // 创建备用样式（当天地图不可用时）
+  // 创建备用样式（OSM）
   createFallbackStyle(): any {
     return {
       version: 8,
-      name: 'Fallback Style',
       sources: {
-        'osm': {
+        osm: {
           type: 'raster',
-          tiles: [
-            'https://a.tile.openstreetmap.org/{z}/{x}/{y}.png',
-            'https://b.tile.openstreetmap.org/{z}/{x}/{y}.png',
-            'https://c.tile.openstreetmap.org/{z}/{x}/{y}.png'
-          ],
-          tileSize: 256,
-          attribution: '© OpenStreetMap contributors'
+          tiles: ['https://tile.openstreetmap.org/{z}/{x}/{y}.png'],
+          tileSize: 256
         }
       },
-      layers: [
-        {
-          id: 'osm-layer',
-          type: 'raster',
-          source: 'osm',
-          minzoom: 0,
-          maxzoom: 19
-        }
-      ]
+      layers: [{ id: 'osm', type: 'raster', source: 'osm' }]
     }
   },
 
-  // 创建简化的天地图样式（v1.13.3优化）
+  // 创建简化天地图样式（默认使用）
   createSimpleTiandituStyle(type: 'vec' | 'img' | 'ter' = 'vec'): any {
-    const tiandituKey = (import.meta as any).env?.VITE_TIANDITU_KEY || 'YOUR_TIANDITU_KEY'
-    
-    let baseLayer: string
-    let labelLayer: string
-    
-    switch (type) {
-      case 'vec': // 矢量底图
-        baseLayer = 'vec'
-        labelLayer = 'cva'
-        break
-      case 'img': // 影像底图
-        baseLayer = 'img'
-        labelLayer = 'cia'
-        break
-      case 'ter': // 地形底图
-        baseLayer = 'ter'
-        labelLayer = 'cta'
-        break
-      default:
-        baseLayer = 'vec'
-        labelLayer = 'cva'
-    }
-    
-    // 简化的配置，减少子域名数量
-    return {
-      version: 8,
-      name: `Tianditu ${type.toUpperCase()} Style`,
-      sources: {
-        [`tianditu-${baseLayer}`]: {
-          type: 'raster',
-          tiles: [
-            `https://t0.tianditu.gov.cn/${baseLayer}_w/wmts?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=${baseLayer}&STYLE=default&TILEMATRIXSET=w&FORMAT=tiles&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}&tk=${tiandituKey}`,
-            `https://t1.tianditu.gov.cn/${baseLayer}_w/wmts?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=${baseLayer}&STYLE=default&TILEMATRIXSET=w&FORMAT=tiles&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}&tk=${tiandituKey}`,
-            `https://t2.tianditu.gov.cn/${baseLayer}_w/wmts?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=${baseLayer}&STYLE=default&TILEMATRIXSET=w&FORMAT=tiles&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}&tk=${tiandituKey}`
-          ],
-          tileSize: 256,
-          attribution: '© 天地图'
-        },
-        [`tianditu-${labelLayer}`]: {
-          type: 'raster',
-          tiles: [
-            `https://t0.tianditu.gov.cn/${labelLayer}_w/wmts?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=${labelLayer}&STYLE=default&TILEMATRIXSET=w&FORMAT=tiles&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}&tk=${tiandituKey}`,
-            `https://t1.tianditu.gov.cn/${labelLayer}_w/wmts?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=${labelLayer}&STYLE=default&TILEMATRIXSET=w&FORMAT=tiles&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}&tk=${tiandituKey}`,
-            `https://t2.tianditu.gov.cn/${labelLayer}_w/wmts?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=${labelLayer}&STYLE=default&TILEMATRIXSET=w&FORMAT=tiles&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}&tk=${tiandituKey}`
-          ],
-          tileSize: 256,
-          attribution: '© 天地图'
-        }
-      },
-      layers: [
-        {
-          id: `tianditu-${baseLayer}-layer`,
-          type: 'raster',
-          source: `tianditu-${baseLayer}`,
-          minzoom: 0,
-          maxzoom: 18
-        },
-        {
-          id: `tianditu-${labelLayer}-layer`,
-          type: 'raster',
-          source: `tianditu-${labelLayer}`,
-          minzoom: 0,
-          maxzoom: 18
-        }
-      ]
-    }
+    return this.createTiandituStyle(type)
   },
 
   // 初始化Mapbox地图
   initMap(containerId: string): mapboxgl.Map {
-    // 使用v1.13.3版本，不需要token
-    console.log('使用Mapbox GL JS v1.13.3，无需token')
-    
-    // 尝试使用简化的天地图样式，失败时使用备用样式
-    let mapStyle: any
-    try {
-      mapStyle = this.createSimpleTiandituStyle('vec')
-      console.log('成功创建简化天地图样式')
-    } catch (error) {
-      console.warn('简化天地图样式创建失败，尝试完整样式:', error)
-      try {
-        mapStyle = this.createTiandituStyle('vec')
-        console.log('成功创建完整天地图样式')
-      } catch (fullError) {
-        console.warn('完整天地图样式也失败，使用备用样式:', fullError)
-        mapStyle = this.createFallbackStyle()
-      }
-    }
-    
-    // 创建地图实例
     const map = new mapboxgl.Map({
       container: containerId,
-      style: mapStyle,
-      center: [115.133954, 29.823198], // 阳新县中心坐标
-      zoom: 10,
-      attributionControl: true,
-      customAttribution: '© 2024 阳新县应急管理局',
-    });
-
-    // 添加导航控件
-    map.addControl(new mapboxgl.NavigationControl(), 'top-left');
-    
-    // 添加全屏控件
-    map.addControl(new mapboxgl.FullscreenControl(), 'top-right');
-    
-    // 添加比例尺
-    map.addControl(new mapboxgl.ScaleControl({
-      maxWidth: 100,
-      unit: 'metric'
-    }), 'bottom-left');
-
-    // 添加调试信息
-    console.log('地图配置:', {
-      container: containerId,
+      style: this.createTiandituStyle('vec'), // 会自动判断key是否可用
       center: [115.133954, 29.823198],
       zoom: 10,
-      style: 'Tianditu Vector Style'
+      attributionControl: false
     });
+
+    // 添加基础控件
+    map.addControl(new mapboxgl.NavigationControl(), 'top-left');
+    map.addControl(new mapboxgl.ScaleControl(), 'bottom-left');
 
     return map;
   },
 
   // 切换底图类型
   switchBaseMap(map: mapboxgl.Map, type: 'vec' | 'img' | 'ter'): void {
-    try {
-      // 优先使用简化样式
-      const newStyle = this.createSimpleTiandituStyle(type)
-      map.setStyle(newStyle)
-      console.log(`已切换到${type}底图（简化样式）`)
-    } catch (error) {
-      console.error('简化样式切换失败，尝试完整样式:', error)
-      try {
-        const newStyle = this.createTiandituStyle(type)
-        map.setStyle(newStyle)
-        console.log(`已切换到${type}底图（完整样式）`)
-      } catch (fullError) {
-        console.error('完整样式也失败，切换到备用样式:', fullError)
-        // 如果天地图不可用，切换到备用样式
-        try {
-          const fallbackStyle = this.createFallbackStyle()
-          map.setStyle(fallbackStyle)
-          console.log('已切换到备用底图')
-        } catch (fallbackError) {
-          console.error('备用底图也失败:', fallbackError)
-        }
-      }
-    }
+    map.setStyle(this.createTiandituStyle(type))
   },
 
-  // 检查天地图是否可用
-  async checkTiandituAvailability(): Promise<boolean> {
-    try {
-      const testUrl = 'https://t0.tianditu.gov.cn/vec_w/wmts?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=vec&STYLE=default&TILEMATRIXSET=w&FORMAT=tiles&TILEMATRIX=10&TILEROW=500&TILECOL=500&tk=test'
-      const response = await fetch(testUrl)
-      return response.ok
-    } catch (error) {
-      console.warn('天地图可用性检查失败:', error)
-      return false
-    }
-  },
+
 
   // 飞行到指定位置
   flyTo(lng: number, lat: number, zoom: number = 10): void {
@@ -515,6 +320,260 @@ export const mapboxUtils = {
 
     area = Math.abs(area * R * R / 2);
     return area;
+  },
+
+  // 地图复位工具
+  resetMap(map: mapboxgl.Map): void {
+    if (map) {
+      map.flyTo({
+        center: [115.133954, 29.823198], // 阳新县中心坐标
+        zoom: 10,
+        bearing: 0, // 重置旋转角度
+        pitch: 0,   // 重置倾斜角度
+        duration: 2000
+      });
+      console.log('地图已复位到初始状态');
+    }
+  },
+
+  // 添加指北针控件
+  addCompassControl(map: mapboxgl.Map, position: 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right' = 'top-right'): void {
+    if (map) {
+      // 创建自定义指北针控件
+      const compassControl = new mapboxgl.NavigationControl({
+        showCompass: true,
+        showZoom: false,
+        visualizePitch: false
+      });
+      
+      map.addControl(compassControl, position);
+      console.log('指北针控件已添加');
+    }
+  },
+
+  // 测距工具相关
+  distanceMode: false,
+  distancePoints: [] as [number, number][],
+  distanceLayerId: 'distance-layer',
+  distanceSourceId: 'distance-source',
+
+  // 启用测距模式
+  enableDistanceMode(map: mapboxgl.Map): void {
+    this.distanceMode = true;
+    this.distancePoints = [];
+    
+    // 添加测距图层
+    if (!map.getSource(this.distanceSourceId)) {
+      map.addSource(this.distanceSourceId, {
+        type: 'geojson',
+        data: {
+          type: 'FeatureCollection',
+          features: []
+        }
+      });
+
+      // 添加线条图层
+      map.addLayer({
+        id: `${this.distanceLayerId}-line`,
+        type: 'line',
+        source: this.distanceSourceId,
+        paint: {
+          'line-color': '#1677ff',
+          'line-width': 3,
+          'line-dasharray': [2, 2]
+        }
+      });
+
+      // 添加点图层
+      map.addLayer({
+        id: `${this.distanceLayerId}-points`,
+        type: 'circle',
+        source: this.distanceSourceId,
+        paint: {
+          'circle-radius': 6,
+          'circle-color': '#1677ff',
+          'circle-stroke-color': '#ffffff',
+          'circle-stroke-width': 2
+        }
+      });
+
+      // 添加标签图层
+      map.addLayer({
+        id: `${this.distanceLayerId}-labels`,
+        type: 'symbol',
+        source: this.distanceSourceId,
+        layout: {
+          'text-field': ['get', 'label'],
+          'text-font': ['Open Sans Regular'],
+          'text-size': 12,
+          'text-offset': [0, -1.5]
+        },
+        paint: {
+          'text-color': '#1677ff',
+          'text-halo-color': '#ffffff',
+          'text-halo-width': 1
+        }
+      });
+    }
+
+    // 绑定点击事件
+    this.bindDistanceEvents(map);
+    console.log('测距模式已启用');
+  },
+
+  // 绑定测距事件
+  bindDistanceEvents(map: mapboxgl.Map): void {
+    const handleClick = (e: any) => {
+      if (!this.distanceMode) return;
+
+      const lngLat = e.lngLat;
+      this.distancePoints.push([lngLat.lng, lngLat.lat]);
+      
+      this.updateDistanceDisplay(map);
+      
+      // 双击结束测距
+      if (this.distancePoints.length >= 2) {
+        setTimeout(() => {
+          this.finishDistanceMeasurement(map);
+        }, 300);
+      }
+    };
+
+    const handleDblClick = (e: any) => {
+      if (this.distanceMode) {
+        e.preventDefault();
+        this.finishDistanceMeasurement(map);
+      }
+    };
+
+    map.on('click', handleClick);
+    map.on('dblclick', handleDblClick);
+
+    // 存储事件处理器引用以便后续移除
+    if (!map._distanceEventHandlers) {
+      map._distanceEventHandlers = [];
+    }
+    map._distanceEventHandlers.push(
+      { type: 'click', handler: handleClick },
+      { type: 'dblclick', handler: handleDblClick }
+    );
+  },
+
+  // 更新测距显示
+  updateDistanceDisplay(map: mapboxgl.Map): void {
+    if (this.distancePoints.length < 2) return;
+
+    const features: any[] = [];
+    
+    // 添加线条
+    if (this.distancePoints.length >= 2) {
+      features.push({
+        type: 'Feature' as const,
+        geometry: {
+          type: 'LineString' as const,
+          coordinates: this.distancePoints
+        },
+        properties: {}
+      });
+    }
+
+    // 添加点
+    this.distancePoints.forEach((point, index) => {
+      features.push({
+        type: 'Feature' as const,
+        geometry: {
+          type: 'Point' as const,
+          coordinates: point
+        },
+        properties: {
+          label: `P${index + 1}`
+        }
+      });
+    });
+
+    // 添加距离标签
+    if (this.distancePoints.length >= 2) {
+      const midPoint = this.getMidPoint(this.distancePoints[0], this.distancePoints[1]);
+      const distance = this.calculateDistance(this.distancePoints[0], this.distancePoints[1]);
+      
+      features.push({
+        type: 'Feature' as const,
+        geometry: {
+          type: 'Point' as const,
+          coordinates: midPoint
+        },
+        properties: {
+          label: `${(distance / 1000).toFixed(2)}km`
+        }
+      });
+    }
+
+    const source = map.getSource(this.distanceSourceId) as mapboxgl.GeoJSONSource;
+    if (source) {
+      source.setData({
+        type: 'FeatureCollection',
+        features: features
+      });
+    }
+  },
+
+  // 完成测距
+  finishDistanceMeasurement(map: mapboxgl.Map): void {
+    if (this.distancePoints.length >= 2) {
+      const totalDistance = this.calculateTotalDistance(this.distancePoints);
+      console.log(`测距完成，总距离: ${(totalDistance / 1000).toFixed(2)}km`);
+    }
+    
+    this.disableDistanceMode(map);
+  },
+
+  // 禁用测距模式
+  disableDistanceMode(map: mapboxgl.Map): void {
+    this.distanceMode = false;
+    
+    // 移除事件处理器
+    if (map._distanceEventHandlers) {
+      map._distanceEventHandlers.forEach(({ type, handler }) => {
+        map.off(type, handler);
+      });
+      map._distanceEventHandlers = [];
+    }
+
+    // 清除测距数据
+    this.clearDistanceMeasurement(map);
+    console.log('测距模式已禁用');
+  },
+
+  // 清除测距数据
+  clearDistanceMeasurement(map: mapboxgl.Map): void {
+    this.distancePoints = [];
+    
+    const source = map.getSource(this.distanceSourceId) as mapboxgl.GeoJSONSource;
+    if (source) {
+      source.setData({
+        type: 'FeatureCollection',
+        features: []
+      });
+    }
+    
+    console.log('测距数据已清除');
+  },
+
+  // 计算总距离
+  calculateTotalDistance(points: [number, number][]): number {
+    let totalDistance = 0;
+    for (let i = 0; i < points.length - 1; i++) {
+      totalDistance += this.calculateDistance(points[i], points[i + 1]);
+    }
+    return totalDistance;
+  },
+
+  // 获取两点中点
+  getMidPoint(point1: [number, number], point2: [number, number]): [number, number] {
+    return [
+      (point1[0] + point2[0]) / 2,
+      (point1[1] + point2[1]) / 2
+    ];
   }
 };
 

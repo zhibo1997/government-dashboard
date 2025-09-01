@@ -18,18 +18,30 @@
       <!-- 背景图片 -->
       <BackgroundImage />
       
-      <!-- 地图导航 -->
-      <div class="map-navigation">
+      <!-- 功能导航 -->
+      <div class="navigation-buttons">
         <a-button 
           type="primary" 
           size="large" 
           @click="navigateToMapbox"
-          class="map-nav-btn"
+          class="nav-btn map-nav-btn"
         >
           <template #icon>
             <GlobalOutlined />
           </template>
           进入Mapbox地图
+        </a-button>
+        
+        <a-button 
+          type="default" 
+          size="large" 
+          @click="navigateToNewDashboard"
+          class="nav-btn new-dashboard-btn"
+        >
+          <template #icon>
+            <DashboardOutlined />
+          </template>
+          新Dashboard
         </a-button>
       </div>
       
@@ -43,7 +55,7 @@
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { message } from 'ant-design-vue'
-import { LogoutOutlined, GlobalOutlined } from '@ant-design/icons-vue'
+import { LogoutOutlined, GlobalOutlined, DashboardOutlined } from '@ant-design/icons-vue'
 import { useAuthStore } from '../stores/auth'
 import ResponsiveWrapper from '../components/ResponsiveWrapper.vue'
 import TimeDisplay from '../components/TimeDisplay.vue'
@@ -64,6 +76,11 @@ const handleTabChange = (tab) => {
 // 导航到Mapbox地图
 const navigateToMapbox = () => {
   router.push('/mapbox-map')
+}
+
+// 导航到新Dashboard
+const navigateToNewDashboard = () => {
+  router.push('/new-dashboard')
 }
 
 // 退出登录
@@ -108,14 +125,17 @@ const handleLogout = () => {
     }
   }
 
-  .map-navigation {
+  .navigation-buttons {
     position: absolute;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
     z-index: 1000;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
     
-    .map-nav-btn {
+    .nav-btn {
       height: 60px;
       padding: 0 32px;
       font-size: 18px;
@@ -128,6 +148,24 @@ const handleLogout = () => {
       &:hover {
         transform: translateY(-2px);
         box-shadow: 0 12px 32px rgba(0, 0, 0, 0.4);
+      }
+    }
+    
+    .map-nav-btn {
+      background: rgba(22, 119, 255, 0.9);
+      color: #fff;
+      
+      &:hover {
+        background: rgba(22, 119, 255, 1);
+      }
+    }
+    
+    .new-dashboard-btn {
+      background: rgba(255, 255, 255, 0.9);
+      color: #333;
+      
+      &:hover {
+        background: rgba(255, 255, 255, 1);
       }
     }
   }
@@ -146,8 +184,8 @@ const handleLogout = () => {
       }
     }
 
-    .map-navigation {
-      .map-nav-btn {
+    .navigation-buttons {
+      .nav-btn {
         height: 50px;
         padding: 0 24px;
         font-size: 16px;

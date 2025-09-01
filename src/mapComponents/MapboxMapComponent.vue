@@ -92,6 +92,9 @@ function initMapboxMap() {
         await loadPOIMarkers();
         await loadVectorTileLayers();
         
+        // 添加指北针控件
+        mapboxUtils.addCompassControl(map, 'top-right');
+        
         console.log("所有数据加载完成");
       } catch (error) {
         console.error("加载地图数据时发生错误:", error);

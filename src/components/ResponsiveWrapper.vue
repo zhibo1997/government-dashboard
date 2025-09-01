@@ -22,12 +22,12 @@ const props = defineProps({
   // 基准宽度
   baseWidth: {
     type: Number,
-    default: 4000
+    default: 4096
   },
   // 基准高度
   baseHeight: {
     type: Number,
-    default: 1125
+    default: 1920
   },
   // 最小缩放比例
   minScale: {
@@ -119,7 +119,6 @@ defineExpose({
   overflow-x: auto;
   overflow-y: hidden;
   position: relative;
-  background: #0a0a0a;
   display: flex;
   align-items: flex-start;
   justify-content: flex-start;
