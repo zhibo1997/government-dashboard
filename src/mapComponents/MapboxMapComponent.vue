@@ -5,7 +5,7 @@
 <script setup>
 import {
   onMounted,
-  onUnmounted,
+  onBeforeUnmount,
   nextTick,
   ref,
   provide,
@@ -28,14 +28,27 @@ const mapInstance = ref(null);
 // 提供地图实例给子组件
 provide("mapInstance", mapInstance);
 
+// 开发模式检查，避免重复初始化
+const isDev = import.meta.env.DEV;
+const isInitialized = ref(false);
+
 // 支持多个GeoJSON数据源
 const geoJsonData = [
   { data: yangxinGeoJson, name: "阳新县行政区划" },
 ];
 
+// GeoJSON数据加载状态
+const geoJsonLoaded = ref(false);
+
 // 初始化Mapbox地图
 function initMapboxMap() {
   try {
+    // 开发模式下避免重复初始化
+    if (isDev && isInitialized.value) {
+      console.log("开发模式：地图已初始化，跳过重复初始化");
+      return;
+    }
+
     console.log("初始化Mapbox地图...");
     mapStore.setMapLoading(true);
     
@@ -45,12 +58,13 @@ function initMapboxMap() {
       throw new Error("地图容器不存在: mapbox-container");
     }
     
-    // 使用mapboxUtils初始化map
-    const map = mapboxUtils.initMap("mapbox-container");
+    // 使用简化的天地图初始化方法
+    const map = mapboxUtils.initSimpleTiandituMap("mapbox-container", "vec");
     
     // 设置到store和ref
     mapStore.setMap(map);
     mapInstance.value = map;
+    isInitialized.value = true;
     
     // 地图加载完成后加载数据
     map.on('load', async () => {
@@ -61,9 +75,7 @@ function initMapboxMap() {
           zoom: 10,
           duration: 2000
         });
-        
-        await loadGeoJSONData();
-        
+        // await loadGeoJsonData();
         // 添加指北针控件
         mapboxUtils.addCompassControl(map, 'top-right');
         
@@ -96,6 +108,14 @@ async function loadGeoJsonData() {
       return;
     }
 
+    // 开发模式下避免重复加载
+    if (isDev && geoJsonLoaded.value) {
+      console.log("开发模式：GeoJSON数据已加载，跳过重复加载");
+      return;
+    }
+
+    console.log("开始加载GeoJSON数据...");
+
     // 清除之前的数据源
     clearAllDataSources();
 
@@ -103,11 +123,6 @@ async function loadGeoJsonData() {
 
     // 遍历所有数据源
     for (const dataSource of geoJsonData) {
-      if (!dataUtils.validateGeoJSON(dataSource.data)) {
-        console.warn(`GeoJSON数据源 ${dataSource.name} 格式错误`);
-        continue;
-      }
-
       // 使用mapboxUtils加载GeoJSON数据
       const sourceId = `geojson-${dataSource.name}`;
       await mapboxUtils.loadGeoJSON(
@@ -115,15 +130,23 @@ async function loadGeoJsonData() {
         sourceId,
         dataSource.data,
         {
-          strokeColor: "#fa541c",
+          strokeColor: "#1677ff", // 使用Ant Design主色
           strokeWidth: 2,
-          fillColor: "rgba(250, 84, 28, 0.1)",
+          fillColor: "rgba(22, 119, 255, 0.1)", // 使用Ant Design主色
         }
       );
 
-      totalFeatures += dataSource.data.features.length;
+      // 计算要素数量
+      if (dataSource.data.type === 'Feature') {
+        totalFeatures += 1;
+      } else if (dataSource.data.type === 'FeatureCollection') {
+        totalFeatures += dataSource.data.features.length;
+      }
+
+      console.log(`数据源 ${dataSource.name} 加载完成`);
     }
 
+    geoJsonLoaded.value = true;
     console.log("GeoJSON数据加载完成，共渲染", totalFeatures, "个区域");
   } catch (error) {
     console.error("加载GeoJSON数据失败:", error);
@@ -143,7 +166,15 @@ function clearAllDataSources() {
     geoJsonData.forEach(dataSource => {
       const sourceId = `geojson-${dataSource.name}`;
       if (map.getSource(sourceId)) {
-        map.removeLayer(`${sourceId}-layer`);
+        // 移除填充图层
+        if (map.getLayer(`${sourceId}-fill`)) {
+          map.removeLayer(`${sourceId}-fill`);
+        }
+        // 移除边框图层
+        if (map.getLayer(`${sourceId}-stroke`)) {
+          map.removeLayer(`${sourceId}-stroke`);
+        }
+        // 移除数据源
         map.removeSource(sourceId);
       }
     });
@@ -158,19 +189,33 @@ function clearAllDataSources() {
 
 // 组件挂载时初始化地图
 onMounted(() => {
+  // 开发模式下减少延迟，生产模式保持延迟
+  const delay = isDev ? 100 : 500;
+  
   setTimeout(() => {
-    initMapboxMap();
-  },500);
+    // 检查容器是否存在
+    const container = document.getElementById("mapbox-container");
+    if (container && !isInitialized.value) {
+      initMapboxMap();
+    }
+  }, delay);
 });
 
 // 组件卸载时清理资源
-onUnmounted(() => {
+onBeforeUnmount(() => {
   try {
-    if (mapInstance.value) {
+    // 开发模式下不清理地图实例，避免热更新时重新初始化
+    if (!isDev && mapInstance.value) {
       mapInstance.value.remove();
       mapInstance.value = null;
+      isInitialized.value = false;
+      geoJsonLoaded.value = false;
     }
-    mapStore.setMap(null);
+    
+    // 只在生产模式下清理store
+    if (!isDev) {
+      mapStore.setMap(null);
+    }
   } catch (error) {
     console.error("清理地图资源失败:", error);
   }

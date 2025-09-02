@@ -16,28 +16,46 @@ export const mapboxUtils = {
   // 创建天地图样式（简化版）
   createTiandituStyle(type: 'vec' | 'img' | 'ter' = 'vec'): any {
     // 从环境变量获取key，如果没有则返回OSM样式
-    const key = import.meta.env?.VITE_TIANDITU_KEY
+    const key = (import.meta as any).env?.VITE_TIANDITU_KEY
     console.log("🚀 ~ createTiandituStyle ~ key:", key)
     
-    const layers = { vec: 'cva', img: 'cia', ter: 'cta' }
+    // 天地图图层映射
+    const layerMap = { 
+      vec: { base: 'vec', label: 'cva' },
+      img: { base: 'img', label: 'cia' },
+      ter: { base: 'ter', label: 'cta' }
+    }
+    
+    const layers = layerMap[type]
     
     return {
       version: 8,
       sources: {
-        base: {
+        // 底图
+        'tianditu-base': {
           type: 'raster',
-          tiles: [`https://t0.tianditu.gov.cn/${type}_w/wmts?tk=${key}&SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=${type}&STYLE=default&TILEMATRIXSET=w&FORMAT=tiles&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}`],
-          tileSize: 256
+          tiles: [
+            `https://t0.tianditu.gov.cn/DataServer?T=${layers.base}_w&x={x}&y={y}&l={z}&tk=${key}`
+          ],
+          tileSize: 256,
+          minzoom: 3,
+          maxzoom: 15, // 降低最大缩放级别，提升性能
+          attribution: '&copy; <a href="https://www.tianditu.gov.cn">天地图</a>'
         },
-        label: {
-          type: 'raster', 
-          tiles: [`https://t0.tianditu.gov.cn/${layers[type]}_w/wmts?tk=${key}&SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=${layers[type]}&STYLE=default&TILEMATRIXSET=w&FORMAT=tiles&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}`],
-          tileSize: 256
-        }
       },
       layers: [
-        { id: 'base', type: 'raster', source: 'base' },
-        { id: 'label', type: 'raster', source: 'label' }
+        // 底图
+        {
+          id: 'tianditu-base',
+          type: 'raster',
+          source: 'tianditu-base'
+        },
+        // 标注层
+        {
+          id: 'tianditu-label',
+          type: 'raster',
+          source: 'tianditu-label'
+        }
       ]
     }
   },
@@ -69,7 +87,13 @@ export const mapboxUtils = {
       style: this.createTiandituStyle('vec'), // 会自动判断key是否可用
       center: [115.133954, 29.823198],
       zoom: 10,
-      attributionControl: false
+      minZoom: 3, // 限制最小缩放级别
+      maxZoom: 15, // 限制最大缩放级别，提升性能
+      attributionControl: false,
+      // 性能优化选项
+      renderWorldCopies: false, // 不渲染世界副本
+      maxTileCacheSize: 50, // 限制瓦片缓存大小
+
     });
 
     // 添加基础控件
@@ -79,9 +103,77 @@ export const mapboxUtils = {
     return map;
   },
 
-  // 切换底图类型
-  switchBaseMap(map: mapboxgl.Map, type: 'vec' | 'img' | 'ter'): void {
-    map.setStyle(this.createTiandituStyle(type))
+  // 简化的天地图初始化方法（基于你的建议）
+  initSimpleTiandituMap(containerId: string, type: 'vec' | 'img' | 'ter' = 'vec'): mapboxgl.Map {
+    const key = (import.meta as any).env?.VITE_TIANDITU_KEY;
+    
+    // 天地图图层映射
+    const layerMap = { 
+      vec: { base: 'vec', label: 'cva' },
+      img: { base: 'img', label: 'cia' },
+      ter: { base: 'ter', label: 'cta' }
+    }
+    const layers = layerMap[type]
+
+    const map = new mapboxgl.Map({
+      container: containerId,
+      style: {
+        version: 8,
+        sources: {
+          // 天地图底图
+          'tianditu-base': {
+            type: 'raster',
+            tiles: [
+              `https://t0.tianditu.gov.cn/DataServer?T=${layers.base}_w&x={x}&y={y}&l={z}&tk=${key}`
+            ],
+            tileSize: 256,
+            minzoom: 3,
+            maxzoom: 15, // 降低最大缩放级别，提升性能
+            attribution: '&copy; <a href="https://www.tianditu.gov.cn">天地图</a>'
+          },
+          // 天地图标注层
+          'tianditu-label': {
+            type: 'raster',
+            tiles: [
+              `https://t0.tianditu.gov.cn/DataServer?T=${layers.label}_w&x={x}&y={y}&l={z}&tk=${key}`
+            ],
+            tileSize: 256,
+            minzoom: 3,
+            maxzoom: 15, // 降低最大缩放级别，提升性能
+            attribution: '&copy; <a href="https://www.tianditu.gov.cn">天地图</a>'
+          }
+        },
+        layers: [
+          // 底图
+          {
+            id: 'tianditu-base',
+            type: 'raster',
+            source: 'tianditu-base'
+          },
+          // 标注层
+          {
+            id: 'tianditu-label',
+            type: 'raster',
+            source: 'tianditu-label'
+          }
+        ]
+      },
+      center: [115.133954, 29.823198], // 阳新县
+      zoom: 10,
+      minZoom: 3, // 限制最小缩放级别
+      maxZoom: 15, // 限制最大缩放级别，提升性能
+      attributionControl: false,
+      // 性能优化选项
+      renderWorldCopies: false, // 不渲染世界副本
+      maxTileCacheSize: 50, // 限制瓦片缓存大小
+
+    });
+
+    // 添加基础控件
+    map.addControl(new mapboxgl.NavigationControl(), 'top-left');
+    map.addControl(new mapboxgl.ScaleControl(), 'bottom-left');
+
+    return map;
   },
 
 
@@ -108,6 +200,12 @@ export const mapboxUtils = {
       strokeWidth = 2,
       fillColor = 'rgba(250, 84, 28, 0.1)'
     } = options;
+
+    // 检查数据源是否已存在
+    if (map.getSource(sourceId)) {
+      console.log(`数据源 ${sourceId} 已存在，跳过加载`);
+      return;
+    }
 
     // 添加数据源
     map.addSource(sourceId, {
@@ -153,28 +251,38 @@ export const mapboxUtils = {
     const { visible = true, opacity = 1.0 } = options;
 
     try {
-      // 添加数据源
-      map.addSource(layerId, {
-        type: 'vector',
-        tiles: [url],
-        minzoom: 0,
-        maxzoom: 22
-      });
+      // 检查source是否已存在
+      if (!map.getSource(layerId)) {
+        // 添加数据源
+        map.addSource(layerId, {
+          type: 'vector',
+          tiles: [url],
+          minzoom: 0,
+          maxzoom: 22
+        });
+      }
 
-      // 添加图层
-      map.addLayer({
-        id: layerId,
-        type: 'circle',
-        source: layerId,
-        paint: {
-          'circle-radius': 4,
-          'circle-color': '#1677ff',
-          'circle-opacity': opacity
-        },
-        layout: {
-          visibility: visible ? 'visible' : 'none'
-        }
-      });
+      // 检查图层是否已存在
+      if (!map.getLayer(layerId)) {
+        // 添加图层
+        map.addLayer({
+          id: layerId,
+          type: 'circle',
+          source: layerId,
+          paint: {
+            'circle-radius': 4,
+            'circle-color': '#1677ff',
+            'circle-opacity': opacity
+          },
+          layout: {
+            visibility: visible ? 'visible' : 'none'
+          }
+        });
+      } else {
+        // 如果图层已存在，只更新可见性和透明度
+        map.setLayoutProperty(layerId, 'visibility', visible ? 'visible' : 'none');
+        map.setPaintProperty(layerId, 'circle-opacity', opacity);
+      }
 
       console.log(`矢量切片图层 ${layerId} 加载完成`);
     } catch (error) {

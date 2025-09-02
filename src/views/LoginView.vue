@@ -3,6 +3,9 @@
     <div class="login-bg">
       <img src="../assets/images/bg-box.webp" alt="登录背景">
     </div>
+    <div class="login-title">
+      <img src="../assets/images/title.png" alt="登录标题">
+    </div>
     <div class="login-card">
       <a-form
         :model="formData"
@@ -121,9 +124,26 @@ const handleLoginFailed = (errorInfo) => {
   min-height: 100vh;
   display: flex;
   align-items: center;
-  justify-content: center;
-  background-color: #888;
-  padding: 20px;
+  flex-direction: column;
+  position: relative;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  
+  // 背景图片容器
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-image: url("@/assets/images/login-bg.png");
+    background-size: 100% 100%;
+    background-position: center;
+    background-repeat: no-repeat;
+    filter: blur(3px);
+    z-index: 1;
+  }
+  
   .login-bg{
     position: absolute;
     top: 50%;
@@ -139,12 +159,24 @@ const handleLoginFailed = (errorInfo) => {
       object-fit: cover;
     }
   }
+  .login-title{
+    z-index: 10;
+    position: relative;
+    height: 60px;
+    margin-top: 20px;
+    img{
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+  }
 
   .login-card {
     width: 420px;
     height: 380px;
     z-index: 10;
     position: relative;
+    margin-top: 20vh;
 
     background-image: url("../assets/images/bg-input-box.webp");
     background-size: contain;

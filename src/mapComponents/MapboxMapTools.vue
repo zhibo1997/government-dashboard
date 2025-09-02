@@ -2,31 +2,31 @@
   <div class="mapbox-tools-container">
     <div class="tools-section">
       <div class="tool-group">
-        <!-- 基础图层切换 -->
-        <a-button
-          class="tool-button"
-          :type="baseMapMode ? 'primary' : 'default'"
-          size="small"
-          @click="handleBaseMapToggle"
-          title="切换基础图层"
-        >
-          <template #icon>
-            <LayersOutlined />
-          </template>
-        </a-button>
-        
+
         <!-- 专题地图 -->
+        <a-popover
+          v-model:open="layerTreeVisible"
+          title="图层管理"
+          placement="left"
+          :width="320"
+          trigger="click"
+        >
+          <template #content>
+            <LayerTree 
+              ref="layerTreeRef"
+              @layer-toggle="handleLayerToggle"
+              @layer-opacity-change="handleLayerOpacityChange"
+            />
+          </template>
         <a-button
           class="tool-button"
           :type="thematicMapMode ? 'primary' : 'default'"
           size="small"
-          @click="handleThematicMapToggle"
           title="专题地图"
         >
-          <template #icon>
-            <EnvironmentOutlined />
-          </template>
+          <img class="tool-button-img" src="@/assets/map-img/layer.webp" alt="" />
         </a-button>
+        </a-popover>
 
         <!-- 地图复位 -->
         <a-button
@@ -36,9 +36,7 @@
           @click="handleReset"
           title="地图复位"
         >
-          <template #icon>
-            <ReloadOutlined />
-          </template>
+          <img class="tool-button-img" src="@/assets/map-img/reset.webp" alt="" />
         </a-button>
 
         <!-- 指北针 -->
@@ -49,9 +47,7 @@
           @click="handleCompassToggle"
           title="指北针"
         >
-          <template #icon>
-            <CompassOutlined />
-          </template>
+          <img class="tool-button-img" src="@/assets/map-img/compass.webp" alt="" />
         </a-button>
 
         <!-- 测距工具 -->
@@ -62,9 +58,7 @@
           @click="handleDistanceToggle"
           title="测距工具"
         >
-          <template #icon>
-            <BorderOutlined />
-          </template>
+          <img class="tool-button-img" src="@/assets/map-img/ranging.webp" alt="" />
         </a-button>
       </div>
     </div>
@@ -72,100 +66,193 @@
 </template>
 
 <script setup>
-import { inject, ref } from "vue";
-import { 
-  LayersOutlined,
+import { inject, ref, computed } from "vue";
+import {
+  MenuOutlined,
   EnvironmentOutlined,
-  ReloadOutlined, 
-  CompassOutlined, 
-  BorderOutlined 
+  ReloadOutlined,
+  CompassOutlined,
+  LineOutlined,
 } from "@ant-design/icons-vue";
 import { mapboxUtils } from "../mapUtils/mapboxUtils";
+import { useMapStore } from "../stores/mapStore";
+import LayerTree from "../components/LayerTree.vue";
 
 // 注入地图实例
 const mapInstance = inject("mapInstance");
+const mapStore = useMapStore();
 
 // 功能状态管理
-const baseMapMode = ref(false);
 const thematicMapMode = ref(false);
 const compassMode = ref(false);
 const distanceMode = ref(false);
 
-// 基础图层切换
-function handleBaseMapToggle() {
-  if (!mapInstance?.value) return;
-  
-  baseMapMode.value = !baseMapMode.value;
-  const map = mapInstance.value;
-  
-  // 切换天地图底图类型
-  const baseMapTypes = ['vec', 'img', 'ter'];
-  const currentType = baseMapMode.value ? 'img' : 'vec';
-  
+// 图层树状态
+const layerTreeVisible = ref(false);
+const layerTreeRef = ref(null);
+
+// 获取地图实例的computed属性
+const map = computed(() => {
+  return mapInstance?.value || mapStore.map;
+});
+
+
+
+// 图层显隐切换
+function handleLayerToggle(layerKey, visible) {
+  const mapInstance = map.value;
+  if (!mapInstance) return;
+
   try {
-    mapboxUtils.switchBaseMap(map, currentType);
-    console.log(`切换到${currentType}底图`);
+    switch (layerKey) {
+      case 'bridge_layer':
+        if (visible) {
+          loadBridgeLayer(mapInstance);
+        } else {
+          // 只隐藏图层，不删除source
+          toggleLayerVisibility(mapInstance, 'bridge_layer', false);
+        }
+        break;
+      case 'manhole_layer':
+        if (visible) {
+          loadManholeLayer(mapInstance);
+        } else {
+          // 只隐藏图层，不删除source
+          toggleLayerVisibility(mapInstance, 'manhole_layer', false);
+        }
+        break;
+
+      default:
+        console.warn(`未知图层: ${layerKey}`);
+    }
+    
+    // 更新专题地图模式状态
+    const thematicLayers = ['bridge_layer', 'manhole_layer'];
+    const hasVisibleThematicLayer = thematicLayers.some(layer => {
+      const layerObj = mapInstance.getLayer(layer);
+      return layerObj && mapInstance.getLayoutProperty(layer, 'visibility') === 'visible';
+    });
+    thematicMapMode.value = hasVisibleThematicLayer;
+    
   } catch (error) {
-    console.error('切换底图失败:', error);
+    console.error("图层切换失败:", error);
+    // 如果操作失败，回滚LayerTree状态
+    if (layerTreeRef.value) {
+      layerTreeRef.value.updateLayerState(layerKey, { visible: !visible });
+    }
   }
 }
 
-// 专题地图切换
-function handleThematicMapToggle() {
-  if (!mapInstance?.value) return;
-  
-  thematicMapMode.value = !thematicMapMode.value;
-  const map = mapInstance.value;
-  
+// 图层透明度变化
+function handleLayerOpacityChange(layerKey, opacity) {
+  const mapInstance = map.value;
+  if (!mapInstance) return;
+
   try {
-    if (thematicMapMode.value) {
-      // 加载专题图层
-      loadThematicLayers(map);
-    } else {
-      // 移除专题图层
-      removeThematicLayers(map);
+    switch (layerKey) {
+      case 'bridge_layer':
+        setLayerOpacity(mapInstance, 'bridge_layer', opacity);
+        break;
+      case 'manhole_layer':
+        setLayerOpacity(mapInstance, 'manhole_layer', opacity);
+        break;
+
+      default:
+        console.warn(`未知图层: ${layerKey}`);
     }
   } catch (error) {
-    console.error('专题地图操作失败:', error);
+    console.error("图层透明度设置失败:", error);
   }
 }
 
-// 加载专题图层
-async function loadThematicLayers(map) {
+// 加载桥梁图层
+async function loadBridgeLayer(map) {
   try {
-    // 桥梁图层
     await mapboxUtils.loadVectorTileLayer(
       map,
-      'bridge_layer',
-      'http://192.168.3.249:8080/geoserver/gwc/service/tms/1.0.0/CSSMX_ZT%3Agspsp_dtrans_bridgebscinfo@EPSG%3A4326@pbf/{z}/{x}/{y}.pbf',
+      "bridge_layer",
+      "http://192.168.3.249:8080/geoserver/gwc/service/tms/1.0.0/CSSMX_ZT%3Agspsp_dtrans_bridgebscinfo@EPSG%3A4326@pbf/{z}/{x}/{y}.pbf",
       {
         visible: true,
         opacity: 1.0,
       }
     );
-
-    // 井盖图层
-    await mapboxUtils.loadVectorTileLayer(
-      map,
-      'manhole_layer',
-      'http://192.168.3.249:8080/geoserver/gwc/service/tms/1.0.0/CSSMX_ZT%3Agspsp_dtrans_manholecoverbasetinfo@EPSG%3A4326@pbf/{z}/{x}/{y}.pbf',
-      {
-        visible: true,
-        opacity: 1.0,
-      }
-    );
-
-    console.log('专题图层加载完成');
+    console.log("桥梁图层加载完成");
   } catch (error) {
-    console.error('加载专题图层失败:', error);
+    console.error("加载桥梁图层失败:", error);
+  }
+}
+
+// 加载井盖图层
+async function loadManholeLayer(map) {
+  try {
+    await mapboxUtils.loadVectorTileLayer(
+      map,
+      "manhole_layer",
+      "http://192.168.3.249:8080/geoserver/gwc/service/tms/1.0.0/CSSMX_ZT%3Agspsp_dtrans_manholecoverbasetinfo@EPSG%3A4326@pbf/{z}/{x}/{y}.pbf",
+      {
+        visible: true,
+        opacity: 1.0,
+      }
+    );
+    console.log("井盖图层加载完成");
+  } catch (error) {
+    console.error("加载井盖图层失败:", error);
+  }
+}
+
+// 移除图层
+function removeLayer(map, layerId) {
+  try {
+    if (map.getLayer(layerId)) {
+      map.removeLayer(layerId);
+    }
+    if (map.getSource(layerId)) {
+      map.removeSource(layerId);
+    }
+    console.log(`图层 ${layerId} 移除完成`);
+  } catch (error) {
+    console.error(`移除图层 ${layerId} 失败:`, error);
+  }
+}
+
+// 切换图层可见性
+function toggleLayerVisibility(map, layerId, visible) {
+  try {
+    if (map.getLayer(layerId)) {
+      map.setLayoutProperty(layerId, 'visibility', visible ? 'visible' : 'none');
+      console.log(`图层 ${layerId} 可见性设置为: ${visible}`);
+    }
+  } catch (error) {
+    console.error(`设置图层 ${layerId} 可见性失败:`, error);
+  }
+}
+
+// 设置图层透明度
+function setLayerOpacity(map, layerId, opacity) {
+  try {
+    if (map.getLayer(layerId)) {
+      // 根据图层类型设置不同的透明度属性
+      const layer = map.getLayer(layerId);
+      if (layer.type === 'fill') {
+        map.setPaintProperty(layerId, 'fill-opacity', opacity);
+      } else if (layer.type === 'line') {
+        map.setPaintProperty(layerId, 'line-opacity', opacity);
+      } else if (layer.type === 'circle') {
+        map.setPaintProperty(layerId, 'circle-opacity', opacity);
+      }
+      console.log(`图层 ${layerId} 透明度设置为: ${opacity}`);
+    }
+  } catch (error) {
+    console.error(`设置图层 ${layerId} 透明度失败:`, error);
   }
 }
 
 // 移除专题图层
 function removeThematicLayers(map) {
   try {
-    const layers = ['bridge_layer', 'manhole_layer'];
-    layers.forEach(layerId => {
+    const layers = ["bridge_layer", "manhole_layer"];
+    layers.forEach((layerId) => {
       if (map.getLayer(layerId)) {
         map.removeLayer(layerId);
       }
@@ -173,68 +260,67 @@ function removeThematicLayers(map) {
         map.removeSource(layerId);
       }
     });
-    console.log('专题图层移除完成');
+    console.log("专题图层移除完成");
   } catch (error) {
-    console.error('移除专题图层失败:', error);
+    console.error("移除专题图层失败:", error);
   }
 }
 
 // 地图复位
 function handleReset() {
-  if (!mapInstance?.value) return;
-  
-  const map = mapInstance.value;
+  const mapInstance = map.value;
+  if (!mapInstance) return;
   try {
-    map.flyTo({
+    mapInstance.flyTo({
       center: [115.133954, 29.823198], // 阳新县中心坐标
       zoom: 10,
-      duration: 2000
+      duration: 2000,
     });
-    console.log('地图复位完成');
+    console.log("地图复位完成");
   } catch (error) {
-    console.error('地图复位失败:', error);
+    console.error("地图复位失败:", error);
   }
 }
 
 // 指北针切换
 function handleCompassToggle() {
-  if (!mapInstance?.value) return;
-  
+  const mapInstance = map.value;
+  if (!mapInstance) return;
+
   compassMode.value = !compassMode.value;
-  const map = mapInstance.value;
-  
+
   try {
     if (compassMode.value) {
-      mapboxUtils.addCompassControl(map, 'top-right');
+      mapboxUtils.addCompassControl(mapInstance, "top-right");
     } else {
       // 移除指北针控件
-      const compassControl = map.getControl('compass');
+      const compassControl = mapInstance.getControl("compass");
       if (compassControl) {
-        map.removeControl(compassControl);
+        mapInstance.removeControl(compassControl);
       }
     }
-    console.log(`指北针${compassMode.value ? '开启' : '关闭'}`);
+    console.log(`指北针${compassMode.value ? "开启" : "关闭"}`);
   } catch (error) {
-    console.error('指北针操作失败:', error);
+    console.error("指北针操作失败:", error);
   }
 }
 
 // 测距工具切换
 function handleDistanceToggle() {
-  if (!mapInstance?.value) return;
-  
+  const mapInstance = map.value;
+  if (!mapInstance) return;
+
   distanceMode.value = !distanceMode.value;
-  const map = mapInstance.value;
-  
+
   try {
     if (distanceMode.value) {
-      mapboxUtils.enableDistanceMode(map);
+      mapboxUtils.enableDistanceMode(mapInstance);
     } else {
-      mapboxUtils.disableDistanceMode(map);
+      mapboxUtils.disableDistanceMode(mapInstance);
     }
-    console.log(`测距工具${distanceMode.value ? '开启' : '关闭'}`);
+    console.log(`测距工具${distanceMode.value ? "开启" : "关闭"}`);
   } catch (error) {
-    console.error('测距工具操作失败:', error);
+    console.error("测距工具操作失败:", error);
   }
 }
 </script>
@@ -242,61 +328,63 @@ function handleDistanceToggle() {
 <style scoped>
 .mapbox-tools-container {
   position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
+  top: 100px;
+  right: 600px;
   z-index: 1000;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 20px;
 }
 
 .tools-section {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 16px;
 }
 
 .tool-group {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 16px;
   background: rgba(0, 0, 0, 0.6);
-  padding: 8px;
-  border-radius: 12px;
+  padding: 16px;
+  border-radius: 24px;
   backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 2px solid rgba(255, 255, 255, 0.1);
 }
 
 .tool-button {
-  width: 44px;
-  height: 44px;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-  transition: all 0.2s ease;
-  background: rgba(255, 255, 255, 0.9);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  width: 72px !important;
+  height: 72px;
+  background-color: transparent;
+  border: none;
+  border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+  
+  .tool-button-img {
+    width: 100%;
+  }
 }
 
 .tool-button:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-  background: rgba(255, 255, 255, 1);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+  background: rgba(255, 255, 255, 0.4);
 }
 
 .tool-button:active {
   transform: translateY(0);
 }
 
+
+
 /* 响应式设计 */
 @media (max-width: 768px) {
   .tool-button {
-    width: 40px;
-    height: 40px;
+    width: 80px;
+    height: 80px;
   }
-  
+
   .tool-group {
-    padding: 6px;
+    padding: 12px;
   }
 }
 </style>

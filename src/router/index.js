@@ -15,11 +15,6 @@ const routes = [
   },
   {
     path: '/',
-    name: 'Home',
-    redirect: '/new-dashboard'
-  },
-  {
-    path: '/new-dashboard',
     name: 'NewDashboard',
     component: () => import('../views/NewDashboardView.vue'),
     meta: {

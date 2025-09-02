@@ -91,11 +91,19 @@ const handleTabClick = (tab) => {
     height: 100%;
     position: relative;
     z-index: 10;
+    background: rgba(0, 0, 0, 0.5);
 
     .nav-image {
       width: 100%;
       object-fit: cover;
       display: block;
+      user-select: none;
+      -webkit-user-drag: none;
+      -khtml-user-drag: none;
+      -moz-user-drag: none;
+      -o-user-drag: none;
+      user-drag: none;
+      pointer-events: none;
     }
   }
 
@@ -104,7 +112,7 @@ const handleTabClick = (tab) => {
     flex-direction: row;
     justify-content: space-between;
     flex:1;
-    padding: 20px;
+    padding: 0 20px 20px;
     position: relative;
   }
 
@@ -141,15 +149,27 @@ const handleTabClick = (tab) => {
     flex-direction: column;
     gap: 16px;
     z-index: 10;
+    background: rgba(0, 0, 0, 0.3);
+    backdrop-filter: blur(2px);
+    padding: 16px;
+    border-radius: 8px;
+    
     .right-image {
       flex: 1;
-      width: 1120px;
+      width: 100%;
 
       .content-image {
         width: 100%;
         height: 100%;
         object-fit: cover;
         display: block;
+        user-select: none;
+        -webkit-user-drag: none;
+        -khtml-user-drag: none;
+        -moz-user-drag: none;
+        -o-user-drag: none;
+        user-drag: none;
+        pointer-events: none;
       }
     }
   }

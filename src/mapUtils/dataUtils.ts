@@ -153,6 +153,50 @@ export class DataUtils {
   }
 
   /**
+   * 验证GeoJSON数据格式
+   * @param geoJson - GeoJSON数据
+   * @returns 是否有效
+   */
+  public validateGeoJSON(geoJson: any): boolean {
+    if (!geoJson || typeof geoJson !== 'object') {
+      return false
+    }
+
+    // 检查基本结构
+    if (geoJson.type === 'Feature') {
+      return this.validateFeature(geoJson)
+    } else if (geoJson.type === 'FeatureCollection') {
+      return this.validateFeatureCollection(geoJson)
+    }
+
+    return false
+  }
+
+  /**
+   * 验证Feature对象
+   * @param feature - Feature对象
+   * @returns 是否有效
+   */
+  private validateFeature(feature: any): boolean {
+    return feature.type === 'Feature' &&
+           feature.geometry &&
+           feature.geometry.type &&
+           feature.geometry.coordinates &&
+           Array.isArray(feature.geometry.coordinates)
+  }
+
+  /**
+   * 验证FeatureCollection对象
+   * @param featureCollection - FeatureCollection对象
+   * @returns 是否有效
+   */
+  private validateFeatureCollection(featureCollection: any): boolean {
+    return featureCollection.type === 'FeatureCollection' &&
+           Array.isArray(featureCollection.features) &&
+           featureCollection.features.every((feature: any) => this.validateFeature(feature))
+  }
+
+  /**
    * 格式化GeoJSON数据
    * @param geoJson - 原始GeoJSON数据
    * @returns 格式化后的GeoJSON数据
