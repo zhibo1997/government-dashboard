@@ -14,8 +14,8 @@
       "bounds":[73.1932144165039,5.77314329147339,135.393768310547,53.7986526489258]
       }
   },
-  "glyphs": "http://192.168.2.89/tjng/tjng_base/fonts/{fontstack}/{range}.pbf",
-  "sprite": "http://192.168.2.89/tjng/tjng_base/sprites/sprite",
+  "glyphs": "http://192.168.2.89/tjng/CSSMX_ZT/fonts/{fontstack}/{range}.pbf",
+  "sprite": "http://192.168.2.89/CSSMX/CSSMX_ZT/sprites/sprite",
   "zoom": 14,
   "pitch":45,
   "center": [120.727, 31.852],

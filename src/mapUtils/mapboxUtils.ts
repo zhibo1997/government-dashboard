@@ -1,4 +1,5 @@
-import mapboxgl from "mapbox-gl";
+import mapboxgl from "@cgcs2000/mapbox-gl";
+import baseStyle from "./cssmx_base.json";
 
 // 扩展Mapbox Map类型以支持自定义属性
 declare module "mapbox-gl" {
@@ -17,7 +18,6 @@ export const mapboxUtils = {
   createTiandituStyle(type: "vec" | "img" | "ter" = "vec"): any {
     // 从环境变量获取key，如果没有则返回OSM样式
     const key = (import.meta as any).env?.VITE_TIANDITU_KEY;
-    console.log("🚀 ~ createTiandituStyle ~ key:", key);
 
     // 天地图图层映射
     const layerMap = {
@@ -85,7 +85,8 @@ export const mapboxUtils = {
   initMap(containerId: string): mapboxgl.Map {
     const map = new mapboxgl.Map({
       container: containerId,
-      style: this.createTiandituStyle("vec"), // 会自动判断key是否可用
+      // style: this.createTiandituStyle("vec"), // 会自动判断key是否可用
+      style: baseStyle,
       center: [115.186322, 29.864861],
       zoom: 12,
       pitch: 30,
@@ -118,61 +119,39 @@ export const mapboxUtils = {
       ter: { base: "ter", label: "cta" },
     };
     const layers = layerMap[type];
-
+    const style = {
+      version: 8,
+      sources: {
+        "tianditu-base": {
+          type: "raster",
+          tiles: [
+            `https://t0.tianditu.gov.cn/DataServer?T=${layers.base}_c&x={x}&y={y}&l={z}&tk=${key}`
+          ],
+          minzoom: 3,
+          maxzoom: 15,
+        }
+      },
+      center: [120.727, 31.852],
+      glyphs: "http://192.168.2.89/CSSMX/CSSMX_ZT/fonts/{fontstack}/{range}.pbf",
+      sprite: "http://192.168.2.89/CSSMX/CSSMX_ZT/sprites/sprite",
+      layers: [
+        {
+          id: "tianditu-base",
+          type: "raster",
+          source: "tianditu-base"
+        }
+      ]
+    };
+    console.log("🚀 ~ initSimpleTiandituMap ~ baseStyle:", baseStyle)
     const map = new mapboxgl.Map({
       container: containerId,
-      style: {
-        version: 8,
-        sources: {
-          // 天地图底图
-          "tianditu-base": {
-            type: "raster",
-            tiles: [
-              `https://t0.tianditu.gov.cn/DataServer?T=${layers.base}_w&x={x}&y={y}&l={z}&tk=${key}`,
-            ],
-            tileSize: 256,
-            minzoom: 3,
-            maxzoom: 15, // 降低最大缩放级别，提升性能
-            attribution:
-              '&copy; <a href="https://www.tianditu.gov.cn">天地图</a>',
-          },
-          // 天地图标注层
-          "tianditu-label": {
-            type: "raster",
-            tiles: [
-              `https://t0.tianditu.gov.cn/DataServer?T=${layers.label}_w&x={x}&y={y}&l={z}&tk=${key}`,
-            ],
-            tileSize: 256,
-            minzoom: 3,
-            maxzoom: 15, // 降低最大缩放级别，提升性能
-            attribution:
-              '&copy; <a href="https://www.tianditu.gov.cn">天地图</a>',
-          },
-        },
-        layers: [
-          // 底图
-          {
-            id: "tianditu-base",
-            type: "raster",
-            source: "tianditu-base",
-          },
-          // 标注层
-          {
-            id: "tianditu-label",
-            type: "raster",
-            source: "tianditu-label",
-          },
-        ],
-      },
-      center: [115.133954, 29.823198], // 阳新县
-      zoom: 10,
-      minZoom: 3, // 限制最小缩放级别
-      maxZoom: 15, // 限制最大缩放级别，提升性能
-      attributionControl: false,
-      // 性能优化选项
-      renderWorldCopies: false, // 不渲染世界副本
-      maxTileCacheSize: 50, // 限制瓦片缓存大小
+      // style: baseStyle,
+      style: style,
+      center: [115.186322, 29.864861],
+      zoom: 12,
+      // pitch: 30,
     });
+    addImages(map, baseStyle.sprite)
 
     // 添加基础控件
     map.addControl(new mapboxgl.NavigationControl(), "top-left");
@@ -265,31 +244,6 @@ export const mapboxUtils = {
         });
       }
 
-      // 检查图层是否已存在
-      if (!map.getLayer(layerId)) {
-        // 添加图层
-        map.addLayer({
-          id: layerId,
-          type: "circle",
-          source: layerId,
-          paint: {
-            "circle-radius": 4,
-            "circle-color": "#1677ff",
-            "circle-opacity": opacity,
-          },
-          layout: {
-            visibility: visible ? "visible" : "none",
-          },
-        });
-      } else {
-        // 如果图层已存在，只更新可见性和透明度
-        map.setLayoutProperty(
-          layerId,
-          "visibility",
-          visible ? "visible" : "none"
-        );
-        map.setPaintProperty(layerId, "circle-opacity", opacity);
-      }
 
       console.log(`矢量切片图层 ${layerId} 加载完成`);
     } catch (error) {
@@ -422,9 +376,9 @@ export const mapboxUtils = {
     const a =
       Math.sin(deltaLat / 2) * Math.sin(deltaLat / 2) +
       Math.cos(lat1) *
-        Math.cos(lat2) *
-        Math.sin(deltaLng / 2) *
-        Math.sin(deltaLng / 2);
+      Math.cos(lat2) *
+      Math.sin(deltaLng / 2) *
+      Math.sin(deltaLng / 2);
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 
     return R * c;
@@ -725,3 +679,33 @@ export const mapboxUtils = {
 
 // 导出默认实例
 export default mapboxUtils;
+function addImages(map: mapboxgl.Map, spriteurl: string) {
+
+  fetch(spriteurl + '.json').then(response => response.json()).then(spriteJson => {
+    var img = new Image();
+    img.onload = function () {
+      for (let key in spriteJson) {
+        let item = spriteJson[key];
+        let { x, y, width, height } = item;
+        let canvas = createCavans(width, height);
+        let context = canvas.getContext('2d');
+        context.drawImage(img, x, y, width, height, 0, 0, width, height);
+        let base64Url = canvas.toDataURL('image/png');
+
+        map.loadImage(base64Url, (error, simg) => {
+          if (!map.hasImage(key)) {
+            map.addImage(key, simg);
+          }
+        })
+      }
+    }
+    img.crossOrigin = "anonymous";
+    img.src = spriteurl + '.png';
+  })
+  function createCavans(width: number, height: number) {
+    var canvas = document.createElement('canvas');
+    canvas.width = width
+    canvas.height = height;
+    return canvas;
+  }
+}

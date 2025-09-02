@@ -5,10 +5,10 @@
         <div class="left-tabs tabs">
           <TimeDisplay />
           <div class="tabs-content">
-            <div class="left-tab-item tab-item" @click="handleTabClick('燃气专项')">
+            <div class="left-tab-item tab-item" :class="{ active: activeTab === '燃气专项' }" @click="handleTabClick('燃气专项')">
               <span>燃气专项</span>
             </div>
-            <div class="left-tab-item tab-item" @click="handleTabClick('桥梁专项')">
+            <div class="left-tab-item tab-item" :class="{ active: activeTab === '桥梁专项' }" @click="handleTabClick('桥梁专项')">
               <span>桥梁专项</span>
             </div>
           </div>
@@ -18,14 +18,14 @@
         </div>
         <div class="right-tabs tabs">
           <div class="tabs-content">
-            <div class="right-tab-item tab-item" @click="handleTabClick('供水专项')">
+            <div class="right-tab-item tab-item" :class="{ active: activeTab === '供水专项' }" @click="handleTabClick('供水专项')">
               <span>供水专项</span>
             </div>
-            <div class="right-tab-item tab-item" @click="handleTabClick('排水专项')">
+            <div class="right-tab-item tab-item" :class="{ active: activeTab === '排水专项' }" @click="handleTabClick('排水专项')">
               <span>排水专项</span>
             </div>
           </div>
-          <span>多云 26°C</span>
+          <span class="weather">多云 26°C</span>
           <div class="control-box">
             
           </div>
@@ -66,13 +66,18 @@
 </template>
 
 <script setup>
+import { ref } from 'vue';
 import ResponsiveWrapper from "../components/ResponsiveWrapper.vue";
 import MapboxMapComponent from "../mapComponents/MapboxMapComponent.vue";
 import MapboxMapTools from "../mapComponents/MapboxMapTools.vue";
 import TimeDisplay from "../components/TimeDisplay.vue";
 
+// 当前选中的tab
+const activeTab = ref('燃气专项');
+
 // 头部点击时间
 const handleTabClick = (tab) => {
+  activeTab.value = tab;
   console.log(tab);
 };
 </script>
@@ -192,6 +197,7 @@ const handleTabClick = (tab) => {
       background: url("@/assets/images/header-bg.webp") no-repeat;
       background-size: 100% 100%;
       height: 148px;
+    pointer-events: none;
 
       >img {
         margin-top: 18px;
@@ -231,6 +237,9 @@ const handleTabClick = (tab) => {
       text-align: center;
       cursor: pointer;
       margin:0 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
 
       >span {
         font-family: YEFONTAoYeHei;
@@ -239,6 +248,18 @@ const handleTabClick = (tab) => {
         line-height: normal;
         color: #ffffff;
       }
+
+      &.active {
+        background: url("@/assets/images/selected.webp") no-repeat;
+        background-size: cover;
+      }
+    }
+
+    .weather {
+      font-family: YEFONTAoYeHei;
+      font-size: 32px;
+      font-weight: normal;
+      color: #ffffff;
     }
   }
 </style>

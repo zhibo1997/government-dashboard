@@ -1,8 +1,8 @@
 <!--
  * @Author: your name
  * @Date: 2020-08-07 11:55:48
- * @LastEditTime: 2025-08-25 18:27:09
- * @LastEditors: error: error: git config user.name & please set dead value or install git && error: git config user.email & please set dead value or install git & please set dead value or install git
+ * @LastEditTime: 2025-09-03 00:29:00
+ * @LastEditors: zhibo1997 1174985654@qq.com
  * @Description: In User Settings Edit
  * @FilePath: \FH\index copy.html
 -->
@@ -14,9 +14,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>cssmx</title>
-    <link rel="stylesheet" type="text/css" href='./lib/dist/mapbox-gl.css'>
-    <script src="./lib/dist//mapbox-gl.js"></script>
-    <script src="./lib/jquery.js"></script>
+    <script src="https://cdn.bootcdn.net/ajax/libs/mapbox-gl/1.13.1/mapbox-gl.js"></script>
+    <script src="https://cdn.bootcdn.net/ajax/libs/mapbox-gl/1.13.1/mapbox-gl.js"></script>
+    <script src="https://cdn.bootcdn.net/ajax/libs/jquery/3.7.1/jquery.js"></script>
     <style>
         html,
         * {
@@ -39,9 +39,9 @@
 
         mapboxgl.srid = 4326;
 
-        fetch('./style/cssmx_base.json').then(response => response.json()).then(basestyle => {
+        fetch('./cssmx_base.json').then(response => response.json()).then(basestyle => {
             // console.log(basestyle)   
-            fetch('./style/cs.json').then(response => response.json()).then(specailstyle => {
+            fetch('http://192.168.2.89/CSSMX/CSSMX_ZT/gspsp_dtrans_manholecoverbasetinfo.json').then(response => response.json()).then(specailstyle => {
                 // console.log(basestyle)
                 Object.assign(basestyle.sources, specailstyle.sources);
                 var map = new mapboxgl.Map({

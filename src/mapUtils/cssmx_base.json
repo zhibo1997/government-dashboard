@@ -20,6 +20,8 @@
   "pitch":45,
   "center": [120.727, 31.852],
   "layers": [
+    
+    
     {
       "id": "background",
       "type": "background",
