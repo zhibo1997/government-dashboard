@@ -1,0 +1,109 @@
+<!--
+ * @Author: your name
+ * @Date: 2020-08-07 11:55:48
+ * @LastEditTime: 2025-08-25 18:27:09
+ * @LastEditors: error: error: git config user.name & please set dead value or install git && error: git config user.email & please set dead value or install git & please set dead value or install git
+ * @Description: In User Settings Edit
+ * @FilePath: \FH\index copy.html
+-->
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>cssmx</title>
+    <link rel="stylesheet" type="text/css" href='./lib/dist/mapbox-gl.css'>
+    <script src="./lib/dist//mapbox-gl.js"></script>
+    <script src="./lib/jquery.js"></script>
+    <style>
+        html,
+        * {
+            margin: 0;
+            padding: 0;
+
+        }
+
+        #map {
+            width: 100vw;
+            height: 100vh;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="map">
+    </div>
+    <script>
+
+        mapboxgl.srid = 4326;
+
+        fetch('./style/cssmx_base.json').then(response => response.json()).then(basestyle => {
+            // console.log(basestyle)   
+            fetch('./style/cs.json').then(response => response.json()).then(specailstyle => {
+                // console.log(basestyle)
+                Object.assign(basestyle.sources, specailstyle.sources);
+                var map = new mapboxgl.Map({
+                    container: 'map',
+                    style: basestyle,
+                    zoom: 12,
+                    // center:   [120.706, 31.845],
+                    // zoom: 16.5,
+                    pitch:30,
+                    center:[115.186322,29.864861],//[117.62,38.73]//[117.52,38.73]//[117.6045,38.7104]
+                });
+
+                addImages(map, specailstyle.sprite);
+
+                map.on('load', function (res) {
+                    for (let item of specailstyle.layers) {
+                        if (!map.getLayer(item.id)) {
+                            map.addLayer(item);
+                        }
+
+                    }
+                })
+            })
+        })
+
+        function addImages(map, spriteurl) {
+
+            fetch(spriteurl + '.json').then(response => response.json()).then(spriteJson => {
+                var img = new Image();
+                img.onload = function () {
+                    for (let key in spriteJson) {
+                        let item = spriteJson[key];
+                        let { x, y, width, height } = item;
+                        let canvas = createCavans(width, height);
+                        let context = canvas.getContext('2d');
+                        context.drawImage(img, x, y, width, height, 0, 0, width, height);
+                        let base64Url = canvas.toDataURL('image/png');
+
+                        map.loadImage(base64Url, (error, simg) => {
+                            if (!map.hasImage(key)) {
+                                map.addImage(key, simg);
+                            }
+                        })
+                    }
+                }
+                img.crossOrigin = "anonymous";
+                img.src = spriteurl + '.png';
+            })
+
+        }
+
+
+
+
+        function createCavans(width, height) {
+            var canvas = document.createElement('canvas');
+            canvas.width = width
+            canvas.height = height;
+            return canvas;
+        }
+
+    </script>
+</body>
+
+</html>

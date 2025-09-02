@@ -1,8 +1,10 @@
 import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse, AxiosError } from 'axios'
-import { message } from 'ant-design-vue'
+import { createDiscreteApi } from 'naive-ui'
 import { useAuthStore } from '../stores/auth'
 import router from '../router'
 import type { ApiResponse } from '@/types'
+
+const { message } = createDiscreteApi(['message'])
 
 // 请求配置接口
 interface RequestConfig extends AxiosRequestConfig {

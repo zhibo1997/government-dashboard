@@ -1,8 +1,10 @@
 
 <template>
-  <div id="app">
-    <router-view />
-  </div>
+  <n-message-provider>
+    <div id="app">
+      <router-view />
+    </div>
+  </n-message-provider>
 </template>
 
 <script setup>

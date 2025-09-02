@@ -7,60 +7,72 @@
       <img src="../assets/images/title.png" alt="登录标题">
     </div>
     <div class="login-card">
-      <a-form
+      <n-form
+        ref="formRef"
         :model="formData"
         :rules="rules"
-        @finish="handleLogin"
-        @finishFailed="handleLoginFailed"
-        layout="vertical"
         class="login-form"
       >
-        <a-form-item name="username" class="form-item">
-          <a-input
+        <n-form-item path="username" class="form-item">
+          <n-input
             v-model:value="formData.username"
             placeholder="请输入账户"
             size="large"
-            :prefix="h(UserOutlined)"
             class="login-input"
-          />
-        </a-form-item>
+            
+          >
+            <template #prefix>
+              <n-icon :component="PersonOutline" />
+            </template>
+          </n-input>
+        </n-form-item>
 
-        <a-form-item name="password" class="form-item">
-          <a-input-password
+        <n-form-item path="password" class="form-item">
+          <n-input
             v-model:value="formData.password"
+            type="password"
             placeholder="请输入密码"
             size="large"
-            :prefix="h(LockOutlined)"
+            show-password-on="mousedown"
             class="login-input"
-          />
-        </a-form-item>
+          >
+            <template #prefix>
+              <n-icon :component="LockClosedOutline" />
+            </template>
+          </n-input>
+        </n-form-item>
 
-        <a-form-item class="form-item">
-          <a-button
+        <n-form-item class="form-item">
+          <n-button
             type="primary"
-            html-type="submit"
             size="large"
             :loading="loading"
             class="login-button"
+            @click="handleLogin"
           >
             登录
-          </a-button>
-        </a-form-item>
-      </a-form>
+          </n-button>
+        </n-form-item>
+      </n-form>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, h } from "vue";
-import { message } from "ant-design-vue";
-import { UserOutlined, LockOutlined } from "@ant-design/icons-vue";
+import { ref } from "vue";
+import { createDiscreteApi } from "naive-ui";
+import { PersonOutline, LockClosedOutline } from "@vicons/ionicons5";
 import { useRouter } from "vue-router";
 import { useAuthStore } from "../stores/auth";
 import { loginService } from "../services/loginService";
 
+const { message } = createDiscreteApi(['message']);
+
 const router = useRouter();
 const authStore = useAuthStore();
+
+// 表单引用
+const formRef = ref(null);
 
 // 表单数据
 const formData = ref({
@@ -84,17 +96,18 @@ const rules = {
 };
 
 // 登录处理
-const handleLogin = async (values) => {
-  loading.value = true;
-
+const handleLogin = async () => {
   try {
+    await formRef.value?.validate();
+    loading.value = true;
+
     // 调用登录服务
-    const result = await loginService.login(values);
+    const result = await loginService.login(formData.value);
 
     if (result) {
       // 保存登录状态
       authStore.login({
-        username: values.username,
+        username: formData.value.username,
         token: result.token,
       });
 
@@ -107,15 +120,15 @@ const handleLogin = async (values) => {
     }
   } catch (error) {
     console.error("登录错误:", error);
-    message.error("登录失败，请重试！");
+    if (error.length) {
+      // 表单验证错误
+      message.error("请检查输入信息");
+    } else {
+      message.error("登录失败，请重试！");
+    }
   } finally {
     loading.value = false;
   }
-};
-
-// 登录失败处理
-const handleLoginFailed = (errorInfo) => {
-  console.log("登录表单验证失败:", errorInfo);
 };
 </script>
 
@@ -211,18 +224,91 @@ const handleLoginFailed = (errorInfo) => {
         width: 250px;
         background-color: transparent;
 
-        :deep(.ant-input) {
-          background: transparent;
-          border: none;
-          color: #fff;
-
-          &::placeholder {
-            color: rgba(255, 255, 255, 0.6);
+        :deep(.n-input) {
+          background: transparent !important;
+          background-color: transparent !important;
+          border: none !important;
+          box-shadow: none !important;
+          outline: none !important;
+          
+          &:hover {
+            background: transparent !important;
+            background-color: transparent !important;
+            border: none !important;
+            box-shadow: none !important;
           }
-        }
-
-        :deep(.ant-input-prefix) {
-          color: rgba(255, 255, 255, 0.8);
+          
+          &:focus {
+            background: transparent !important;
+            background-color: transparent !important;
+            border: none !important;
+            box-shadow: none !important;
+          }
+          
+          &:focus-within {
+            background: transparent !important;
+            background-color: transparent !important;
+            border: none !important;
+            box-shadow: none !important;
+          }
+          
+          .n-input-wrapper {
+            background: transparent !important;
+            background-color: transparent !important;
+            border: none !important;
+            box-shadow: none !important;
+          }
+          
+          .n-input__input {
+            background: transparent !important;
+            background-color: transparent !important;
+            border: none !important;
+            box-shadow: none !important;
+          }
+          
+          .n-input__input-el {
+            background: transparent !important;
+            background-color: transparent !important;
+            color: #fff;
+            border: none !important;
+            box-shadow: none !important;
+            
+            &::placeholder {
+              color: rgba(255, 255, 255, 0.6);
+            }
+            
+            &:hover {
+              background: transparent !important;
+              background-color: transparent !important;
+              border: none !important;
+            }
+            
+            &:focus {
+              background: transparent !important;
+              background-color: transparent !important;
+              border: none !important;
+              box-shadow: none !important;
+            }
+          }
+          
+          .n-input__state-border {
+            display: none !important;
+            border: none !important;
+          }
+          
+          .n-input__border {
+            display: none !important;
+            border: none !important;
+          }
+          
+          .n-input__suffix {
+            background: transparent !important;
+          }
+          
+          .n-input__prefix {
+            color: rgba(255, 255, 255, 0.8);
+            background: transparent !important;
+          }
         }
       }
 
