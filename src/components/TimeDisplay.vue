@@ -1,8 +1,8 @@
 <!--
  * @Author: Do not edit
  * @Date: 2025-09-01 20:25:59
- * @LastEditors: 王志博
- * @LastEditTime: 2025-09-01 21:13:00
+ * @LastEditors: zhibo1997 1174985654@qq.com
+ * @LastEditTime: 2025-09-02 21:40:52
  * @Description: 
 -->
 <template>
@@ -72,14 +72,14 @@ onUnmounted(() => {
 }
 
 .date-line {
-  font-size: 22px;
+  font-size: 32px;
   color: #fff;
   font-weight: 600;
   margin-right: 16px;
 }
 
 .time-line {
-  font-size: 24px;
+  font-size: 32px;
   color: #fff;
   font-weight: 600;
   font-family: 'Consolas', 'Monaco', monospace;

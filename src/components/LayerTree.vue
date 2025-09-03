@@ -40,28 +40,63 @@
 </template>
 
 <script setup>
-import { ref, computed } from "vue";
+import { ref, computed, onMounted } from "vue";
 import { LayersOutline, MapOutline, BusinessOutline } from "@vicons/ionicons5";
+import { useMapStore } from "@/stores/mapStore";
+
+// 使用现有的mapStore
+const mapStore = useMapStore();
 
 // Emits
 const emit = defineEmits(["layer-toggle", "layer-opacity-change"]);
 
-// 响应式数据
+// 本地状态管理
 const expandedKeys = ref(['gas_special', 'bridge_special']);
 const checkedKeys = ref([]);
 
-// 图层状态
-const layerStates = ref({
-  bridge_layer: {
+// 图层状态 - 使用store管理
+const layerStates = computed(() => {
+  // 从store获取图层状态
+  const bridgeState = mapStore.layerTreeState.layerStates.get('bridge_layer') || {
     visible: false,
     opacity: 1.0,
-    url: "http://192.168.2.89/CSSMX/CSSMX_ZT/gspsp_dtrans_bridgebscinfo.json"
-  },
-  manhole_layer: {
+    loading: false,
+    error: null
+  };
+  
+  const manholeState = mapStore.layerTreeState.layerStates.get('manhole_layer') || {
     visible: false,
     opacity: 1.0,
-    url: "http://192.168.2.89/CSSMX/CSSMX_ZT/gspsp_dtrans_manholecoverbasetinfo.json"
-  },
+    loading: false,
+    error: null
+  };
+  
+  return {
+    bridge_layer: {
+      ...bridgeState,
+      url: "http://192.168.2.89/CSSMX/CSSMX_ZT/gspsp_dtrans_bridgebscinfo.json"
+    },
+    manhole_layer: {
+      ...manholeState,
+      url: "http://192.168.2.89/CSSMX/CSSMX_ZT/gspsp_dtrans_manholecoverbasetinfo.json"
+    }
+  };
+});
+
+// 初始化勾选状态
+const initCheckedKeys = () => {
+  const keys = [];
+  Object.entries(layerStates.value).forEach(([key, state]) => {
+    if (state.visible) {
+      keys.push(key);
+    }
+  });
+  checkedKeys.value = keys;
+};
+
+// 组件挂载时初始化
+onMounted(() => {
+  initCheckedKeys();
 });
 
 // 计算属性：转换为树形数据
@@ -71,11 +106,13 @@ const treeData = computed(() => {
       title: "燃气专项",
       key: "gas_special",
       icon: BusinessOutline,
+      checked: false,
       children: [
         {
           title: "井盖设施",
           key: "manhole_layer",
           icon: LayersOutline,
+          checked: layerStates.value.manhole_layer?.visible || false,
           layer: {
             type: "layer",
             url:"http://192.168.2.89/CSSMX/CSSMX_ZT/gspsp_dtrans_manholecoverbasetinfo.json",
@@ -88,11 +125,13 @@ const treeData = computed(() => {
       title: "桥梁专项",
       key: "bridge_special",
       icon: BusinessOutline,
+      checked: false,
       children: [
         {
           title: "桥梁设施",
           key: "bridge_layer",
           icon: MapOutline,
+          checked: layerStates.value.bridge_layer?.visible || false,
           layer: {
             type: "layer",
             url:"http://192.168.2.89/CSSMX/CSSMX_ZT/gspsp_dtrans_bridgebscinfo.json",
@@ -114,45 +153,54 @@ function handleCheckedKeysChange(keys) {
   checkedKeys.value = keys;
   console.log("Checked:", keys);
   
-  // 处理图层显隐
+  // 处理图层显隐 - 更新到store
   const layerKeys = ['bridge_layer', 'manhole_layer'];
   layerKeys.forEach(layerKey => {
     const isChecked = keys.includes(layerKey);
-    if (layerStates.value[layerKey].visible !== isChecked) {
-      layerStates.value[layerKey].visible = isChecked;
-      emit("layer-toggle", layerKey, isChecked, layerStates.value[layerKey].url);
+    const currentState = layerStates.value[layerKey];
+    
+    // 更新store中的图层状态
+    mapStore.updateLayerTreeState({
+      layerId: layerKey,
+      visible: isChecked
+    });
+    
+    if (currentState.visible !== isChecked) {
+      emit("layer-toggle", layerKey, isChecked, currentState.url);
     }
   });
 }
 
 // 处理图层显隐切换
 function handleLayerToggle(layerKey, visible, url = null) {
-  // 更新本地状态
-  if (layerStates.value[layerKey]) {
-    layerStates.value[layerKey].visible = visible;
-  }
+  // 更新store状态
+  mapStore.updateLayerTreeState({
+    layerId: layerKey,
+    visible: visible
+  });
+  
   const layerUrl = url || layerStates.value[layerKey]?.url;
   emit("layer-toggle", layerKey, visible, layerUrl);
 }
 
 // 处理透明度变化
 function handleOpacityChange(layerKey, opacity) {
-  // 更新本地状态
-  if (layerStates.value[layerKey]) {
-    layerStates.value[layerKey].opacity = opacity;
-  }
+  // 更新store状态
+  mapStore.updateLayerTreeState({
+    layerId: layerKey,
+    opacity: opacity
+  });
+  
   emit("layer-opacity-change", layerKey, opacity);
 }
 
 // 暴露方法给父组件调用
 defineExpose({
   updateLayerState(layerKey, state) {
-    if (layerStates.value[layerKey]) {
-      layerStates.value[layerKey] = {
-        ...layerStates.value[layerKey],
-        ...state,
-      };
-    }
+    mapStore.updateLayerTreeState({
+      layerId: layerKey,
+      ...state
+    });
   },
 });
 </script>
@@ -209,7 +257,7 @@ defineExpose({
 }
 
 :deep(.n-tree-node:hover) {
-  background-color: transparent;
+  background-color: transparent !important;
   cursor: pointer;
 }
 

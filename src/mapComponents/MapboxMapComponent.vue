@@ -1,5 +1,8 @@
 <template>
-    <div id="mapbox-container" class="mapbox-instance"></div>
+    <div class="mapbox-map-wrapper">
+        <div id="mapbox-container" class="mapbox-instance"></div>
+        <MapboxMapTools />
+    </div>
 </template>
 
 <script setup>
@@ -10,9 +13,9 @@ import {
   ref,
   provide,
 } from "vue";
-import mapboxgl from "mapbox-gl";
-import MapboxMapTools from "./MapboxMapTools.vue";
+import mapboxgl from "@cgcs2000/mapbox-gl";
 import yangxinGeoJson from "../assets/yangxin.json";
+import MapboxMapTools from "./MapboxMapTools.vue";
 import { useMapStore } from "../stores/mapStore";
 import { mapboxUtils } from "@/mapUtils/mapboxUtils";
 import { dataUtils } from "../mapUtils/dataUtils";
@@ -26,7 +29,7 @@ const mapStore = useMapStore();
 const mapInstance = ref(null);
 
 // 提供地图实例给子组件
-provide("mapInstance", mapInstance);
+provide("mapboxMap", mapInstance);
 
 // 开发模式检查，避免重复初始化
 const isDev = import.meta.env.DEV;
@@ -69,12 +72,6 @@ function initMapboxMap() {
     // 地图加载完成后加载数据
     map.on('load', async () => {
       try {
-        // 地图加载完成后，设置默认相机位置
-        map.flyTo({
-          center: [115.133954, 29.823198], // 阳新县中心坐标
-          zoom: 10,
-          duration: 2000
-        });
         // await loadGeoJsonData();
         // 添加指北针控件
         mapboxUtils.addCompassControl(map, 'top-right');
@@ -223,11 +220,17 @@ onBeforeUnmount(() => {
 </script>
 
 <style scoped>
-.mapbox-instance {
+.mapbox-map-wrapper {
   width: 100%;
   height: 100%;
   position: relative;
   min-height: calc(100vh - 148px); /* 确保最小高度 */
+}
+
+.mapbox-instance {
+  width: 100%;
+  height: 100%;
+  position: relative;
 }
 
 .map-mask {

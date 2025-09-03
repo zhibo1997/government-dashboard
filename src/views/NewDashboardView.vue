@@ -6,18 +6,10 @@
           <TimeDisplay />
           {{ activeTab }}
           <div class="tabs-content">
-            <div 
-              class="left-tab-item tab-item" 
-              :class="{ 'active': activeTab === '燃气专项' }" 
-              @click="handleTabClick('燃气专项')"
-            >
-              <span>燃气专项</span> 
+            <div class="left-tab-item tab-item" :class="{ active: activeTab === '燃气专项' }" @click="handleTabClick('燃气专项')">
+              <span>燃气专项</span>
             </div>
-            <div 
-              class="left-tab-item tab-item" 
-              :class="{ 'active': activeTab === '桥梁专项' }" 
-              @click="handleTabClick('桥梁专项')"
-            >
+            <div class="left-tab-item tab-item" :class="{ active: activeTab === '桥梁专项' }" @click="handleTabClick('桥梁专项')">
               <span>桥梁专项</span>
             </div>
           </div>
@@ -27,22 +19,14 @@
         </div>
         <div class="right-tabs tabs">
           <div class="tabs-content">
-            <div 
-              class="right-tab-item tab-item" 
-              :class="{ 'active': activeTab === '供水专项' }" 
-              @click="handleTabClick('供水专项')"
-            >
+            <div class="right-tab-item tab-item" :class="{ active: activeTab === '供水专项' }" @click="handleTabClick('供水专项')">
               <span>供水专项</span>
             </div>
-            <div 
-              class="right-tab-item tab-item" 
-              :class="{ 'active': activeTab === '排水专项' }" 
-              @click="handleTabClick('排水专项')"
-            >
+            <div class="right-tab-item tab-item" :class="{ active: activeTab === '排水专项' }" @click="handleTabClick('排水专项')">
               <span>排水专项</span>
             </div>
           </div>
-          <span class="weather-info">多云 26°C</span>
+          <span class="weather">多云 26°C</span>
           <div class="control-box">
             <a-button type="primary" class="system-admin-btn" @click="handleSystemAdmin">
               <setting-outlined />
@@ -92,11 +76,12 @@ import MapboxMapComponent from "../mapComponents/MapboxMapComponent.vue";
 import MapboxMapTools from "../mapComponents/MapboxMapTools.vue";
 import TimeDisplay from "../components/TimeDisplay.vue";
 
-// 当前选中的标签
+// 当前选中的tab
 const activeTab = ref('燃气专项');
 
 // 头部点击时间
 const handleTabClick = (tab) => {
+  activeTab.value = tab;
   console.log(tab);
   activeTab.value = tab;
 };
@@ -223,6 +208,7 @@ const handleSystemAdmin = () => {
       background: url("@/assets/images/header-bg.webp") no-repeat;
       background-size: 100% 100%;
       height: 148px;
+    pointer-events: none;
 
       >img {
         margin-top: 18px;
@@ -262,11 +248,9 @@ const handleSystemAdmin = () => {
       text-align: center;
       cursor: pointer;
       margin:0 8px;
-      position: relative;
-      &.active {
-        background: url("@/assets/images/selected.webp") no-repeat;
-        background-size: cover;
-      }
+      display: flex;
+      align-items: center;
+      justify-content: center;
 
       >span {
         font-family: YEFONTAoYeHei;
@@ -276,41 +260,17 @@ const handleSystemAdmin = () => {
         color: #ffffff;
       }
 
-      .selected-icon {
-        position: absolute;
-        bottom: 0;
-        left: 50%;
-        transform: translateX(-50%);
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
+      &.active {
+        background: url("@/assets/images/selected.webp") no-repeat;
+        background-size: cover;
       }
     }
 
-    .weather-info {
+    .weather {
       font-family: YEFONTAoYeHei;
-      font-size: 36px;
+      font-size: 32px;
+      font-weight: normal;
       color: #ffffff;
-      margin-right: 20px;
-    }
-
-    .control-box {
-      .system-admin-btn {
-        height: 48px;
-        font-size: 24px;
-        background-color: #1677ff;
-        border-color: #1677ff;
-        border-radius: 4px;
-        padding: 0 16px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        
-        .anticon {
-          margin-right: 8px;
-          font-size: 20px;
-        }
-      }
     }
   }
 </style>
