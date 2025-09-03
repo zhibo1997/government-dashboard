@@ -136,7 +136,7 @@ export const mapboxUtils = {
           minzoom: 3,
           maxzoom: 15,
         },
-        
+
         "tianditu-ter": {
           type: "raster",
           tiles: [
@@ -155,17 +155,17 @@ export const mapboxUtils = {
           id: "tianditu-base",
           type: "raster",
           source: "tianditu-base",
+          layout: { visibility: 'none' }
         },
         {
           id: "tianditu-img",
           type: "raster",
-          source: "tianditu-img",
-        layout: { visibility: 'none' }
-        },{
+          source: "tianditu-img"
+        }, {
           id: "tianditu-ter",
           type: "raster",
           source: "tianditu-ter",
-        layout: { visibility: 'none' }
+          layout: { visibility: 'none' }
         }
       ],
     };
@@ -175,8 +175,7 @@ export const mapboxUtils = {
       // style: baseStyle,
       style: style,
       center: [115.186322, 29.864861],
-      zoom: 12,
-      // pitch: 30,
+      zoom: 14,
     });
     addImages(map, baseStyle.sprite);
 
@@ -202,12 +201,16 @@ export const mapboxUtils = {
       strokeColor?: string;
       strokeWidth?: number;
       fillColor?: string;
+      fillOpacity?: number;
+      strokeOpacity?: number;
     } = {}
   ): Promise<void> {
     const {
-      strokeColor = "#fa541c",
-      strokeWidth = 2,
-      fillColor = "rgba(250, 84, 28, 0.1)",
+      strokeColor = "#1677ff", // 使用Ant Design主色
+      strokeWidth = 4,
+      fillColor = "rgba(22, 119, 255, 1)", // 使用Ant Design主色透明度
+      fillOpacity = 0.1,
+      strokeOpacity = 1.0,
     } = options;
 
     // 检查数据源是否已存在
@@ -222,18 +225,19 @@ export const mapboxUtils = {
       data: data,
     });
 
-    // 添加填充图层
+    // 添加填充图层（带边框颜色）
     map.addLayer({
       id: `${sourceId}-fill`,
       type: "fill",
       source: sourceId,
       paint: {
         "fill-color": fillColor,
-        "fill-opacity": 0.8,
+        "fill-opacity": fillOpacity,
+        "fill-outline-color": strokeColor, // 填充图层的边框颜色
       },
     });
 
-    // 添加边框图层
+    // 添加边框图层（更明显的边框）
     map.addLayer({
       id: `${sourceId}-stroke`,
       type: "line",
@@ -241,10 +245,11 @@ export const mapboxUtils = {
       paint: {
         "line-color": strokeColor,
         "line-width": strokeWidth,
+        "line-opacity": strokeOpacity,
       },
     });
 
-    console.log(`GeoJSON数据源 ${sourceId} 加载完成`);
+    console.log(`GeoJSON数据源 ${sourceId} 加载完成，边框颜色: ${strokeColor}, 填充色: ${fillColor}`);
   },
 
   // 加载矢量切片图层
@@ -262,6 +267,8 @@ export const mapboxUtils = {
     try {
       // 检查source是否已存在
       if (!map.getSource(layerId)) {
+        // TODO: 实现矢量切片图层加载逻辑
+        console.log(`准备加载矢量切片图层 ${layerId}, 可见性: ${visible}, 透明度: ${opacity}`);
       }
 
       console.log(`矢量切片图层 ${layerId} 加载完成`);
@@ -395,9 +402,9 @@ export const mapboxUtils = {
     const a =
       Math.sin(deltaLat / 2) * Math.sin(deltaLat / 2) +
       Math.cos(lat1) *
-        Math.cos(lat2) *
-        Math.sin(deltaLng / 2) *
-        Math.sin(deltaLng / 2);
+      Math.cos(lat2) *
+      Math.sin(deltaLng / 2) *
+      Math.sin(deltaLng / 2);
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 
     return R * c;
@@ -428,9 +435,8 @@ export const mapboxUtils = {
   resetMap(map: mapboxgl.Map): void {
     if (map) {
       map.flyTo({
-      center: [115.186322, 29.864861],
-      zoom: 12,
-      pitch: 30,
+        center: [115.186322, 29.864861],
+        zoom: 14,
         duration: 2000,
       });
       console.log("地图已复位到初始状态");
@@ -708,19 +714,21 @@ function addImages(map: mapboxgl.Map, spriteurl: string) {
           let { x, y, width, height } = item;
           let canvas = createCavans(width, height);
           let context = canvas.getContext("2d");
-          context.drawImage(img, x, y, width, height, 0, 0, width, height);
-          let base64Url = canvas.toDataURL("image/png");
+          if (context) {
+            context.drawImage(img, x, y, width, height, 0, 0, width, height);
+            let base64Url = canvas.toDataURL("image/png");
 
-          map.loadImage(base64Url, (error, simg) => {
-            if (!map.hasImage(key)) {
-              map.addImage(key, simg);
-            }
-          });
-        }
-      };
-      img.crossOrigin = "anonymous";
-      img.src = spriteurl + ".png";
-    });
+            map.loadImage(base64Url, (error: any, simg: any) => {
+              if (!map.hasImage(key)) {
+                map.addImage(key, simg);
+              }
+            });
+          }
+        };
+        img.crossOrigin = "anonymous";
+        img.src = spriteurl + ".png";
+      }
+    })
   function createCavans(width: number, height: number) {
     var canvas = document.createElement("canvas");
     canvas.width = width;

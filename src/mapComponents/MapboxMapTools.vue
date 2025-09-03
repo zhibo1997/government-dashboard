@@ -118,27 +118,12 @@ import LayerTree from "../components/LayerTree.vue";
 // 注入地图实例 - 直接注入 ref 对象
 const mapInstance = inject<Ref<MapboxMap | null>>("mapboxMap");
 const map = computed(() => {
-  console.log("computed map - mapInstance?.value:", mapInstance?.value);
   return mapInstance?.value;
 });
 
-// 添加调试信息
-watchEffect(() => {
-  console.log("MapboxMapTools watchEffect - mapInstance:", mapInstance);
-  console.log(
-    "MapboxMapTools watchEffect - mapInstance?.value:",
-    mapInstance?.value
-  );
-  console.log("MapboxMapTools watchEffect - map.value:", map.value);
-  if (!map.value) {
-    console.warn("MapboxMapTools: 地图实例为空，可能还在初始化中");
-  } else {
-    console.log("MapboxMapTools: 地图实例已就绪");
-  }
-});
 
 // 当前底图类型
-const currentBasemap = ref<string>("tianditu-base");
+const currentBasemap = ref<string>("tianditu-img");
 
 // 底图选项
 const basemapOptions = ref([
@@ -178,8 +163,6 @@ const switchBasemap = (type: string) => {
     });
     mapVal.setLayoutProperty(type, "visibility", "visible");
     currentBasemap.value = type;
-    // if (mapVal.getLayer(type)) {
-    // }
   } catch (error) {
     console.error("切换底图失败:", error);
   }
@@ -310,7 +293,7 @@ onMounted(() => {
 .mapbox-map-tools {
   position: absolute;
   top: 20px;
-  right: 600px;
+  right: 1160px;
   display: flex;
   flex-direction: column;
   gap: 8px;

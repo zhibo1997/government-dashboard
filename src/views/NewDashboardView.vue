@@ -134,7 +134,7 @@ const handleSystemAdmin = () => {
 
   // 中间地图区域
   .center-map {
-    width: 3000px; 
+    width: 4096px; 
     position: absolute;
     top: 0;
     height: 100%;
