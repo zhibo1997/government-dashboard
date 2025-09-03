@@ -12,6 +12,7 @@ import {
   nextTick,
   ref,
   provide,
+  watchEffect,
 } from "vue";
 import mapboxgl from "@cgcs2000/mapbox-gl";
 import yangxinGeoJson from "../assets/yangxin.json";
@@ -30,6 +31,7 @@ const mapInstance = ref(null);
 
 // 提供地图实例给子组件
 provide("mapboxMap", mapInstance);
+
 
 // 开发模式检查，避免重复初始化
 const isDev = import.meta.env.DEV;

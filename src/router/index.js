@@ -10,16 +10,16 @@ const routes = [
     component: LoginView,
     meta: {
       // requiresAuth: false,
-      title: '登录 - 政府大屏系统'
+      title: '登录 - 安全综合检测预警平台'
     }
   },
   {
     path: '/',
-    name: 'NewDashboard',
+    name: 'dashboard',
     component: () => import('../views/NewDashboardView.vue'),
     meta: {
       // requiresAuth: true,
-      title: '新Dashboard - 政府大屏系统'
+      title: '安全综合检测预警平台'
     }
   },
 
@@ -33,7 +33,7 @@ const routes = [
 
 // 创建路由实例
 const router = createRouter({
-  history: createWebHistory(),
+  history: createWebHistory(import.meta.env.VITE_BASE_URL || '/clmap/'),
   routes
 })
 

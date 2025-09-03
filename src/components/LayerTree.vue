@@ -151,7 +151,6 @@ function handleExpandedKeysChange(keys) {
 // 勾选节点
 function handleCheckedKeysChange(keys) {
   checkedKeys.value = keys;
-  console.log("Checked:", keys);
   
   // 处理图层显隐 - 更新到store
   const layerKeys = ['bridge_layer', 'manhole_layer'];
@@ -178,7 +177,6 @@ function handleLayerToggle(layerKey, visible, url = null) {
     layerId: layerKey,
     visible: visible
   });
-  
   const layerUrl = url || layerStates.value[layerKey]?.url;
   emit("layer-toggle", layerKey, visible, layerUrl);
 }

@@ -4,7 +4,6 @@
       <div class="header">
         <div class="left-tabs tabs">
           <TimeDisplay />
-          {{ activeTab }}
           <div class="tabs-content">
             <div class="left-tab-item tab-item" :class="{ active: activeTab === '燃气专项' }" @click="handleTabClick('燃气专项')">
               <span>燃气专项</span>
@@ -28,10 +27,10 @@
           </div>
           <span class="weather">多云 26°C</span>
           <div class="control-box">
-            <a-button type="primary" class="system-admin-btn" @click="handleSystemAdmin">
+            <!-- <a-button type="primary" class="system-admin-btn" @click="handleSystemAdmin">
               <setting-outlined />
               系统管理
-            </a-button>
+            </a-button> -->
           </div>
         </div>
       </div>
@@ -44,7 +43,8 @@
         <!-- 中间地图区域 -->
         <div class="center-map">
           <MapboxMapComponent />
-          <MapboxMapTools />
+          <!-- 图例 -->
+           <img class="map-legend" src="../assets/map-img/legend.png" alt="" />
         </div>
 
         <!-- 右侧内容区域 -->
@@ -73,7 +73,6 @@
 import { ref } from 'vue';
 import ResponsiveWrapper from "../components/ResponsiveWrapper.vue";
 import MapboxMapComponent from "../mapComponents/MapboxMapComponent.vue";
-import MapboxMapTools from "../mapComponents/MapboxMapTools.vue";
 import TimeDisplay from "../components/TimeDisplay.vue";
 
 // 当前选中的tab
@@ -272,5 +271,10 @@ const handleSystemAdmin = () => {
       font-weight: normal;
       color: #ffffff;
     }
+  }
+  .map-legend{
+    position: absolute;
+    bottom: 0;
+    right: 600px;
   }
 </style>

@@ -40,8 +40,6 @@ export const mapboxUtils = {
           tileSize: 256,
           minzoom: 3,
           maxzoom: 15, // 降低最大缩放级别，提升性能
-          attribution:
-            '&copy; <a href="https://www.tianditu.gov.cn">天地图</a>',
         },
       },
       layers: [
@@ -125,24 +123,53 @@ export const mapboxUtils = {
         "tianditu-base": {
           type: "raster",
           tiles: [
-            `https://t0.tianditu.gov.cn/DataServer?T=${layers.base}_c&x={x}&y={y}&l={z}&tk=${key}`
+            `https://t0.tianditu.gov.cn/DataServer?T=${layers.base}_c&x={x}&y={y}&l={z}&tk=${key}`,
           ],
           minzoom: 3,
           maxzoom: 15,
-        }
+        },
+        "tianditu-img": {
+          type: "raster",
+          tiles: [
+            `https://t0.tianditu.gov.cn/DataServer?T=img_c&x={x}&y={y}&l={z}&tk=${key}`,
+          ],
+          minzoom: 3,
+          maxzoom: 15,
+        },
+        
+        "tianditu-ter": {
+          type: "raster",
+          tiles: [
+            `https://t0.tianditu.gov.cn/DataServer?T=ter_c&x={x}&y={y}&l={z}&tk=${key}`,
+          ],
+          minzoom: 3,
+          maxzoom: 15,
+        },
       },
       center: [120.727, 31.852],
-      glyphs: "http://192.168.2.89/CSSMX/CSSMX_ZT/fonts/{fontstack}/{range}.pbf",
+      glyphs:
+        "http://192.168.2.89/CSSMX/CSSMX_ZT/fonts/{fontstack}/{range}.pbf",
       sprite: "http://192.168.2.89/CSSMX/CSSMX_ZT/sprites/sprite",
       layers: [
         {
           id: "tianditu-base",
           type: "raster",
-          source: "tianditu-base"
+          source: "tianditu-base",
+        },
+        {
+          id: "tianditu-img",
+          type: "raster",
+          source: "tianditu-img",
+        layout: { visibility: 'none' }
+        },{
+          id: "tianditu-ter",
+          type: "raster",
+          source: "tianditu-ter",
+        layout: { visibility: 'none' }
         }
-      ]
+      ],
     };
-    console.log("🚀 ~ initSimpleTiandituMap ~ baseStyle:", baseStyle)
+    console.log("🚀 ~ initSimpleTiandituMap ~ baseStyle:", baseStyle);
     const map = new mapboxgl.Map({
       container: containerId,
       // style: baseStyle,
@@ -151,7 +178,7 @@ export const mapboxUtils = {
       zoom: 12,
       // pitch: 30,
     });
-    addImages(map, baseStyle.sprite)
+    addImages(map, baseStyle.sprite);
 
     // 添加基础控件
     map.addControl(new mapboxgl.NavigationControl(), "top-left");
@@ -235,15 +262,7 @@ export const mapboxUtils = {
     try {
       // 检查source是否已存在
       if (!map.getSource(layerId)) {
-        // 添加数据源
-        map.addSource(layerId, {
-          type: "vector",
-          tiles: [url],
-          minzoom: 0,
-          maxzoom: 22,
-        });
       }
-
 
       console.log(`矢量切片图层 ${layerId} 加载完成`);
     } catch (error) {
@@ -376,9 +395,9 @@ export const mapboxUtils = {
     const a =
       Math.sin(deltaLat / 2) * Math.sin(deltaLat / 2) +
       Math.cos(lat1) *
-      Math.cos(lat2) *
-      Math.sin(deltaLng / 2) *
-      Math.sin(deltaLng / 2);
+        Math.cos(lat2) *
+        Math.sin(deltaLng / 2) *
+        Math.sin(deltaLng / 2);
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 
     return R * c;
@@ -409,10 +428,9 @@ export const mapboxUtils = {
   resetMap(map: mapboxgl.Map): void {
     if (map) {
       map.flyTo({
-        center: [115.133954, 29.823198], // 阳新县中心坐标
-        zoom: 10,
-        bearing: 0, // 重置旋转角度
-        pitch: 0, // 重置倾斜角度
+      center: [115.186322, 29.864861],
+      zoom: 12,
+      pitch: 30,
         duration: 2000,
       });
       console.log("地图已复位到初始状态");
@@ -680,31 +698,32 @@ export const mapboxUtils = {
 // 导出默认实例
 export default mapboxUtils;
 function addImages(map: mapboxgl.Map, spriteurl: string) {
+  fetch(spriteurl + ".json")
+    .then((response) => response.json())
+    .then((spriteJson) => {
+      var img = new Image();
+      img.onload = function () {
+        for (let key in spriteJson) {
+          let item = spriteJson[key];
+          let { x, y, width, height } = item;
+          let canvas = createCavans(width, height);
+          let context = canvas.getContext("2d");
+          context.drawImage(img, x, y, width, height, 0, 0, width, height);
+          let base64Url = canvas.toDataURL("image/png");
 
-  fetch(spriteurl + '.json').then(response => response.json()).then(spriteJson => {
-    var img = new Image();
-    img.onload = function () {
-      for (let key in spriteJson) {
-        let item = spriteJson[key];
-        let { x, y, width, height } = item;
-        let canvas = createCavans(width, height);
-        let context = canvas.getContext('2d');
-        context.drawImage(img, x, y, width, height, 0, 0, width, height);
-        let base64Url = canvas.toDataURL('image/png');
-
-        map.loadImage(base64Url, (error, simg) => {
-          if (!map.hasImage(key)) {
-            map.addImage(key, simg);
-          }
-        })
-      }
-    }
-    img.crossOrigin = "anonymous";
-    img.src = spriteurl + '.png';
-  })
+          map.loadImage(base64Url, (error, simg) => {
+            if (!map.hasImage(key)) {
+              map.addImage(key, simg);
+            }
+          });
+        }
+      };
+      img.crossOrigin = "anonymous";
+      img.src = spriteurl + ".png";
+    });
   function createCavans(width: number, height: number) {
-    var canvas = document.createElement('canvas');
-    canvas.width = width
+    var canvas = document.createElement("canvas");
+    canvas.width = width;
     canvas.height = height;
     return canvas;
   }

@@ -9,6 +9,8 @@ export default defineConfig(({ command, mode }) => {
   const env = loadEnv(mode, process.cwd(), '')
   
   return {
+    // 设置静态资源基础路径
+    base: env.VITE_BASE_URL || '/clmap/',
     plugins: [
       vue(),
       vueDevTools(),
@@ -58,7 +60,6 @@ export default defineConfig(({ command, mode }) => {
           assetFileNames: 'assets/[ext]/[name]-[hash].[ext]',
           manualChunks: {
             vue: ['vue', 'vue-router', 'pinia'],
-            antd: ['ant-design-vue'],
             utils: ['axios', 'jsencrypt']
           }
         }

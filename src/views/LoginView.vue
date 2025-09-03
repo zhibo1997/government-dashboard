@@ -1,25 +1,19 @@
 <template>
   <div class="login-container">
     <div class="login-bg">
-      <img src="../assets/images/bg-box.webp" alt="登录背景">
+      <img src="../assets/images/bg-box.webp" alt="登录背景" />
     </div>
     <div class="login-title">
-      <img src="../assets/images/title.png" alt="登录标题">
+      <img src="../assets/images/title.png" alt="登录标题" />
     </div>
     <div class="login-card">
-      <n-form
-        ref="formRef"
-        :model="formData"
-        :rules="rules"
-        class="login-form"
-      >
+      <n-form ref="formRef" :model="formData" :rules="rules" class="login-form">
         <n-form-item path="username" class="form-item">
           <n-input
             v-model:value="formData.username"
-            placeholder="请输入账户"
+            placeholder=""
             size="large"
             class="login-input"
-            
           >
             <template #prefix>
               <n-icon :component="PersonOutline" />
@@ -31,7 +25,7 @@
           <n-input
             v-model:value="formData.password"
             type="password"
-            placeholder="请输入密码"
+            placeholder=""
             size="large"
             show-password-on="mousedown"
             class="login-input"
@@ -66,7 +60,7 @@ import { useRouter } from "vue-router";
 import { useAuthStore } from "../stores/auth";
 import { loginService } from "../services/loginService";
 
-const { message } = createDiscreteApi(['message']);
+const { message } = createDiscreteApi(["message"]);
 
 const router = useRouter();
 const authStore = useAuthStore();
@@ -114,7 +108,7 @@ const handleLogin = async () => {
       message.success("登录成功！");
 
       // 跳转到主页面
-      router.push("/");
+      router.push("/dashboard");
     } else {
       message.error(result.message || "登录失败！");
     }
@@ -140,10 +134,10 @@ const handleLogin = async () => {
   flex-direction: column;
   position: relative;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  
+
   // 背景图片容器
   &::before {
-    content: '';
+    content: "";
     position: absolute;
     top: 0;
     left: 0;
@@ -156,8 +150,8 @@ const handleLogin = async () => {
     filter: blur(3px);
     z-index: 1;
   }
-  
-  .login-bg{
+
+  .login-bg {
     position: absolute;
     top: 50%;
     left: 50%;
@@ -166,24 +160,49 @@ const handleLogin = async () => {
     z-index: 1;
     // 水平居中
     transform: translate(-50%, -50%);
-    img{
+    img {
       width: 100%;
       height: 100%;
       object-fit: cover;
     }
   }
-  .login-title{
+  .login-title {
     z-index: 10;
     position: relative;
     height: 60px;
     margin-top: 20px;
-    img{
+    img {
       width: 100%;
       height: 100%;
       object-fit: contain;
     }
   }
+  :deep() {
+    .n-input__input-el {
+      background: transparent !important;
+      background-color: transparent !important;
+      color: #ffffff !important;
+      border: none !important;
+      box-shadow: none !important;
 
+      &::placeholder {
+        color: rgba(255, 255, 255, 0.6);
+      }
+
+      &:hover {
+        background: transparent !important;
+        background-color: transparent !important;
+        border: none !important;
+      }
+
+      &:focus {
+        background: transparent !important;
+        background-color: transparent !important;
+        border: none !important;
+        box-shadow: none !important;
+      }
+    }
+  }
   .login-card {
     width: 420px;
     height: 380px;
@@ -223,6 +242,7 @@ const handleLogin = async () => {
         border: none;
         width: 250px;
         background-color: transparent;
+        color: #fff;
 
         :deep(.n-input) {
           background: transparent !important;
@@ -230,81 +250,56 @@ const handleLogin = async () => {
           border: none !important;
           box-shadow: none !important;
           outline: none !important;
-          
+
           &:hover {
             background: transparent !important;
             background-color: transparent !important;
             border: none !important;
             box-shadow: none !important;
           }
-          
+
           &:focus {
             background: transparent !important;
             background-color: transparent !important;
             border: none !important;
             box-shadow: none !important;
           }
-          
+
           &:focus-within {
             background: transparent !important;
             background-color: transparent !important;
             border: none !important;
             box-shadow: none !important;
           }
-          
+
           .n-input-wrapper {
             background: transparent !important;
             background-color: transparent !important;
             border: none !important;
             box-shadow: none !important;
           }
-          
+
           .n-input__input {
             background: transparent !important;
             background-color: transparent !important;
             border: none !important;
             box-shadow: none !important;
           }
-          
-          .n-input__input-el {
-            background: transparent !important;
-            background-color: transparent !important;
-            color: #fff;
-            border: none !important;
-            box-shadow: none !important;
-            
-            &::placeholder {
-              color: rgba(255, 255, 255, 0.6);
-            }
-            
-            &:hover {
-              background: transparent !important;
-              background-color: transparent !important;
-              border: none !important;
-            }
-            
-            &:focus {
-              background: transparent !important;
-              background-color: transparent !important;
-              border: none !important;
-              box-shadow: none !important;
-            }
-          }
-          
+
           .n-input__state-border {
             display: none !important;
             border: none !important;
           }
-          
+
           .n-input__border {
             display: none !important;
             border: none !important;
           }
-          
+
           .n-input__suffix {
             background: transparent !important;
           }
-          
+
           .n-input__prefix {
             color: rgba(255, 255, 255, 0.8);
             background: transparent !important;
