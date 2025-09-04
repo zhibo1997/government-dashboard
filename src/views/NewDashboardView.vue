@@ -76,7 +76,7 @@ import MapboxMapComponent from "../mapComponents/MapboxMapComponent.vue";
 import TimeDisplay from "../components/TimeDisplay.vue";
 
 // 当前选中的tab
-const activeTab = ref('燃气专项');
+const activeTab = ref('桥梁专项');
 
 // 头部点击时间
 const handleTabClick = (tab) => {

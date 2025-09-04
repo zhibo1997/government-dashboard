@@ -71,11 +71,7 @@
     </div>
     <!-- 测量工具 -->
     <div class="tool-button" title="测量工具">
-      <img
-        src="../assets/map-img/ranging.webp"
-        alt="测量"
-        class="tool-icon"
-      />
+      <img src="../assets/map-img/ranging.webp" alt="测量" class="tool-icon" />
     </div>
     <!-- <n-popover trigger="click" placement="right">
       <template #trigger>
@@ -120,7 +116,6 @@ const mapInstance = inject<Ref<MapboxMap | null>>("mapboxMap");
 const map = computed(() => {
   return mapInstance?.value;
 });
-
 
 // 当前底图类型
 const currentBasemap = ref<string>("tianditu-img");
@@ -192,10 +187,10 @@ const handleLayerToggle = (
   try {
     if (visible) {
       // 加载矢量瓦片图层 - 这里需要根据实际需求实现
-      loadVectorTileLayer(layerKey, layerUrl);
+      mapboxUtils.loadVectorTileLayer(mapVal, layerUrl);
     } else {
       console.log(`移除图层: ${layerKey}`);
-      removeLayerAndSources(layerKey, layerUrl);
+      mapboxUtils.removeLayerAndSources(mapVal, layerUrl);
     }
 
     // 更新专题地图模式状态
@@ -213,32 +208,6 @@ const handleLayerToggle = (
     if (layerTreeRef.value) {
       layerTreeRef.value.updateLayerState(layerKey, { visible: !visible });
     }
-  }
-};
-async function loadVectorTileLayer(layerKey: string, url: string) {
-  // 获取样式配置
-  const response = await fetch(url);
-  const styleConfig = await response.json();
-  const { layers, sources } = styleConfig;
-  for (let layer of layers) {
-    console.log(
-      "🚀 ~ loadVectorTileLayer ~ styleConfig:",
-      layer,
-      sources[layer.source]
-    );
-    map.value?.addSource(layer.source, sources[layer.source]);
-    map.value?.addLayer(layer);
-  }
-}
-const removeLayerAndSources = async (layerKey: string, layerUrl: string) => {
-  if (!map.value) return;
-  const response = await fetch(layerUrl);
-  const styleConfig = await response.json();
-
-  const { layers } = styleConfig;
-  for (let layer of layers) {
-    map.value?.removeLayer(layer.id);
-    map.value?.removeSource(layer.id);
   }
 };
 

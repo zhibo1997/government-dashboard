@@ -145,6 +145,14 @@ export const mapboxUtils = {
           minzoom: 3,
           maxzoom: 15,
         },
+        "tianditu-label": {
+          type: "raster",
+          tiles: [
+            `https://t0.tianditu.gov.cn/DataServer?T=cia_c&x={x}&y={y}&l={z}&tk=${key}`,
+          ],
+          minzoom: 3,
+          maxzoom: 15,
+        },
       },
       center: [120.727, 31.852],
       glyphs:
@@ -155,17 +163,23 @@ export const mapboxUtils = {
           id: "tianditu-base",
           type: "raster",
           source: "tianditu-base",
-          layout: { visibility: 'none' }
+          layout: { visibility: "none" },
         },
         {
           id: "tianditu-img",
           type: "raster",
-          source: "tianditu-img"
-        }, {
+          source: "tianditu-img",
+        },
+        {
           id: "tianditu-ter",
           type: "raster",
           source: "tianditu-ter",
-          layout: { visibility: 'none' }
+          layout: { visibility: "none" },
+        },
+        {
+          id: "tianditu-label",
+          type: "raster",
+          source: "tianditu-label",
         }
       ],
     };
@@ -249,34 +263,32 @@ export const mapboxUtils = {
       },
     });
 
-    console.log(`GeoJSON数据源 ${sourceId} 加载完成，边框颜色: ${strokeColor}, 填充色: ${fillColor}`);
+    console.log(
+      `GeoJSON数据源 ${sourceId} 加载完成，边框颜色: ${strokeColor}, 填充色: ${fillColor}`
+    );
   },
-
-  // 加载矢量切片图层
-  async loadVectorTileLayer(
-    map: mapboxgl.Map,
-    layerId: string,
-    url: string,
-    options: {
-      visible?: boolean;
-      opacity?: number;
-    } = {}
-  ): Promise<void> {
-    const { visible = true, opacity = 1.0 } = options;
-
-    try {
-      // 检查source是否已存在
-      if (!map.getSource(layerId)) {
-        // TODO: 实现矢量切片图层加载逻辑
-        console.log(`准备加载矢量切片图层 ${layerId}, 可见性: ${visible}, 透明度: ${opacity}`);
-      }
-
-      console.log(`矢量切片图层 ${layerId} 加载完成`);
-    } catch (error) {
-      console.error(`加载矢量切片图层 ${layerId} 失败:`, error);
+  async loadVectorTileLayer(map: mapboxgl.Map, url: string) {
+    if (!map) return;
+    // 获取样式配置
+    const response = await fetch(url);
+    const styleConfig = await response.json();
+    const { layers, sources } = styleConfig;
+    for (let layer of layers) {
+      map.addSource(layer.source, sources[layer.source]);
+      map.addLayer(layer);
     }
   },
+  async removeLayerAndSources(map: mapboxgl.Map, layerUrl: string) {
+    if (!map) return;
+    const response = await fetch(layerUrl);
+    const styleConfig = await response.json();
 
+    const { layers } = styleConfig;
+    for (let layer of layers) {
+      map?.removeLayer(layer.id);
+      map?.removeSource(layer.id);
+    }
+  },
   // 添加POI标注
   addPOIMarkers(map: mapboxgl.Map, poiData: any[]): void {
     poiData.forEach((poi) => {
@@ -402,9 +414,9 @@ export const mapboxUtils = {
     const a =
       Math.sin(deltaLat / 2) * Math.sin(deltaLat / 2) +
       Math.cos(lat1) *
-      Math.cos(lat2) *
-      Math.sin(deltaLng / 2) *
-      Math.sin(deltaLng / 2);
+        Math.cos(lat2) *
+        Math.sin(deltaLng / 2) *
+        Math.sin(deltaLng / 2);
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 
     return R * c;
@@ -724,11 +736,11 @@ function addImages(map: mapboxgl.Map, spriteurl: string) {
               }
             });
           }
-        };
+        }
         img.crossOrigin = "anonymous";
         img.src = spriteurl + ".png";
-      }
-    })
+      };
+    });
   function createCavans(width: number, height: number) {
     var canvas = document.createElement("canvas");
     canvas.width = width;
