@@ -7,13 +7,11 @@ export const useMapLayersStore = defineStore('mapLayers', () => {
     bridge_layer: {
       visible: false,
       opacity: 1.0,
-      url: "http://192.168.2.89/CSSMX/CSSMX_ZT/gspsp_dtrans_bridgebscinfo.json",
       checked: false
     },
     manhole_layer: {
       visible: false,
       opacity: 1.0,
-      url: "http://192.168.2.89/CSSMX/CSSMX_ZT/gspsp_dtrans_manholecoverbasetinfo.json",
       checked: false
     },
   })

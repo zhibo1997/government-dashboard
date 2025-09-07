@@ -20,6 +20,7 @@ import MapboxMapTools from "./MapboxMapTools.vue";
 import { useMapStore } from "../stores/mapStore";
 import { mapboxUtils } from "@/mapUtils/mapboxUtils";
 import { dataUtils } from "../mapUtils/dataUtils";
+import { mapConfig } from "@/config/mapConfig";
 
 // 使用地图store
 const mapStore = useMapStore();
@@ -36,8 +37,7 @@ const isInitialized = ref(false);
 
 // 支持多个GeoJSON数据源
 const geoJsonData = [{ data: yangxinGeoJson, name: "阳新县行政区划" }];
-const bridgeLayerUrl =
-  "http://192.168.2.89/CSSMX/CSSMX_ZT/gspsp_dtrans_bridgebscinfo.json";
+const bridgeLayerUrl = mapConfig.layerUrls.bridge;
 // GeoJSON数据加载状态
 const geoJsonLoaded = ref(false);
 
@@ -320,5 +320,30 @@ onBeforeUnmount(() => {
 
 :deep(.mapboxgl-popup-close-button:hover) {
   color: var(--text-primary);
+}
+:deep(.mapboxgl-control-container){
+  position: absolute;
+  top: 600px;
+  right: 1200px;
+  display: none;
+}
+
+/* 比例尺样式自定义 - 增大文字尺寸 */
+:deep(.mapboxgl-ctrl-scale) {
+  background-color: rgba(8, 21, 38, 0.7);
+  border: 2px solid #1677ff;
+  border-radius: 4px;
+  padding: 4px 8px;
+  font-size: 26px !important;
+  font-weight: 600;
+  color: #1677ff;
+  line-height: 1.2;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(4px);
+}
+
+:deep(.mapboxgl-ctrl-scale:not(:first-child)) {
+  border-top: 2px solid #1677ff;
+  margin-top: 2px;
 }
 </style>

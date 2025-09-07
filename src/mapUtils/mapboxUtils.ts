@@ -1,5 +1,6 @@
 import mapboxgl from "@cgcs2000/mapbox-gl";
 import baseStyle from "./cssmx_base.json";
+import { mapConfig } from "@/config/mapConfig";
 
 // 扩展Mapbox Map类型以支持自定义属性
 declare module "mapbox-gl" {
@@ -154,10 +155,9 @@ export const mapboxUtils = {
           maxzoom: 15,
         },
       },
-      center: [120.727, 31.852],
-      glyphs:
-        "http://192.168.2.89/CSSMX/CSSMX_ZT/fonts/{fontstack}/{range}.pbf",
-      sprite: "http://192.168.2.89/CSSMX/CSSMX_ZT/sprites/sprite",
+      center: mapConfig.center,
+      glyphs: mapConfig.styles.glyphs,
+      sprite: mapConfig.styles.sprite,
       layers: [
         {
           id: "tianditu-base",
@@ -188,8 +188,8 @@ export const mapboxUtils = {
       container: containerId,
       // style: baseStyle,
       style: style,
-      center: [115.186322, 29.864861],
-      zoom: 14,
+      center: mapConfig.center,
+      zoom: mapConfig.zoom,
     });
     addImages(map, baseStyle.sprite);
 

@@ -49,6 +49,7 @@
 import { ref, computed, onMounted } from "vue";
 import { LayersOutline, MapOutline, BusinessOutline } from "@vicons/ionicons5";
 import { useMapStore } from "@/stores/mapStore";
+import { mapConfig } from "@/config/mapConfig";
 
 // 使用现有的mapStore
 const mapStore = useMapStore();
@@ -84,11 +85,11 @@ const layerStates = computed(() => {
   return {
     bridge_layer: {
       ...bridgeState,
-      url: "http://192.168.2.89/CSSMX/CSSMX_ZT/gspsp_dtrans_bridgebscinfo.json",
+      url: mapConfig.layerUrls.bridge,
     },
     manhole_layer: {
       ...manholeState,
-      url: "http://192.168.2.89/CSSMX/CSSMX_ZT/gspsp_dtrans_manholecoverbasetinfo.json",
+      url: mapConfig.layerUrls.manhole,
     },
   };
 });
@@ -125,7 +126,7 @@ const treeData = computed(() => {
           checked: layerStates.value.bridge_layer?.visible || false,
           layer: {
             type: "layer",
-            url: "http://192.168.2.89/CSSMX/CSSMX_ZT/gspsp_dtrans_bridgebscinfo.json",
+            url: mapConfig.layerUrls.bridge,
             description: "桥梁基础信息",
           },
         },
@@ -144,7 +145,7 @@ const treeData = computed(() => {
           checked: layerStates.value.manhole_layer?.visible || false,
           layer: {
             type: "layer",
-            url: "http://192.168.2.89/CSSMX/CSSMX_ZT/gspsp_dtrans_manholecoverbasetinfo.json",
+            url: mapConfig.layerUrls.manhole,
             description: "井盖基础信息",
           },
         },
