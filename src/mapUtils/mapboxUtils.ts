@@ -19,7 +19,6 @@ export const mapboxUtils = {
     const key = import.meta.env?.VITE_TIANDITU_KEY
     console.log("🚀 ~ createTiandituStyle ~ key:", key)
     
-    const layers = { vec: 'cva', img: 'cia', ter: 'cta' }
     
     return {
       version: 8,
@@ -83,8 +82,6 @@ export const mapboxUtils = {
   switchBaseMap(map: mapboxgl.Map, type: 'vec' | 'img' | 'ter'): void {
     map.setStyle(this.createTiandituStyle(type))
   },
-
-
 
   // 飞行到指定位置
   flyTo(lng: number, lat: number, zoom: number = 10): void {
