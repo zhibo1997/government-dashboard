@@ -9,7 +9,7 @@
       :checkable="true"
       :selectable="false"
       :block-line="true"
-      :cascade="true"
+      :cascade="true"layer-tree
       key-field="key"
       label-field="title"
       children-field="children"
@@ -50,6 +50,14 @@ import { ref, computed, onMounted } from "vue";
 import { LayersOutline, MapOutline, BusinessOutline } from "@vicons/ionicons5";
 import { useMapStore } from "@/stores/mapStore";
 import { mapConfig } from "@/config/mapConfig";
+import { getLayerTree } from "@/api";
+import { 
+  validateLayerTreeData,
+  extractLayerNodes,
+  getDefaultExpandedKeys,
+  getDefaultVisibleLayerKeys,
+  createLayerStateMap
+} from "@/mapUtils/layerTreeUtils";
 
 // 使用现有的mapStore
 const mapStore = useMapStore();
@@ -58,100 +66,109 @@ const mapStore = useMapStore();
 const emit = defineEmits(["layer-toggle", "layer-opacity-change"]);
 
 // 本地状态管理
-const expandedKeys = ref(["gas_special", "bridge_special"]);
+const expandedKeys = ref([]);
 const checkedKeys = ref([]);
+
+// 初始化展开键
+const initExpandedKeys = () => {
+  const keys = getDefaultExpandedKeys(mapStore.layerTreeNodes);
+  expandedKeys.value = keys;
+};
 
 // 图层状态 - 使用store管理
 const layerStates = computed(() => {
-  // 从store获取图层状态
-  const bridgeState = mapStore.layerTreeState.layerStates.get(
-    "bridge_layer"
-  ) || {
-    visible: true,
-    opacity: 1.0,
-    loading: false,
-    error: null,
-  };
-
-  const manholeState = mapStore.layerTreeState.layerStates.get(
-    "manhole_layer"
-  ) || {
-    visible: false,
-    opacity: 1.0,
-    loading: false,
-    error: null,
-  };
-
-  return {
-    bridge_layer: {
-      ...bridgeState,
-      url: mapConfig.layerUrls.bridge,
-    },
-    manhole_layer: {
-      ...manholeState,
-      url: mapConfig.layerUrls.manhole,
-    },
-  };
+  const states = {};
+  const layerNodes = extractLayerNodes(mapStore.layerTreeNodes);
+  
+  layerNodes.forEach(node => {
+    const layerId = node.id;
+    const storeState = mapStore.layerTreeState.layerStates.get(layerId);
+    
+    states[layerId] = {
+      visible: storeState?.visible ?? (node.visible === 'true'),
+      opacity: storeState?.opacity ?? (node.opacity || 1.0),
+      loading: storeState?.loading ?? false,
+      error: storeState?.error ?? null,
+      url: node.url,
+      name: node.name,
+    };
+  });
+  
+  return states;
 });
 
 // 初始化勾选状态
 const initCheckedKeys = () => {
-  const keys = [];
-  Object.entries(layerStates.value).forEach(([key, state]) => {
-    if (state.visible) {
-      keys.push(key);
-    }
-  });
+  const keys = getDefaultVisibleLayerKeys(mapStore.layerTreeNodes);
   checkedKeys.value = keys;
+};
+
+// 获取所有图层节点的ID
+const getAllLayerIds = (nodes) => {
+  return extractLayerNodes(nodes).map(node => node.id);
 };
 
 // 组件挂载时初始化
 onMounted(() => {
-  initCheckedKeys();
+  // 监听图层树数据变化，当数据加载完成后初始化状态
+  const unwatch = mapStore.$subscribe((mutation, state) => {
+    if (mutation.storeId === 'map' && state.layerTreeState.tree.length > 0) {
+      initExpandedKeys();
+      initCheckedKeys();
+      unwatch(); // 取消监听
+    }
+  });
+  
+  // 如果数据已经存在，直接初始化
+  if (mapStore.layerTreeNodes.length > 0) {
+    initExpandedKeys();
+    initCheckedKeys();
+    unwatch();
+  }
 });
 
 // 计算属性：转换为树形数据
 const treeData = computed(() => {
-  return [
-    {
-      title: "桥梁专项",
-      key: "bridge_special",
-      icon: BusinessOutline,
-      checked: false,
-      children: [
-        {
-          title: "桥梁设施",
-          key: "bridge_layer",
-          icon: MapOutline,
-          checked: layerStates.value.bridge_layer?.visible || false,
-          layer: {
-            type: "layer",
-            url: mapConfig.layerUrls.bridge,
-            description: "桥梁基础信息",
-          },
-        },
-      ],
-    },
-    {
-      title: "燃气专项",
-      key: "gas_special",
-      icon: BusinessOutline,
-      checked: false,
-      children: [
-        {
-          title: "井盖设施",
-          key: "manhole_layer",
-          icon: LayersOutline,
-          checked: layerStates.value.manhole_layer?.visible || false,
-          layer: {
-            type: "layer",
-            url: mapConfig.layerUrls.manhole,
-            description: "井盖基础信息",
-          },
-        },
-      ],
-    },
-  ];
+  const convertToTreeData = (nodes) => {
+    return nodes.map(node => {
+      const treeNode = {
+        title: node.name || '未命名',
+        key: node.id,
+        icon: node.type === 'group' ? BusinessOutline : (node.type === 'tile' ? MapOutline : LayersOutline),
+        checked: false,
+      };
+
+      // 如果是图层节点（tile类型），添加图层信息
+      if (node.type === 'tile' && node.url) {
+        const layerState = layerStates.value[node.id];
+        treeNode.checked = layerState?.visible || false;
+        treeNode.layer = {
+          type: "layer",
+          url: node.url,
+          visible: layerState?.visible || false,
+          opacity: layerState?.opacity || 1.0,
+          description: node.name || '图层信息',
+        };
+      }
+
+      // 如果有子节点，递归处理
+      if (node.child && Array.isArray(node.child) && node.child.length > 0) {
+        treeNode.children = convertToTreeData(node.child);
+      }
+
+      return treeNode;
+    });
+  };
+
+  // 从 store 获取图层树数据
+  const layerTreeData = mapStore.layerTreeNodes;
+  
+  if (!layerTreeData || layerTreeData.length === 0) {
+    // 如果没有数据，返回空数组或默认数据
+    return [];
+  }
+
+  return convertToTreeData(layerTreeData);
 });
 
 // 展开/收起节点
@@ -163,20 +180,24 @@ function handleExpandedKeysChange(keys) {
 function handleCheckedKeysChange(keys) {
   checkedKeys.value = keys;
 
+  // 获取所有图层ID
+  const allLayerIds = getAllLayerIds(mapStore.layerTreeNodes);
+  
   // 处理图层显隐 - 更新到store
-  const layerKeys = ["bridge_layer", "manhole_layer"];
-  layerKeys.forEach((layerKey) => {
-    const isChecked = keys.includes(layerKey);
-    const currentState = layerStates.value[layerKey];
+  allLayerIds.forEach((layerId) => {
+    const isChecked = keys.includes(layerId);
+    const currentState = layerStates.value[layerId];
 
-    // 更新store中的图层状态
-    mapStore.updateLayerTreeState({
-      layerId: layerKey,
-      visible: isChecked,
-    });
+    if (currentState) {
+      // 更新store中的图层状态
+      mapStore.updateLayerTreeState({
+        layerId: layerId,
+        visible: isChecked,
+      });
 
-    if (currentState.visible !== isChecked) {
-      emit("layer-toggle", layerKey, isChecked, currentState.url);
+      if (currentState.visible !== isChecked) {
+        emit("layer-toggle", layerId, isChecked, currentState.url);
+      }
     }
   });
 }
@@ -217,11 +238,11 @@ defineExpose({
 <style scoped>
 .layer-tree {
   --font-size-large: 32px;
-  max-height: 400px;
+  height: 400px;
   overflow-y: auto;
   padding: 8px;
   display: flex;
-  padding-left: 60px;
+  padding-left: 20px;
 }
 
 .layer-item {
@@ -263,6 +284,11 @@ defineExpose({
     padding: 8px 12px;
     margin-left: 12px;
   }
+}
+:deep(.n-tree-node-switcher__icon){
+  width: 36px !important;
+  height: 36px !important;
+ font-size: 36px !important;
 }
 
 :deep(.n-tree-node:hover) {

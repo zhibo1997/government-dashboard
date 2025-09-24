@@ -274,7 +274,7 @@ const handleSystemAdmin = () => {
   }
   .map-legend{
     position: absolute;
-    bottom: 0;
-    right: 600px;
+    bottom: 20px;
+    right: 1150px;
   }
 </style>

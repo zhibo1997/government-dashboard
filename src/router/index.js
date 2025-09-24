@@ -9,7 +9,7 @@ const routes = [
     name: 'Login',
     component: LoginView,
     meta: {
-      // requiresAuth: false,
+      requiresAuth: false,
       title: '登录 - 安全综合检测预警平台'
     }
   },
@@ -18,12 +18,10 @@ const routes = [
     name: 'dashboard',
     component: () => import('../views/NewDashboardView.vue'),
     meta: {
-      // requiresAuth: true,
+      requiresAuth: true,
       title: '安全综合检测预警平台'
     }
   },
-
-
   {
     path: '/:pathMatch(.*)*',
     name: 'NotFound',
@@ -65,11 +63,11 @@ router.beforeEach(async (to, from, next) => {
       return
     }
   } else {
-    // 如果已登录且访问登录页，重定向到首页
+    // 如果已登录且访问登录页，重定向到仪表板
     if (to.name === 'Login' && authStore.isLoggedIn) {
       const isValidToken = await authStore.validateToken()
       if (isValidToken) {
-        next({ name: 'Home' })
+        next({ name: 'dashboard' })
         return
       } else {
         authStore.logout()

@@ -45,29 +45,7 @@ export const useAuthStore = defineStore('auth', () => {
 
   // 检查token是否有效（可扩展为调用后端验证）
   const validateToken = async () => {
-    if (!token.value) {
-      return false
-    }
-    
-    try {
-      // 这里可以调用后端API验证token
-      // const response = await api.validateToken(token.value)
-      // return response.valid
-      
-      // 目前使用简单的时间戳验证
-      const tokenData = token.value.split('-')
-      if (tokenData.length === 3 && tokenData[0] === 'mock' && tokenData[1] === 'token') {
-        const timestamp = parseInt(tokenData[2])
-        const now = Date.now()
-        // token有效期24小时
-        return (now - timestamp) < 24 * 60 * 60 * 1000
-      }
-      
-      return false
-    } catch (error) {
-      console.error('验证token失败:', error)
-      return false
-    }
+    return  !!token.value
   }
 
   return {

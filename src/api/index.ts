@@ -48,3 +48,7 @@ export function loginWithParams(
 ): Promise<ApiResponse<LoginResponse>> {
   return post<LoginResponse>("/login", params);
 }
+
+export function getLayerTree(): Promise<ApiResponse<any>> {
+  return get<any>("/layer/tree");
+}

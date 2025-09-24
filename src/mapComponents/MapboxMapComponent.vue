@@ -21,6 +21,8 @@ import { useMapStore } from "../stores/mapStore";
 import { mapboxUtils } from "@/mapUtils/mapboxUtils";
 import { dataUtils } from "../mapUtils/dataUtils";
 import { mapConfig } from "@/config/mapConfig";
+import { getLayerTree } from "@/api";
+import { validateLayerTreeData } from "@/mapUtils/layerTreeUtils";
 
 // 使用地图store
 const mapStore = useMapStore();
@@ -227,6 +229,32 @@ function clearAllDataSources() {
   }
 }
 
+async function loadMapTree() {
+  try {
+    const response = await getLayerTree();
+    if (response && response.data) {
+      // 验证数据格式
+      if (validateLayerTreeData(response.data)) {
+        // 存储到 store
+        mapStore.setLayerTree(response.data);
+        
+        // 存储到 localStorage
+        localStorage.setItem('layerTreeData', JSON.stringify(response.data));
+        
+        console.log("图层树数据加载完成:", response.data);
+      } else {
+        console.error("图层树数据格式无效");
+        throw new Error("图层树数据格式无效");
+      }
+    } else {
+      console.warn("图层树数据为空");
+      throw new Error("图层树数据为空");
+    }
+  } catch (error) {
+    console.error("加载图层树数据失败:", error);
+  }
+}
+
 // 组件挂载时初始化地图
 onMounted(() => {
   // 开发模式下减少延迟，生产模式保持延迟
@@ -239,6 +267,7 @@ onMounted(() => {
       initMapboxMap();
     }
   }, delay);
+  loadMapTree();
 });
 
 // 组件卸载时清理资源

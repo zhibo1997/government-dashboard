@@ -41,6 +41,7 @@
       placement="left-start"
       style="padding: 0; background-color: rgba(8, 21, 38, 0.7)"
       :to="false"
+      display-directive="show"
     >
       <template #trigger>
         <div class="tool-button" title="专题图层">
@@ -446,7 +447,6 @@ onMounted(() => {
 
 .layer-tree-container {
   width: 387px;
-  height: 453px;
   border-radius: 10px;
   opacity: 1;
   background: linear-gradient(

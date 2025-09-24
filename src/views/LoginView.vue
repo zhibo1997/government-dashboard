@@ -58,7 +58,7 @@ import { createDiscreteApi } from "naive-ui";
 import { PersonOutline, LockClosedOutline } from "@vicons/ionicons5";
 import { useRouter } from "vue-router";
 import { useAuthStore } from "../stores/auth";
-import { loginService } from "../services/loginService";
+import { loginService } from "@/services/loginService";
 
 const { message } = createDiscreteApi(["message"]);
 
@@ -98,27 +98,31 @@ const handleLogin = async () => {
     // 调用登录服务
     const result = await loginService.login(formData.value);
 
-    if (result) {
+    if (result && result.token) {
       // 保存登录状态
       authStore.login({
         username: formData.value.username,
         token: result.token,
+        ...result
       });
 
       message.success("登录成功！");
 
-      // 跳转到主页面
-      router.push("/dashboard");
+      // 延迟跳转，确保状态更新完成
+      setTimeout(() => {
+        const redirect = router.currentRoute.value.query.redirect || '/'
+        router.push(redirect);
+      }, 100);
     } else {
-      message.error(result.message || "登录失败！");
+      message.error("登录失败！");
     }
   } catch (error) {
     console.error("登录错误:", error);
-    if (error.length) {
+    if (Array.isArray(error) && error.length) {
       // 表单验证错误
       message.error("请检查输入信息");
     } else {
-      message.error("登录失败，请重试！");
+      message.error(error?.message || "登录失败，请重试！");
     }
   } finally {
     loading.value = false;
