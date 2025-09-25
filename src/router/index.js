@@ -38,23 +38,19 @@ const router = createRouter({
 // 全局前置守卫
 router.beforeEach(async (to, from, next) => {
   const authStore = useAuthStore()
-  
   // 设置页面标题
   if (to.meta.title) {
     document.title = to.meta.title
   }
-  
-  // 初始化认证状态
-  authStore.initAuth()
-  
+
+  // 只在应用启动时初始化认证状态，避免每次路由都重新初始化
+  if (from.name === undefined) {
+    authStore.initAuth()
+  }
+
   // 检查是否需要认证
   if (to.meta.requiresAuth) {
-    // 检查是否已登录
-    if (!authStore.isLoggedIn) {
-      next({ name: 'Login', query: { redirect: to.fullPath } })
-      return
-    }
-    
+
     // 验证token有效性
     const isValidToken = await authStore.validateToken()
     if (!isValidToken) {
@@ -74,7 +70,7 @@ router.beforeEach(async (to, from, next) => {
       }
     }
   }
-  
+
   next()
 })
 

@@ -15,6 +15,8 @@ export const useAuthStore = defineStore('auth', () => {
     // 保存到本地存储
     localStorage.setItem('token', userData.token)
     localStorage.setItem('user', JSON.stringify(userData))
+    
+    console.log('用户登录成功:', userData.username)
   }
 
   // 登出
@@ -45,7 +47,8 @@ export const useAuthStore = defineStore('auth', () => {
 
   // 检查token是否有效（可扩展为调用后端验证）
   const validateToken = async () => {
-    return  !!token.value
+    const savedToken = localStorage.getItem('token')
+    return  !!savedToken
   }
 
   return {

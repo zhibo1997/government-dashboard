@@ -27,10 +27,10 @@
           </div>
           <span class="weather">多云 26°C</span>
           <div class="control-box">
-            <!-- <a-button type="primary" class="system-admin-btn" @click="handleSystemAdmin">
-              <setting-outlined />
-              系统管理
-            </a-button> -->
+            <a-button type="default" class="logout-btn" @click="handleLogout">
+              <logout-outlined />
+              退出登录
+            </a-button>
           </div>
         </div>
       </div>
@@ -71,10 +71,14 @@
 
 <script setup>
 import { ref } from 'vue';
+import { 
+  SettingOutlined,
+  LogoutOutlined
+} from "@ant-design/icons-vue";
 import ResponsiveWrapper from "../components/ResponsiveWrapper.vue";
 import MapboxMapComponent from "../mapComponents/MapboxMapComponent.vue";
 import TimeDisplay from "../components/TimeDisplay.vue";
-
+import router from "../router"
 // 当前选中的tab
 const activeTab = ref('桥梁专项');
 
@@ -89,6 +93,13 @@ const handleTabClick = (tab) => {
 const handleSystemAdmin = () => {
   console.log('系统管理');
   // 这里可以添加系统管理的逻辑，如跳转到系统管理页面
+};
+
+// 退出登录点击事件
+const handleLogout = () => {
+  // 这里可以添加退出登录的逻辑，如清除token、跳转到登录页面等
+  localStorage.removeItem('token');
+  router.push('/login')
 };
 </script>
 
@@ -270,6 +281,36 @@ const handleSystemAdmin = () => {
       font-size: 32px;
       font-weight: normal;
       color: #ffffff;
+    }
+
+    .control-box {
+      display: flex;
+      gap: 16px;
+      margin-right: 20px;
+
+      .system-admin-btn, .logout-btn {
+        font-size: 28px;
+        height: 56px;
+        padding: 0 24px;
+        border-radius: 8px;
+        cursor: pointer;
+        
+        .anticon {
+          font-size: 24px;
+          margin-right: 8px;
+        }
+      }
+
+      .logout-btn {
+        background-color: rgba(255, 77, 79, 0.1);
+        border-color: #ff4d4f;
+        color: #ff4d4f;
+
+        &:hover {
+          background-color: #ff4d4f;
+          color: #ffffff;
+        }
+      }
     }
   }
   .map-legend{

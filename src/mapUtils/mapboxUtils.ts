@@ -127,7 +127,6 @@ export const mapboxUtils = {
             `https://t0.tianditu.gov.cn/DataServer?T=${layers.base}_c&x={x}&y={y}&l={z}&tk=${key}`,
           ],
           minzoom: 3,
-          maxzoom: 15,
         },
         "tianditu-img": {
           type: "raster",
@@ -135,7 +134,6 @@ export const mapboxUtils = {
             `https://t0.tianditu.gov.cn/DataServer?T=img_c&x={x}&y={y}&l={z}&tk=${key}`,
           ],
           minzoom: 3,
-          maxzoom: 15,
         },
 
         "tianditu-ter": {
@@ -144,7 +142,6 @@ export const mapboxUtils = {
             `https://t0.tianditu.gov.cn/DataServer?T=ter_c&x={x}&y={y}&l={z}&tk=${key}`,
           ],
           minzoom: 3,
-          maxzoom: 15,
         },
         "tianditu-label": {
           type: "raster",
@@ -152,7 +149,6 @@ export const mapboxUtils = {
             `https://t0.tianditu.gov.cn/DataServer?T=cia_c&x={x}&y={y}&l={z}&tk=${key}`,
           ],
           minzoom: 3,
-          maxzoom: 15,
         },
       },
       center: mapConfig.center,
@@ -183,7 +179,6 @@ export const mapboxUtils = {
         }
       ],
     };
-    console.log("🚀 ~ initSimpleTiandituMap ~ baseStyle:", baseStyle);
     const map = new mapboxgl.Map({
       container: containerId,
       // style: baseStyle,
@@ -274,8 +269,15 @@ export const mapboxUtils = {
     const styleConfig = await response.json();
     const { layers, sources } = styleConfig;
     for (let layer of layers) {
-      map.addSource(layer.source, sources[layer.source]);
-      map.addLayer(layer);
+      // 检查数据源是否已存在，如果不存在则添加
+      if (!map.getSource(layer.source)) {
+        map.addSource(layer.source, sources[layer.source]);
+      }
+      
+      // 检查图层是否已存在，如果不存在则添加
+      if (!map.getLayer(layer.id)) {
+        map.addLayer(layer);
+      }
     }
   },
   async removeLayerAndSources(map: mapboxgl.Map, layerUrl: string) {
@@ -285,8 +287,15 @@ export const mapboxUtils = {
 
     const { layers } = styleConfig;
     for (let layer of layers) {
-      map?.removeLayer(layer.id);
-      map?.removeSource(layer.id);
+      // 检查图层是否存在，如果存在则移除
+      if (map.getLayer(layer.id)) {
+        map.removeLayer(layer.id);
+      }
+      
+      // 检查数据源是否存在，如果存在则移除
+      if (map.getSource(layer.id)) {
+        map.removeSource(layer.id);
+      }
     }
   },
   // 添加POI标注

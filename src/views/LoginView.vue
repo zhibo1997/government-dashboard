@@ -27,7 +27,6 @@
             type="password"
             placeholder=""
             size="large"
-            show-password-on="mousedown"
             class="login-input"
           >
             <template #prefix>
@@ -81,11 +80,9 @@ const loading = ref(false);
 const rules = {
   username: [
     { required: true, message: "请输入账户名", trigger: "blur" },
-    { min: 3, max: 20, message: "账户名长度应为3-20个字符", trigger: "blur" },
   ],
   password: [
     { required: true, message: "请输入密码", trigger: "blur" },
-    { min: 6, max: 20, message: "密码长度应为6-20个字符", trigger: "blur" },
   ],
 };
 
@@ -108,11 +105,11 @@ const handleLogin = async () => {
 
       message.success("登录成功！");
 
-      // 延迟跳转，确保状态更新完成
-      setTimeout(() => {
-        const redirect = router.currentRoute.value.query.redirect || '/'
-        router.push(redirect);
-      }, 100);
+      // 获取重定向路径
+      const redirect = router.currentRoute.value.query.redirect || '/';
+      
+      // 直接跳转，不使用setTimeout
+      await router.push(redirect);
     } else {
       message.error("登录失败！");
     }
@@ -243,7 +240,8 @@ const handleLogin = async () => {
         background-size: cover;
         background-position: center;
         background-repeat: no-repeat;
-        border: none;
+        border: none !important;
+        outline: none !important;
         width: 250px;
         background-color: transparent;
         color: #fff;
@@ -260,6 +258,7 @@ const handleLogin = async () => {
             background-color: transparent !important;
             border: none !important;
             box-shadow: none !important;
+            outline: none !important;
           }
 
           &:focus {
@@ -267,6 +266,7 @@ const handleLogin = async () => {
             background-color: transparent !important;
             border: none !important;
             box-shadow: none !important;
+            outline: none !important;
           }
 
           &:focus-within {
@@ -274,6 +274,7 @@ const handleLogin = async () => {
             background-color: transparent !important;
             border: none !important;
             box-shadow: none !important;
+            outline: none !important;
           }
 
           .n-input-wrapper {
@@ -281,6 +282,7 @@ const handleLogin = async () => {
             background-color: transparent !important;
             border: none !important;
             box-shadow: none !important;
+            outline: none !important;
           }
 
           .n-input__input {
@@ -288,6 +290,7 @@ const handleLogin = async () => {
             background-color: transparent !important;
             border: none !important;
             box-shadow: none !important;
+            outline: none !important;
           }
 
           .n-input__state-border {
@@ -302,11 +305,13 @@ const handleLogin = async () => {
 
           .n-input__suffix {
             background: transparent !important;
+            outline: none !important;
           }
 
           .n-input__prefix {
             color: rgba(255, 255, 255, 0.8);
             background: transparent !important;
+            outline: none !important;
           }
         }
       }
@@ -320,16 +325,45 @@ const handleLogin = async () => {
         background-size: cover;
         background-position: center;
         background-repeat: no-repeat;
-        border: none;
+        border: none !important;
+        outline: none !important;
+        box-shadow: none !important;
         color: #fff;
         background-color: transparent;
 
         &:hover {
           opacity: 0.9;
+          border: none !important;
+          outline: none !important;
+          box-shadow: none !important;
         }
 
         &:active {
           opacity: 0.8;
+          border: none !important;
+          outline: none !important;
+          box-shadow: none !important;
+        }
+
+        &:focus {
+          border: none !important;
+          outline: none !important;
+          box-shadow: none !important;
+        }
+
+        // 深度选择器移除Naive UI默认样式
+        :deep(.n-button) {
+          border: none !important;
+          outline: none !important;
+          box-shadow: none !important;
+        }
+
+        :deep(.n-button__border) {
+          display: none !important;
+        }
+
+        :deep(.n-button__state-border) {
+          display: none !important;
         }
       }
     }
