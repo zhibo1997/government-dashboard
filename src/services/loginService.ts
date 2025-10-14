@@ -98,7 +98,7 @@ export class LoginService {
         this.saveUserInfo(response.data)
         return response.data
       } else {
-        throw new Error(response.message || '登录失败')
+        throw new Error(response.info || '登录失败')
       }
     } catch (error) {
       console.error('登录失败:', error)

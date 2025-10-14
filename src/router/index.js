@@ -23,6 +23,15 @@ const routes = [
     }
   },
   {
+    path: '/waterProject',
+    name: 'waterProject',
+    component: () => import('../views/WaterSupply/index.vue'),
+    meta: {
+      // requiresAuth: true,
+      title: '供水专项'
+    }
+  },
+  {
     path: '/:pathMatch(.*)*',
     name: 'NotFound',
     redirect: '/'
