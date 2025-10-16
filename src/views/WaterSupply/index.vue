@@ -6,43 +6,27 @@
         <div class="left-tabs tabs">
           <TimeDisplay />
           <div class="tabs-content">
-            <div
-              class="left-tab-item tab-item"
-              :class="{ active: activeTab === '燃气专项' }"
-              @click="handleTabClick('燃气专项')"
-            >
+            <div class="left-tab-item tab-item" :class="{ active: activeTab === '燃气专项' }"
+              @click="handleTabClick('燃气专项')">
               <span>燃气专项</span>
             </div>
-            <div
-              class="left-tab-item tab-item"
-              :class="{ active: activeTab === '桥梁专项' }"
-              @click="handleTabClick('桥梁专项')"
-            >
+            <div class="left-tab-item tab-item" :class="{ active: activeTab === '桥梁专项' }"
+              @click="handleTabClick('桥梁专项')">
               <span>桥梁专项</span>
             </div>
           </div>
         </div>
         <div class="head-title" title="阳新县城市安全综合监测预警平台">
-          <img
-            src="@/assets/images/title.png"
-            alt="头部标题"
-            class="head-title-img"
-          />
+          <img src="@/assets/images/title.png" alt="头部标题" class="head-title-img" />
         </div>
         <div class="right-tabs tabs">
           <div class="tabs-content">
-            <div
-              class="right-tab-item tab-item"
-              :class="{ active: activeTab === '供水专项' }"
-              @click="handleTabClick('供水专项')"
-            >
+            <div class="right-tab-item tab-item" :class="{ active: activeTab === '供水专项' }"
+              @click="handleTabClick('供水专项')">
               <span>供水专项</span>
             </div>
-            <div
-              class="right-tab-item tab-item"
-              :class="{ active: activeTab === '排水专项' }"
-              @click="handleTabClick('排水专项')"
-            >
+            <div class="right-tab-item tab-item" :class="{ active: activeTab === '排水专项' }"
+              @click="handleTabClick('排水专项')">
               <span>排水专项</span>
             </div>
           </div>
@@ -59,81 +43,16 @@
       <!-- 主体容器 -->
       <div class="container">
         <!-- 左侧数据展示区 -->
-        <div class="left-content">
-          <!-- 纵览模块 -->
-          <div class="data-module overview-module">
-            <div class="module-header">
-              <div class="module-title">纵览</div>
-            </div>
-            <div class="module-content">
-              <div></div>
-            </div>
-          </div>
-
-          <!-- 供水水质模块 -->
-          <div class="data-module water-quality-module">
-            <div class="module-header">
-              <div class="module-title">供水水质</div>
-            </div>
-            <div class="module-content">
-              <!-- 模块内容占位 -->
-            </div>
-          </div>
-
-          <!-- 供水管网模块 -->
-          <div class="data-module pipeline-module">
-            <div class="module-header">
-              <div class="module-title">供水管网</div>
-            </div>
-            <div class="module-content">
-              <!-- 模块内容占位 -->
-            </div>
-          </div>
-        </div>
+        <LeftNav />
 
         <!-- 中间地图区域 -->
         <div class="center-map">
           <MapboxMapComponent />
           <!-- 图例 -->
-          <img
-            class="map-legend"
-            src="../assets/map-img/legend.png"
-            alt="地图图例"
-          />
+          <img class="map-legend" src="../assets/map-img/legend.png" alt="地图图例" />
         </div>
-
+        <RightNav />
         <!-- 右侧数据展示区 -->
-        <div class="right-content">
-          <!-- 监测设备模块 -->
-          <div class="data-module monitoring-equipment-module">
-            <div class="module-header">
-              <div class="module-title">监测设备</div>
-            </div>
-            <div class="module-content">
-              <!-- 模块内容占位 -->
-            </div>
-          </div>
-
-          <!-- 风险隐患模块 -->
-          <div class="data-module risk-hazard-module">
-            <div class="module-header">
-              <div class="module-title">风险隐患</div>
-            </div>
-            <div class="module-content">
-              <!-- 模块内容占位 -->
-            </div>
-          </div>
-
-          <!-- 预警处置模块 -->
-          <div class="data-module early-warning-module">
-            <div class="module-header">
-              <div class="module-title">预警处置</div>
-            </div>
-            <div class="module-content">
-              <!-- 模块内容占位 -->
-            </div>
-          </div>
-        </div>
       </div>
     </ResponsiveWrapper>
   </div>
@@ -146,6 +65,9 @@ import ResponsiveWrapper from "@/components/ResponsiveWrapper.vue";
 import MapboxMapComponent from "@/mapComponents/MapboxMapComponent.vue";
 import TimeDisplay from "@/components/TimeDisplay.vue";
 import router from "@/router";
+// 引入左侧导航组件
+import LeftNav from "./components/leftContent.vue";
+import RightNav from "./components/rightContent.vue";
 
 // 当前选中的tab，默认为供水专项
 const activeTab = ref("供水专项");
@@ -191,7 +113,7 @@ const handleLogout = () => {
       height: 148px;
       pointer-events: none;
 
-      > img {
+      >img {
         margin-top: 18px;
       }
     }
@@ -234,20 +156,24 @@ const handleLogout = () => {
       align-items: center;
       justify-content: center;
       background-size: cover;
+
       &.right-tab-item {
         background-image: url("@/assets/img/right-btn.png");
+
         &.active {
           background-image: url("@/assets/img/right-selected-btn.png");
         }
       }
+
       &.left-tab-item {
         background-image: url("@/assets/img/left-btn.png");
+
         &.active {
           background-image: url("@/assets/img/left-selected-btn.png");
         }
       }
 
-      > span {
+      >span {
         height: 62px;
         font-family: YouSheBiaoTiHei;
         font-size: 48px;
@@ -351,59 +277,54 @@ const handleLogout = () => {
     gap: 16px;
     z-index: 10;
   }
+}
+</style>
 
-  // 数据模块通用样式
-  .data-module {
+<!-- 公用数据模块样式 - 供子组件使用 -->
+<style lang="scss">
+// 数据模块通用样式（非scoped，可被子组件继承）
+.data-module {
+  flex: 1;
+  width: 100%;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(22, 119, 255, 0.2);
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+  transition: all 0.3s ease;
+  background-size: 100% 100%;
+  background-image: url("@/assets/img/title-bg.png");
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
+    border-color: rgba(22, 119, 255, 0.4);
+  }
+
+  .module-header {
+    height: 90px;
+    display: flex;
+    align-items: center;
+
+    .module-title {
+      font-family: YouSheBiaoTiHei;
+      font-size: 44px;
+      color: #ffffff;
+      text-align: left;
+      font-style: normal;
+      padding-left: 140px;
+    }
+  }
+
+  .module-content {
     flex: 1;
-    width: 100%;
-    backdrop-filter: blur(10px);
-    border: 1px solid rgba(22, 119, 255, 0.2);
-    border-radius: 12px;
-    overflow: hidden;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
-    transition: all 0.3s ease;
-    background-size: 100% 100%;
-    background-image: url("@/assets/img/title-bg.png");
+    padding: 40px 30px;
+    height: calc(100% - 60px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
 
-    &:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
-      border-color: rgba(22, 119, 255, 0.4);
-    }
-
-    .module-header {
-      height: 90px;
-      display: flex;
-      align-items: center;
-
-      .module-title {
-        font-family: YouSheBiaoTiHei;
-        font-size: 44px;
-        color: #ffffff;
-        text-align: left;
-        font-style: normal;
-        padding-left: 140px;
-      }
-    }
-
-    .module-content {
-      flex: 1;
-      padding: 20px;
-      height: calc(100% - 60px);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      border-radius: 8px;
-      margin: 20px;
-
-      &::before {
-        content: "模块内容占位区域";
-        font-family: "Microsoft YaHei", sans-serif;
-        font-size: 24px;
-        color: rgba(255, 255, 255, 0.6);
-        text-align: center;
-      }
-    }
   }
 }
 </style>
