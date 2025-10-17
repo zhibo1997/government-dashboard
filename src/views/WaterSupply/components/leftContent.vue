@@ -2,7 +2,7 @@
  * @Author: Do not edit
  * @Date: 2025-10-16 21:05:49
  * @LastEditors: 王志博
- * @LastEditTime: 2025-10-16 23:06:33
+ * @LastEditTime: 2025-10-17 22:14:34
  * @Description: 
 -->
 
@@ -62,15 +62,27 @@
       <div class="module-header">
         <div class="module-title">供水管网</div>
       </div>
-      <div class="module-content">
-        <!-- 模块内容占位 -->
+      <div class="module-content pipeline-module-content">
+        <div class="material-content">
+          <div id="pipeline-chart" class="pipeline-chart"></div>
+        </div>
+        <div class="hidden-danger">
+
+        </div>
       </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
+import { officialWebsiteOption } from './ehcartsOptions'
+import * as echarts from 'echarts'
+
+onMounted(() => {
+  const pipelineChart = echarts.init(document.getElementById('pipeline-chart'))
+  pipelineChart.setOption(officialWebsiteOption)
+})
 
 // 动态获取图标路径
 const getIconUrl = (iconName) => {
@@ -210,12 +222,22 @@ const formattedDate = computed(() => {
 </script>
 
 <style lang="scss" scoped>
-.water-quality-module{
-  .module-header{
+.material-content {
+  width: 50%;
+
+  .pipeline-chart {
+    width: 217px;
+    height: 217px;
+  }
+}
+
+.water-quality-module {
+  .module-header {
     display: flex;
     justify-content: space-between;
   }
 }
+
 .quality-content {
   display: flex;
   flex-direction: row;
