@@ -1,54 +1,32 @@
 <template>
-  <div class="login-container">
-    <div class="login-bg">
-      <img src="../assets/images/bg-box.webp" alt="登录背景" />
-    </div>
-    <div class="login-title">
-      <img src="../assets/images/title.png" alt="登录标题" />
-    </div>
-    <div class="login-card">
-      <n-form ref="formRef" :model="formData" :rules="rules" class="login-form">
-        <n-form-item path="username" class="form-item">
-          <n-input
-            v-model:value="formData.username"
-            placeholder=""
-            size="large"
-            class="login-input"
-          >
-            <template #prefix>
-              <n-icon :component="PersonOutline" />
-            </template>
-          </n-input>
-        </n-form-item>
+  <ResponsiveWrapper :base-width="4096" :base-height="1920">
+    <div class="login-container">
+      <div class="login-bg">
+        <img src="@/assets/img/login/form_bg.png" alt="登录背景" />
+      </div>
+      <div class="login-title">
+        <img src="@/assets/img/login/title.png" alt="登录标题" />
+      </div>
+      <div class="login-card">
+        <n-form ref="formRef" :show-require-mark="false" label-placement="left" :model="formData" :rules="rules"
+          class="login-form">
+          <n-form-item path="username" :show-feedback="false" label="账号：" class="form-item">
+            <n-input v-model:value="formData.username" placeholder="" size="large" class="login-input">
+            </n-input>
+          </n-form-item>
 
-        <n-form-item path="password" class="form-item">
-          <n-input
-            v-model:value="formData.password"
-            type="password"
-            placeholder=""
-            size="large"
-            class="login-input"
-          >
-            <template #prefix>
-              <n-icon :component="LockClosedOutline" />
-            </template>
-          </n-input>
-        </n-form-item>
-
-        <n-form-item class="form-item">
-          <n-button
-            type="primary"
-            size="large"
-            :loading="loading"
-            class="login-button"
-            @click="handleLogin"
-          >
-            登录
-          </n-button>
-        </n-form-item>
-      </n-form>
+          <n-form-item path="password" :show-feedback="false" label="密码：" class="form-item">
+            <n-input v-model:value="formData.password" type="password" placeholder="" size="large" class="login-input">
+            </n-input>
+          </n-form-item>
+        </n-form>
+        <n-button type="primary" size="large" :loading="loading" class="login-button" @click="handleLogin">
+          登录
+        </n-button>
+      </div>
+      <span></span>
     </div>
-  </div>
+  </ResponsiveWrapper>
 </template>
 
 <script setup>
@@ -58,6 +36,7 @@ import { PersonOutline, LockClosedOutline } from "@vicons/ionicons5";
 import { useRouter } from "vue-router";
 import { useAuthStore } from "../stores/auth";
 import { loginService } from "@/services/loginService";
+import ResponsiveWrapper from "@/components/ResponsiveWrapper.vue";
 
 const { message } = createDiscreteApi(["message"]);
 
@@ -107,7 +86,7 @@ const handleLogin = async () => {
 
       // 获取重定向路径
       const redirect = router.currentRoute.value.query.redirect || '/';
-      
+
       // 直接跳转，不使用setTimeout
       await router.push(redirect);
     } else {
@@ -129,12 +108,14 @@ const handleLogin = async () => {
 
 <style lang="scss" scoped>
 .login-container {
-  min-height: 100vh;
+  height: 100%;
   display: flex;
   align-items: center;
   flex-direction: column;
+  justify-content: space-between;
   position: relative;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background-image: url("@/assets/img/login/backend_1.png");
+  background-size: 100% 100%;
 
   // 背景图片容器
   &::before {
@@ -144,11 +125,11 @@ const handleLogin = async () => {
     left: 0;
     right: 0;
     bottom: 0;
-    background-image: url("@/assets/images/login-bg.png");
+    background-image: url("@/assets/img/login/backend_2.png");
     background-size: 100% 100%;
+    opacity: 0.7;
     background-position: center;
     background-repeat: no-repeat;
-    filter: blur(3px);
     z-index: 1;
   }
 
@@ -156,62 +137,38 @@ const handleLogin = async () => {
     position: absolute;
     top: 50%;
     left: 50%;
-    width: 1000px;
-    height: 460px;
+    width: 2226px;
+    height: 1014px;
     z-index: 1;
     // 水平居中
     transform: translate(-50%, -50%);
+
     img {
       width: 100%;
       height: 100%;
       object-fit: cover;
     }
   }
+
   .login-title {
     z-index: 10;
     position: relative;
-    height: 60px;
-    margin-top: 20px;
+    height: 88px;
+    margin-top: 120px;
+
     img {
       width: 100%;
       height: 100%;
       object-fit: contain;
     }
   }
-  :deep() {
-    .n-input__input-el {
-      background: transparent !important;
-      background-color: transparent !important;
-      color: #ffffff !important;
-      border: none !important;
-      box-shadow: none !important;
 
-      &::placeholder {
-        color: rgba(255, 255, 255, 0.6);
-      }
-
-      &:hover {
-        background: transparent !important;
-        background-color: transparent !important;
-        border: none !important;
-      }
-
-      &:focus {
-        background: transparent !important;
-        background-color: transparent !important;
-        border: none !important;
-        box-shadow: none !important;
-      }
-    }
-  }
   .login-card {
-    width: 420px;
-    height: 380px;
-    z-index: 10;
+    width: 900px;
+    height: 818px;
     position: relative;
-    margin-top: 20vh;
 
-    background-image: url("../assets/images/bg-input-box.webp");
+    background-image: url("@/assets/img/login/form.png");
     background-size: contain;
     background-position: center;
     background-repeat: no-repeat;
@@ -220,6 +177,8 @@ const handleLogin = async () => {
     display: flex;
     flex-direction: column;
     justify-content: center;
+    z-index: 10;
+    align-items: center;
 
     .login-form {
       margin-top: 30px;
@@ -227,156 +186,98 @@ const handleLogin = async () => {
       align-items: center;
       flex-direction: column;
       justify-content: center;
+
+
       .form-item {
-        margin-bottom: 24px;
+        margin-bottom: 50px;
+        background-image: url("@/assets/img/login/form_input.png");
+
+        width: 533px;
+        height: 88px;
+        background-size: 100% 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
 
         &:last-child {
           margin-bottom: 0;
         }
       }
 
+      :deep() {
+        .n-form-item-label {
+          color: #fff;
+          font-size: 36px;
+        }
+
+        .n-input__input-el {
+          color: #fff;
+        }
+      }
+
       .login-input {
-        background-image: url("../assets/images/bg-input.webp");
-        background-size: cover;
         background-position: center;
         background-repeat: no-repeat;
         border: none !important;
         outline: none !important;
-        width: 250px;
         background-color: transparent;
         color: #fff;
-
-        :deep(.n-input) {
-          background: transparent !important;
-          background-color: transparent !important;
-          border: none !important;
-          box-shadow: none !important;
-          outline: none !important;
-
-          &:hover {
-            background: transparent !important;
-            background-color: transparent !important;
-            border: none !important;
-            box-shadow: none !important;
-            outline: none !important;
-          }
-
-          &:focus {
-            background: transparent !important;
-            background-color: transparent !important;
-            border: none !important;
-            box-shadow: none !important;
-            outline: none !important;
-          }
-
-          &:focus-within {
-            background: transparent !important;
-            background-color: transparent !important;
-            border: none !important;
-            box-shadow: none !important;
-            outline: none !important;
-          }
-
-          .n-input-wrapper {
-            background: transparent !important;
-            background-color: transparent !important;
-            border: none !important;
-            box-shadow: none !important;
-            outline: none !important;
-          }
-
-          .n-input__input {
-            background: transparent !important;
-            background-color: transparent !important;
-            border: none !important;
-            box-shadow: none !important;
-            outline: none !important;
-          }
-
-          .n-input__state-border {
-            display: none !important;
-            border: none !important;
-          }
-
-          .n-input__border {
-            display: none !important;
-            border: none !important;
-          }
-
-          .n-input__suffix {
-            background: transparent !important;
-            outline: none !important;
-          }
-
-          .n-input__prefix {
-            color: rgba(255, 255, 255, 0.8);
-            background: transparent !important;
-            outline: none !important;
-          }
-        }
+        width: 320px;
+        font-size: 36px;
       }
 
-      .login-button {
-        width: 150px;
-        height: 35px;
-        font-size: 16px;
-        font-weight: 500;
-        background-image: url("../assets/images/bg-button.webp");
-        background-size: cover;
-        background-position: center;
-        background-repeat: no-repeat;
+    }
+
+    .login-button {
+      width: 328px;
+      height: 76px;
+      font-size: 36px;
+      font-weight: 500;
+      background-image: url("../assets/img/login/button.png");
+      background-size: 100% 100%;
+      background-position: center;
+      background-repeat: no-repeat;
+      border: none !important;
+      outline: none !important;
+      box-shadow: none !important;
+      color: #fff;
+      background-color: transparent;
+      margin-top: 60px;
+
+      &:hover {
+        opacity: 0.9;
         border: none !important;
         outline: none !important;
         box-shadow: none !important;
-        color: #fff;
-        background-color: transparent;
-
-        &:hover {
-          opacity: 0.9;
-          border: none !important;
-          outline: none !important;
-          box-shadow: none !important;
-        }
-
-        &:active {
-          opacity: 0.8;
-          border: none !important;
-          outline: none !important;
-          box-shadow: none !important;
-        }
-
-        &:focus {
-          border: none !important;
-          outline: none !important;
-          box-shadow: none !important;
-        }
-
-        // 深度选择器移除Naive UI默认样式
-        :deep(.n-button) {
-          border: none !important;
-          outline: none !important;
-          box-shadow: none !important;
-        }
-
-        :deep(.n-button__border) {
-          display: none !important;
-        }
-
-        :deep(.n-button__state-border) {
-          display: none !important;
-        }
       }
-    }
-  }
-}
 
-// 响应式设计
-@media (max-width: 768px) {
-  .login-container {
-    padding: 16px;
+      &:active {
+        opacity: 0.8;
+        border: none !important;
+        outline: none !important;
+        box-shadow: none !important;
+      }
 
-    .login-card {
-      padding: 40px 24px;
+      &:focus {
+        border: none !important;
+        outline: none !important;
+        box-shadow: none !important;
+      }
+
+      // 深度选择器移除Naive UI默认样式
+      :deep(.n-button) {
+        border: none !important;
+        outline: none !important;
+        box-shadow: none !important;
+      }
+
+      :deep(.n-button__border) {
+        display: none !important;
+      }
+
+      :deep(.n-button__state-border) {
+        display: none !important;
+      }
     }
   }
 }

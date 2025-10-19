@@ -127,7 +127,7 @@
 <script setup>
 import { onMounted } from 'vue';
 import * as echarts from 'echarts';
-import { risksOption } from './ehcartsOptions';
+import { handledOption, risksOption } from './ehcartsOptions';
 const handledData = {
   "summary": {
     "handled": 155,
@@ -270,6 +270,13 @@ onMounted(() => {
       chart.setOption(createProgressOption(item.progress, item.status));
     }
   });
+  const monthlyData = handledData.monthlyData;
+  const handledEchart = echarts.init(document.getElementById('handled-chart'));
+  handledOption.xAxis.data = handledData.monthlyData.map(item => item.month);
+  handledOption.series[0].data = monthlyData.map(d => d.unhandled);
+  handledOption.series[1].data = monthlyData.map(d => d.handled);
+  handledOption.series[2].data = monthlyData.map(d => d.completionRate);
+  handledEchart.setOption(handledOption);
 })
 
 const rectificationData = [
@@ -404,13 +411,19 @@ const monitoringData = {
   display: flex;
   flex-direction: row;
 }
-.warning-content{
-display: flex;
-flex-direction: column;
+
+.warning-content {
+  display: flex;
+  flex-direction: column;
 }
 
 .handled-content {
-  
+  display: flex;
+  flex-direction: row;
+  .handled-chart{
+    width: 531px;
+    height: 194px;
+  }
   .handled-item {
     background-size: 100% 100%;
     width: 164px;
@@ -430,7 +443,7 @@ flex-direction: column;
       line-height: 26px;
       text-align: left;
       font-style: normal;
-      
+
     }
 
     .value {
@@ -840,11 +853,10 @@ flex-direction: column;
 
         .count-offline {
           background: linear-gradient(90deg, #FFFEED 0%, #CDAB06 100%);
-
         }
 
         .count-fault {
-          background: linear-gradient(90deg, #FFFFFF 0%, #10ADC0 100%);
+          background: linear-gradient(90deg, #FFE9DA 0%, #CE5A0D 100%);
         }
       }
 

@@ -29,7 +29,7 @@ export const officialWebsiteOption: echarts.EChartsOption = {
       },
       itemStyle: {
         borderRadius: 0, // 圆角，让扇形更柔和
-        
+
       },
       data: [
         {
@@ -78,90 +78,90 @@ export const officialWebsiteOption: echarts.EChartsOption = {
   ]
 };
 export const risksOption = {
-      radar: {
-        // 雷达图配置
-        indicator: [
-          { name: '', max: 20 }
-        ],
-        radius: '70%',
-        center: ['50%', '50%'],
-        splitNumber: 5,
-        axisLine: {
-          lineStyle: {
-            color: '#fff',
-            opacity: 0.2
-          }
-        },
-        splitArea: {
-          show: false
-        },
-        axisLabel: {
-          show: true,
-          color: '#fff',
-          formatter: function (value) {
-            return value;
-          }
-        }
+  radar: {
+    // 雷达图配置
+    indicator: [
+      { name: '', max: 20 }
+    ],
+    radius: '70%',
+    center: ['50%', '50%'],
+    splitNumber: 5,
+    axisLine: {
+      lineStyle: {
+        color: '#fff',
+        opacity: 0.2
+      }
+    },
+    splitArea: {
+      show: false
+    },
+    axisLabel: {
+      show: true,
+      color: '#fff',
+      formatter: function (value) {
+        return value;
+      }
+    }
+  },
+  series: [
+    // 外层蓝色环
+    {
+      type: 'line',
+      coordinateSystem: 'radar',
+      data: [18],
+      lineStyle: {
+        color: '#409eff',
+        width: 10
       },
-      series: [
-        // 外层蓝色环
-        {
-          type: 'line',
-          coordinateSystem: 'radar',
-          data: [18],
-          lineStyle: {
-            color: '#409eff',
-            width: 10
-          },
-          areaStyle: {
-            opacity: 0
-          },
-          symbol: 'none'
-        },
-        // 中层绿色环
-        {
-          type: 'line',
-          coordinateSystem: 'radar',
-          data: [10],
-          lineStyle: {
-            color: '#67c23a',
-            width: 10
-          },
-          areaStyle: {
-            opacity: 0
-          },
-          symbol: 'none'
-        },
-        // 内层黄色环
-        {
-          type: 'line',
-          coordinateSystem: 'radar',
-          data: [7],
-          lineStyle: {
-            color: '#e6a235',
-            width: 10
-          },
-          areaStyle: {
-            opacity: 0
-          },
-          symbol: 'none'
-        },
-        // 最内层红色环
-        {
-          type: 'line',
-          coordinateSystem: 'radar',
-          data: [17],
-          lineStyle: {
-            color: '#f56c6c',
-            width: 10
-          },
-          areaStyle: {
-            opacity: 0
-          },
-          symbol: 'none'
-        }
-      ]
-    };
+      areaStyle: {
+        opacity: 0
+      },
+      symbol: 'none'
+    },
+    // 中层绿色环
+    {
+      type: 'line',
+      coordinateSystem: 'radar',
+      data: [10],
+      lineStyle: {
+        color: '#67c23a',
+        width: 10
+      },
+      areaStyle: {
+        opacity: 0
+      },
+      symbol: 'none'
+    },
+    // 内层黄色环
+    {
+      type: 'line',
+      coordinateSystem: 'radar',
+      data: [7],
+      lineStyle: {
+        color: '#e6a235',
+        width: 10
+      },
+      areaStyle: {
+        opacity: 0
+      },
+      symbol: 'none'
+    },
+    // 最内层红色环
+    {
+      type: 'line',
+      coordinateSystem: 'radar',
+      data: [17],
+      lineStyle: {
+        color: '#f56c6c',
+        width: 10
+      },
+      areaStyle: {
+        opacity: 0
+      },
+      symbol: 'none'
+    }
+  ]
+};
 export const riskRingsOption = {
   series: [
     {
@@ -237,4 +237,124 @@ export const riskRingsOption = {
       data: [{ value: 17, name: '' }]
     }
   ]
+};
+
+export const handledOption = {
+  tooltip: {
+    trigger: 'axis',
+    axisPointer: {
+      type: 'shadow'
+    }
+  },
+  legend: {
+    data: ['未处置', '已处置', '处置率'],
+    textStyle: {
+      color: '#fff',
+      fontSize: 14
+    },
+    right: '10%'
+  },
+  grid: {
+    left: 2,
+    right: 2,
+    top: 2,
+    bottom: 2
+  },
+  xAxis: {
+    type: 'category',
+    data: [],
+    axisLabel: {
+      color: '#fff',
+      fontSize: 12
+    },
+    axisLine: {
+      lineStyle: {
+        color: '#00bfff'
+      }
+    },
+    splitLine: {
+      show: false
+    }
+  },
+  yAxis: [
+    {
+      type: 'value',
+      name: '单位：个',
+      min: 0,
+      max: 50,
+      interval: 10,
+      axisLabel: {
+        color: '#fff',
+        fontSize: 12
+      },
+      axisLine: {
+        lineStyle: {
+          color: '#00bfff'
+        }
+      },
+      splitLine: {
+        lineStyle: {
+          color: '#00bfff',
+          opacity: 0.3
+        }
+      }
+    },
+    {
+      type: 'value',
+      name: '单位：% ',
+      min: 0,
+      max: 100,
+      interval: 20,
+      axisLabel: {
+        color: '#fff',
+        fontSize: 12
+      },
+      axisLine: {
+        lineStyle: {
+          color: '#00bfff'
+        }
+      },
+      splitLine: {
+        lineStyle: {
+          color: '#00bfff',
+          opacity: 0.3
+        }
+      },
+      position: 'right'
+    }
+  ],
+  series: [
+    {
+      name: '未处置',
+      type: 'bar',
+      barWidth: '20%',
+      itemStyle: {
+        color: '#f5a623'
+      },
+      data: []
+    },
+    {
+      name: '已处置',
+      type: 'bar',
+      barWidth: '20%',
+      itemStyle: {
+        color: '#007aff'
+      },
+      data: []
+    },
+    {
+      name: '处置率',
+      type: 'line',
+      smooth: true,
+      lineStyle: {
+        color: '#ff4d4d',
+        width: 3
+      },
+      areaStyle: {
+        color: 'rgba(255, 77, 77, 0.3)'
+      },
+      yAxisIndex: 1,
+      data: []
+    }
+  ],
 };
