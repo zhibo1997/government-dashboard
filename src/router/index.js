@@ -32,6 +32,15 @@ const routes = [
     }
   },
   {
+    path: '/tiles3d',
+    name: 'tiles3d',
+    component: () => import('../views/Tiles3DView.vue'),
+    meta: {
+      requiresAuth: false,
+      title: '3D Tiles 模型展示'
+    }
+  },
+  {
     path: '/:pathMatch(.*)*',
     name: 'NotFound',
     redirect: '/'
