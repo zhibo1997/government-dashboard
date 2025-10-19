@@ -30,11 +30,13 @@
               <span>排水专项</span>
             </div>
           </div>
-          <span class="weather">多云 26°C</span>
+          <!-- <span class="weather">多云 26°C</span> -->
           <div class="control-box">
-            <a-button type="default" class="logout-btn" @click="handleLogout">
-              <logout-outlined />
-              退出登录
+            <a-button type="default" class="btn">
+              <img src="@/assets/img/setting_icon.png" alt="" />
+            </a-button>
+            <a-button type="default" class="btn" @click="handleLogout">
+              <img src="@/assets/img/logout_icon.png" alt="" />
             </a-button>
           </div>
         </div>
@@ -90,7 +92,6 @@ const handleLogout = () => {
   width: 100%;
   height: 100vh;
   position: relative;
-  background-image: url("@/assets/images/viewer-bg.webp");
   background-size: cover;
 
   // 头部样式 - 与NewDashboardView保持一致
@@ -98,20 +99,17 @@ const handleLogout = () => {
     display: flex;
     flex-direction: row;
     justify-content: space-between;
-    align-items: center;
-    height: 148px;
+    height: 201px;
+    width: 100%;
+    background-image: url("@/assets/img/top-bg.png");
+    background-size: 100% 201px;
+    z-index: 10;
+    position: relative;
 
     .head-title {
-      position: absolute;
-      top: 0;
-      left: 50%;
-      transform: translateX(-50%);
-      text-align: center;
-      width: 2032px;
-      background: url("@/assets/images/header-bg.webp") no-repeat;
-      background-size: 100% 100%;
       height: 148px;
-      pointer-events: none;
+      display: flex;
+      align-items: center;
 
       >img {
         margin-top: 18px;
@@ -121,10 +119,10 @@ const handleLogout = () => {
     .tabs {
       display: flex;
       flex-direction: row;
-      width: 1417px;
-      height: 100%;
+      height: 148px;
       justify-content: space-between;
       padding-top: 28px;
+      width: 1254px;
 
       .tabs-content {
         display: flex;
@@ -133,31 +131,35 @@ const handleLogout = () => {
     }
 
     .left-tabs {
-      background: url("@/assets/images/left-header.webp") no-repeat;
-      background-size: 100% 72px;
-      background-position-y: 72px;
-      padding-right: 200px;
+      background-image: linear-gradient(to right, rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0));
+
     }
 
     .right-tabs {
-      background: url("@/assets/images/right-header.webp") no-repeat;
-      background-size: 100% 72px;
-      background-position-y: 72px;
-      padding-left: 200px;
+      background-image: linear-gradient(to left, rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0));
+
     }
 
     .tab-item {
       width: 340px;
-      height: 80px;
+      height: 90px;
       text-align: center;
       cursor: pointer;
       margin: 0 8px;
       display: flex;
       align-items: center;
       justify-content: center;
-      background-size: cover;
+      background-size: 400px 105px;
+      background-position: -30px -6px;
+
+      &.active {
+        span {
+          background: linear-gradient(0deg, #3FFEFD 0%, #FFF407 100%);
+        }
+      }
 
       &.right-tab-item {
+        margin-left: -12px;
         background-image: url("@/assets/img/right-btn.png");
 
         &.active {
@@ -166,6 +168,7 @@ const handleLogout = () => {
       }
 
       &.left-tab-item {
+        margin-right: -12px;
         background-image: url("@/assets/img/left-btn.png");
 
         &.active {
@@ -178,9 +181,16 @@ const handleLogout = () => {
         font-family: YouSheBiaoTiHei;
         font-size: 48px;
         color: #ffffff;
-        line-height: 52px;
+        line-height: 56px;
         text-align: left;
         font-style: normal;
+        background: linear-gradient(90deg, #FFFFFF 18%, #10ADC0 100%);
+        -webkit-background-clip: text !important;
+        background-clip: text !important;
+        /* 标准属性 */
+        -webkit-text-fill-color: transparent !important;
+        color: transparent !important;
+        /* 标准属性回退 */
       }
     }
 
@@ -193,27 +203,20 @@ const handleLogout = () => {
 
     .control-box {
       display: flex;
-      gap: 16px;
-      margin-right: 20px;
+      padding-top: 22px;
+      padding-right: 60px;
 
-      .logout-btn {
-        font-size: 28px;
-        height: 56px;
-        padding: 0 24px;
-        border-radius: 8px;
+      .btn {
+        width: 40px;
+        height: 40px;
         cursor: pointer;
-        background-color: rgba(255, 77, 79, 0.1);
-        border-color: #ff4d4f;
-        color: #ff4d4f;
-
-        .anticon {
-          font-size: 24px;
-          margin-right: 8px;
+        margin-left: 32px;
+        img{
+          width: 100%;
+          height: 100%;
         }
-
-        &:hover {
-          background-color: #ff4d4f;
-          color: #ffffff;
+        &:hover{
+          opacity: 0.8;
         }
       }
     }
@@ -225,19 +228,25 @@ const handleLogout = () => {
     flex-direction: row;
     justify-content: space-between;
     flex: 1;
-    padding: 0 20px 20px;
+    // padding: 0 20px 20px;
     position: relative;
-    height: calc(100% - 148px);
+    height: calc(100% - 180px);
+    z-index: 1;
+    top: -56px;
   }
 
   // 左侧数据展示区域
   .left-content {
-    width: 800px;
+    width: 820px;
     height: 100%;
     display: flex;
     flex-direction: column;
     gap: 16px;
     z-index: 10;
+
+    padding: 0 0 20px 20px;
+    box-sizing: border-box;
+    background: linear-gradient(to right, rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0));
   }
 
   // 中间地图区域
@@ -270,12 +279,15 @@ const handleLogout = () => {
 
   // 右侧数据展示区域
   .right-content {
-    width: 800px;
+    width: 820px;
     height: 100%;
     display: flex;
     flex-direction: column;
     gap: 16px;
     z-index: 10;
+    padding: 0 0 20px 20px;
+    box-sizing: border-box;
+    background: linear-gradient(to left, rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0));
   }
 }
 </style>

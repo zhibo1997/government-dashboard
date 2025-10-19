@@ -1,8 +1,8 @@
 <!--
  * @Author: Do not edit
  * @Date: 2025-09-01 20:25:59
- * @LastEditors: zhibo1997 1174985654@qq.com
- * @LastEditTime: 2025-09-02 21:40:52
+ * @LastEditors: 王志博
+ * @LastEditTime: 2025-10-19 18:30:10
  * @Description: 
 -->
 <template>
@@ -23,21 +23,21 @@ let timer = null
 
 function updateTime() {
   const now = new Date()
-  
+
   // 格式化日期
   const year = now.getFullYear()
   const month = String(now.getMonth() + 1).padStart(2, '0')
   const day = String(now.getDate()).padStart(2, '0')
   const weekdays = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六']
   const weekday = weekdays[now.getDay()]
-  
-  currentDate.value = `${year}年${month}月${day}日 ${weekday}`
-  
+
+  currentDate.value = `${year}.${month}.${day}`
+
   // 格式化时间
   const hours = String(now.getHours()).padStart(2, '0')
   const minutes = String(now.getMinutes()).padStart(2, '0')
   const seconds = String(now.getSeconds()).padStart(2, '0')
-  
+
   currentTime.value = `${hours}:${minutes}:${seconds}`
 }
 
@@ -54,36 +54,18 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
-.time-display {
-  background-color: transparent;
-  border-radius: 8px;
-  padding: 12px 16px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  transition: all 0.2s ease;
-  font-family: 'Microsoft YaHei', sans-serif;
-}
-
-
 .time-content {
+  font-family: YouSheBiaoTiHei;
+  font-size: 40px;
+  color: #FFFFFF;
+  text-align: left;
+  font-style: normal;
   display: flex;
   flex-direction: row;
-  text-align: center;
-  align-items: center;
+  margin-left: 60px;
+  margin-top: 10px;
 }
-
-.date-line {
-  font-size: 32px;
-  color: #fff;
-  font-weight: 600;
-  margin-right: 16px;
+.date-line{
+  margin-right: 20px;
 }
-
-.time-line {
-  font-size: 32px;
-  color: #fff;
-  font-weight: 600;
-  font-family: 'Consolas', 'Monaco', monospace;
-  letter-spacing: 1px;
-}
-
 </style>

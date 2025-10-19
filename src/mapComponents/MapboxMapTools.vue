@@ -263,7 +263,7 @@ onMounted(() => {
 .mapbox-map-tools {
   position: absolute;
   top: 20px;
-  right: 1160px;
+  right: 820px;
   display: flex;
   flex-direction: column;
   gap: 8px;

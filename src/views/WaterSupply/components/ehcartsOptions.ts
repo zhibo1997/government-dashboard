@@ -1,18 +1,12 @@
-
+import * as echarts from 'echarts';
 // 官网材质echarts图
-export const officialWebsiteOption = {
+export const officialWebsiteOption: echarts.EChartsOption = {
   tooltip: {
     trigger: 'item',
     formatter: '{a} <br/>{b}: {c} ({d}%)'
   },
   legend: {
-    show: true,
-    orient: 'vertical',
-    left: 'left',
-    data: ['PE', '球墨铸铁', 'PE', '球墨铸铁'],
-    textStyle: {
-      color: '#fff'
-    }
+    show: false,
   },
   // grid: {
   //   top: 5,
@@ -22,22 +16,9 @@ export const officialWebsiteOption = {
   // },
   series: [
     {
-      name: '中心文字',
-      type: 'text',
-      position: ['50%', '50%'],
-      style: {
-        text: '管网\n材质',
-        fontSize: 16,
-        fontWeight: 'bold',
-        fill: '#fff',
-        textAlign: 'center',
-        textBaseline: 'middle'
-      }
-    },
-    {
       name: '管网材质',
       type: 'pie',
-      radius: ['50%', '70%'], // 内半径 50%，外半径 70%，形成环形
+      radius: ['75%', '95%'], // 内半径 50%，外半径 70%，形成环形
       center: ['50%', '50%'], // 圆心位置
       startAngle: 90, // 起始角度，可调整方向
       label: {
@@ -47,14 +28,44 @@ export const officialWebsiteOption = {
         show: false // 不显示引导线
       },
       itemStyle: {
-        borderRadius: 10, // 圆角，让扇形更柔和
-        opacity: 0.8 // 可选：透明度控制
+        borderRadius: 0, // 圆角，让扇形更柔和
+        
       },
       data: [
-        { value: 38, name: 'PE', itemStyle: { color: '#00bfff' } },
-        { value: 40, name: '球墨铸铁', itemStyle: { color: '#ff4500' } },
-        { value: 10, name: 'PE', itemStyle: { color: '#ffff00' } },
-        { value: 12, name: '球墨铸铁', itemStyle: { color: '#66cc66' } }
+        {
+          value: 38, name: 'PE', itemStyle: {
+            color:
+              new echarts.graphic.LinearGradient(0, 0, 1, 0, [
+                { offset: 0, color: 'rgba(247,255,111,0)' },
+                { offset: 1, color: '#F2FF6F' },
+              ])
+          }
+        },
+        {
+          value: 40, name: '球墨铸铁', itemStyle: {
+            color:
+              new echarts.graphic.LinearGradient(0, 0, 1, 0, [
+                { offset: 1, color: 'rgba(199,94,25,0)' },
+                { offset: 0, color: '#D0590C' },
+              ])
+          }
+        },
+        {
+          value: 10, name: 'PE', itemStyle: {
+            color: new echarts.graphic.LinearGradient(0, 0, 1, 0, [
+              { offset: 0, color: 'rgba(8,255,255,0)' },
+              { offset: 1, color: '#08ffff' },
+            ])
+          }
+        },
+        {
+          value: 12, name: '球墨铸铁', itemStyle: {
+            color: new echarts.graphic.LinearGradient(0, 0, 1, 0, [
+              { offset: 0, color: 'rgba(176,255,255,0)' },
+              { offset: 1, color: '#B1FFE9' },
+            ])
+          }
+        }
       ],
       emphasis: {
         itemStyle: {
@@ -66,6 +77,91 @@ export const officialWebsiteOption = {
     }
   ]
 };
+export const risksOption = {
+      radar: {
+        // 雷达图配置
+        indicator: [
+          { name: '', max: 20 }
+        ],
+        radius: '70%',
+        center: ['50%', '50%'],
+        splitNumber: 5,
+        axisLine: {
+          lineStyle: {
+            color: '#fff',
+            opacity: 0.2
+          }
+        },
+        splitArea: {
+          show: false
+        },
+        axisLabel: {
+          show: true,
+          color: '#fff',
+          formatter: function (value) {
+            return value;
+          }
+        }
+      },
+      series: [
+        // 外层蓝色环
+        {
+          type: 'line',
+          coordinateSystem: 'radar',
+          data: [18],
+          lineStyle: {
+            color: '#409eff',
+            width: 10
+          },
+          areaStyle: {
+            opacity: 0
+          },
+          symbol: 'none'
+        },
+        // 中层绿色环
+        {
+          type: 'line',
+          coordinateSystem: 'radar',
+          data: [10],
+          lineStyle: {
+            color: '#67c23a',
+            width: 10
+          },
+          areaStyle: {
+            opacity: 0
+          },
+          symbol: 'none'
+        },
+        // 内层黄色环
+        {
+          type: 'line',
+          coordinateSystem: 'radar',
+          data: [7],
+          lineStyle: {
+            color: '#e6a235',
+            width: 10
+          },
+          areaStyle: {
+            opacity: 0
+          },
+          symbol: 'none'
+        },
+        // 最内层红色环
+        {
+          type: 'line',
+          coordinateSystem: 'radar',
+          data: [17],
+          lineStyle: {
+            color: '#f56c6c',
+            width: 10
+          },
+          areaStyle: {
+            opacity: 0
+          },
+          symbol: 'none'
+        }
+      ]
+    };
 export const riskRingsOption = {
   series: [
     {

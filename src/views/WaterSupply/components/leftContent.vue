@@ -2,7 +2,7 @@
  * @Author: Do not edit
  * @Date: 2025-10-16 21:05:49
  * @LastEditors: 王志博
- * @LastEditTime: 2025-10-17 22:14:34
+ * @LastEditTime: 2025-10-19 17:14:31
  * @Description: 
 -->
 
@@ -22,7 +22,7 @@
             <div class="item-info">
               <div class="item-title">{{ item.name }}</div>
               <div class="item-value">
-                <span class="value">{{ item.value }}</span>
+                <span class="value gradient-text">{{ item.value }}</span>
                 <span class="unit">{{ item.unit }}</span>
               </div>
             </div>
@@ -45,7 +45,12 @@
             <div class="quality-item-content">
               <div class="quality-item-parameter" v-for="parameter in plant.parameters" :key="parameter.id">
                 <div class="parameter-value">
-                  <span class="value">{{ parameter.value }}</span>
+                  <span class="value gradient-text" :style="{
+                    backgroundImage: parameter.status == 'normal' ?
+                      'linear-gradient(90deg, #FFFFFF 0%, #10ADC0 100%)' :
+                      'linear-gradient(0deg, #F75E04 0%, #FEAC04 100%)'
+                  }">{{
+                    parameter.value }}</span>
                   <img v-if="parameter.status == 'normal'" src="@/assets/img/waterSupply/quality_normal.png" alt="">
                   <img v-else src="@/assets/img/waterSupply/quality_abnormal.png" alt="">
                 </div>
@@ -65,9 +70,22 @@
       <div class="module-content pipeline-module-content">
         <div class="material-content">
           <div id="pipeline-chart" class="pipeline-chart"></div>
+          <div class="material-legend">
+            <div class="legend-item" v-for="item in pipelineLegend" :key="item.name">
+              <div class="legend-item-content">
+                <div class="legend-color" :style="{ backgroundColor: item.color }"></div>
+                <div class="legend-name">{{ item.name }}</div>
+              </div>
+              <div class="legend-value">{{ item.value }}</div>
+            </div>
+          </div>
         </div>
         <div class="hidden-danger">
-
+          <div class="danger-item"></div>
+          <div class="base-img">
+            <span class="danger-count gradient-text">29</span>
+            <span class="danger-text">供水管网隐患</span>
+          </div>
         </div>
       </div>
     </div>
@@ -80,14 +98,37 @@ import { officialWebsiteOption } from './ehcartsOptions'
 import * as echarts from 'echarts'
 
 onMounted(() => {
-  const pipelineChart = echarts.init(document.getElementById('pipeline-chart'))
+  const pipelineChart = echarts.init(document.getElementById('pipeline-chart'));
+  console.log(pipelineChart)
   pipelineChart.setOption(officialWebsiteOption)
 })
+const pipelineLegend = [
+  {
+    "color": "#00bfff",
+    "name": "PE",
+    "value": "38%"
+  },
+  {
+    "color": "#ff4500",
+    "name": "球墨铸铁",
+    "value": "40%"
+  },
+  {
+    "color": "#ffff00",
+    "name": "PE",
+    "value": "10%"
+  },
+  {
+    "color": "#66cc66",
+    "name": "球墨铸铁",
+    "value": "12%"
+  }
+]
 
 // 动态获取图标路径
 const getIconUrl = (iconName) => {
   console.log(import.meta.url)
-  return new URL(`@/assets/img/waterSupply/${iconName}.png`, import.meta.url).href
+  return new URL(`../../../assets/img/waterSupply/${iconName}.png`, import.meta.url).href
 }
 
 const waterPlants = [
@@ -222,12 +263,95 @@ const formattedDate = computed(() => {
 </script>
 
 <style lang="scss" scoped>
+
 .material-content {
   width: 50%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 
   .pipeline-chart {
     width: 217px;
     height: 217px;
+  }
+
+  .material-legend {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    // align-items: center;
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      margin-bottom: 6px;
+      justify-content: space-between;
+      padding: 0 26px;
+
+      .legend-item-content {
+        display: flex;
+        align-items: center;
+      }
+
+      .legend-color {
+        width: 20px;
+        height: 20px;
+        margin-right: 13px;
+      }
+
+      .legend-name {
+        font-family: SourceHanSansSC, SourceHanSansSC;
+        font-weight: 400;
+        font-size: 30px;
+        color: #E4F3FF;
+        line-height: 44px;
+        text-align: left;
+        font-style: normal;
+      }
+    }
+
+    .legend-value {
+      font-family: SourceHanSansSC, SourceHanSansSC;
+      font-weight: 400;
+      font-size: 30px;
+      color: #E4F3FF;
+      line-height: 44px;
+      text-align: left;
+      font-style: normal;
+    }
+  }
+}
+
+.hidden-danger {
+  width: 50%;
+
+  .base-img {
+    width: 442px;
+    height: 194px;
+    background-image: url("@/assets/img/waterSupply/danger_base.png");
+    background-size: 100% 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    .danger-count {
+      font-family: YouSheBiaoTiHei;
+      font-size: 48px;
+      color: #E74040;
+      line-height: 62px;
+      text-align: left;
+      font-style: normal;
+      background: linear-gradient(0deg, #3FFEFD 0%, #FFF407 100%);
+    }
+
+    .danger-text {
+      font-family: SourceHanSansSC, SourceHanSansSC;
+      font-weight: 400;
+      font-size: 30px;
+      color: #FFFFFF;
+      line-height: 44px;
+      text-align: left;
+      font-style: normal;
+    }
   }
 }
 
@@ -296,75 +420,76 @@ const formattedDate = computed(() => {
         text-align: center;
         font-style: normal;
       }
-    }
 
-    .parameter-title {
-      font-family: SourceHanSansSC, SourceHanSansSC;
-      font-weight: 400;
-      font-size: 30px;
-      color: #E4F3FF;
-      line-height: 44px;
-      text-align: center;
-      font-style: normal;
+      .parameter-title {
+        font-family: SourceHanSansSC, SourceHanSansSC;
+        font-weight: 400;
+        font-size: 30px;
+        color: #E4F3FF;
+        line-height: 44px;
+        text-align: center;
+        font-style: normal;
+      }
     }
   }
-}
 
-// 日期选择器自定义样式
-.water-quality-module {
-  :deep(.custom-date-picker) {
-    .n-input {
-      width: 260px;
-      background-color: #094358;
-      border: 2px solid #11A7E2;
-      border-radius: 8px;
-      height: 56px;
-      font-family: SourceHanSansSC, SourceHanSansSC;
-      font-size: 28px;
-      color: #FFFFFF;
-      padding: 6px 20px;
-
-      &:hover {
-        border-color: rgba(22, 119, 255, 0.8);
-      }
-
-      &:focus-within {
-        border-color: #1677ff;
-        box-shadow: 0 0 0 2px rgba(22, 119, 255, 0.2);
-      }
-
-      .n-input__input-el {
-        color: #FFFFFF;
+  // 日期选择器自定义样式
+  .water-quality-module {
+    :deep(.custom-date-picker) {
+      .n-input {
+        width: 260px;
+        background-color: #094358;
+        border: 2px solid #11A7E2;
+        border-radius: 8px;
+        height: 56px;
+        font-family: SourceHanSansSC, SourceHanSansSC;
         font-size: 28px;
-        caret-color: #1677ff;
-      }
+        color: #FFFFFF;
+        padding: 6px 20px;
 
-      .n-input__placeholder {
-        color: rgba(255, 255, 255, 0.4);
-      }
+        &:hover {
+          border-color: rgba(22, 119, 255, 0.8);
+        }
 
-      .n-input__suffix,
-      .n-input__prefix {
-        .n-base-icon {
-          color: rgba(255, 255, 255, 0.6);
-          font-size: 24px;
+        &:focus-within {
+          border-color: #1677ff;
+          box-shadow: 0 0 0 2px rgba(22, 119, 255, 0.2);
+        }
+
+        .n-input__input-el {
+          color: #FFFFFF;
+          font-size: 28px;
+          caret-color: #1677ff;
+        }
+
+        .n-input__placeholder {
+          color: rgba(255, 255, 255, 0.4);
+        }
+
+        .n-input__suffix,
+        .n-input__prefix {
+          .n-base-icon {
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 24px;
+          }
+        }
+
+        .n-input__state-border {
+          border: none;
         }
       }
 
-      .n-input__state-border {
-        border: none;
-      }
-    }
+      // 清除按钮样式
+      .n-base-clear {
+        color: rgba(255, 255, 255, 0.6);
 
-    // 清除按钮样式
-    .n-base-clear {
-      color: rgba(255, 255, 255, 0.6);
-
-      &:hover {
-        color: #ff4d4f;
+        &:hover {
+          color: #ff4d4f;
+        }
       }
     }
   }
+
 }
 
 .overview-module {
@@ -386,12 +511,11 @@ const formattedDate = computed(() => {
       height: 100px;
       display: flex;
       justify-content: center;
-      background-color: black;
     }
 
     .item-info {
       flex: 1;
-      padding-left: 20px;
+      padding-left: 8px;
 
     }
 
@@ -420,6 +544,7 @@ const formattedDate = computed(() => {
         line-height: 52px;
         text-align: left;
         font-style: normal;
+        background: linear-gradient(90deg, #FFFFFF 0%, #10ADC0 100%);
       }
 
       .unit {
