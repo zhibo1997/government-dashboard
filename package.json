@@ -13,9 +13,10 @@
   },
   "dependencies": {
     "@ant-design/icons-vue": "^7.0.1",
-    "@cgcs2000/mapbox-gl": "1.13.1",
     "@deck.gl/geo-layers": "^9.2.2",
     "@deck.gl/mapbox": "^9.2.2",
+    "@loaders.gl/3d-tiles": "^4.3.4",
+    "@loaders.gl/core": "^4.3.4",
     "@turf/turf": "^7.2.0",
     "@vicons/ionicons5": "^0.12.0",
     "axios": "^1.11.0",
@@ -23,13 +24,14 @@
     "echarts": "^6.0.0",
     "jsencrypt": "^3.5.4",
     "lodash-es": "^4.17.21",
+    "maplibre-gl": "^5.9.0",
     "naive-ui": "^2.40.1",
     "pinia": "^3.0.3",
     "vue": "^3.5.18",
     "vue-router": "^4.5.1"
   },
   "devDependencies": {
-    "@types/mapbox-gl": "1.13.10",
+    "@types/maplibre-gl": "^5.9.0",
     "@typescript-eslint/eslint-plugin": "^8.41.0",
     "@typescript-eslint/parser": "^8.41.0",
     "@vitejs/plugin-vue": "^6.0.1",

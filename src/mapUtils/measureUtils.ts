@@ -1,4 +1,4 @@
-import mapboxgl from '@cgcs2000/mapbox-gl'
+import mapboxgl from 'maplibre-gl'
 import * as turf from '@turf/turf'
 
 export interface MeasurePoint {
@@ -339,7 +339,9 @@ export class MapboxMeasureTool {
 
     if (this.currentTool === 'distance') {
       // 距离测量支持连续多点，不自动结束
-      this.updateDistanceLabels()
+      if (this.currentPoints.length >= 2) {
+        this.updateDistanceDisplay()
+      }
     } else if (this.currentTool === 'area') {
       if (this.currentPoints.length >= 3) {
         this.updateAreaDisplay()
@@ -372,6 +374,40 @@ export class MapboxMeasureTool {
     } else if (this.currentTool === 'area' && this.currentPoints.length >= 3) {
       this.finishAreaMeasure()
     }
+  }
+
+  /**
+   * 更新距离显示
+   */
+  private updateDistanceDisplay(): void {
+    if (this.currentPoints.length < 2) return
+
+    const line = turf.lineString(this.currentPoints.map(p => [p.lng, p.lat]))
+    
+    // 添加或更新线条
+    const source = this.map.getSource('measure-lines') as mapboxgl.GeoJSONSource
+    const existingData = source._data as any
+    const features = [...(existingData?.features || [])]
+    
+    const lineFeature = {
+      ...line,
+      properties: {
+        id: this.currentMeasureId,
+        type: 'distance'
+      }
+    }
+    
+    const existingIndex = features.findIndex((f: any) => f.properties.id === this.currentMeasureId)
+    if (existingIndex >= 0) {
+      features[existingIndex] = lineFeature
+    } else {
+      features.push(lineFeature)
+    }
+    
+    source.setData({
+      type: 'FeatureCollection',
+      features
+    })
   }
 
   /**

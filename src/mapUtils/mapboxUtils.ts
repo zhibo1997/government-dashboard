@@ -1,9 +1,9 @@
-import mapboxgl from "@cgcs2000/mapbox-gl";
+import mapboxgl from "maplibre-gl";
 import baseStyle from "./cssmx_base.json";
 import { mapConfig } from "@/config/mapConfig";
 
-// 扩展Mapbox Map类型以支持自定义属性
-declare module "mapbox-gl" {
+// 扩展MapLibre Map类型以支持自定义属性
+declare module "maplibre-gl" {
   interface Map {
     _poiMarkers?: mapboxgl.Marker[];
     _distanceEventHandlers?: Array<{
@@ -84,8 +84,8 @@ export const mapboxUtils = {
   initMap(containerId: string): mapboxgl.Map {
     const map = new mapboxgl.Map({
       container: containerId,
-      // style: this.createTiandituStyle("vec"), // 会自动判断key是否可用
-      style: baseStyle,
+      style: 'https://demotiles.maplibre.org/style.json',
+      // style: baseStyle as any,
       center: [115.186322, 29.864861],
       zoom: 12,
       pitch: 30,
@@ -124,31 +124,47 @@ export const mapboxUtils = {
         "tianditu-base": {
           type: "raster",
           tiles: [
-            `https://t0.tianditu.gov.cn/DataServer?T=${layers.base}_c&x={x}&y={y}&l={z}&tk=${key}`,
+            `https://t0.tianditu.gov.cn/DataServer?T=${layers.base}_w&x={x}&y={y}&l={z}&tk=${key}`,
+            `https://t1.tianditu.gov.cn/DataServer?T=${layers.base}_w&x={x}&y={y}&l={z}&tk=${key}`,
+            `https://t2.tianditu.gov.cn/DataServer?T=${layers.base}_w&x={x}&y={y}&l={z}&tk=${key}`,
           ],
+          tileSize: 256,
           minzoom: 3,
+          maxzoom: 18,
         },
         "tianditu-img": {
           type: "raster",
           tiles: [
-            `https://t0.tianditu.gov.cn/DataServer?T=img_c&x={x}&y={y}&l={z}&tk=${key}`,
+            `https://t0.tianditu.gov.cn/DataServer?T=img_w&x={x}&y={y}&l={z}&tk=${key}`,
+            `https://t1.tianditu.gov.cn/DataServer?T=img_w&x={x}&y={y}&l={z}&tk=${key}`,
+            `https://t2.tianditu.gov.cn/DataServer?T=img_w&x={x}&y={y}&l={z}&tk=${key}`,
           ],
+          tileSize: 256,
           minzoom: 3,
+          maxzoom: 18,
         },
 
         "tianditu-ter": {
           type: "raster",
           tiles: [
-            `https://t0.tianditu.gov.cn/DataServer?T=ter_c&x={x}&y={y}&l={z}&tk=${key}`,
+            `https://t0.tianditu.gov.cn/DataServer?T=ter_w&x={x}&y={y}&l={z}&tk=${key}`,
+            `https://t1.tianditu.gov.cn/DataServer?T=ter_w&x={x}&y={y}&l={z}&tk=${key}`,
+            `https://t2.tianditu.gov.cn/DataServer?T=ter_w&x={x}&y={y}&l={z}&tk=${key}`,
           ],
+          tileSize: 256,
           minzoom: 3,
+          maxzoom: 18,
         },
         "tianditu-label": {
           type: "raster",
           tiles: [
-            `https://t0.tianditu.gov.cn/DataServer?T=cia_c&x={x}&y={y}&l={z}&tk=${key}`,
+            `https://t0.tianditu.gov.cn/DataServer?T=${layers.label}_w&x={x}&y={y}&l={z}&tk=${key}`,
+            `https://t1.tianditu.gov.cn/DataServer?T=${layers.label}_w&x={x}&y={y}&l={z}&tk=${key}`,
+            `https://t2.tianditu.gov.cn/DataServer?T=${layers.label}_w&x={x}&y={y}&l={z}&tk=${key}`,
           ],
+          tileSize: 256,
           minzoom: 3,
+          maxzoom: 18,
         },
       },
       center: mapConfig.center,
@@ -171,26 +187,22 @@ export const mapboxUtils = {
           type: "raster",
           source: "tianditu-ter",
           layout: { visibility: "none" },
-        },
-        {
-          id: "tianditu-label",
-          type: "raster",
-          source: "tianditu-label",
         }
       ],
     };
     const map = new mapboxgl.Map({
       container: containerId,
-      // style: baseStyle,
-      style: style,
+      style: style as any,
       center: mapConfig.center,
       zoom: mapConfig.zoom,
+      pitch: 0,
+      bearing: 0,
     });
     addImages(map, baseStyle.sprite);
 
     // 添加基础控件
-    map.addControl(new mapboxgl.NavigationControl(), "top-left");
-    map.addControl(new mapboxgl.ScaleControl(), "bottom-left");
+    // map.addControl(new mapboxgl.NavigationControl(), "top-left");
+    // map.addControl(new mapboxgl.ScaleControl(), "bottom-left");
 
     return map;
   },
@@ -739,10 +751,12 @@ function addImages(map: mapboxgl.Map, spriteurl: string) {
             context.drawImage(img, x, y, width, height, 0, 0, width, height);
             let base64Url = canvas.toDataURL("image/png");
 
-            map.loadImage(base64Url, (error: any, simg: any) => {
-              if (!map.hasImage(key)) {
-                map.addImage(key, simg);
+            map.loadImage(base64Url).then(simg => {
+              if (simg && !map.hasImage(key)) {
+                map.addImage(key, simg.data);
               }
+            }).catch(error => {
+              console.error(`Failed to load image ${key}:`, error);
             });
           }
         }

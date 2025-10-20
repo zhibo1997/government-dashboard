@@ -14,7 +14,7 @@ import {
   provide,
   watchEffect,
 } from "vue";
-import mapboxgl from "@cgcs2000/mapbox-gl";
+import mapboxgl from "maplibre-gl";
 import yangxinGeoJson from "../assets/yangxin.json";
 import MapboxMapTools from "./MapboxMapTools.vue";
 import { useMapStore } from "../stores/mapStore";

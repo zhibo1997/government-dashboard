@@ -108,7 +108,7 @@
 import { ref, inject, onMounted, computed, watchEffect } from "vue";
 import type { Ref } from "vue";
 import { NPopover, NCheckbox } from "naive-ui";
-import type { Map as MapboxMap } from "mapbox-gl";
+import type { Map as MapboxMap } from "maplibre-gl";
 import { mapboxUtils } from "@/mapUtils/mapboxUtils";
 import LayerTree from "../components/LayerTree.vue";
 

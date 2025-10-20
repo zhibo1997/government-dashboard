@@ -2,15 +2,16 @@
 
 ## 概述
 
-本项目已成功集成 deck.gl + Mapbox 方案，用于在地图上展示 3D Tiles 模型数据。该实现不影响现有的 Mapbox 地图组件功能。
+本项目已成功集成 deck.gl + Mapbox 方案，用于在地图上展示 3D Tiles 模型数据。该实现采用 **MapboxOverlay (DeckOverlay)** 架构，Mapbox 作为底图，deck.gl 负责 3D 渲染。
 
 ## 技术架构
 
 ### 核心技术栈
 - **Mapbox GL JS**: v1.13.3 (作为底图)
 - **deck.gl**: v9.2.2 (3D 渲染引擎)
-- **@deck.gl/mapbox**: Mapbox 集成层
-- **@deck.gl/geo-layers**: 3D Tiles 图层支持
+- **@deck.gl/mapbox**: MapboxOverlay 集成层
+- **@deck.gl/geo-layers**: Tile3DLayer 支持
+- **@loaders.gl/3d-tiles**: Tiles3DLoader 数据加载器
 
 ### 文件结构
 
@@ -59,78 +60,145 @@ import Tiles3DComponent from '@/mapComponents/Tiles3DComponent.vue';
 import { tiles3DUtils } from '@/mapUtils/tiles3DUtils';
 import mapboxgl from '@cgcs2000/mapbox-gl';
 
-// 假设已有 Mapbox 地图实例
+// 创建 Mapbox 地图实例
 const map = new mapboxgl.Map({ ... });
 
-// 添加 3D Tiles 图层
-tiles3DUtils.add3DTilesLayer(map, {
-  id: 'my-3d-tiles',
-  tilesetUrl: '/tilese.json',
-  onLoad: () => console.log('加载成功'),
-  onError: (err) => console.error('加载失败', err),
+// 创建 DeckOverlay 实例
+const deckOverlay = tiles3DUtils.createDeckOverlay();
+
+// 将 DeckOverlay 添加到地图
+map.addControl(deckOverlay);
+
+// 加载 3D Tiles 图层
+map.on('load', () => {
+  tiles3DUtils.load3DTiles(deckOverlay, map, {
+    id: 'my-3d-tiles',
+    name: '我的3D模型',
+    url: '/tilese.json',
+    opacity: 1.0,
+    pointSize: 2,
+    onTilesetLoad: (tileset) => console.log('加载成功', tileset),
+    onTilesetError: (err) => console.error('加载失败', err),
+  });
 });
 
 // 切换可见性
-tiles3DUtils.toggle3DTilesLayer(map, 'my-3d-tiles');
+tiles3DUtils.update3DTilesLayer(deckOverlay, 'my-3d-tiles', { visible: false });
+
+// 更新透明度
+tiles3DUtils.update3DTilesLayer(deckOverlay, 'my-3d-tiles', { opacity: 0.5 });
 
 // 移除图层
-tiles3DUtils.remove3DTilesLayer(map, 'my-3d-tiles');
+tiles3DUtils.remove3DTilesLayer(deckOverlay, 'my-3d-tiles');
+
+// 清除所有图层
+tiles3DUtils.clearAll3DTilesLayers(deckOverlay);
 ```
 
 ## 工具类 API 说明
 
-### `tiles3DUtils.add3DTilesLayer(map, options)`
+### `tiles3DUtils.createDeckOverlay()`
 
-添加 3D Tiles 图层到地图。
+创建 DeckOverlay 实例。
+
+**返回：** DeckOverlay 实例
+
+**示例：**
+```typescript
+const deckOverlay = tiles3DUtils.createDeckOverlay();
+map.addControl(deckOverlay);
+```
+
+### `tiles3DUtils.load3DTiles(deckOverlay, map, options)`
+
+加载 3D Tiles 图层。
 
 **参数：**
-- `map: mapboxgl.Map` - Mapbox 地图实例
+- `deckOverlay: DeckOverlay` - DeckOverlay 实例（必填）
+- `map: mapboxgl.Map` - Mapbox 地图实例（必填）
 - `options: Object` - 配置选项
   - `id: string` - 图层 ID（必填）
-  - `tilesetUrl: string` - 3D Tiles 数据源 URL（必填）
-  - `onLoad?: () => void` - 加载成功回调
-  - `onError?: (error: Error) => void` - 加载失败回调
-  - `_lighting?: string` - 光照模式，默认 'pbr'
-  - `opacity?: number` - 透明度，范围 0-1
+  - `name?: string` - 图层名称，默认为 id
+  - `url: string` - 3D Tiles 数据源 URL（必填）
+  - `opacity?: number` - 透明度，范围 0-1，默认 1
+  - `pointSize?: number` - 点大小，默认 2
+  - `onTilesetLoad?: (tileset: any) => void` - 加载成功回调
+  - `onTilesetError?: (error: any) => void` - 加载失败回调
 
-**返回：** `MapboxLayer` 实例
+**示例：**
+```typescript
+tiles3DUtils.load3DTiles(deckOverlay, map, {
+  id: 'model-layer',
+  name: '建筑模型',
+  url: '/tileset.json',
+  opacity: 0.8,
+  onTilesetLoad: (tileset) => {
+    console.log('模型加载完成', tileset.cartographicCenter);
+  },
+});
+```
 
-### `tiles3DUtils.remove3DTilesLayer(map, layerId)`
+### `tiles3DUtils.remove3DTilesLayer(deckOverlay, layerId)`
 
-移除 3D Tiles 图层。
+移除指定的 3D Tiles 图层。
 
 **参数：**
-- `map: mapboxgl.Map` - Mapbox 地图实例
+- `deckOverlay: DeckOverlay` - DeckOverlay 实例
 - `layerId: string` - 图层 ID
 
-### `tiles3DUtils.update3DTilesLayer(map, layerId, props)`
+### `tiles3DUtils.update3DTilesLayer(deckOverlay, layerId, props)`
 
 更新 3D Tiles 图层属性。
 
 **参数：**
-- `map: mapboxgl.Map` - Mapbox 地图实例
+- `deckOverlay: DeckOverlay` - DeckOverlay 实例
 - `layerId: string` - 图层 ID
 - `props: Object` - 要更新的属性
-  - `opacity?: number` - 透明度
+  - `opacity?: number` - 透明度，范围 0-1
   - `visible?: boolean` - 可见性
 
-### `tiles3DUtils.toggle3DTilesLayer(map, layerId)`
+**示例：**
+```typescript
+// 设置透明度
+tiles3DUtils.update3DTilesLayer(deckOverlay, 'model-layer', { opacity: 0.5 });
+
+// 隐藏图层
+tiles3DUtils.update3DTilesLayer(deckOverlay, 'model-layer', { visible: false });
+```
+
+### `tiles3DUtils.toggle3DTilesLayer(deckOverlay, layerId)`
 
 切换 3D Tiles 图层可见性。
 
 **参数：**
-- `map: mapboxgl.Map` - Mapbox 地图实例
+- `deckOverlay: DeckOverlay` - DeckOverlay 实例
 - `layerId: string` - 图层 ID
 
-### `tiles3DUtils.has3DTilesLayer(map, layerId)`
+### `tiles3DUtils.has3DTilesLayer(deckOverlay, layerId)`
 
 检查 3D Tiles 图层是否存在。
 
 **参数：**
-- `map: mapboxgl.Map` - Mapbox 地图实例
+- `deckOverlay: DeckOverlay` - DeckOverlay 实例
 - `layerId: string` - 图层 ID
 
 **返回：** `boolean`
+
+### `tiles3DUtils.getAll3DTilesLayers(deckOverlay)`
+
+获取所有 3D Tiles 图层。
+
+**参数：**
+- `deckOverlay: DeckOverlay` - DeckOverlay 实例
+
+**返回：** 图层数组
+
+### `tiles3DUtils.clearAll3DTilesLayers(deckOverlay)`
+
+清除所有 3D Tiles 图层。
+
+**参数：**
+- `deckOverlay: DeckOverlay` - DeckOverlay 实例
 
 ## 组件 Props
 

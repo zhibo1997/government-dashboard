@@ -60,3 +60,4 @@ alwaysApply: true
 - 不要重复实现已有的工具类功能
 - 不要臆造地图API用法，必须查官方文档
 - 不要随意使用非Ant Design色彩
+- 

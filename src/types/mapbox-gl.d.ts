@@ -1,5 +1,5 @@
 declare module '@cgcs2000/mapbox-gl' {
-  import * as mapboxgl from 'mapbox-gl';
-  export = mapboxgl;
-  export as namespace mapboxgl;
+  import * as maplibregl from 'maplibre-gl';
+  export = maplibregl;
+  export as namespace maplibregl;
 }

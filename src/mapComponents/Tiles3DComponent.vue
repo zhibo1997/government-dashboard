@@ -2,7 +2,7 @@
  * @Author: Do not edit
  * @Date: 2025-10-20 00:16:12
  * @LastEditors: 王志博
- * @LastEditTime: 2025-10-20 00:24:59
+ * @LastEditTime: 2025-10-20 23:53:25
  * @Description: 
 -->
 <template>
@@ -41,6 +41,15 @@
           重置视角
         </a-button>
       </div>
+      
+      <div class="control-item">
+        <a-button 
+          size="small" 
+          @click="handleReload"
+        >
+          重新加载
+        </a-button>
+      </div>
     </div>
     
     <!-- 加载状态 -->
@@ -52,11 +61,12 @@
 
 <script setup lang="ts">
 import { ref, onMounted, onBeforeUnmount } from 'vue';
-import mapboxgl from '@cgcs2000/mapbox-gl';
+import mapboxgl from 'maplibre-gl';
 import { tiles3DUtils } from '@/mapUtils/tiles3DUtils';
 import { mapboxUtils } from '@/mapUtils/mapboxUtils';
 import { useMessage } from 'naive-ui'
 const message = useMessage()
+
 // 组件属性
 interface Props {
   tilesetUrl?: string;
@@ -64,14 +74,14 @@ interface Props {
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  tilesetUrl: '/tilese.json',
+  tilesetUrl: 'http://webres.cityfun.com.cn/CSSMX/model/YXJG/tileset.json',
   autoLoad: true,
 });
 
 // 地图实例
 const mapInstance = ref<mapboxgl.Map | null>(null);
-// 3D Tiles 图层实例
-const tiles3DLayer = ref<any>(null);
+// DeckOverlay 实例
+const deckOverlay = ref<any>(null);
 // 加载状态
 const loading = ref(false);
 // 3D Tiles 可见性
@@ -104,6 +114,14 @@ function initMap() {
     
     mapInstance.value = map;
     
+    // 创建 DeckOverlay
+    deckOverlay.value = tiles3DUtils.createDeckOverlay();
+    
+    // 将 DeckOverlay 添加到地图
+    map.addControl(deckOverlay.value);
+    
+    console.log('DeckOverlay 已添加到地图');
+    
     // 地图加载完成后加载 3D Tiles
     map.on('load', () => {
       console.log('地图加载完成');
@@ -128,9 +146,9 @@ function initMap() {
 /**
  * 加载 3D Tiles
  */
-async function load3DTiles() {
-  if (!mapInstance.value) {
-    console.error('地图未初始化');
+function load3DTiles() {
+  if (!mapInstance.value || !deckOverlay.value) {
+    console.error('地图或 DeckOverlay 未初始化');
     return;
   }
   
@@ -139,19 +157,22 @@ async function load3DTiles() {
     
     console.log('开始加载 3D Tiles:', props.tilesetUrl);
     
-    // 添加 3D Tiles 图层
-    tiles3DLayer.value = tiles3DUtils.add3DTilesLayer(
-      mapInstance.value,
+    // 加载 3D Tiles 图层
+    tiles3DUtils.load3DTiles(
+      deckOverlay.value,
+      mapInstance.value as any,
       {
         id: TILES_3D_LAYER_ID,
-        tilesetUrl: props.tilesetUrl,
+        name: '3D 模型',
+        url: props.tilesetUrl,
         opacity: tiles3DOpacity.value / 100,
-        onLoad: () => {
+        pointSize: 2,
+        onTilesetLoad: (tileset) => {
           loading.value = false;
           message.success('3D 模型加载成功');
-          console.log('3D Tiles 加载成功');
+          console.log('3D Tiles 加载成功:', tileset);
         },
-        onError: (error) => {
+        onTilesetError: (error) => {
           loading.value = false;
           message.error('3D 模型加载失败');
           console.error('3D Tiles 加载失败:', error);
@@ -170,10 +191,10 @@ async function load3DTiles() {
  * 处理可见性变化
  */
 function handleVisibilityChange(visible: boolean) {
-  if (!mapInstance.value) return;
+  if (!deckOverlay.value) return;
   
   tiles3DUtils.update3DTilesLayer(
-    mapInstance.value,
+    deckOverlay.value,
     TILES_3D_LAYER_ID,
     { visible }
   );
@@ -185,9 +206,15 @@ function handleVisibilityChange(visible: boolean) {
  * 处理透明度变化
  */
 function handleOpacityChange(value: number) {
+  if (!deckOverlay.value) return;
+  
+  tiles3DUtils.update3DTilesLayer(
+    deckOverlay.value,
+    TILES_3D_LAYER_ID,
+    { opacity: value / 100 }
+  );
+  
   console.log(`透明度已设置为: ${value}%`);
-  // 注意: deck.gl 图层的透明度更新需要重新创建图层
-  // 这里仅作演示，实际需要移除旧图层并重新添加
 }
 
 /**
@@ -198,13 +225,30 @@ function handleResetView() {
   
   mapInstance.value.flyTo({
     center: [115.186322, 29.864861],
-    zoom: 16,
+    zoom: 15,
     pitch: 60,
     bearing: 0,
     duration: 2000,
   });
   
   message.info('视角已重置');
+}
+
+/**
+ * 重新加载
+ */
+function handleReload() {
+  if (!deckOverlay.value) return;
+  
+  // 清除现有图层
+  tiles3DUtils.clearAll3DTilesLayers(deckOverlay.value);
+  
+  // 重新加载
+  setTimeout(() => {
+    load3DTiles();
+  }, 300);
+  
+  message.info('正在重新加载...');
 }
 
 /**
@@ -221,9 +265,9 @@ onMounted(() => {
  */
 onBeforeUnmount(() => {
   try {
-    // 移除 3D Tiles 图层
-    if (mapInstance.value && tiles3DUtils.has3DTilesLayer(mapInstance.value, TILES_3D_LAYER_ID)) {
-      tiles3DUtils.remove3DTilesLayer(mapInstance.value, TILES_3D_LAYER_ID);
+    // 清除 3D Tiles 图层
+    if (deckOverlay.value) {
+      tiles3DUtils.clearAll3DTilesLayers(deckOverlay.value);
     }
     
     // 移除地图实例
@@ -232,7 +276,7 @@ onBeforeUnmount(() => {
       mapInstance.value = null;
     }
     
-    tiles3DLayer.value = null;
+    deckOverlay.value = null;
   } catch (error) {
     console.error('清理资源失败:', error);
   }
@@ -242,6 +286,7 @@ onBeforeUnmount(() => {
 defineExpose({
   load3DTiles,
   mapInstance,
+  deckOverlay,
 });
 </script>
 

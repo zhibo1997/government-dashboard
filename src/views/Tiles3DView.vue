@@ -2,7 +2,7 @@
  * @Author: Do not edit
  * @Date: 2025-10-20 00:16:38
  * @LastEditors: 王志博
- * @LastEditTime: 2025-10-20 00:16:42
+ * @LastEditTime: 2025-10-20 23:52:14
  * @Description: 
 -->
 <template>
@@ -49,7 +49,7 @@ const router = useRouter();
 const tiles3DRef = ref<InstanceType<typeof Tiles3DComponent> | null>(null);
 
 // 3D Tiles 数据源地址
-const tilesetUrl = '/tilese.json';
+const tilesetUrl = 'http://webres.cityfun.com.cn/CSSMX/model/YXJG/tileset.json';
 
 /**
  * 返回仪表板
