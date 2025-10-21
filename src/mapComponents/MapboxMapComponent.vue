@@ -1,7 +1,7 @@
 <template>
   <div class="mapbox-map-wrapper">
     <div id="mapbox-container" class="mapbox-instance"></div>
-    <MapboxMapTools />
+    <!-- <MapboxMapTools /> -->
   </div>
 </template>
 
@@ -14,7 +14,8 @@ import {
   provide,
   watchEffect,
 } from "vue";
-import mapboxgl from "maplibre-gl";
+// import mapboxgl from "maplibre-gl";
+import mapboxgl from "@cgcs2000/mapbox-gl";
 import yangxinGeoJson from "../assets/yangxin.json";
 import MapboxMapTools from "./MapboxMapTools.vue";
 import { useMapStore } from "../stores/mapStore";

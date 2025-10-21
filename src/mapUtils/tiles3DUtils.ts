@@ -7,6 +7,7 @@ import type { Map as MapLibreMap } from "maplibre-gl";
 import { MapboxOverlay as DeckOverlay } from "@deck.gl/mapbox";
 import { Tile3DLayer } from "@deck.gl/geo-layers";
 import { Tiles3DLoader } from "@loaders.gl/3d-tiles";
+import { Matrix4, Vector3 } from "@math.gl/core";
 
 /**
  * 3D Tiles 图层配置选项
@@ -82,32 +83,36 @@ const WGS84 = {
  * @param z - ECEF Z 坐标 (米)
  * @returns [经度 (度), 纬度 (度), 高度 (米)]
  */
-function ecefToLngLat(x: number, y: number, z: number): [number, number, number] {
+function ecefToLngLat(
+  x: number,
+  y: number,
+  z: number
+): [number, number, number] {
   const { a, b } = WGS84;
   const e2 = 1 - (b * b) / (a * a); // 第一偏心率平方
-  
+
   // 计算经度
   const lon = Math.atan2(y, x);
-  
+
   // 计算纬度 (迭代算法)
   const p = Math.sqrt(x * x + y * y);
   let lat = Math.atan2(z, p * (1 - e2));
   let prevLat = 0;
-  
+
   // 迭代5次通常足够精确
   for (let i = 0; i < 5 && Math.abs(lat - prevLat) > 1e-12; i++) {
     prevLat = lat;
     const sinLat = Math.sin(lat);
     const N = a / Math.sqrt(1 - e2 * sinLat * sinLat);
     const h = p / Math.cos(lat) - N;
-    lat = Math.atan2(z, p * (1 - e2 * N / (N + h)));
+    lat = Math.atan2(z, p * (1 - (e2 * N) / (N + h)));
   }
-  
+
   // 计算高度
   const sinLat = Math.sin(lat);
   const N = a / Math.sqrt(1 - e2 * sinLat * sinLat);
   const alt = p / Math.cos(lat) - N;
-  
+
   return [
     (lon * 180) / Math.PI, // 经度
     (lat * 180) / Math.PI, // 纬度
@@ -122,33 +127,44 @@ function ecefToLngLat(x: number, y: number, z: number): [number, number, number]
  */
 function extractModelCenter(tileset: any): [number, number, number] | null {
   // 方法1: 从 cartographicCenter 获取 (优先)
-  if (tileset?.cartographicCenter && Array.isArray(tileset.cartographicCenter)) {
+  if (
+    tileset?.cartographicCenter &&
+    Array.isArray(tileset.cartographicCenter)
+  ) {
     const [lng, lat, alt = 0] = tileset.cartographicCenter;
     console.log("📍 从 cartographicCenter 获取坐标:", [lng, lat, alt]);
     return [lng, lat, alt];
   }
-  
+
   // 方法2: 从 boundingVolume.center 获取 (ECEF 坐标)
   if (tileset?.root?.boundingVolume?.center) {
     const center = tileset.root.boundingVolume.center;
     if (Array.isArray(center) && center.length >= 3) {
       const [lng, lat, alt] = ecefToLngLat(center[0], center[1], center[2]);
-      console.log("📍 从 boundingVolume.center (ECEF) 转换坐标:", [lng, lat, alt]);
+      console.log("📍 从 boundingVolume.center (ECEF) 转换坐标:", [
+        lng,
+        lat,
+        alt,
+      ]);
       return [lng, lat, alt];
     }
   }
-  
+
   // 方法3: 从 transform 矩阵提取 (4x4 变换矩阵的平移分量)
   if (tileset?.root?.transform && Array.isArray(tileset.root.transform)) {
     const transform = tileset.root.transform;
     if (transform.length >= 15) {
       // 变换矩阵的第13、14、15个元素是位移向量 (ECEF 坐标)
-      const [lng, lat, alt] = ecefToLngLat(transform[12], transform[13], transform[14]);
+      const [lng, lat, alt] = ecefToLngLat(
+        transform[12],
+        transform[13],
+        transform[14]
+      );
       console.log("📍 从 transform 矩阵 (ECEF) 转换坐标:", [lng, lat, alt]);
       return [lng, lat, alt];
     }
   }
-  
+
   console.warn("⚠️ 无法从 tileset 中提取模型中心坐标");
   return null;
 }
@@ -166,7 +182,6 @@ function calculateOptimalZoom(altitude: number): number {
   if (altitude > 50) return 18;
   return 19;
 }
-
 /**
  * 3D Tiles 工具类
  * @description 提供 3D Tiles 模型的加载、管理、更新等功能
@@ -261,15 +276,15 @@ export const tiles3DUtils = {
           // 加载成功处理
           onTilesetLoad: (tileset: any) => {
             console.log(`✅ 3D Tiles 加载成功 (${id})`);
-            
+
             // 智能提取模型中心坐标
             const center = extractModelCenter(tileset);
-            console.log("🚀 ~ center:", center)
-            
+            console.log("🚀 ~ center:", center);
+
             if (center) {
               const [lng, lat, alt] = center;
               const zoom = calculateOptimalZoom(alt);
-              
+
               // 平滑飞行到模型位置
               this.flyToModel(map as any, {
                 center: [lng, lat],
@@ -278,18 +293,18 @@ export const tiles3DUtils = {
                 bearing: 0,
                 duration: 2000,
               });
-              
+
               console.log(
                 `🎯 已定位到模型中心: [${lng.toFixed(6)}, ${lat.toFixed(6)}]\n` +
-                `   高度: ${alt.toFixed(2)}m | 缩放级别: ${zoom}`
+                  `   高度: ${alt.toFixed(2)}m | 缩放级别: ${zoom}`
               );
             } else {
               console.warn("⚠️ 无法自动定位，请手动调整视角");
-              if (process.env.NODE_ENV === 'development') {
+              if (process.env.NODE_ENV === "development") {
                 console.log("Tileset 结构:", JSON.stringify(tileset, null, 2));
               }
             }
-            
+
             // 执行用户回调
             if (onTilesetLoad) {
               onTilesetLoad(tileset);
@@ -313,7 +328,7 @@ export const tiles3DUtils = {
       bearing = 0,
       duration = 2000,
     } = options;
-    
+
     map.easeTo({
       center,
       zoom,
@@ -335,12 +350,12 @@ export const tiles3DUtils = {
         console.warn(`⚠️ 图层 ${layerId} 不存在`);
         return false;
       }
-      
+
       const layers = deckOverlay._props?.layers || [];
       const newLayers = layers.filter((layer: any) => layer.id !== layerId);
-      
+
       deckOverlay.setProps({ layers: newLayers });
-      
+
       console.log(`🗑️ 图层 ${layerId} 已移除`);
       return true;
     } catch (error) {
@@ -364,25 +379,26 @@ export const tiles3DUtils = {
     try {
       const layers = deckOverlay._props?.layers || [];
       const targetLayer = layers.find((layer: any) => layer.id === layerId);
-      
+
       if (!targetLayer) {
         console.warn(`⚠️ 图层 ${layerId} 不存在`);
         return false;
       }
-      
+
       const newLayers = layers.map((layer: any) => {
         if (layer.id === layerId) {
           const updateProps: any = {};
           if (props.opacity !== undefined) updateProps.opacity = props.opacity;
           if (props.visible !== undefined) updateProps.visible = props.visible;
-          if (props.pointSize !== undefined) updateProps.pointSize = props.pointSize;
+          if (props.pointSize !== undefined)
+            updateProps.pointSize = props.pointSize;
           return layer.clone(updateProps);
         }
         return layer;
       });
-      
+
       deckOverlay.setProps({ layers: newLayers });
-      
+
       console.log(`🔄 图层 ${layerId} 属性已更新:`, props);
       return true;
     } catch (error) {
@@ -425,12 +441,14 @@ export const tiles3DUtils = {
       console.warn(`⚠️ 图层 ${layerId} 不存在`);
       return null;
     }
-    
+
     const newVisible = !targetLayer.props.visible;
-    const success = this.update3DTilesLayer(deckOverlay, layerId, { visible: newVisible });
-    
+    const success = this.update3DTilesLayer(deckOverlay, layerId, {
+      visible: newVisible,
+    });
+
     if (success === true) {
-      console.log(`👁️ 图层 ${layerId} 可见性: ${newVisible ? '显示' : '隐藏'}`);
+      console.log(`👁️ 图层 ${layerId} 可见性: ${newVisible ? "显示" : "隐藏"}`);
       return newVisible;
     }
     return null;
@@ -477,9 +495,10 @@ export const tiles3DUtils = {
     updates: Map<string, LayerUpdateProps> | Record<string, LayerUpdateProps>
   ): number {
     const layers = deckOverlay._props?.layers || [];
-    const updateMap = updates instanceof Map ? updates : new Map(Object.entries(updates));
+    const updateMap =
+      updates instanceof Map ? updates : new Map(Object.entries(updates));
     let updateCount = 0;
-    
+
     const newLayers = layers.map((layer: any) => {
       const props = updateMap.get(layer.id);
       if (props) {
@@ -487,12 +506,13 @@ export const tiles3DUtils = {
         const updateProps: any = {};
         if (props.opacity !== undefined) updateProps.opacity = props.opacity;
         if (props.visible !== undefined) updateProps.visible = props.visible;
-        if (props.pointSize !== undefined) updateProps.pointSize = props.pointSize;
+        if (props.pointSize !== undefined)
+          updateProps.pointSize = props.pointSize;
         return layer.clone(updateProps);
       }
       return layer;
     });
-    
+
     deckOverlay.setProps({ layers: newLayers });
     console.log(`🔄 已批量更新 ${updateCount} 个图层`);
     return updateCount;

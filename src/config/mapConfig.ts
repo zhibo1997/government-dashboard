@@ -16,10 +16,10 @@ export const mapConfig = {
   // 图层数据源URL配置
   layerUrls: {
     // 桥梁设施图层
-    bridge: "https://webres.cityfun.com.cn/CSSMX/CSSMX_ZT/gspsp_dtrans_bridgebscinfo.json",
+    // bridge: "https://webres.cityfun.com.cn/CSSMX/CSSMX_ZT/gspsp_dtrans_bridgebscinfo.json",
     
     // 井盖设施图层
-    manhole: "https://webres.cityfun.com.cn/CSSMX/CSSMX_ZT/gspsp_dtrans_manholecoverbasetinfo.json",
+    // manhole: "https://webres.cityfun.com.cn/CSSMX/CSSMX_ZT/gspsp_dtrans_manholecoverbasetinfo.json",
   },
   
   // 天地图配置

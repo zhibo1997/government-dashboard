@@ -11,6 +11,9 @@ importers:
       '@ant-design/icons-vue':
         specifier: ^7.0.1
         version: 7.0.1(vue@3.5.20(typescript@5.9.2))
+      '@cgcs2000/mapbox-gl':
+        specifier: ^2.3.0
+        version: 2.3.0
       '@deck.gl/geo-layers':
         specifier: ^9.2.2
         version: 9.2.2(@deck.gl/core@9.2.2)(@deck.gl/extensions@9.2.2(@deck.gl/core@9.2.2)(@luma.gl/core@9.2.2)(@luma.gl/engine@9.2.2(@luma.gl/core@9.2.2)(@luma.gl/shadertools@9.2.2(@luma.gl/core@9.2.2))))(@deck.gl/layers@9.2.2(@deck.gl/core@9.2.2)(@loaders.gl/core@4.3.4)(@luma.gl/core@9.2.2)(@luma.gl/engine@9.2.2(@luma.gl/core@9.2.2)(@luma.gl/shadertools@9.2.2(@luma.gl/core@9.2.2))))(@deck.gl/mesh-layers@9.2.2(@deck.gl/core@9.2.2)(@loaders.gl/core@4.3.4)(@luma.gl/core@9.2.2)(@luma.gl/engine@9.2.2(@luma.gl/core@9.2.2)(@luma.gl/shadertools@9.2.2(@luma.gl/core@9.2.2)))(@luma.gl/gltf@9.2.2(@luma.gl/constants@9.2.2)(@luma.gl/core@9.2.2)(@luma.gl/engine@9.2.2(@luma.gl/core@9.2.2)(@luma.gl/shadertools@9.2.2(@luma.gl/core@9.2.2)))(@luma.gl/shadertools@9.2.2(@luma.gl/core@9.2.2)))(@luma.gl/shadertools@9.2.2(@luma.gl/core@9.2.2)))(@loaders.gl/core@4.3.4)(@luma.gl/constants@9.2.2)(@luma.gl/core@9.2.2)(@luma.gl/engine@9.2.2(@luma.gl/core@9.2.2)(@luma.gl/shadertools@9.2.2(@luma.gl/core@9.2.2)))
@@ -23,6 +26,9 @@ importers:
       '@loaders.gl/core':
         specifier: ^4.3.4
         version: 4.3.4
+      '@math.gl/core':
+        specifier: ^4.1.0
+        version: 4.1.0
       '@turf/turf':
         specifier: ^7.2.0
         version: 7.2.0
@@ -60,9 +66,6 @@ importers:
         specifier: ^4.5.1
         version: 4.5.1(vue@3.5.20(typescript@5.9.2))
     devDependencies:
-      '@types/mapbox-gl':
-        specifier: 1.13.10
-        version: 1.13.10
       '@typescript-eslint/eslint-plugin':
         specifier: ^8.41.0
         version: 8.41.0(@typescript-eslint/parser@8.41.0(eslint@9.34.0)(typescript@5.9.2))(eslint@9.34.0)(typescript@5.9.2)
@@ -253,6 +256,23 @@ packages:
   '@babel/types@7.28.2':
     resolution: {integrity: sha512-ruv7Ae4J5dUYULmeXw1gmb7rYRz57OWCPM57pHojnLq/3Z1CK2lNSLTCVjxVk1F/TZHwOZZrOWi0ur95BbLxNQ==}
     engines: {node: '>=6.9.0'}
+
+  '@cgcs2000/geojson-vt@3.2.1':
+    resolution: {integrity: sha512-qLgZ7vae7KF2ddXIYjp5jZmqWU9prpG5FvMffWDPeH4c2NghKgLKiLlunZWescG4FHzqxO23ENoXyIs6aRQhgQ==}
+
+  '@cgcs2000/mapbox-gl@2.3.0':
+    resolution: {integrity: sha512-YDRansIE641k9Kkebi6DP8dJABjDf6rZiVoenJy0n3RgW4TQC2gCl2pDsjAY50pzQ76jXVHHdQ1QGHkOQzsaUg==}
+    engines: {node: '>=6.4.0'}
+
+  '@cgcs2000/supercluster@7.1.3':
+    resolution: {integrity: sha512-fow2gqi5QkiWtTeoM6O7gpLPOVTy8+0/dmZLKZbk+J61v/pENZte0zqTKQYW79c3oRdyS3uTVSouZhoec21JrQ==}
+
+  '@cgcs2000/vector-tile@1.3.3':
+    resolution: {integrity: sha512-1CZl4Ncm4yVytH4sY5sqYYds11uYK7U6TjnnYspJNtxzHJtgccf2O6qfTNlMbu219vcbhNl/rQpin8Xpws4SZQ==}
+
+  '@cgcs2000/whoots-js@3.1.0':
+    resolution: {integrity: sha512-QzipEuarKY4C6YCxQSlZu+dnHyoBH6NFib7eQmznbVN2bRZEWPlcZnAvOvUoR81d0/idfw4Jv6QCWp2eXkuiEg==}
+    engines: {node: '>=6.0.0'}
 
   '@css-render/plugin-bem@0.15.14':
     resolution: {integrity: sha512-QK513CJ7yEQxm/P3EwsI+d+ha8kSOcjGvD6SevM41neEMxdULE+18iuQK6tEChAWMOQNQPLG/Rw3Khb69r5neg==}
@@ -677,9 +697,15 @@ packages:
     resolution: {integrity: sha512-tJaT+RbYGJYStt7wI3cq4Nl4SXxG8W7JDG5DMJu97V25RnbNg3QtQtf+KD+VLjNpWKYsRvXDNmNrBgEETr1ifA==}
     hasBin: true
 
+  '@mapbox/geojson-types@1.0.2':
+    resolution: {integrity: sha512-e9EBqHHv3EORHrSfbR9DqecPNn+AmuAoQxV6aL8Xu30bJMJR1o8PZLZzpk1Wq7/NfCbuhmakHTPYRhoqLsXRnw==}
+
   '@mapbox/jsonlint-lines-primitives@2.0.2':
     resolution: {integrity: sha512-rY0o9A5ECsTQRVhv7tL/OyDpGAoUB4tTvLiW1DSzQGq4bvTPhNw1VpSNjDJc5GFZ2XuyOtSWSVN05qOtcD71qQ==}
     engines: {node: '>= 0.6'}
+
+  '@mapbox/mapbox-gl-supported@2.0.1':
+    resolution: {integrity: sha512-HP6XvfNIzfoMVfyGjBckjiAOQK9WfX0ywdLubuPMPv+Vqf5fj0uCbgBQYpiqcWZT6cbyyRnTSXDheT1ugvF6UQ==}
 
   '@mapbox/martini@0.2.0':
     resolution: {integrity: sha512-7hFhtkb0KTLEls+TRw/rWayq5EeHtTaErgm/NskVoXmtgAQu/9D299aeyj6mzAR/6XUnYRp2lU+4IcrYRFjVsQ==}
@@ -690,8 +716,14 @@ packages:
   '@mapbox/point-geometry@1.1.0':
     resolution: {integrity: sha512-YGcBz1cg4ATXDCM/71L9xveh4dynfGmcLDqufR+nQQy3fKwsAZsWd/x4621/6uJaeB9mwOHE6hPeDgXz9uViUQ==}
 
+  '@mapbox/tiny-sdf@1.2.5':
+    resolution: {integrity: sha512-cD8A/zJlm6fdJOk6DqPUV8mcpyJkRz2x2R+/fYcWDYG3oWbG7/L7Yl/WqQ1VZCjnL9OTIMAn6c+BC5Eru4sQEw==}
+
   '@mapbox/tiny-sdf@2.0.7':
     resolution: {integrity: sha512-25gQLQMcpivjOSA40g3gO6qgiFPDpWRoMfd+G/GoppPIeP6JDaMMkMrEJnMZhKyyS6iKwVt5YKu02vCUyJM3Ug==}
+
+  '@mapbox/unitbezier@0.0.0':
+    resolution: {integrity: sha512-HPnRdYO0WjFjRTSwO3frz1wKaU649OBFPX3Zo/2WZvuRi6zMiRGui8SnPQiQABgqCf8YikDe5t3HViTVw1WUzA==}
 
   '@mapbox/unitbezier@0.0.1':
     resolution: {integrity: sha512-nMkuDXFv60aBr9soUG5q+GvZYL+2KZHVvsqFCzqnkGEf46U2fvmytHaEVc1/YZbiLn8X+eR3QzX1+dwDO1lxlw==}
@@ -1360,9 +1392,6 @@ packages:
   '@types/lodash@4.17.20':
     resolution: {integrity: sha512-H3MHACvFUEiujabxhaI/ImO6gUrd8oOurg7LQtS7mbwIXA/cUqWrvBsaeJ23aZEPk1TAYkurjfMbSELfoCXlGA==}
 
-  '@types/mapbox-gl@1.13.10':
-    resolution: {integrity: sha512-0oUy5d5nT3L480MRviAnaBUEXuWCG/7M4ZQo0n8eJ/LLMgJ0nMbjv7M+qoPl4TAj6yVVWKTvkukXvW9QHH1GVw==}
-
   '@types/node@24.3.0':
     resolution: {integrity: sha512-aPTXCrfwnDLj4VvXrm+UUCQjNEvJgNA8s5F1cvwQU+3KNltTOkBm1j30uNLyqqPNe7gE3KFzImYoZEfLhp4Yow==}
 
@@ -1660,6 +1689,9 @@ packages:
 
   css-render@0.15.14:
     resolution: {integrity: sha512-9nF4PdUle+5ta4W5SyZdLCCmFd37uVimSjg1evcTqKJCyvCEEj12WKzOSBNak6r4im4J4iYXKH1OWpUV5LBYFg==}
+
+  csscolorparser@1.0.3:
+    resolution: {integrity: sha512-umPSgYwZkdFoUrH5hIq5kf0wPSXiro51nPw0j2K/c83KflkPSTBGMz6NJvMB+07VlL0y7VPo6QJcDjcgKTTm3w==}
 
   cssesc@3.0.0:
     resolution: {integrity: sha512-/Tb/JcjK111nNScGob5MNtsntNM1aCNUDipB/TkwZFhyDrrE47SOx/18wF2bbjgc3ZzCSKW1T5nt5EbFoAz/Vg==}
@@ -1974,6 +2006,9 @@ packages:
   graphemer@1.4.0:
     resolution: {integrity: sha512-EtKwoO6kxCL9WO5xipiHTZlSzBm7WLT627TqC/uVRd0HKmq8NXyebnNYxDoBi7wt8eTWrUrKXCOVaFq9x1kgag==}
 
+  grid-index@1.1.0:
+    resolution: {integrity: sha512-HZRwumpOGUrHyxO5bqKZL0B0GlUpwtCAzZ42sgxUPniu33R1LSFH5yrIcBCHjkctCAh3mtWKcKd9J4vDDdeVHA==}
+
   h3-js@4.3.0:
     resolution: {integrity: sha512-zgvyHZz5bEKeuyYGh0bF9/kYSxJ2SqroopkXHqKnD3lfjaZawcxulcI9nWbNC54gakl/2eObRLHWueTf1iLSaA==}
     engines: {node: '>=4', npm: '>=3', yarn: '>=1.3.0'}
@@ -2130,6 +2165,9 @@ packages:
 
   jszip@3.10.1:
     resolution: {integrity: sha512-xXDvecyTpGLrqFrvkrUSoxxfJI5AH7U8zxxtVclpsUtMCq4JQ290LY8AW5c7Ggnr/Y/oK+bQMbqK2qmtk3pN4g==}
+
+  kdbush@3.0.0:
+    resolution: {integrity: sha512-hRkd6/XW4HTsA9vjVpY9tuXJYLSlelnkTmVFu4M9/7MIYQtFcHpbugAU7UbOfjOiVSVYl2fqgBuJ32JUmRo5Ew==}
 
   kdbush@4.0.2:
     resolution: {integrity: sha512-WbCVYJ27Sz8zi9Q7Q0xHC+05iwkm3Znipc2XTlrnJbsHMYktW4hPhXUE8Ys1engBrvffoSCqbil1JQAa7clRpA==}
@@ -2364,6 +2402,9 @@ packages:
   postcss@8.5.6:
     resolution: {integrity: sha512-3Ybi1tAuwAP9s0r1UQ2J4n5Y0G05bJkpUIO0/bI9MhwmD70S5aTWbXGBwxHrelT+XM1k6dM0pk+SwNkpTRN7Pg==}
     engines: {node: ^10 || ^12 || >=14}
+
+  potpack@1.0.2:
+    resolution: {integrity: sha512-choctRBIV9EMT9WGAZHn3V7t0Z2pMQyl0EZE6pFc/6ml3ssw7Dlf/oAOvFwjm1HVsqfQN8GfeFyJ+d8tRzqueQ==}
 
   potpack@2.1.0:
     resolution: {integrity: sha512-pcaShQc1Shq0y+E7GqJqvZj8DTthWV1KeHGdi0Z6IAin2Oi3JnLCOfwnCo84qc+HAp52wT9nK9H7FAJp5a44GQ==}
@@ -2711,6 +2752,9 @@ packages:
     peerDependencies:
       vue: ^3.0.0
 
+  vt-pbf@3.1.3:
+    resolution: {integrity: sha512-2LzDFzt0mZKZ9IpVF2r69G9bXaP2Q2sArJCmcCgvfTdCCZzSyz4aCLoQyUilu37Ll56tCblIZrXFIjNUpGIlmA==}
+
   vue-eslint-parser@10.2.0:
     resolution: {integrity: sha512-CydUvFOQKD928UzZhTp4pr2vWz1L+H99t7Pkln2QSPdvmURT0MoC4wUccfCnuEaihNsu9aYYyk+bep8rlfkUXw==}
     engines: {node: ^18.18.0 || ^20.9.0 || >=21.1.0}
@@ -2981,6 +3025,44 @@ snapshots:
     dependencies:
       '@babel/helper-string-parser': 7.27.1
       '@babel/helper-validator-identifier': 7.27.1
+
+  '@cgcs2000/geojson-vt@3.2.1': {}
+
+  '@cgcs2000/mapbox-gl@2.3.0':
+    dependencies:
+      '@cgcs2000/geojson-vt': 3.2.1
+      '@cgcs2000/supercluster': 7.1.3
+      '@cgcs2000/vector-tile': 1.3.3
+      '@cgcs2000/whoots-js': 3.1.0
+      '@mapbox/geojson-rewind': 0.5.2
+      '@mapbox/geojson-types': 1.0.2
+      '@mapbox/jsonlint-lines-primitives': 2.0.2
+      '@mapbox/mapbox-gl-supported': 2.0.1
+      '@mapbox/point-geometry': 0.1.0
+      '@mapbox/tiny-sdf': 1.2.5
+      '@mapbox/unitbezier': 0.0.0
+      csscolorparser: 1.0.3
+      earcut: 2.2.4
+      gl-matrix: 3.4.4
+      grid-index: 1.1.0
+      minimist: 1.2.8
+      murmurhash-js: 1.0.0
+      pbf: 3.3.0
+      potpack: 1.0.2
+      quickselect: 2.0.0
+      rw: 1.3.3
+      tinyqueue: 2.0.3
+      vt-pbf: 3.1.3
+
+  '@cgcs2000/supercluster@7.1.3':
+    dependencies:
+      kdbush: 3.0.0
+
+  '@cgcs2000/vector-tile@1.3.3':
+    dependencies:
+      '@mapbox/point-geometry': 0.1.0
+
+  '@cgcs2000/whoots-js@3.1.0': {}
 
   '@css-render/plugin-bem@0.15.14(css-render@0.15.14)':
     dependencies:
@@ -3462,7 +3544,11 @@ snapshots:
       get-stream: 6.0.1
       minimist: 1.2.8
 
+  '@mapbox/geojson-types@1.0.2': {}
+
   '@mapbox/jsonlint-lines-primitives@2.0.2': {}
+
+  '@mapbox/mapbox-gl-supported@2.0.1': {}
 
   '@mapbox/martini@0.2.0': {}
 
@@ -3470,7 +3556,11 @@ snapshots:
 
   '@mapbox/point-geometry@1.1.0': {}
 
+  '@mapbox/tiny-sdf@1.2.5': {}
+
   '@mapbox/tiny-sdf@2.0.7': {}
+
+  '@mapbox/unitbezier@0.0.0': {}
 
   '@mapbox/unitbezier@0.0.1': {}
 
@@ -4844,10 +4934,6 @@ snapshots:
 
   '@types/lodash@4.17.20': {}
 
-  '@types/mapbox-gl@1.13.10':
-    dependencies:
-      '@types/geojson': 7946.0.16
-
   '@types/node@24.3.0':
     dependencies:
       undici-types: 7.10.0
@@ -5242,6 +5328,8 @@ snapshots:
       '@emotion/hash': 0.8.0
       csstype: 3.0.11
 
+  csscolorparser@1.0.3: {}
+
   cssesc@3.0.0: {}
 
   csstype@3.0.11: {}
@@ -5578,6 +5666,8 @@ snapshots:
 
   graphemer@1.4.0: {}
 
+  grid-index@1.1.0: {}
+
   h3-js@4.3.0: {}
 
   has-flag@4.0.0: {}
@@ -5681,6 +5771,8 @@ snapshots:
       pako: 1.0.11
       readable-stream: 2.3.8
       setimmediate: 1.0.5
+
+  kdbush@3.0.0: {}
 
   kdbush@4.0.2: {}
 
@@ -5928,6 +6020,8 @@ snapshots:
       nanoid: 3.3.11
       picocolors: 1.1.1
       source-map-js: 1.2.1
+
+  potpack@1.0.2: {}
 
   potpack@2.1.0: {}
 
@@ -6250,6 +6344,12 @@ snapshots:
     dependencies:
       evtd: 0.2.4
       vue: 3.5.20(typescript@5.9.2)
+
+  vt-pbf@3.1.3:
+    dependencies:
+      '@mapbox/point-geometry': 0.1.0
+      '@mapbox/vector-tile': 1.3.1
+      pbf: 3.3.0
 
   vue-eslint-parser@10.2.0(eslint@9.34.0):
     dependencies:

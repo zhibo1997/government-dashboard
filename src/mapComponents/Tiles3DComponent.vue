@@ -61,7 +61,8 @@
 
 <script setup lang="ts">
 import { ref, onMounted, onBeforeUnmount } from 'vue';
-import mapboxgl from 'maplibre-gl';
+// import mapboxgl from 'maplibre-gl';
+import mapboxgl from "@cgcs2000/mapbox-gl";
 import { tiles3DUtils } from '@/mapUtils/tiles3DUtils';
 import { mapboxUtils } from '@/mapUtils/mapboxUtils';
 import { useMessage } from 'naive-ui'

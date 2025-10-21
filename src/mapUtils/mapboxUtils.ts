@@ -1,91 +1,17 @@
-import mapboxgl from "maplibre-gl";
+// import mapboxgl from "maplibre-gl";
+
+import mapboxgl from "@cgcs2000/mapbox-gl";
 import baseStyle from "./cssmx_base.json";
 import { mapConfig } from "@/config/mapConfig";
 
-// 扩展MapLibre Map类型以支持自定义属性
-declare module "maplibre-gl" {
-  interface Map {
-    _poiMarkers?: mapboxgl.Marker[];
-    _distanceEventHandlers?: Array<{
-      type: string;
-      handler: (e: any) => void;
-    }>;
-  }
-}
-
 // Mapbox地图工具类
 export const mapboxUtils = {
-  // 创建天地图样式（简化版）
-  createTiandituStyle(type: "vec" | "img" | "ter" = "vec"): any {
-    // 从环境变量获取key，如果没有则返回OSM样式
-    const key = (import.meta as any).env?.VITE_TIANDITU_KEY;
-
-    // 天地图图层映射
-    const layerMap = {
-      vec: { base: "vec", label: "cva" },
-      img: { base: "img", label: "cia" },
-      ter: { base: "ter", label: "cta" },
-    };
-
-    const layers = layerMap[type];
-
-    return {
-      version: 8,
-      sources: {
-        // 底图
-        "tianditu-base": {
-          type: "raster",
-          tiles: [
-            `https://t0.tianditu.gov.cn/DataServer?T=${layers.base}_w&x={x}&y={y}&l={z}&tk=${key}`,
-          ],
-          tileSize: 256,
-          minzoom: 3,
-          maxzoom: 15, // 降低最大缩放级别，提升性能
-        },
-      },
-      layers: [
-        // 底图
-        {
-          id: "tianditu-base",
-          type: "raster",
-          source: "tianditu-base",
-        },
-        // 标注层
-        {
-          id: "tianditu-label",
-          type: "raster",
-          source: "tianditu-label",
-        },
-      ],
-    };
-  },
-
-  // 创建备用样式（OSM）
-  createFallbackStyle(): any {
-    return {
-      version: 8,
-      sources: {
-        osm: {
-          type: "raster",
-          tiles: ["https://tile.openstreetmap.org/{z}/{x}/{y}.png"],
-          tileSize: 256,
-        },
-      },
-      layers: [{ id: "osm", type: "raster", source: "osm" }],
-    };
-  },
-
-  // 创建简化天地图样式（默认使用）
-  createSimpleTiandituStyle(type: "vec" | "img" | "ter" = "vec"): any {
-    return this.createTiandituStyle(type);
-  },
 
   // 初始化Mapbox地图
   initMap(containerId: string): mapboxgl.Map {
     const map = new mapboxgl.Map({
       container: containerId,
-      style: 'https://demotiles.maplibre.org/style.json',
-      // style: baseStyle as any,
+      style: baseStyle as any,
       center: [115.186322, 29.864861],
       zoom: 12,
       pitch: 30,
@@ -124,9 +50,9 @@ export const mapboxUtils = {
         "tianditu-base": {
           type: "raster",
           tiles: [
-            `https://t0.tianditu.gov.cn/DataServer?T=${layers.base}_w&x={x}&y={y}&l={z}&tk=${key}`,
-            `https://t1.tianditu.gov.cn/DataServer?T=${layers.base}_w&x={x}&y={y}&l={z}&tk=${key}`,
-            `https://t2.tianditu.gov.cn/DataServer?T=${layers.base}_w&x={x}&y={y}&l={z}&tk=${key}`,
+            `https://t0.tianditu.gov.cn/DataServer?T=${layers.base}_c&x={x}&y={y}&l={z}&tk=${key}`,
+            `https://t1.tianditu.gov.cn/DataServer?T=${layers.base}_c&x={x}&y={y}&l={z}&tk=${key}`,
+            `https://t2.tianditu.gov.cn/DataServer?T=${layers.base}_c&x={x}&y={y}&l={z}&tk=${key}`,
           ],
           tileSize: 256,
           minzoom: 3,
@@ -135,9 +61,9 @@ export const mapboxUtils = {
         "tianditu-img": {
           type: "raster",
           tiles: [
-            `https://t0.tianditu.gov.cn/DataServer?T=img_w&x={x}&y={y}&l={z}&tk=${key}`,
-            `https://t1.tianditu.gov.cn/DataServer?T=img_w&x={x}&y={y}&l={z}&tk=${key}`,
-            `https://t2.tianditu.gov.cn/DataServer?T=img_w&x={x}&y={y}&l={z}&tk=${key}`,
+            `https://t0.tianditu.gov.cn/DataServer?T=img_c&x={x}&y={y}&l={z}&tk=${key}`,
+            `https://t1.tianditu.gov.cn/DataServer?T=img_c&x={x}&y={y}&l={z}&tk=${key}`,
+            `https://t2.tianditu.gov.cn/DataServer?T=img_c&x={x}&y={y}&l={z}&tk=${key}`,
           ],
           tileSize: 256,
           minzoom: 3,
@@ -147,9 +73,9 @@ export const mapboxUtils = {
         "tianditu-ter": {
           type: "raster",
           tiles: [
-            `https://t0.tianditu.gov.cn/DataServer?T=ter_w&x={x}&y={y}&l={z}&tk=${key}`,
-            `https://t1.tianditu.gov.cn/DataServer?T=ter_w&x={x}&y={y}&l={z}&tk=${key}`,
-            `https://t2.tianditu.gov.cn/DataServer?T=ter_w&x={x}&y={y}&l={z}&tk=${key}`,
+            `https://t0.tianditu.gov.cn/DataServer?T=ter_c&x={x}&y={y}&l={z}&tk=${key}`,
+            `https://t1.tianditu.gov.cn/DataServer?T=ter_c&x={x}&y={y}&l={z}&tk=${key}`,
+            `https://t2.tianditu.gov.cn/DataServer?T=ter_c&x={x}&y={y}&l={z}&tk=${key}`,
           ],
           tileSize: 256,
           minzoom: 3,
@@ -158,9 +84,9 @@ export const mapboxUtils = {
         "tianditu-label": {
           type: "raster",
           tiles: [
-            `https://t0.tianditu.gov.cn/DataServer?T=${layers.label}_w&x={x}&y={y}&l={z}&tk=${key}`,
-            `https://t1.tianditu.gov.cn/DataServer?T=${layers.label}_w&x={x}&y={y}&l={z}&tk=${key}`,
-            `https://t2.tianditu.gov.cn/DataServer?T=${layers.label}_w&x={x}&y={y}&l={z}&tk=${key}`,
+            `https://t0.tianditu.gov.cn/DataServer?T=${layers.label}_c&x={x}&y={y}&l={z}&tk=${key}`,
+            `https://t1.tianditu.gov.cn/DataServer?T=${layers.label}_c&x={x}&y={y}&l={z}&tk=${key}`,
+            `https://t2.tianditu.gov.cn/DataServer?T=${layers.label}_c&x={x}&y={y}&l={z}&tk=${key}`,
           ],
           tileSize: 256,
           minzoom: 3,

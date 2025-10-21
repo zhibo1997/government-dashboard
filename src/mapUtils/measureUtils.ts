@@ -1,4 +1,5 @@
-import mapboxgl from 'maplibre-gl'
+// import mapboxgl from 'maplibre-gl'
+import mapboxgl from "@cgcs2000/mapbox-gl";
 import * as turf from '@turf/turf'
 
 export interface MeasurePoint {
