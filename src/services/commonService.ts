@@ -3,21 +3,21 @@
  * 基于 common.ts 生成的 API 客户端，提供函数化调用方式
  */
 
-import { createCommonApi } from '@/api/apiFactory'
+import { createCommonApi } from "@/api/apiFactory";
 import type {
   LearunIapplicationLoginInputDto,
   LearunUtilResponseDto1LearunIapplicationLoginOutputDtoLearunIapplicationVersion6010CultureNeutralPublicKeyTokenNull,
-} from '@/api/common'
+} from "@/api/common";
 
-const commonApi = createCommonApi()
+const commonApi = createCommonApi();
 
 /**
  * 获取 RSA 公钥
  * @returns 公钥字符串
  */
 export async function getPublicKey(): Promise<string> {
-  const res = await commonApi.login.publicKeyList()
-  return res.data || ''
+  const res = await commonApi.login.publicKeyList();
+  return res.data || "";
 }
 
 /**
@@ -30,9 +30,9 @@ export async function login(account: string, password: string) {
   const loginData: LearunIapplicationLoginInputDto = {
     account,
     password,
-  }
-  const res = await commonApi.login.loginCreate(loginData)
-  return res.data
+  };
+  const res = await commonApi.login.loginCreate(loginData);
+  return res.data;
 }
 
 /**
@@ -41,8 +41,24 @@ export async function login(account: string, password: string) {
  * @returns 数据字典明细数组
  */
 export async function getDataItemDetails(code: string) {
-  const res = await commonApi.data.dataitemDetailsDetail(code)
-  return res.data || []
+  const res = await commonApi.data.dataitemDetailsDetail(code);
+  return res.data || [];
+}
+/**
+ * 获取具体数据字典
+ * @param code 分类编号
+ * @param parentSimpleSpelling 父级简拼
+ * @returns 数据字典明细数组
+ */
+export async function getDataItems(
+  code: string,
+  parentSimpleSpelling: string
+) {
+  const res = await commonApi.data.dataitemDetailsDetail(code);
+  const parentItem = (res.data || []).find(
+    (item) => item.f_SimpleSpelling === parentSimpleSpelling
+  );
+  return res.data.filter((item) => item.f_ParentId === parentItem.f_Id);
 }
 
 /**
@@ -50,6 +66,6 @@ export async function getDataItemDetails(code: string) {
  * @returns 菜单树数据
  */
 export async function getModuleTree() {
-  const res = await commonApi.system.moduleTreeList()
-  return res.data
+  const res = await commonApi.system.moduleTreeList();
+  return res.data;
 }

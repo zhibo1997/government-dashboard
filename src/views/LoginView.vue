@@ -35,7 +35,7 @@ import { createDiscreteApi } from "naive-ui";
 import { PersonOutline, LockClosedOutline } from "@vicons/ionicons5";
 import { useRouter } from "vue-router";
 import { useAuthStore } from "../stores/auth";
-import { loginService } from "@/services/loginService";
+import { login } from "@/services/commonService";
 import ResponsiveWrapper from "@/components/ResponsiveWrapper.vue";
 
 const { message } = createDiscreteApi(["message"]);
@@ -71,8 +71,9 @@ const handleLogin = async () => {
     await formRef.value?.validate();
     loading.value = true;
 
-    // 调用登录服务
-    const result = await loginService.login(formData.value);
+    // 使用服务层函数进行登录（需要先加密密码）
+    // TODO: 如果需要MD5加密，请在这里处理
+    const result = await login(formData.value.username, formData.value.password);
 
     if (result && result.token) {
       // 保存登录状态
