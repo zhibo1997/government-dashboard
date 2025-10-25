@@ -9,11 +9,12 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "swagger": "npx swagger-typescript-api -p http://127.0.0.1:4523/export/openapi/6?version=3.1 -o ./src/api/ -n waterSupplyAndDrainage --axios"
   },
   "dependencies": {
     "@ant-design/icons-vue": "^7.0.1",
-    "@cgcs2000/mapbox-gl": "^2.3.0",
+    "@cgcs2000/mapbox-gl": "1.13.1",
     "@deck.gl/geo-layers": "^9.2.2",
     "@deck.gl/mapbox": "^9.2.2",
     "@loaders.gl/3d-tiles": "^4.3.4",
@@ -38,8 +39,10 @@
     "@vitejs/plugin-vue": "^6.0.1",
     "eslint": "^9.34.0",
     "eslint-plugin-vue": "^10.4.0",
+    "openapi-typescript": "^7.10.1",
     "prettier": "^3.6.2",
     "sass": "^1.90.0",
+    "swagger-typescript-api": "^12.0.4",
     "terser": "^5.44.0",
     "typescript": "^5.9.2",
     "vite": "^7.0.6",

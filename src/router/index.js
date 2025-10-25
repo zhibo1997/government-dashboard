@@ -27,7 +27,7 @@ const routes = [
     name: 'waterProject',
     component: () => import('../views/WaterSupply/index.vue'),
     meta: {
-      // requiresAuth: true,
+      requiresAuth: true,
       title: '供水专项'
     }
   },
