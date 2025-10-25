@@ -3,9 +3,9 @@
  * 基于 waterSupplyAndDrainage.ts 生成的 API 客户端，提供函数化调用方式
  */
 
-import { createWaterSupplyApi } from '@/api/apiFactory'
+import { createWaterSupplyApi } from "@/api/apiFactory";
 
-const waterApi = createWaterSupplyApi()
+const waterApi = createWaterSupplyApi();
 
 /**
  * 获取基础设施总览统计
@@ -13,11 +13,11 @@ const waterApi = createWaterSupplyApi()
  * @returns 基础设施统计数据
  */
 export async function getWaterOverview(params?: {
-  Jcsslx?: string
-  Sjly?: string
+  Jcsslx?: string;
+  Sjly?: string;
 }) {
-  const res = await waterApi.overviewData.List(params)
-  return res.data || []
+  const res = await waterApi.overviewData.List(params);
+  return res.data || [];
 }
 
 /**
@@ -25,8 +25,8 @@ export async function getWaterOverview(params?: {
  * @returns 设备状态比例数据
  */
 export async function getDeviceStatusRate() {
-  const res = await waterApi.gspspDtransPubmnteqpinfo.rateListList()
-  return res
+  const res = await waterApi.gspspDtransPubmnteqpinfo.rateListList();
+  return res.data || [];
 }
 
 /**
@@ -34,8 +34,9 @@ export async function getDeviceStatusRate() {
  * @returns 设备类型统计数据
  */
 export async function getDeviceTypeStatusCount() {
-  const res = await waterApi.gspspDtransPubmnteqpinfo.deviceTypeStatusCountList()
-  return res
+  const res =
+    await waterApi.gspspDtransPubmnteqpinfo.deviceTypeStatusCountList();
+  return res?.data || [];
 }
 
 /**
@@ -43,8 +44,9 @@ export async function getDeviceTypeStatusCount() {
  * @returns 水质监测数据
  */
 export async function getLatestWaterQuality() {
-  const res = await waterApi.gspspDtransPubmnteqpinfo.latestWaterQualityDataList()
-  return res
+  const res =
+    await waterApi.gspspDtransPubmnteqpinfo.latestWaterQualityDataList();
+  return res;
 }
 
 /**
@@ -52,8 +54,8 @@ export async function getLatestWaterQuality() {
  * @returns 隐患类型统计数据
  */
 export async function getRiskTypeCount() {
-  const res = await waterApi.gspspDtransPubrisks.riskTypeCountList()
-  return res
+  const res = await waterApi.gspspDtransPubrisks.riskTypeCountList();
+  return res;
 }
 
 /**
@@ -61,8 +63,8 @@ export async function getRiskTypeCount() {
  * @returns 隐患整改状态数据
  */
 export async function getRiskStatusCount() {
-  const res = await waterApi.gspspDtransPubrisks.riskStatusCountList()
-  return res
+  const res = await waterApi.gspspDtransPubrisks.riskStatusCountList();
+  return res;
 }
 
 /**
@@ -70,8 +72,8 @@ export async function getRiskStatusCount() {
  * @returns 供水管网隐患数据
  */
 export async function getWaterSupplyRiskCount() {
-  const res = await waterApi.gspspDtransPubrisks.waterSupplyRiskCountList()
-  return res
+  const res = await waterApi.gspspDtransPubrisks.waterSupplyRiskCountList();
+  return res.data || [];
 }
 
 /**
@@ -80,9 +82,11 @@ export async function getWaterSupplyRiskCount() {
  * @returns 预警统计数据
  */
 export async function getWarnStatistics(year?: string) {
-  const currentYear = year || new Date().getFullYear().toString()
-  const res = await waterApi.gspspDtransPubmnteawarn.warnStatisticsList({ Year: currentYear })
-  return res
+  const currentYear = year || new Date().getFullYear().toString();
+  const res = await waterApi.gspspDtransPubmnteawarn.warnStatisticsList({
+    Year: currentYear,
+  });
+  return res;
 }
 
 /**
@@ -91,9 +95,11 @@ export async function getWarnStatistics(year?: string) {
  * @returns 月度预警统计数据
  */
 export async function getMonthlyWarnStatistics(year?: string) {
-  const currentYear = year || new Date().getFullYear().toString()
-  const res = await waterApi.gspspDtransPubmnteawarn.monthlyWarnStatisticsList({ Year: currentYear })
-  return res
+  const currentYear = year || new Date().getFullYear().toString();
+  const res = await waterApi.gspspDtransPubmnteawarn.monthlyWarnStatisticsList({
+    Year: currentYear,
+  });
+  return res;
 }
 
 /**
@@ -102,9 +108,11 @@ export async function getMonthlyWarnStatistics(year?: string) {
  * @returns 排查结果统计数据
  */
 export async function getCheckResultStatistics(year?: string) {
-  const currentYear = year || new Date().getFullYear().toString()
-  const res = await waterApi.gspspDtransPubmnteawarn.checkResultStatisticsList({ Year: currentYear })
-  return res
+  const currentYear = year || new Date().getFullYear().toString();
+  const res = await waterApi.gspspDtransPubmnteawarn.checkResultStatisticsList({
+    Year: currentYear,
+  });
+  return res;
 }
 
 /**
@@ -112,6 +120,7 @@ export async function getCheckResultStatistics(year?: string) {
  * @returns 管线材质占比数据
  */
 export async function getWaterSupplyMaterialRatio() {
-  const res = await waterApi.gspspDtransPubunderpipeline.waterSupplyMaterialRatioList()
-  return res
+  const res =
+    await waterApi.gspspDtransPubunderpipeline.waterSupplyMaterialRatioList();
+  return res;
 }

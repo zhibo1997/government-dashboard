@@ -44,7 +44,6 @@ const iconMapping = {
 const initGSItems = async () => {
   try {
     const res = await getDataItems("jcsstjlx", "gs");
-    console.log("🚀 ~ initGSItems ~ res:", res)
     
     if (res && res.length > 0) {
       overviewData.value = res.map(item => ({
@@ -55,7 +54,6 @@ const initGSItems = async () => {
         value: null, // 初始值为 null,后续从 initOverviewData 获取
         jcsslx: item.f_ItemValue // 保存原始类型码,用于数据匹配
       }));
-      console.log("🚀 ~ initGSItems ~ overviewData.value:", overviewData.value)
     }
   } catch (error) {
     console.error("获取基础配置数据失败:", error);
@@ -73,7 +71,6 @@ const getIconUrl = (iconName) => {
 const initOverviewData = async () => {
   try {
     const data = await getWaterOverview();
-    console.log("🚀 ~ initOverviewData ~ data:", data);
 
     if (data && data.length > 0) {
       // 更新 overviewData 中的 value 值
