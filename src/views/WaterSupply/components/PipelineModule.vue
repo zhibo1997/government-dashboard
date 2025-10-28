@@ -110,7 +110,6 @@ const pipelineLegend = ref([
 
 const initMaterialList = async () => {
   const res = await getWaterSupplyMaterialRatio();
-  console.log("🚀 ~ initMaterialList ~ res:", res);
 };
 
 // 隐患小球数据
