@@ -6,9 +6,17 @@
     <div class="module-content warning-content">
       <div class="warning-list">
         <div class="warning-data">
-          <img class="pyramid" src="@/assets/img/waterSupply/pyramid.png" alt="" />
+          <img
+            class="pyramid"
+            src="@/assets/img/waterSupply/pyramid.png"
+            alt=""
+          />
           <div class="warning-data-content">
-            <div class="warning-item" v-for="(item, idx) in warningData.slice(0, 3)" :key="idx">
+            <div
+              class="warning-item"
+              v-for="(item, idx) in warningData.slice(0, 3)"
+              :key="idx"
+            >
               <div class="warning-item-value">
                 <span class="value">{{ item.count }}处</span>
               </div>
@@ -17,9 +25,17 @@
           </div>
         </div>
         <div class="warning-data">
-          <img class="pyramid" src="@/assets/img/waterSupply/pyramid.png" alt="" />
+          <img
+            class="pyramid"
+            src="@/assets/img/waterSupply/pyramid.png"
+            alt=""
+          />
           <div class="warning-data-content">
-            <div class="warning-item" v-for="(item, idx) in warningData.slice(3)" :key="idx">
+            <div
+              class="warning-item"
+              v-for="(item, idx) in warningData.slice(3)"
+              :key="idx"
+            >
               <div class="warning-item-value">
                 <span class="value">{{ item.count }}处</span>
               </div>
@@ -32,15 +48,21 @@
         <div class="handled-list">
           <div class="handled-item item-handled">
             <span class="title">已处置</span>
-            <span class="value gradient-text">{{ handledData.summary.handled }}</span>
+            <span class="value gradient-text">{{
+              handledSummaryData?.handledCount
+            }}</span>
           </div>
           <div class="handled-item item-unhandled">
             <span class="title">未处置</span>
-            <span class="value gradient-text">{{ handledData.summary.unhandled }}</span>
+            <span class="value gradient-text">{{
+              handledSummaryData?.totalCount
+            }}</span>
           </div>
           <div class="handled-item item-completionRate">
             <span class="title">处置率</span>
-            <span class="value gradient-text">85%</span>
+            <span class="value gradient-text">{{
+              handledSummaryData?.disposalRate
+            }}</span>
           </div>
         </div>
         <div id="handled-chart" class="handled-chart"></div>
@@ -50,79 +72,99 @@
 </template>
 
 <script setup>
-import { onMounted } from 'vue';
-import * as echarts from 'echarts';
-import { handledOption } from './ehcartsOptions';
+import { onMounted, ref } from "vue";
+import * as echarts from "echarts";
+import { handledOption } from "./ehcartsOptions";
+import {
+  getMonthlyWarnStatistics,
+  getWarnStatistics,
+} from "@/services/waterSupplyService";
+
+const handledSummaryData = ref(null);
+// 获取处置率数据
+onMounted(async () => {
+  const summary = await getWarnStatistics("2025");
+  summary["disposalRate"] =
+    Math.round((summary["handledCount"] / summary["totalCount"]) * 100) + "%";
+
+  handledSummaryData.value = summary;
+});
+const monthlyData = ref([]);
+// 获取处置统计数据
+onMounted(async () => {
+   monthlyData.value = await getMonthlyWarnStatistics("2025");
+
+});
 
 const handledData = {
-  "summary": {
-    "handled": 155,
-    "unhandled": 100,
+  summary: {
+    handled: 155,
+    unhandled: 100,
   },
-  "monthlyData": [
+  monthlyData: [
     {
-      "month": "1",
-      "handled": 15,
-      "unhandled": 10,
-      "completionRate": 40
+      month: "1",
+      handled: 15,
+      unhandled: 10,
+      completionRate: 40,
     },
     {
-      "month": "2",
-      "handled": 20,
-      "unhandled": 15,
-      "completionRate": 50
+      month: "2",
+      handled: 20,
+      unhandled: 15,
+      completionRate: 50,
     },
     {
-      "month": "3",
-      "handled": 25,
-      "unhandled": 20,
-      "completionRate": 60
+      month: "3",
+      handled: 25,
+      unhandled: 20,
+      completionRate: 60,
     },
     {
-      "month": "4",
-      "handled": 30,
-      "unhandled": 25,
-      "completionRate": 70
-    }
-  ]
-}
+      month: "4",
+      handled: 30,
+      unhandled: 25,
+      completionRate: 70,
+    },
+  ],
+};
 
 const warningData = [
   {
-    "name": "管网爆管预警",
-    "count": 2
+    name: "管网爆管预警",
+    count: 2,
   },
   {
-    "name": "消火栓失效预警",
-    "count": 23
+    name: "消火栓失效预警",
+    count: 23,
   },
   {
-    "name": "管网泄露预警",
-    "count": 5
+    name: "管网泄露预警",
+    count: 5,
   },
   {
-    "name": "水质污染预警",
-    "count": 0
+    name: "水质污染预警",
+    count: 0,
   },
   {
-    "name": "大面积停水预警",
-    "count": 13
+    name: "大面积停水预警",
+    count: 13,
   },
   {
-    "name": "管网异常工况预警",
-    "count": 1
-  }
-]
+    name: "管网异常工况预警",
+    count: 1,
+  },
+];
 
 onMounted(() => {
   const monthlyData = handledData.monthlyData;
-  const handledEchart = echarts.init(document.getElementById('handled-chart'));
-  handledOption.xAxis.data = handledData.monthlyData.map(item => item.month);
-  handledOption.series[0].data = monthlyData.map(d => d.unhandled);
-  handledOption.series[1].data = monthlyData.map(d => d.handled);
-  handledOption.series[2].data = monthlyData.map(d => d.completionRate);
+  const handledEchart = echarts.init(document.getElementById("handled-chart"));
+  handledOption.xAxis.data = handledData.monthlyData.map((item) => item.month);
+  handledOption.series[0].data = monthlyData.map((d) => d.unhandled);
+  handledOption.series[1].data = monthlyData.map((d) => d.handled);
+  handledOption.series[2].data = monthlyData.map((d) => d.completionRate);
   handledEchart.setOption(handledOption);
-})
+});
 </script>
 
 <style lang="scss" scoped>
@@ -139,7 +181,7 @@ onMounted(() => {
 .handled-content {
   display: flex;
   flex-direction: row;
-  .handled-chart{
+  .handled-chart {
     width: 531px;
     height: 194px;
   }
@@ -147,7 +189,7 @@ onMounted(() => {
     background-size: 100% 100%;
     width: 164px;
     height: 53px;
-    background-image: url('@/assets/img/waterSupply/handled-bg.png');
+    background-image: url("@/assets/img/waterSupply/handled-bg.png");
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -158,17 +200,16 @@ onMounted(() => {
       font-family: SourceHanSansSC, SourceHanSansSC;
       font-weight: 400;
       font-size: 18px;
-      color: #BCD4D4;
+      color: #bcd4d4;
       line-height: 26px;
       text-align: left;
       font-style: normal;
-
     }
 
     .value {
       font-family: YouSheBiaoTiHei;
       font-size: 30px;
-      color: #FFFFFF;
+      color: #ffffff;
       line-height: 39px;
       text-align: left;
       font-style: normal;
@@ -176,31 +217,31 @@ onMounted(() => {
 
     &.item-handled {
       .title {
-        color: #BCD4D4;
+        color: #bcd4d4;
       }
 
       .value {
-        background: linear-gradient(90deg, #10ADC0 0%, #FFFFFF 100%);
+        background: linear-gradient(90deg, #10adc0 0%, #ffffff 100%);
       }
     }
 
     &.item-unhandled {
       .title {
-        color: #F75E04;
+        color: #f75e04;
       }
 
       .value {
-        background: linear-gradient(0deg, #F75E04 0%, #FEAC04 100%);
+        background: linear-gradient(0deg, #f75e04 0%, #feac04 100%);
       }
     }
 
     &.item-completionRate {
       .title {
-        color: #FFF407;
+        color: #fff407;
       }
 
       .value {
-        background: linear-gradient(0deg, #3FFEFD 0%, #FFF407 100%);
+        background: linear-gradient(0deg, #3ffefd 0%, #fff407 100%);
       }
     }
   }
@@ -235,19 +276,19 @@ onMounted(() => {
 
     &:nth-child(1) {
       .value {
-        color: #C3540C;
+        color: #c3540c;
       }
     }
 
     &:nth-child(2) {
       .value {
-        color: #E1ED68;
+        color: #e1ed68;
       }
     }
 
     &:nth-child(3) {
       .value {
-        color: #2F9EAC;
+        color: #2f9eac;
       }
     }
   }
@@ -277,7 +318,7 @@ onMounted(() => {
     font-family: SourceHanSansSC, SourceHanSansSC;
     font-weight: 400;
     font-size: 16px;
-    color: #D3EAF1;
+    color: #d3eaf1;
     line-height: 24px;
     text-align: left;
     font-style: normal;
@@ -287,7 +328,7 @@ onMounted(() => {
       display: inline-block;
       width: 6px;
       height: 8px;
-      background-image: url('@/assets/img/waterSupply/warning_before.png');
+      background-image: url("@/assets/img/waterSupply/warning_before.png");
       background-size: 100% 100%;
       margin-right: 6px;
     }

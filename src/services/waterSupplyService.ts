@@ -55,7 +55,7 @@ export async function getLatestWaterQuality() {
  */
 export async function getRiskTypeCount() {
   const res = await waterApi.gspspDtransPubrisks.riskTypeCountList();
-  return res;
+  return res.data || [];
 }
 
 /**
@@ -64,7 +64,7 @@ export async function getRiskTypeCount() {
  */
 export async function getRiskStatusCount() {
   const res = await waterApi.gspspDtransPubrisks.riskStatusCountList();
-  return res;
+  return res.data || [];
 }
 
 /**
@@ -86,7 +86,7 @@ export async function getWarnStatistics(year?: string) {
   const res = await waterApi.gspspDtransPubmnteawarn.warnStatisticsList({
     Year: currentYear,
   });
-  return res;
+  return res?.data||[];
 }
 
 /**
