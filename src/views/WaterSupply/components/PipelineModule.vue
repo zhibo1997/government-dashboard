@@ -65,7 +65,7 @@ import {
   getWaterSupplyMaterialRatio,
   getWaterSupplyRiskCount,
 } from "@/services/waterSupplyService";
-import { getDataItems } from "@/services/commonService";
+import { getDataItemDetails } from "@/services/commonService";
 
 // 引入图片资源
 import baseDangerImage from "@/assets/img/waterSupply/base_danger.png";
@@ -169,7 +169,7 @@ const generateRandomPosition = (existingPositions, ballSize) => {
 };
 
 const initHiddenDangerTypes = async () => {
-  const res = await getDataItems("yhlx", "gs");
+  const res = await getDataItemDetails("yhlx_gs");
   // 创建隐患类型映射
   const dangerTypeMap = {};
   res.forEach((item) => {

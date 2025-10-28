@@ -30,12 +30,12 @@
 </template>
 
 <script setup>
-import { ref } from "vue";
+import { onMounted, ref } from "vue";
 import { createDiscreteApi } from "naive-ui";
 import { PersonOutline, LockClosedOutline } from "@vicons/ionicons5";
 import { useRouter } from "vue-router";
 import { useAuthStore } from "../stores/auth";
-import { login } from "@/services/commonService";
+import {loginService} from "@/services/loginService";
 import ResponsiveWrapper from "@/components/ResponsiveWrapper.vue";
 
 const { message } = createDiscreteApi(["message"]);
@@ -64,16 +64,15 @@ const rules = {
     { required: true, message: "请输入密码", trigger: "blur" },
   ],
 };
-
+onMounted(()=>{
+  loginService.getPublicKey();
+})
 // 登录处理
 const handleLogin = async () => {
   try {
     await formRef.value?.validate();
     loading.value = true;
-
-    // 使用服务层函数进行登录（需要先加密密码）
-    // TODO: 如果需要MD5加密，请在这里处理
-    const result = await login(formData.value.username, formData.value.password);
+    const result = await loginService.login(formData.value);
 
     if (result && result.token) {
       // 保存登录状态

@@ -4,7 +4,7 @@
       <div class="module-title">风险隐患</div>
     </div>
     <div class="module-content">
-      <div class="risk-content">
+      <!-- <div class="risk-content">
         <div id="risk-chart" class="risk-echart"></div>
         <div class="risk-legend">
           <div class="legend-item" v-for="item in riskLegend" :key="item.name">
@@ -21,7 +21,7 @@
             </div>
           </div>
         </div>
-      </div>
+      </div> -->
       <!-- 整改状态 -->
       <div class="rectification-section">
         <div
@@ -64,12 +64,13 @@ const zgztMap = {
 const rectificationData = ref([]);
 
 onMounted(async () => {
-  const rectificationStatus = await getDataItemDetails("zgzt");
+  // 获取整改状态字典
+  const dictionaries = await getDataItemDetails("zgzt");
   const res = await getRiskStatusCount();
 
   const zgCount = res.reduce((sum, item) => sum + item.count, 0);
   rectificationData.value = res.map((item) => {
-    const status = rectificationStatus.find(
+    const status = dictionaries.find(
       (statusItem) => statusItem.f_ItemValue === item.riskStatus
     );
     return {

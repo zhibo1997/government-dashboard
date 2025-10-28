@@ -1,4 +1,4 @@
-import { getPublicKey, login } from '@/api'
+import {getPublicKey,login} from './commonService';
 import type { LoginRequest, UserInfo, ApiResponse } from '@/types'
 import JSEncrypt from 'jsencrypt'
 
@@ -17,6 +17,7 @@ export class LoginService {
   public async getPublicKey(): Promise<string> {
     try {
       const response = await getPublicKey()
+      console.log("🚀 ~ LoginService ~ getPublicKey ~ response:", response)
       
       if (response.code === 200 && response.data) {
         this.publicKey = response.data;

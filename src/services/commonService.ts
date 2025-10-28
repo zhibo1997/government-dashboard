@@ -15,9 +15,9 @@ const commonApi = createCommonApi();
  * 获取 RSA 公钥
  * @returns 公钥字符串
  */
-export async function getPublicKey(): Promise<string> {
+export async function getPublicKey(): Promise<any> {
   const res = await commonApi.login.publicKeyList();
-  return res.data || "";
+  return res;
 }
 
 /**
@@ -32,7 +32,7 @@ export async function login(account: string, password: string) {
     password,
   };
   const res = await commonApi.login.loginCreate(loginData);
-  return res.data;
+  return res;
 }
 
 /**
@@ -44,22 +44,7 @@ export async function getDataItemDetails(code: string) {
   const res = await commonApi.data.dataitemDetailsDetail(code);
   return res.data || [];
 }
-/**
- * 获取具体数据字典
- * @param code 分类编号
- * @param parentSimpleSpelling 父级简拼
- * @returns 数据字典明细数组
- */
-export async function getDataItems(
-  code: string,
-  parentSimpleSpelling: string
-) {
-  const res = await commonApi.data.dataitemDetailsDetail(code);
-  const parentItem = (res.data || []).find(
-    (item) => item.f_SimpleSpelling === parentSimpleSpelling
-  );
-  return res.data.filter((item) => item.f_ParentId === parentItem.f_Id);
-}
+
 
 /**
  * 获取菜单树
@@ -68,4 +53,38 @@ export async function getDataItems(
 export async function getModuleTree() {
   const res = await commonApi.system.moduleTreeList();
   return res.data;
+}
+
+/**
+ * 使用 RSA 公钥加密密码
+ * @param password 原始密码
+ * @param publicKey RSA 公钥
+ * @returns 加密后的密码
+ */
+export function encryptPasswordWithPublicKey(
+  password: string,
+  publicKey: string
+): string {
+  if (!publicKey) {
+    console.warn("公钥为空，将使用原始密码");
+    return password;
+  }
+
+  try {
+    // 动态导入 jsencrypt
+    const JSEncrypt = require("jsencrypt").default;
+    const encrypt = new JSEncrypt();
+    encrypt.setPublicKey(publicKey);
+    const encrypted = encrypt.encrypt(password);
+    
+    if (!encrypted) {
+      console.error("密码加密失败");
+      return password;
+    }
+    
+    return encrypted;
+  } catch (error) {
+    console.error("密码加密异常:", error);
+    return password;
+  }
 }

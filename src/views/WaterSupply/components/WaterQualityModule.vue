@@ -56,83 +56,45 @@
 </template>
 
 <script setup>
+import { getDataItemDetails } from "@/services/commonService";
 import { getLatestWaterQuality } from "@/services/waterSupplyService";
 import { onMounted, ref } from "vue";
+import { parse } from "lossless-json";
+import { nextTick } from "vue";
 
 const waterQualityDate = ref(Date.now());
+
+const szMap = ref({});
 onMounted(async () => {
+  // 获取最新供水水质字典
+  const dictionaries = await getDataItemDetails("gs_szjcsb");
+  szMap.value = dictionaries.reduce((acc, cur) => {
+    acc[cur.f_ItemValue] = cur.f_ItemName;
+    return acc;
+  }, {});
   const res = await getLatestWaterQuality();
-  console.log("🚀 ~ res:", res)
+  nextTick(() => {
+    waterPlants.value = res.map((item) => {
+      const jcz = parse(item.jcz);
+      const parameter = [];
+      for (let key in jcz) {
+        parameter.push({
+          id: key,
+          name: szMap.value[key],
+          value: jcz[key]?.jcz,
+          unit: jcz[key]?.jcdw || "",
+          status: "normal",
+        });
+      }
+      return {
+        name: item.jcwz,
+        parameters,
+      };
+    });
+  });
 });
 
-const waterPlants = ref([
-  {
-    name: "二水厂",
-    parameters: [
-      {
-        id: "pH",
-        name: "pH 值",
-        value: 3.9,
-        unit: "",
-        status: "abnormal",
-      },
-      {
-        id: "turbidity",
-        name: "浊度",
-        value: 7.5,
-        unit: "NTU",
-        status: "abnormal",
-      },
-      {
-        id: "COD",
-        name: "COD",
-        value: 8.1,
-        unit: "mg/L",
-        status: "normal",
-      },
-      {
-        id: "residual_chlorine",
-        name: "余氯",
-        value: 1.2,
-        unit: "mg/L",
-        status: "normal",
-      },
-    ],
-  },
-  {
-    name: "沿镇水厂",
-    parameters: [
-      {
-        id: "pH",
-        name: "pH 值",
-        value: 2.9,
-        unit: "",
-        status: "abnormal",
-      },
-      {
-        id: "turbidity",
-        name: "浊度",
-        value: 8.4,
-        unit: "NTU",
-        status: "abnormal",
-      },
-      {
-        id: "COD",
-        name: "COD",
-        value: 7.5,
-        unit: "mg/L",
-        status: "normal",
-      },
-      {
-        id: "residual_chlorine",
-        name: "余氯",
-        value: 1.6,
-        unit: "mg/L",
-        status: "normal",
-      },
-    ],
-  },
-]);
+const waterPlants = ref();
 </script>
 
 <style lang="scss" scoped>

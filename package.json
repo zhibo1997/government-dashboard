@@ -27,6 +27,7 @@
     "echarts": "^6.0.0",
     "jsencrypt": "^3.5.4",
     "lodash-es": "^4.17.21",
+    "lossless-json": "^4.3.0",
     "maplibre-gl": "^5.9.0",
     "naive-ui": "^2.40.1",
     "pinia": "^3.0.3",

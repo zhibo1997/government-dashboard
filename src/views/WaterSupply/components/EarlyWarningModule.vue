@@ -72,12 +72,13 @@
 </template>
 
 <script setup>
-import { onMounted, ref } from "vue";
+import { nextTick, onMounted, ref } from "vue";
 import * as echarts from "echarts";
 import { handledOption } from "./ehcartsOptions";
 import {
   getMonthlyWarnStatistics,
   getWarnStatistics,
+  getCheckResultStatistics,
 } from "@/services/waterSupplyService";
 
 const handledSummaryData = ref(null);
@@ -92,42 +93,31 @@ onMounted(async () => {
 const monthlyData = ref([]);
 // 获取处置统计数据
 onMounted(async () => {
-   monthlyData.value = await getMonthlyWarnStatistics("2025");
-
+  const res = await getMonthlyWarnStatistics("2025");
+  console.log("🚀 ~ res:", res)
+  monthlyData.value=res;
+  nextTick(() => {
+    const handledEchart = echarts.init(
+      document.getElementById("handled-chart")
+    );
+    handledOption.xAxis.data = res.map(
+      (item) => item.month
+    );
+    handledOption.series[0].data = res.map((d) => d.unhandledCount);
+    handledOption.series[1].data = res.map((d) => d.handledCount);
+    handledOption.series[2].data = res.map((d) =>
+      ((d.handledCount / (d.unhandledCount + d.handledCount)) * 100).toFixed(2)
+    );
+    handledEchart.setOption(handledOption);
+  });
 });
 
-const handledData = {
-  summary: {
-    handled: 155,
-    unhandled: 100,
-  },
-  monthlyData: [
-    {
-      month: "1",
-      handled: 15,
-      unhandled: 10,
-      completionRate: 40,
-    },
-    {
-      month: "2",
-      handled: 20,
-      unhandled: 15,
-      completionRate: 50,
-    },
-    {
-      month: "3",
-      handled: 25,
-      unhandled: 20,
-      completionRate: 60,
-    },
-    {
-      month: "4",
-      handled: 30,
-      unhandled: 25,
-      completionRate: 70,
-    },
-  ],
-};
+// 获取处置结果数据
+onMounted(async () => {
+  const result = await getCheckResultStatistics("2025");
+  console.log("🚀 ~ result:", result);
+  // handledData.value = result;
+});
 
 const warningData = [
   {
@@ -156,15 +146,7 @@ const warningData = [
   },
 ];
 
-onMounted(() => {
-  const monthlyData = handledData.monthlyData;
-  const handledEchart = echarts.init(document.getElementById("handled-chart"));
-  handledOption.xAxis.data = handledData.monthlyData.map((item) => item.month);
-  handledOption.series[0].data = monthlyData.map((d) => d.unhandled);
-  handledOption.series[1].data = monthlyData.map((d) => d.handled);
-  handledOption.series[2].data = monthlyData.map((d) => d.completionRate);
-  handledEchart.setOption(handledOption);
-});
+onMounted(() => {});
 </script>
 
 <style lang="scss" scoped>

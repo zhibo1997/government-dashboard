@@ -50,6 +50,9 @@ importers:
       lodash-es:
         specifier: ^4.17.21
         version: 4.17.21
+      lossless-json:
+        specifier: ^4.3.0
+        version: 4.3.0
       maplibre-gl:
         specifier: ^5.9.0
         version: 5.9.0
@@ -2336,6 +2339,9 @@ packages:
 
   long@5.3.2:
     resolution: {integrity: sha512-mNAgZ1GmyNhD7AuqnTG3/VQ26o760+ZYBPKjPvugO8+nLbYfX6TVpJPseBvopbdY+qpZ/lKUnmEc1LeZYS3QAA==}
+
+  lossless-json@4.3.0:
+    resolution: {integrity: sha512-ToxOC+SsduRmdSuoLZLYAr5zy1Qu7l5XhmPWM3zefCZ5IcrzW/h108qbJUKfOlDlhvhjUK84+8PSVX0kxnit0g==}
 
   lru-cache@5.1.1:
     resolution: {integrity: sha512-KpNARQA3Iwv+jTA0utUVVbrh+Jlrr1Fv0e56GGzAFOXN7dk/FviaDW8LHmK52DlcH4WP2n6gI8vN1aesBFgo9w==}
@@ -6249,6 +6255,8 @@ snapshots:
   long@3.2.0: {}
 
   long@5.3.2: {}
+
+  lossless-json@4.3.0: {}
 
   lru-cache@5.1.1:
     dependencies:

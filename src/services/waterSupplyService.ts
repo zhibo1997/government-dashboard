@@ -46,7 +46,7 @@ export async function getDeviceTypeStatusCount() {
 export async function getLatestWaterQuality() {
   const res =
     await waterApi.gspspDtransPubmnteqpinfo.latestWaterQualityDataList();
-  return res;
+  return res.data||[];
 }
 
 /**
@@ -99,7 +99,7 @@ export async function getMonthlyWarnStatistics(year?: string) {
   const res = await waterApi.gspspDtransPubmnteawarn.monthlyWarnStatisticsList({
     Year: currentYear,
   });
-  return res;
+  return res.data||[];
 }
 
 /**

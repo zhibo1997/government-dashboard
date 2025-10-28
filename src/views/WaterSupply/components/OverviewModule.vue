@@ -25,7 +25,7 @@
 <script setup>
 import { ref, onMounted } from "vue";
 import { getWaterOverview } from "@/services/waterSupplyService";
-import { getDataItemDetails, getDataItems } from "@/services/commonService";
+import { getDataItemDetails } from "@/services/commonService";
 
 // 响应式数据
 const overviewData = ref([]);
@@ -43,7 +43,7 @@ const iconMapping = {
 // 初始化基础配置数据(从字典获取)
 const initGSItems = async () => {
   try {
-    const res = await getDataItems("jcsstjlx", "gs");
+    const res = await getDataItemDetails("jcssdstjlx_gs");
     
     if (res && res.length > 0) {
       overviewData.value = res.map(item => ({
