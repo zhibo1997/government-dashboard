@@ -16,12 +16,6 @@
           <keep-alive>
             <MapboxMapComponent />
           </keep-alive>
-          <!-- 图例 -->
-          <img
-            class="map-legend"
-            src="../assets/map-img/legend.png"
-            alt="地图图例"
-          />
         </div>
         <RightNav />
         <!-- 右侧数据展示区 -->
