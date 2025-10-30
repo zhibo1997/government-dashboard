@@ -3,10 +3,15 @@
 import mapboxgl from "@cgcs2000/mapbox-gl";
 import baseStyle from "./cssmx_base.json";
 import { mapConfig } from "@/config/mapConfig";
+mapboxgl.accessToken = null;
 
+class Cjmapbox extends mapboxgl.Map {}
+
+Cjmapbox.prototype.__proto__._authenticate = function () {
+  return true;
+};
 // Mapbox地图工具类
 export const mapboxUtils = {
-
   // 初始化Mapbox地图
   initMap(containerId: string): mapboxgl.Map {
     const map = new mapboxgl.Map({
@@ -21,6 +26,7 @@ export const mapboxUtils = {
       // 性能优化选项
       renderWorldCopies: false, // 不渲染世界副本
       maxTileCacheSize: 50, // 限制瓦片缓存大小
+      useWebGL2:true
     });
 
     // 添加基础控件
@@ -113,7 +119,7 @@ export const mapboxUtils = {
           type: "raster",
           source: "tianditu-ter",
           layout: { visibility: "none" },
-        }
+        },
       ],
     };
     const map = new mapboxgl.Map({
@@ -123,6 +129,7 @@ export const mapboxUtils = {
       zoom: mapConfig.zoom,
       pitch: 0,
       bearing: 0,
+      useWebGL2:true,
     });
     addImages(map, baseStyle.sprite);
 
@@ -211,7 +218,7 @@ export const mapboxUtils = {
       if (!map.getSource(layer.source)) {
         map.addSource(layer.source, sources[layer.source]);
       }
-      
+
       // 检查图层是否已存在，如果不存在则添加
       if (!map.getLayer(layer.id)) {
         map.addLayer(layer);
@@ -229,7 +236,7 @@ export const mapboxUtils = {
       if (map.getLayer(layer.id)) {
         map.removeLayer(layer.id);
       }
-      
+
       // 检查数据源是否存在，如果存在则移除
       if (map.getSource(layer.id)) {
         map.removeSource(layer.id);
@@ -677,13 +684,16 @@ function addImages(map: mapboxgl.Map, spriteurl: string) {
             context.drawImage(img, x, y, width, height, 0, 0, width, height);
             let base64Url = canvas.toDataURL("image/png");
 
-            map.loadImage(base64Url).then(simg => {
-              if (simg && !map.hasImage(key)) {
-                map.addImage(key, simg.data);
-              }
-            }).catch(error => {
-              console.error(`Failed to load image ${key}:`, error);
-            });
+            map
+              .loadImage(base64Url)
+              .then((simg) => {
+                if (simg && !map.hasImage(key)) {
+                  map.addImage(key, simg.data);
+                }
+              })
+              .catch((error) => {
+                console.error(`Failed to load image ${key}:`, error);
+              });
           }
         }
         img.crossOrigin = "anonymous";

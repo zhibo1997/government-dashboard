@@ -2,13 +2,13 @@
   <div class="data-module water-quality-module">
     <div class="module-header">
       <div class="module-title">供水水质</div>
-      <n-date-picker
+      <!-- <n-date-picker
         v-model:value="waterQualityDate"
         type="month"
         clearable
         class="custom-date-picker"
         :format="'yyyy年MM月'"
-      />
+      /> -->
     </div>
     <div class="module-content">
       <div class="quality-content">
@@ -76,9 +76,9 @@ onMounted(async () => {
   nextTick(() => {
     waterPlants.value = res.map((item) => {
       const jcz = parse(item.jcz);
-      const parameter = [];
+      const parameters = [];
       for (let key in jcz) {
-        parameter.push({
+        parameters.push({
           id: key,
           name: szMap.value[key],
           value: jcz[key]?.jcz,
@@ -91,6 +91,7 @@ onMounted(async () => {
         parameters,
       };
     });
+    console.log("🚀 ~ waterPlants.value:", waterPlants.value);
   });
 });
 
@@ -164,10 +165,11 @@ const waterPlants = ref();
   justify-content: space-between;
   height: 100%;
   width: 100%;
+  overflow-y: auto;
 
   .quality-item-title {
     background-image: url("@/assets/img/waterSupply/quality_title.png");
-    width: 220px;
+    width: auto;
     height: 51px;
     background-size: 100% 100%;
     font-family: SourceHanSansSC, SourceHanSansSC;

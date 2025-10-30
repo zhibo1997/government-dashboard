@@ -14,7 +14,7 @@
   },
   "dependencies": {
     "@ant-design/icons-vue": "^7.0.1",
-    "@cgcs2000/mapbox-gl": "1.13.1",
+    "@cgcs2000/mapbox-gl": "^2.3.0",
     "@deck.gl/geo-layers": "^9.2.2",
     "@deck.gl/mapbox": "^9.2.2",
     "@loaders.gl/3d-tiles": "^4.3.4",

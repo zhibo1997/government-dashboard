@@ -23,7 +23,7 @@
         <div class="devices-section">
           <div
             class="device-item"
-            v-for="device in monitoringData.monitoring.devices"
+            v-for="device in monitoringData"
             :key="device.name"
           >
             <div class="device-count">
@@ -46,13 +46,47 @@
 </template>
 
 <script setup>
-import { getDeviceStatusRate } from "@/services/waterSupplyService";
-import { onMounted, ref } from "vue";
+import { getDataItemDetails } from "@/services/commonService";
+import {
+  getDeviceStatusRate,
+  getDeviceTypeStatusCount,
+} from "@/services/waterSupplyService";
+import { nextTick, onMounted, ref } from "vue";
+
+const csblxMap = ref({});
+const devicesData = ref([]);
+const monitoringData = ref([]);
 // 初始化监控设备数据
 const initMonitoringData = async () => {
+  const dictionaries = await getDataItemDetails("jcsblx_gs");
+  console.log("🚀 ~ initMonitoringData ~ dictionaries:", dictionaries)
+  csblxMap.value = dictionaries.reduce((acc, cur) => {
+    acc[cur.f_ItemValue] = cur.f_ItemName;
+    return acc;
+  }, {});
+  console.log("🚀 ~ initMonitoringData ~ csblxMap.value:", csblxMap.value)
+
   const res = await getDeviceTypeStatusCount();
-  console.log("🚀 ~ initMonitoringData ~ res:", res);
+  nextTick(() => {
+    monitoringData.value = res.map((item) => {
+      return {
+        name: csblxMap.value[item.deviceType],
+        offline:
+          item.statusCounts.find((sbyxzt) => sbyxzt.status === "sbyxzt002")
+            ?.count || "-",
+        fault:
+          item.statusCounts.find((sbyxzt) => sbyxzt.status === "sbyxzt003")
+            ?.count || "-",
+        online:
+          item.statusCounts.find((sbyxzt) => sbyxzt.status === "sbyxzt001")
+            ?.count || "-",
+      };
+    });
+  });
+
+  // console.log("🚀 ~ initMonitoringData ~ res:", res);
 };
+
 const rateMap = {
   在线率: "online",
   故障率: "fault",
@@ -60,79 +94,19 @@ const rateMap = {
 };
 const monitoringRate = ref([]);
 // 获取设备运行状态
-const getDeviceTypeStatusCount = async () => {
+const getDeviceTypeRate = async () => {
   const res = await getDeviceStatusRate();
   res.forEach((item) => {
-    item['type'] = rateMap[item.name];
+    item["type"] = rateMap[item.name];
   });
   monitoringRate.value = res;
 };
 
 onMounted(() => {
   initMonitoringData();
-  getDeviceTypeStatusCount();
+  getDeviceTypeRate();
 });
 
-const monitoringData = {
-  monitoring: {
-    devices: [
-      {
-        name: "流量计",
-        online: 25,
-        offline: 1,
-        fault: 0,
-      },
-      {
-        name: "消火栓智能监测仪",
-        online: 25,
-        offline: 1,
-        fault: 0,
-      },
-      {
-        name: "压力计",
-        online: 25,
-        offline: 1,
-        fault: 0,
-      },
-      {
-        name: "应力检测仪",
-        online: 25,
-        offline: 1,
-        fault: 0,
-      },
-      {
-        name: "漏水监测仪",
-        online: 25,
-        offline: 1,
-        fault: 0,
-      },
-      {
-        name: "水质检测设备",
-        online: 25,
-        offline: 1,
-        fault: 0,
-      },
-      {
-        name: "河道水位计",
-        online: 25,
-        offline: 1,
-        fault: 0,
-      },
-      {
-        name: "温度计",
-        online: 25,
-        offline: 1,
-        fault: 0,
-      },
-      {
-        name: "液位计",
-        online: 25,
-        offline: 1,
-        fault: 0,
-      },
-    ],
-  },
-};
 </script>
 
 <style lang="scss" scoped>
@@ -215,6 +189,7 @@ const monitoringData = {
     grid-template-columns: repeat(3, 1fr);
     gap: 0px 50px;
     flex: 1;
+    overflow-y: auto;
 
     .device-item {
       display: flex;
@@ -241,6 +216,7 @@ const monitoringData = {
           line-height: 42px;
           text-align: center;
           font-style: normal;
+          margin-right: 6px;
         }
 
         .count-online {

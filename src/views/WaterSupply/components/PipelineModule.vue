@@ -58,7 +58,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from "vue";
+import { ref, onMounted, nextTick } from "vue";
 import { officialWebsiteOption } from "./ehcartsOptions";
 import * as echarts from "echarts";
 import {
@@ -85,31 +85,40 @@ const DANGER_BALL_CONFIG = {
 
 const dangerCount = ref(0);
 
-const pipelineLegend = ref([
-  {
-    color: "#00bfff",
-    name: "PE",
-    value: "38%",
-  },
-  {
-    color: "#ff4500",
-    name: "球墨铸铁",
-    value: "40%",
-  },
-  {
-    color: "#ffff00",
-    name: "PE",
-    value: "10%",
-  },
-  {
-    color: "#66cc66",
-    name: "球墨铸铁",
-    value: "12%",
-  },
-]);
+const pipelineLegend = ref();
 
+const colors = ["#00bfff", "#ff4500", "#ffff00", "#66cc66"];
+
+const gwczMap = ref({});
 const initMaterialList = async () => {
+  const dictionaries = await getDataItemDetails("gwcz");
+  gwczMap.value = dictionaries.reduce((acc, cur) => {
+    acc[cur.f_ItemValue] = cur.f_ItemName;
+    return acc;
+  }, {});
   const res = await getWaterSupplyMaterialRatio();
+  nextTick(() => {
+    const gwczData = res.map((item, idx) => ({
+      name: gwczMap.value[item.materialType],
+      id: item.materialType,
+      value: item.count,
+      radio: item.ratio,
+      color: colors[idx],
+    }));
+    pipelineLegend.value = gwczData;
+    officialWebsiteOption.series[0].data = gwczData.map((gwcz, idx) => ({
+      ...gwcz,
+      itemStyle: {
+        color: gwcz.color,
+      },
+    }));
+    const chartDom = document.getElementById("pipeline-chart");
+
+    if (chartDom) {
+      const pipelineChart = echarts.init(chartDom);
+      pipelineChart.setOption(officialWebsiteOption);
+    }
+  });
 };
 
 // 隐患小球数据
@@ -219,13 +228,7 @@ onMounted(async () => {
   initMaterialList();
 });
 
-const initChart = () => {
-  const chartDom = document.getElementById("pipeline-chart");
-  if (chartDom) {
-    const pipelineChart = echarts.init(chartDom);
-    pipelineChart.setOption(officialWebsiteOption);
-  }
-};
+const initChart = () => {};
 </script>
 
 <style lang="scss" scoped>

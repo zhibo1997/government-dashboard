@@ -46,7 +46,7 @@ export async function getDeviceTypeStatusCount() {
 export async function getLatestWaterQuality() {
   const res =
     await waterApi.gspspDtransPubmnteqpinfo.latestWaterQualityDataList();
-  return res.data||[];
+  return res.data || [];
 }
 
 /**
@@ -86,7 +86,7 @@ export async function getWarnStatistics(year?: string) {
   const res = await waterApi.gspspDtransPubmnteawarn.warnStatisticsList({
     Year: currentYear,
   });
-  return res?.data||[];
+  return res?.data || [];
 }
 
 /**
@@ -99,7 +99,7 @@ export async function getMonthlyWarnStatistics(year?: string) {
   const res = await waterApi.gspspDtransPubmnteawarn.monthlyWarnStatisticsList({
     Year: currentYear,
   });
-  return res.data||[];
+  return res.data || [];
 }
 
 /**
@@ -112,7 +112,7 @@ export async function getCheckResultStatistics(year?: string) {
   const res = await waterApi.gspspDtransPubmnteawarn.checkResultStatisticsList({
     Year: currentYear,
   });
-  return res;
+  return res?.data || [];
 }
 
 /**
@@ -122,5 +122,5 @@ export async function getCheckResultStatistics(year?: string) {
 export async function getWaterSupplyMaterialRatio() {
   const res =
     await waterApi.gspspDtransPubunderpipeline.waterSupplyMaterialRatioList();
-  return res;
+  return res?.data || [];
 }

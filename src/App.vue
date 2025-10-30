@@ -1,16 +1,16 @@
-
 <template>
-  <n-message-provider>
+  <n-config-provider :locale="zhCN" :date-locale="dateZhCN">
     <div id="app">
       <router-view />
     </div>
-  </n-message-provider>
+  </n-config-provider>
 </template>
 
 <script setup>
+import { zhCN, dateZhCN } from "naive-ui";
+import { NConfigProvider } from "naive-ui";
 // App.vue 现在只负责路由视图的渲染
 </script>
-
 
 <style>
 /* 全局样式重置 */
@@ -20,9 +20,12 @@
   box-sizing: border-box;
 }
 
-html, body {
+html,
+body {
   height: 100%;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  font-family:
+    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue",
+    Arial, sans-serif;
 }
 
 #app {

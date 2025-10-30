@@ -2,6 +2,16 @@
   <div class="data-module early-warning-module">
     <div class="module-header">
       <div class="module-title">预警处置</div>
+      <n-date-picker
+        v-model:value="warningDate"
+        type="year"
+        clearable
+        :to="false"
+        class="custom-date-picker"
+        :format="'yyyy年'"
+        :actions="null"
+        @update:value="onChangeWarningDate"
+      />
     </div>
     <div class="module-content warning-content">
       <div class="warning-list">
@@ -72,7 +82,7 @@
 </template>
 
 <script setup>
-import { nextTick, onMounted, ref } from "vue";
+import { nextTick, onMounted, ref, watch } from "vue";
 import * as echarts from "echarts";
 import { handledOption } from "./ehcartsOptions";
 import {
@@ -80,76 +90,168 @@ import {
   getWarnStatistics,
   getCheckResultStatistics,
 } from "@/services/waterSupplyService";
+import { getDataItemDetails } from "@/services/commonService";
 
+// 预警处置时间
+const warningDate = ref(new Date().getFullYear());
+
+// 响应式数据
 const handledSummaryData = ref(null);
-// 获取处置率数据
-onMounted(async () => {
-  const summary = await getWarnStatistics("2025");
-  summary["disposalRate"] =
-    Math.round((summary["handledCount"] / summary["totalCount"]) * 100) + "%";
-
-  handledSummaryData.value = summary;
-});
+const yjlxMap = ref({});
+const warningData = ref([]);
 const monthlyData = ref([]);
-// 获取处置统计数据
+let handledEchart = null;
+
+// 初始化图表
+const initChart = () => {
+  const chartDom = document.getElementById("handled-chart");
+  if (chartDom) {
+    handledEchart = echarts.init(chartDom);
+    handledEchart.setOption(handledOption, true);
+  }
+};
+
+// 更新图表数据
+const updateChart = (data) => {
+  if (!handledEchart || !data) return;
+  
+  handledOption.xAxis.data = data.map((item) => item.month);
+  handledOption.series[0].data = data.map((d) => d.unhandledCount);
+  handledOption.series[1].data = data.map((d) => d.handledCount);
+  handledOption.series[2].data = data.map((d) =>
+    ((d.handledCount / (d.unhandledCount + d.handledCount)) * 100).toFixed(2)
+  );
+  
+  handledEchart.setOption(handledOption, true);
+};
+
+// 获取所有数据
+const fetchAllData = async (year) => {
+  try {
+    // 获取预警统计数据
+    const [checkResultData, warnStatisticsData, monthlyWarnData] = await Promise.all([
+      getCheckResultStatistics(year),
+      getWarnStatistics(year),
+      getMonthlyWarnStatistics(year)
+    ]);
+    
+    // 处理预警统计数据
+    warningData.value = checkResultData.map((item) => ({
+      name: yjlxMap.value[item.checkResult],
+      count: item.count,
+    }));
+    
+    // 处理处置率数据
+    const summary = { ...warnStatisticsData };
+    summary.disposalRate = warnStatisticsData.totalCount > 0 
+      ? Math.round((warnStatisticsData.handledCount / warnStatisticsData.totalCount) * 100) + "%" 
+      : "0%";
+    handledSummaryData.value = summary;
+    
+    // 处理月度统计数据
+    monthlyData.value = monthlyWarnData;
+    updateChart(monthlyWarnData);
+  } catch (error) {
+    console.error("获取预警处置数据失败:", error);
+  }
+};
+
+// 日期更改处理方法
+const onChangeWarningDate = (value) => {
+  if (!value) return;
+  const year = new Date(value).getFullYear().toString();
+  fetchAllData(year);
+};
+
+// 初始化字典数据
+const initDictionary = async () => {
+  try {
+    const dictionaries = await getDataItemDetails("yjlx_gs");
+    yjlxMap.value = dictionaries.reduce((acc, cur) => {
+      acc[cur.f_ItemValue] = cur.f_ItemName;
+      return acc;
+    }, {});
+  } catch (error) {
+    console.error("获取预警类型字典失败:", error);
+  }
+};
+
+// 组件挂载后初始化
 onMounted(async () => {
-  const res = await getMonthlyWarnStatistics("2025");
-  console.log("🚀 ~ res:", res)
-  monthlyData.value=res;
+  await initDictionary();
+  initChart();
+  const currentYear = new Date().getFullYear().toString();
+  await fetchAllData(currentYear);
+});
+
+// 监听monthlyData变化，更新图表
+watch(monthlyData, (newData) => {
   nextTick(() => {
-    const handledEchart = echarts.init(
-      document.getElementById("handled-chart")
-    );
-    handledOption.xAxis.data = res.map(
-      (item) => item.month
-    );
-    handledOption.series[0].data = res.map((d) => d.unhandledCount);
-    handledOption.series[1].data = res.map((d) => d.handledCount);
-    handledOption.series[2].data = res.map((d) =>
-      ((d.handledCount / (d.unhandledCount + d.handledCount)) * 100).toFixed(2)
-    );
-    handledEchart.setOption(handledOption);
+    updateChart(newData);
   });
 });
-
-// 获取处置结果数据
-onMounted(async () => {
-  const result = await getCheckResultStatistics("2025");
-  console.log("🚀 ~ result:", result);
-  // handledData.value = result;
-});
-
-const warningData = [
-  {
-    name: "管网爆管预警",
-    count: 2,
-  },
-  {
-    name: "消火栓失效预警",
-    count: 23,
-  },
-  {
-    name: "管网泄露预警",
-    count: 5,
-  },
-  {
-    name: "水质污染预警",
-    count: 0,
-  },
-  {
-    name: "大面积停水预警",
-    count: 13,
-  },
-  {
-    name: "管网异常工况预警",
-    count: 1,
-  },
-];
-
-onMounted(() => {});
 </script>
 
 <style lang="scss" scoped>
+.module-header {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+}
+:deep(.custom-date-picker) {
+  margin-right: 30px;
+  .n-input {
+    width: 220px;
+    background-color: #094358;
+    border: 2px solid #11a7e2;
+    border-radius: 8px;
+    height: 56px;
+    font-family: SourceHanSansSC, SourceHanSansSC;
+    font-size: 28px;
+    color: #ffffff;
+    padding: 6px 20px;
+
+    &:hover {
+      border-color: rgba(22, 119, 255, 0.8);
+    }
+
+    &:focus-within {
+      border-color: #1677ff;
+      box-shadow: 0 0 0 2px rgba(22, 119, 255, 0.2);
+    }
+
+    .n-input__input-el {
+      color: #ffffff;
+      font-size: 28px;
+      caret-color: #1677ff;
+    }
+
+    .n-input__placeholder {
+      color: rgba(255, 255, 255, 0.4);
+    }
+
+    .n-input__suffix,
+    .n-input__prefix {
+      .n-base-icon {
+        color: rgba(255, 255, 255, 0.6);
+        font-size: 24px;
+      }
+    }
+
+    .n-input__state-border {
+      border: none;
+    }
+  }
+
+  .n-base-clear {
+    color: rgba(255, 255, 255, 0.6);
+
+    &:hover {
+      color: #ff4d4f;
+    }
+  }
+}
 .warning-list {
   display: flex;
   flex-direction: row;
