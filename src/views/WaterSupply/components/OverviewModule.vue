@@ -100,7 +100,7 @@ onMounted(async () => {
     display: flex;
     flex-wrap: wrap;
     justify-content: space-between;
-    gap: 40px;
+    gap: 15px;
     padding: 0 10px;
   }
 
@@ -139,9 +139,9 @@ onMounted(async () => {
       height: 81.5px;
       background-image: url("@/assets/img/waterSupply/overflow_item_bg.png");
       background-size: 100% 100%;
-      padding: 0 40px;
+      padding: 0 20px;
       display: flex;
-      justify-content: space-between;
+      justify-content: space-around;
       align-items: baseline;
 
       .value {

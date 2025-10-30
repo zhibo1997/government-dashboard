@@ -1,6 +1,8 @@
 import { createRouter, createWebHashHistory } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
 import LoginView from '../views/LoginView.vue'
+import NewDashboardView from '../views/NewDashboardView.vue'
+import WaterSupplyView from '../views/WaterSupply/index.vue'
 
 // 路由配置
 const routes = [
@@ -16,19 +18,42 @@ const routes = [
   {
     path: '/',
     name: 'dashboard',
-    component: () => import('../views/NewDashboardView.vue'),
-    meta: {
-      requiresAuth: true,
-      title: '安全综合检测预警平台'
-    }
+    redirect: '/waterProject' // 默认路由重定向到供水专项
   },
   {
     path: '/waterProject',
     name: 'waterProject',
-    component: () => import('../views/WaterSupply/index.vue'),
+    component: WaterSupplyView,
     meta: {
       requiresAuth: true,
       title: '供水专项'
+    }
+  },
+  {
+    path: '/gas',
+    name: 'gas',
+    component: NewDashboardView,
+    meta: {
+      requiresAuth: true,
+      title: '燃气专项'
+    }
+  },
+  {
+    path: '/bridge',
+    name: 'bridge',
+    component: NewDashboardView,
+    meta: {
+      requiresAuth: true,
+      title: '桥梁专项'
+    }
+  },
+  {
+    path: '/drainage',
+    name: 'drainage',
+    component: NewDashboardView,
+    meta: {
+      requiresAuth: true,
+      title: '排水专项'
     }
   },
   {
@@ -43,7 +68,7 @@ const routes = [
   {
     path: '/:pathMatch(.*)*',
     name: 'NotFound',
-    redirect: '/'
+    redirect: '/waterProject' // 404页面也重定向到供水专项
   }
 ]
 
@@ -81,7 +106,7 @@ router.beforeEach(async (to, from, next) => {
     if (to.name === 'Login' && authStore.isLoggedIn) {
       const isValidToken = await authStore.validateToken()
       if (isValidToken) {
-        next({ name: 'dashboard' })
+        next({ name: 'waterProject' }) // 登录后重定向到供水专项
         return
       } else {
         authStore.logout()

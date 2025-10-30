@@ -93,7 +93,7 @@ import {
 import { getDataItemDetails } from "@/services/commonService";
 
 // 预警处置时间
-const warningDate = ref(new Date().getFullYear());
+const warningDate = ref('2025');
 
 // 响应式数据
 const handledSummaryData = ref(null);

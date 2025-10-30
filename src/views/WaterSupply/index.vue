@@ -2,45 +2,9 @@
   <div class="water-supply-special-container">
     <ResponsiveWrapper :base-width="4096" :base-height="1920">
       <!-- 头部区域 -->
-      <div class="header">
-        <div class="left-tabs tabs">
-          <TimeDisplay />
-          <div class="tabs-content">
-            <div class="left-tab-item tab-item" :class="{ active: activeTab === '燃气专项' }"
-              @click="handleTabClick('燃气专项')">
-              <span>燃气专项</span>
-            </div>
-            <div class="left-tab-item tab-item" :class="{ active: activeTab === '桥梁专项' }"
-              @click="handleTabClick('桥梁专项')">
-              <span>桥梁专项</span>
-            </div>
-          </div>
-        </div>
-        <div class="head-title" title="阳新县城市安全综合监测预警平台">
-          <img src="@/assets/images/title.png" alt="头部标题" class="head-title-img" />
-        </div>
-        <div class="right-tabs tabs">
-          <div class="tabs-content">
-            <div class="right-tab-item tab-item" :class="{ active: activeTab === '供水专项' }"
-              @click="handleTabClick('供水专项')">
-              <span>供水专项</span>
-            </div>
-            <div class="right-tab-item tab-item" :class="{ active: activeTab === '排水专项' }"
-              @click="handleTabClick('排水专项')">
-              <span>排水专项</span>
-            </div>
-          </div>
-          <!-- <span class="weather">多云 26°C</span> -->
-          <div class="control-box">
-            <a-button type="default" class="btn">
-              <img src="@/assets/img/setting_icon.png" alt="" />
-            </a-button>
-            <a-button type="default" class="btn" @click="handleLogout">
-              <img src="@/assets/img/logout_icon.png" alt="" />
-            </a-button>
-          </div>
-        </div>
-      </div>
+      <keep-alive>
+        <DashboardHeader />
+      </keep-alive>
 
       <!-- 主体容器 -->
       <div class="container">
@@ -49,9 +13,15 @@
 
         <!-- 中间地图区域 -->
         <div class="center-map">
-          <MapboxMapComponent />
+          <keep-alive>
+            <MapboxMapComponent />
+          </keep-alive>
           <!-- 图例 -->
-          <img class="map-legend" src="../assets/map-img/legend.png" alt="地图图例" />
+          <img
+            class="map-legend"
+            src="../assets/map-img/legend.png"
+            alt="地图图例"
+          />
         </div>
         <RightNav />
         <!-- 右侧数据展示区 -->
@@ -61,30 +31,13 @@
 </template>
 
 <script setup>
-import { ref } from "vue";
-import { LogoutOutlined } from "@ant-design/icons-vue";
 import ResponsiveWrapper from "@/components/ResponsiveWrapper.vue";
 import MapboxMapComponent from "@/mapComponents/MapboxMapComponent.vue";
-import TimeDisplay from "@/components/TimeDisplay.vue";
-import router from "@/router";
 // 引入左侧导航组件
 import LeftNav from "./components/leftContent.vue";
 import RightNav from "./components/rightContent.vue";
-
-// 当前选中的tab，默认为供水专项
-const activeTab = ref("供水专项");
-
-// 头部标签点击事件
-const handleTabClick = (tab) => {
-  activeTab.value = tab;
-  console.log("切换专项:", tab);
-};
-
-// 退出登录点击事件
-const handleLogout = () => {
-  localStorage.removeItem("token");
-  router.push("/login");
-};
+// 引入头部组件
+import DashboardHeader from "@/components/DashboardHeader.vue";
 </script>
 
 <style lang="scss" scoped>
@@ -93,134 +46,6 @@ const handleLogout = () => {
   height: 100vh;
   position: relative;
   background-size: cover;
-
-  // 头部样式 - 与NewDashboardView保持一致
-  .header {
-    display: flex;
-    flex-direction: row;
-    justify-content: space-between;
-    height: 201px;
-    width: 100%;
-    background-image: url("@/assets/img/top-bg.png");
-    background-size: 100% 201px;
-    z-index: 10;
-    position: relative;
-
-    .head-title {
-      height: 148px;
-      display: flex;
-      align-items: center;
-
-      >img {
-        margin-top: 18px;
-      }
-    }
-
-    .tabs {
-      display: flex;
-      flex-direction: row;
-      height: 148px;
-      justify-content: space-between;
-      padding-top: 28px;
-      width: 1254px;
-
-      .tabs-content {
-        display: flex;
-        flex-direction: row;
-      }
-    }
-
-    .left-tabs {
-      background-image: linear-gradient(to right, rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0));
-
-    }
-
-    .right-tabs {
-      background-image: linear-gradient(to left, rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0));
-
-    }
-
-    .tab-item {
-      width: 340px;
-      height: 90px;
-      text-align: center;
-      cursor: pointer;
-      margin: 0 8px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background-size: 400px 105px;
-      background-position: -30px -6px;
-
-      &.active {
-        span {
-          background: linear-gradient(0deg, #3FFEFD 0%, #FFF407 100%);
-        }
-      }
-
-      &.right-tab-item {
-        margin-left: -12px;
-        background-image: url("@/assets/img/right-btn.png");
-
-        &.active {
-          background-image: url("@/assets/img/right-selected-btn.png");
-        }
-      }
-
-      &.left-tab-item {
-        margin-right: -12px;
-        background-image: url("@/assets/img/left-btn.png");
-
-        &.active {
-          background-image: url("@/assets/img/left-selected-btn.png");
-        }
-      }
-
-      >span {
-        height: 62px;
-        font-family: YouSheBiaoTiHei;
-        font-size: 48px;
-        color: #ffffff;
-        line-height: 56px;
-        text-align: left;
-        font-style: normal;
-        background: linear-gradient(90deg, #FFFFFF 18%, #10ADC0 100%);
-        -webkit-background-clip: text !important;
-        background-clip: text !important;
-        /* 标准属性 */
-        -webkit-text-fill-color: transparent !important;
-        color: transparent !important;
-        /* 标准属性回退 */
-      }
-    }
-
-    .weather {
-      font-family: YEFONTAoYeHei;
-      font-size: 32px;
-      font-weight: normal;
-      color: #ffffff;
-    }
-
-    .control-box {
-      display: flex;
-      padding-top: 22px;
-      padding-right: 60px;
-
-      .btn {
-        width: 40px;
-        height: 40px;
-        cursor: pointer;
-        margin-left: 32px;
-        img{
-          width: 100%;
-          height: 100%;
-        }
-        &:hover{
-          opacity: 0.8;
-        }
-      }
-    }
-  }
 
   // 主体容器
   .container {
@@ -336,7 +161,6 @@ const handleLogout = () => {
     align-items: center;
     justify-content: center;
     border-radius: 8px;
-
   }
 }
 </style>
