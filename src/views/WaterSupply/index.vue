@@ -124,7 +124,7 @@ import DashboardHeader from "@/components/DashboardHeader.vue";
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
   transition: all 0.3s ease;
   background-size: 100% 100%;
-  background-image: url("@/assets/img/title-bg.png");
+  background-image: url("@/assets/img/title-bg.webp");
 
   &:hover {
     transform: translateY(-2px);

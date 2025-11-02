@@ -2,7 +2,7 @@
  * @Author: Do not edit
  * @Date: 2025-10-20 00:16:38
  * @LastEditors: 王志博
- * @LastEditTime: 2025-10-20 23:52:14
+ * @LastEditTime: 2025-10-30 23:13:16
  * @Description: 
 -->
 <template>
@@ -77,23 +77,23 @@ interface ModelOption {
 
 const modelOptions: ModelOption[] = [
   {
-    key: 'manhole',
-    name: '圆形井盖',
-    url: 'http://webres.cityfun.com.cn/CSSMX/model/YXJG/tileset.json',
-    description: '展示城市圆形井盖的3D模型数据',
-    iconClass: 'icon-circle'
-  },
-  {
     key: 'round-pipe',
     name: '圆形管线',
-    url: 'http://webres.cityfun.com.cn/CSSMX/model/YXGX/tileset.json',
+    url: 'public/tilese.json',
     description: '展示地下圆形管线的3D模型数据',
     iconClass: 'icon-pipe-circle'
   },
   {
+    key: 'manhole',
+    name: '圆形井盖',
+    url: 'public/tilese.json',
+    description: '展示城市圆形井盖的3D模型数据',
+    iconClass: 'icon-circle'
+  },
+  {
     key: 'square-pipe',
     name: '方形管线',
-    url: 'http://webres.cityfun.com.cn/CSSMX/model/FXGX/tileset.json',
+    url: 'public/tilese.json',
     description: '展示地下方形管线的3D模型数据',
     iconClass: 'icon-pipe-square'
   }
