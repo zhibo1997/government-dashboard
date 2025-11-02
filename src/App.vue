@@ -1,14 +1,23 @@
+<!--
+ * @Author: Do not edit
+ * @Date: 2025-10-30 20:50:05
+ * @LastEditors: 王志博
+ * @LastEditTime: 2025-10-30 22:40:25
+ * @Description: 
+-->
 <template>
   <n-config-provider :locale="zhCN" :date-locale="dateZhCN">
-    <div id="app">
-      <router-view />
-    </div>
+    <n-message-provider>
+      <div id="app">
+        <router-view />
+      </div>
+    </n-message-provider>
   </n-config-provider>
 </template>
 
 <script setup>
 import { zhCN, dateZhCN } from "naive-ui";
-import { NConfigProvider } from "naive-ui";
+import { NConfigProvider,NMessageProvider } from "naive-ui";
 // App.vue 现在只负责路由视图的渲染
 </script>
 

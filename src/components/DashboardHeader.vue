@@ -119,7 +119,7 @@ const handleLogout = () => {
   justify-content: space-between;
   height: 201px;
   width: 100%;
-  background-image: url("@/assets/img/top-bg.png");
+  background-image: url("@/assets/img/top-bg.webp");
   background-size: 100% 201px;
   z-index: 10;
   position: relative;

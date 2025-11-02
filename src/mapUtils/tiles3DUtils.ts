@@ -8,7 +8,7 @@ import { MapboxOverlay as DeckOverlay } from "@deck.gl/mapbox";
 import { Tile3DLayer } from "@deck.gl/geo-layers";
 import { Tiles3DLoader } from "@loaders.gl/3d-tiles";
 import { Matrix4, Vector3 } from "@math.gl/core";
-
+import { COORDINATE_SYSTEM } from '@deck.gl/core';
 /**
  * 3D Tiles 图层配置选项
  */

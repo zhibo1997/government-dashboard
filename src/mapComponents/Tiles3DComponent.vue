@@ -2,7 +2,7 @@
  * @Author: Do not edit
  * @Date: 2025-10-20 00:16:12
  * @LastEditors: 王志博
- * @LastEditTime: 2025-10-20 23:53:25
+ * @LastEditTime: 2025-10-30 23:14:17
  * @Description: 
 -->
 <template>
@@ -75,7 +75,7 @@ interface Props {
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  tilesetUrl: 'http://webres.cityfun.com.cn/CSSMX/model/YXJG/tileset.json',
+  tilesetUrl: 'public/tilese.json',
   autoLoad: true,
 });
 

@@ -1,73 +1,397 @@
 {
     "asset": {
         "generatetool": "cesiumlab3@www.cesiumlab.com/model2tiles",
-        "version": "1.1"
+        "version": "1.0"
     },
     "extras": {
         "scenetree": "scenetree.json"
     },
-    "geometricError": 5279.520407226868,
-    "properties": null,
+    "geometricError": 5172.272864849307,
+    "properties": {
+        "DLMC": {
+            "extras": {
+                "group": "",
+                "id": "8d6c0c743bc8bf27166ef22ed60b798d",
+                "name": "DLMC",
+                "type": "string",
+                "unittype": ""
+            },
+            "maximum": -2147483647,
+            "minimum": 2147483647
+        },
+        "GXDJJ": {
+            "extras": {
+                "group": "",
+                "id": "d165b100703156eeb909875d08899d0e",
+                "name": "GXDJJ",
+                "type": "float",
+                "unittype": ""
+            },
+            "maximum": -2147483647,
+            "minimum": 2147483647
+        },
+        "GXQDH": {
+            "extras": {
+                "group": "",
+                "id": "4070a20b12aa9e0e89ab31a2266d1807",
+                "name": "GXQDH",
+                "type": "string",
+                "unittype": ""
+            },
+            "maximum": -2147483647,
+            "minimum": 2147483647
+        },
+        "GXZDH": {
+            "extras": {
+                "group": "",
+                "id": "aef393edb1f1b60dd81f179e1627328e",
+                "name": "GXZDH",
+                "type": "string",
+                "unittype": ""
+            },
+            "maximum": -2147483647,
+            "minimum": 2147483647
+        },
+        "MSFS": {
+            "extras": {
+                "group": "",
+                "id": "1e1f2a555a6194d9b9e49d354eb673ae",
+                "name": "MSFS",
+                "type": "string",
+                "unittype": ""
+            },
+            "maximum": -2147483647,
+            "minimum": 2147483647
+        },
+        "PMCD": {
+            "extras": {
+                "group": "",
+                "id": "88df0941094b617de784816b7ebc21ff",
+                "name": "PMCD",
+                "type": "float",
+                "unittype": ""
+            },
+            "maximum": -2147483647,
+            "minimum": 2147483647
+        },
+        "QDDGC": {
+            "extras": {
+                "group": "",
+                "id": "b90597a8a7ff2efec0fb3bdaac8d16e5",
+                "name": "QDDGC",
+                "type": "float",
+                "unittype": ""
+            },
+            "maximum": -2147483647,
+            "minimum": 2147483647
+        },
+        "QDMS": {
+            "extras": {
+                "group": "",
+                "id": "3861d5d275397ab780afde8b3e893dc0",
+                "name": "QDMS",
+                "type": "float",
+                "unittype": ""
+            },
+            "maximum": -2147483647,
+            "minimum": 2147483647
+        },
+        "YLLX": {
+            "extras": {
+                "group": "",
+                "id": "2d5c46d6484fd9ea015df5e5208f8451",
+                "name": "YLLX",
+                "type": "string",
+                "unittype": ""
+            },
+            "maximum": -2147483647,
+            "minimum": 2147483647
+        },
+        "ZDDGC": {
+            "extras": {
+                "group": "",
+                "id": "37bd7bf5f074637ee809ab02cf33d569",
+                "name": "ZDDGC",
+                "type": "float",
+                "unittype": ""
+            },
+            "maximum": -2147483647,
+            "minimum": 2147483647
+        },
+        "ZDMS": {
+            "extras": {
+                "group": "",
+                "id": "2a3c74b5d3e4498b6b4778412a7dce5e",
+                "name": "ZDMS",
+                "type": "float",
+                "unittype": ""
+            },
+            "maximum": -2147483647,
+            "minimum": 2147483647
+        },
+        "ZYZJ-AN": {
+            "extras": {
+                "group": "",
+                "id": "ae25bdbd1d8e19a88495bba28f25216b",
+                "name": "ZYZJ-AN",
+                "type": "float",
+                "unittype": ""
+            },
+            "maximum": -2147483647,
+            "minimum": 2147483647
+        },
+        "ZYZJNR": {
+            "extras": {
+                "group": "",
+                "id": "def63e35beb25ab43b6b7fe0f1a0996d",
+                "name": "ZYZJNR",
+                "type": "string",
+                "unittype": ""
+            },
+            "maximum": -2147483647,
+            "minimum": 2147483647
+        },
+        "ZYZJZB-X": {
+            "extras": {
+                "group": "",
+                "id": "7fc18a2ddcd890ed63e9c1445575db1e",
+                "name": "ZYZJZB-X",
+                "type": "double",
+                "unittype": ""
+            },
+            "maximum": -2147483647,
+            "minimum": 2147483647
+        },
+        "ZYZJZB-Y": {
+            "extras": {
+                "group": "",
+                "id": "6620a3a74aba733ce2a2e5d00df2dc37",
+                "name": "ZYZJZB-Y",
+                "type": "double",
+                "unittype": ""
+            },
+            "maximum": -2147483647,
+            "minimum": 2147483647
+        },
+        "坡度": {
+            "extras": {
+                "group": "",
+                "id": "09d1cd18963686a83ae068a7fd18d781",
+                "name": "坡度",
+                "type": "float",
+                "unittype": ""
+            },
+            "maximum": -2147483647,
+            "minimum": 2147483647
+        },
+        "材质": {
+            "extras": {
+                "group": "",
+                "id": "562baced5c5b7c2bab08d20abcb18019",
+                "name": "材质",
+                "type": "string",
+                "unittype": ""
+            },
+            "maximum": -2147483647,
+            "minimum": 2147483647
+        },
+        "流向码": {
+            "extras": {
+                "group": "",
+                "id": "e607fff553b2425a5577f51fb9418d21",
+                "name": "流向码",
+                "type": "int32_t",
+                "unittype": ""
+            },
+            "maximum": -2147483647,
+            "minimum": 2147483647
+        },
+        "管径": {
+            "extras": {
+                "group": "",
+                "id": "7f490a3ceeaea36e69cdd15798461b65",
+                "name": "管径",
+                "type": "int32_t",
+                "unittype": ""
+            },
+            "maximum": -2147483647,
+            "minimum": 2147483647
+        },
+        "线型": {
+            "extras": {
+                "group": "",
+                "id": "3cfef9c8dad6604a07b360efc0b60976",
+                "name": "线型",
+                "type": "string",
+                "unittype": ""
+            },
+            "maximum": -2147483647,
+            "minimum": 2147483647
+        },
+        "线类型": {
+            "extras": {
+                "group": "",
+                "id": "ef46b912585fd2d4a09ce7347a587456",
+                "name": "线类型",
+                "type": "string",
+                "unittype": ""
+            },
+            "maximum": -2147483647,
+            "minimum": 2147483647
+        }
+    },
     "refine": "REPLACE",
     "root": {
         "boundingVolume": {
             "box": [
                 0,
-                0.19344280799850821,
-                30.32431176258251,
-                2102.4217631309293,
+                0.23971610376611352,
+                34.26025358820334,
+                2586.1364324246533,
                 0,
                 0,
                 0,
-                2639.760203613434,
+                2535.2378975488245,
                 0,
                 0,
                 0,
-                20.264298163820058
+                19.04023454664275
             ]
         },
         "children": [
             {
                 "boundingVolume": {
                     "box": [
-                        0.16501668374985456,
-                        0.06854646955616772,
-                        30.385743675753474,
-                        2101.9949379242025,
+                        -549.2594911830965,
+                        -549.6798071810044,
+                        33.89320320915431,
+                        2023.2181082216557,
                         0,
                         0,
                         0,
-                        2639.6353072749916,
+                        1865.906488432549,
                         0,
                         0,
                         0,
-                        20.202866250649095
+                        17.06591074820608
                     ]
                 },
                 "content": {
-                    "uri": "NoLod_0.glb"
+                    "uri": "https://webres.cityfun.com.cn/CSSMX/model/YXJG/NoLod_0.glb"
+                },
+                "geometricError": 0,
+                "refine": "REPLACE"
+            },
+            {
+                "boundingVolume": {
+                    "box": [
+                        -1292.3481187636498,
+                        -114.59993224358186,
+                        36.00525720603764,
+                        1292.9596228159498,
+                        0,
+                        0,
+                        0,
+                        1409.318062145263,
+                        0,
+                        0,
+                        0,
+                        17.29523092880845
+                    ]
+                },
+                "content": {
+                    "uri": "https://webres.cityfun.com.cn/CSSMX/model/YXJG/NoLod_1.glb"
+                },
+                "geometricError": 0,
+                "refine": "REPLACE"
+            },
+            {
+                "boundingVolume": {
+                    "box": [
+                        0.27151150326244533,
+                        0.08562138210982084,
+                        36.83134492766112,
+                        2585.3199173428584,
+                        0,
+                        0,
+                        0,
+                        2534.827295422554,
+                        0,
+                        0,
+                        0,
+                        16.46914320718497
+                    ]
+                },
+                "content": {
+                    "uri": "https://webres.cityfun.com.cn/CSSMX/model/YXJG/NoLod_2.glb"
+                },
+                "geometricError": 0,
+                "refine": "REPLACE"
+            },
+            {
+                "boundingVolume": {
+                    "box": [
+                        355.18513745232485,
+                        317.09970667329617,
+                        30.360506686381996,
+                        647.4767467693891,
+                        0,
+                        0,
+                        0,
+                        2218.07068770309,
+                        0,
+                        0,
+                        0,
+                        11.086420220322907
+                    ]
+                },
+                "content": {
+                    "uri": "https://webres.cityfun.com.cn/CSSMX/model/YXJG/NoLod_3.glb"
+                },
+                "geometricError": 0,
+                "refine": "REPLACE"
+            },
+            {
+                "boundingVolume": {
+                    "box": [
+                        1299.6299330068287,
+                        -1953.6894477091264,
+                        26.19641629839316,
+                        1286.221268052468,
+                        0,
+                        0,
+                        0,
+                        581.308733735932,
+                        0,
+                        0,
+                        0,
+                        10.711652243044227
+                    ]
+                },
+                "content": {
+                    "uri": "https://webres.cityfun.com.cn/CSSMX/model/YXJG/NoLod_4.glb"
                 },
                 "geometricError": 0,
                 "refine": "REPLACE"
             }
         ],
-        "geometricError": 5279.520407226868,
+        "geometricError": 5172.272864849307,
         "transform": [
-            -0.9047974365183328,
-            -0.4258422229768365,
+            -0.9048154132161751,
+            -0.42580402535255857,
             0,
             0,
-            0.2119872554455089,
-            -0.4504145313746557,
-            0.8672878146585653,
+            0.2119704323471302,
+            -0.450428138097045,
+            0.8672848599053256,
             0,
-            -0.3693277709549259,
-            0.7847197914266567,
-            0.49780703746006855,
+            -0.3692933844750174,
+            0.7847327088913697,
+            0.4978121852456004,
             0,
-            -2357578.781144948,
-            5009205.575385124,
-            3156444.6182604753,
+            -2357359.2679514694,
+            5009288.01310514,
+            3156477.2461916786,
             1
         ]
     }

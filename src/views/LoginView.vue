@@ -2,10 +2,10 @@
   <ResponsiveWrapper :base-width="4096" :base-height="1920">
     <div class="login-container">
       <div class="login-bg">
-        <img src="@/assets/img/login/form_bg.png" alt="登录背景" />
+        <img src="@/assets/img/login/form_bg.webp" alt="登录背景" />
       </div>
       <div class="login-title">
-        <img src="@/assets/img/login/title.png" alt="登录标题" />
+        <img src="@/assets/img/login/title.webp" alt="登录标题" />
       </div>
       <div class="login-card">
         <n-form ref="formRef" :show-require-mark="false" label-placement="left" :model="formData" :rules="rules"
@@ -114,7 +114,7 @@ const handleLogin = async () => {
   flex-direction: column;
   justify-content: space-between;
   position: relative;
-  background-image: url("@/assets/img/login/backend_1.png");
+  background-image: url("@/assets/img/login/backend_1.webp");
   background-size: 100% 100%;
 
   // 背景图片容器
@@ -125,7 +125,7 @@ const handleLogin = async () => {
     left: 0;
     right: 0;
     bottom: 0;
-    background-image: url("@/assets/img/login/backend_2.png");
+    background-image: url("@/assets/img/login/backend_2.webp");
     background-size: 100% 100%;
     opacity: 0.7;
     background-position: center;
@@ -168,7 +168,7 @@ const handleLogin = async () => {
     height: 818px;
     position: relative;
 
-    background-image: url("@/assets/img/login/form.png");
+    background-image: url("@/assets/img/login/form.webp");
     background-size: contain;
     background-position: center;
     background-repeat: no-repeat;
@@ -190,7 +190,7 @@ const handleLogin = async () => {
 
       .form-item {
         margin-bottom: 50px;
-        background-image: url("@/assets/img/login/form_input.png");
+        background-image: url("@/assets/img/login/form_input.webp");
 
         width: 533px;
         height: 88px;
@@ -224,6 +224,15 @@ const handleLogin = async () => {
         color: #fff;
         width: 320px;
         font-size: 36px;
+        
+        // 添加这些样式来确保彻底移除Naive UI的默认边框
+        :deep(.n-input__border) {
+          display: none !important;
+        }
+        
+        :deep(.n-input__state-border) {
+          display: none !important;
+        }
       }
 
     }
@@ -233,7 +242,7 @@ const handleLogin = async () => {
       height: 76px;
       font-size: 36px;
       font-weight: 500;
-      background-image: url("../assets/img/login/button.png");
+      background-image: url("../assets/img/login/button.webp");
       background-size: 100% 100%;
       background-position: center;
       background-repeat: no-repeat;
