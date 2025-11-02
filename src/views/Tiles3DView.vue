@@ -57,7 +57,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, onMounted ,nextTick} from 'vue';
 import { useRouter } from 'vue-router';
 import { NButton, NRadioGroup, NRadioButton, useMessage } from 'naive-ui';
 import Tiles3DComponent from '@/mapComponents/Tiles3DComponent.vue';
@@ -79,21 +79,21 @@ const modelOptions: ModelOption[] = [
   {
     key: 'round-pipe',
     name: '圆形管线',
-    url: 'public/tilese.json',
+    url: 'https://webres.cityfun.com.cn/CSSMX/model/YXGX/tileset.json',
     description: '展示地下圆形管线的3D模型数据',
     iconClass: 'icon-pipe-circle'
   },
   {
     key: 'manhole',
     name: '圆形井盖',
-    url: 'public/tilese.json',
+    url: 'https://webres.cityfun.com.cn/CSSMX/model/YXJG/tileset.json',
     description: '展示城市圆形井盖的3D模型数据',
     iconClass: 'icon-circle'
   },
   {
     key: 'square-pipe',
     name: '方形管线',
-    url: 'public/tilese.json',
+    url: 'https://webres.cityfun.com.cn/CSSMX/model/FXGX/tileset.json',
     description: '展示地下方形管线的3D模型数据',
     iconClass: 'icon-pipe-square'
   }
@@ -116,11 +116,13 @@ const tilesetUrl = computed(() => currentModel.value.url);
 function handleModelSwitch() {
   console.log('切换模型:', currentModel.value.name);
   message.info(`正在加载${currentModel.value.name}...`);
-  
-  // 调用子组件的加载方法
-  if (tiles3DRef.value) {
-    tiles3DRef.value.load3DTiles();
-  }
+  nextTick(()=>{
+    // 调用子组件的加载方法
+    if (tiles3DRef.value) {
+      tiles3DRef.value.load3DTiles();
+    }
+
+  })
 }
 
 /**

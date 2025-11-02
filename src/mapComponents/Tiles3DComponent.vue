@@ -157,7 +157,6 @@ function load3DTiles() {
     loading.value = true;
     
     console.log('开始加载 3D Tiles:', props.tilesetUrl);
-    
     // 加载 3D Tiles 图层
     tiles3DUtils.load3DTiles(
       deckOverlay.value,
@@ -193,6 +192,12 @@ function load3DTiles() {
  */
 function handleVisibilityChange(visible: boolean) {
   if (!deckOverlay.value) return;
+  
+  // 检查图层是否存在，如果不存在但需要显示，则重新加载
+  if (visible && !tiles3DUtils.has3DTilesLayer(deckOverlay.value, TILES_3D_LAYER_ID)) {
+    load3DTiles();
+    return;
+  }
   
   tiles3DUtils.update3DTilesLayer(
     deckOverlay.value,

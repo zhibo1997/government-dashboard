@@ -238,81 +238,94 @@ export const tiles3DUtils = {
 
     const layers = deckOverlay._props?.layers || [];
     console.log(`🚀 开始加载 3D Tiles: ${url}`);
-
-    deckOverlay.setProps({
-      layers: [
-        ...layers,
-        new Tile3DLayer({
-          id,
-          name,
-          data: url,
-          loader: Tiles3DLoader,
-          extruded: true,
-          opacity,
-          pointSize,
-          pickable,
-          loadOptions: {
-            "3d-tiles": {
-              loadGLTF: true,
-              decodeQuantizedPositions: false,
-              isTileset: "auto",
-              assetGltfUpAxis: null,
-              maximumMemoryUsage,
+      deckOverlay.setProps({
+        layers: [
+          ...layers,
+          new Tile3DLayer({
+            id,
+            name,
+            data: url,
+            loader: Tiles3DLoader,
+            extruded: true,
+            opacity,
+            pointSize,
+            pickable,
+            loadOptions: {
+              "3d-tiles": {
+                loadGLTF: true,
+                decodeQuantizedPositions: false,
+                isTileset: "auto",
+                assetGltfUpAxis: null,
+                maximumMemoryUsage,
+              },
             },
-          },
-          // 点击事件
-          onClick: (info: any) => {
-            if (onClick && info.object) {
-              onClick(info);
-            }
-          },
-          // 加载错误处理
-          onTilesetError: (err: any) => {
-            console.error(`❌ 3D Tiles 加载错误 (${id}):`, err);
-            if (onTilesetError) {
-              onTilesetError(err);
-            }
-          },
-          // 加载成功处理
-          onTilesetLoad: (tileset: any) => {
-            console.log(`✅ 3D Tiles 加载成功 (${id})`);
-
-            // 智能提取模型中心坐标
-            const center = extractModelCenter(tileset);
-            console.log("🚀 ~ center:", center);
-
-            if (center) {
-              const [lng, lat, alt] = center;
-              const zoom = calculateOptimalZoom(alt);
-
-              // 平滑飞行到模型位置
-              this.flyToModel(map as any, {
-                center: [lng, lat],
-                zoom,
-                pitch: 60,
-                bearing: 0,
-                duration: 2000,
-              });
-
-              console.log(
-                `🎯 已定位到模型中心: [${lng.toFixed(6)}, ${lat.toFixed(6)}]\n` +
-                  `   高度: ${alt.toFixed(2)}m | 缩放级别: ${zoom}`
-              );
-            } else {
-              console.warn("⚠️ 无法自动定位，请手动调整视角");
-              if (process.env.NODE_ENV === "development") {
-                console.log("Tileset 结构:", JSON.stringify(tileset, null, 2));
+            // 点击事件
+            onClick: (info: any) => {
+              if (onClick && info.object) {
+                onClick(info);
               }
-            }
+              // 添加输出点击模型属性的功能
+              if (info.object) {
+                const { object, coordinate } = info;
+                // 3️⃣ 如果有坐标信息则输出
+                if (coordinate) {
+                  console.log("点击位置坐标:", coordinate);
+                }
 
-            // 执行用户回调
-            if (onTilesetLoad) {
-              onTilesetLoad(tileset);
-            }
-          },
-        }),
-      ],
-    });
+                // 4️⃣ 输出其他可用信息
+                console.log("完整点击信息:", info);
+              }
+            },
+            // 加载错误处理 - 使用正确的回调名称
+            onTilesetError: (err: any) => {
+              console.error(`❌ 3D Tiles 加载错误 (${id}):`, err);
+              if (onTilesetError) {
+                onTilesetError(err);
+              }
+            },
+            // 加载成功处理
+            onTilesetLoad: (tileset: any) => {
+              console.log(`✅ 3D Tiles 加载成功 (${id})`);
+
+              // 智能提取模型中心坐标
+              const center = extractModelCenter(tileset);
+              console.log("🚀 ~ center:", center);
+
+              if (center) {
+                const [lng, lat, alt] = center;
+                const zoom = calculateOptimalZoom(alt);
+
+                // 平滑飞行到模型位置
+                this.flyToModel(map as any, {
+                  center: [lng, lat],
+                  zoom,
+                  pitch: 60,
+                  bearing: 0,
+                  duration: 2000,
+                });
+
+                console.log(
+                  `🎯 已定位到模型中心: [${lng.toFixed(6)}, ${lat.toFixed(6)}]\n` +
+                    `   高度: ${alt.toFixed(2)}m | 缩放级别: ${zoom}`
+                );
+              } else {
+                console.warn("⚠️ 无法自动定位，请手动调整视角");
+                if (process.env.NODE_ENV === "development") {
+                  console.log(
+                    "Tileset 结构:",
+                    JSON.stringify(tileset, null, 2)
+                  );
+                }
+              }
+
+              // 执行用户回调
+              if (onTilesetLoad) {
+                onTilesetLoad(tileset);
+              }
+            },
+          }),
+        ],
+      });
   },
 
   /**
