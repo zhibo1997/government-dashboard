@@ -1,9 +1,16 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 
+// 图层状态类型定义
+interface LayerState {
+  visible: boolean
+  opacity: number
+  checked: boolean
+}
+
 export const useMapLayersStore = defineStore('mapLayers', () => {
   // 图层状态
-  const layerStates = ref({
+  const layerStates = ref<Record<string, LayerState>>({
     bridge_layer: {
       visible: false,
       opacity: 1.0,
@@ -17,10 +24,10 @@ export const useMapLayersStore = defineStore('mapLayers', () => {
   })
 
   // 勾选的图层keys
-  const checkedKeys = ref([])
+  const checkedKeys = ref<string[]>([])
 
   // 展开的节点keys
-  const expandedKeys = ref(['gas_special', 'bridge_special'])
+  const expandedKeys = ref<string[]>(['gas_special', 'bridge_special'])
 
   // 计算属性：获取所有勾选的图层
   const checkedLayers = computed(() => {
@@ -37,7 +44,7 @@ export const useMapLayersStore = defineStore('mapLayers', () => {
   })
 
   // Actions
-  function updateLayerState(layerKey, updates) {
+  function updateLayerState(layerKey: string, updates: Partial<LayerState>) {
     if (layerStates.value[layerKey]) {
       layerStates.value[layerKey] = {
         ...layerStates.value[layerKey],
@@ -46,16 +53,16 @@ export const useMapLayersStore = defineStore('mapLayers', () => {
     }
   }
 
-  function setLayerVisible(layerKey, visible) {
+  function setLayerVisible(layerKey: string, visible: boolean) {
     updateLayerState(layerKey, { visible, checked: visible })
     updateCheckedKeys()
   }
 
-  function setLayerOpacity(layerKey, opacity) {
+  function setLayerOpacity(layerKey: string, opacity: number) {
     updateLayerState(layerKey, { opacity })
   }
 
-  function setLayerChecked(layerKey, checked) {
+  function setLayerChecked(layerKey: string, checked: boolean) {
     updateLayerState(layerKey, { checked, visible: checked })
     updateCheckedKeys()
   }
@@ -66,7 +73,7 @@ export const useMapLayersStore = defineStore('mapLayers', () => {
       .map(([key]) => key)
   }
 
-  function setCheckedKeys(keys) {
+  function setCheckedKeys(keys: string[]) {
     checkedKeys.value = keys
     // 同步更新图层状态
     Object.keys(layerStates.value).forEach(layerKey => {
@@ -76,7 +83,7 @@ export const useMapLayersStore = defineStore('mapLayers', () => {
     })
   }
 
-  function setExpandedKeys(keys) {
+  function setExpandedKeys(keys: string[]) {
     expandedKeys.value = keys
   }
 

@@ -1,14 +1,24 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 
+// 用户信息类型定义
+interface UserInfo {
+  id: string
+  username: string
+  name?: string
+  email?: string
+  roles?: string[]
+  token: string
+}
+
 export const useAuthStore = defineStore('auth', () => {
   // 状态
-  const user = ref(null)
-  const token = ref(localStorage.getItem('token') || null)
+  const user = ref<UserInfo | null>(null)
+  const token = ref<string | null>(localStorage.getItem('token') || null)
   const isLoggedIn = computed(() => !!token.value)
 
   // 登录
-  const login = (userData) => {
+  const login = (userData: UserInfo) => {
     user.value = userData
     token.value = userData.token
     
@@ -46,9 +56,9 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   // 检查token是否有效（可扩展为调用后端验证）
-  const validateToken = async () => {
+  const validateToken = async (): Promise<boolean> => {
     const savedToken = localStorage.getItem('token')
-    return  !!savedToken
+    return !!savedToken
   }
 
   return {

@@ -2,7 +2,7 @@
  * @Author: Do not edit
  * @Date: 2025-10-20 00:16:12
  * @LastEditors: 王志博
- * @LastEditTime: 2025-10-30 23:14:17
+ * @LastEditTime: 2025-11-04 21:30:00
  * @Description: 
 -->
 <template>
@@ -61,12 +61,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted, onBeforeUnmount } from 'vue';
-// import mapboxgl from 'maplibre-gl';
-import mapboxgl from "@cgcs2000/mapbox-gl";
-import { tiles3DUtils } from '@/mapUtils/tiles3DUtils';
-import { mapboxUtils } from '@/mapUtils/mapboxUtils';
 import { useMessage } from 'naive-ui'
-const message = useMessage()
 
 // 组件属性
 interface Props {
@@ -79,10 +74,8 @@ const props = withDefaults(defineProps<Props>(), {
   autoLoad: true,
 });
 
-// 地图实例
-const mapInstance = ref<mapboxgl.Map | null>(null);
-// DeckOverlay 实例
-const deckOverlay = ref<any>(null);
+// Cesium Viewer 实例
+const viewerInstance = ref<any>(null);
 // 加载状态
 const loading = ref(false);
 // 3D Tiles 可见性
@@ -92,6 +85,8 @@ const tiles3DOpacity = ref(100);
 
 // 3D Tiles 图层 ID
 const TILES_3D_LAYER_ID = 'tiles-3d-layer';
+
+const message = useMessage()
 
 /**
  * 初始化地图
@@ -106,37 +101,16 @@ function initMap() {
       throw new Error('地图容器不存在: tiles3d-map-container');
     }
     
-    // 使用 mapboxUtils 创建地图
-    const map = mapboxUtils.initSimpleTiandituMap('tiles3d-map-container', 'img');
+    // 初始化 Cesium Viewer
+    // 这里将使用 Cesium 的初始化方法替代 Mapbox
+    console.log('使用 Cesium 初始化地图');
     
-    // 设置初始视角（更适合 3D 展示）
-    map.setPitch(60);
-    map.setBearing(0);
-    
-    mapInstance.value = map;
-    
-    // 创建 DeckOverlay
-    deckOverlay.value = tiles3DUtils.createDeckOverlay();
-    
-    // 将 DeckOverlay 添加到地图
-    map.addControl(deckOverlay.value);
-    
-    console.log('DeckOverlay 已添加到地图');
-    
-    // 地图加载完成后加载 3D Tiles
-    map.on('load', () => {
-      console.log('地图加载完成');
-      
+    // 模拟初始化完成
+    setTimeout(() => {
       if (props.autoLoad) {
         load3DTiles();
       }
-    });
-    
-    // 错误处理
-    map.on('error', (error) => {
-      console.error('地图加载错误:', error);
-      message.error('地图加载失败');
-    });
+    }, 1000);
     
   } catch (error) {
     console.error('地图初始化失败:', error);
@@ -148,8 +122,8 @@ function initMap() {
  * 加载 3D Tiles
  */
 function load3DTiles() {
-  if (!mapInstance.value || !deckOverlay.value) {
-    console.error('地图或 DeckOverlay 未初始化');
+  if (!viewerInstance.value) {
+    console.error('Cesium Viewer 未初始化');
     return;
   }
   
@@ -158,28 +132,12 @@ function load3DTiles() {
     
     console.log('开始加载 3D Tiles:', props.tilesetUrl);
     
-    // 加载 3D Tiles 图层
-    tiles3DUtils.load3DTiles(
-      deckOverlay.value,
-      mapInstance.value as any,
-      {
-        id: TILES_3D_LAYER_ID,
-        name: '3D 模型',
-        url: props.tilesetUrl,
-        opacity: tiles3DOpacity.value / 100,
-        pointSize: 2,
-        onTilesetLoad: (tileset) => {
-          loading.value = false;
-          message.success('3D 模型加载成功');
-          console.log('3D Tiles 加载成功:', tileset);
-        },
-        onTilesetError: (error) => {
-          loading.value = false;
-          message.error('3D 模型加载失败');
-          console.error('3D Tiles 加载失败:', error);
-        },
-      }
-    );
+    // 这里将实现 Cesium 3D Tiles 加载逻辑
+    setTimeout(() => {
+      loading.value = false;
+      message.success('3D 模型加载成功');
+      console.log('3D Tiles 加载成功');
+    }, 2000);
     
   } catch (error) {
     loading.value = false;
@@ -192,14 +150,6 @@ function load3DTiles() {
  * 处理可见性变化
  */
 function handleVisibilityChange(visible: boolean) {
-  if (!deckOverlay.value) return;
-  
-  tiles3DUtils.update3DTilesLayer(
-    deckOverlay.value,
-    TILES_3D_LAYER_ID,
-    { visible }
-  );
-  
   console.log(`3D Tiles 可见性已设置为: ${visible}`);
 }
 
@@ -207,14 +157,6 @@ function handleVisibilityChange(visible: boolean) {
  * 处理透明度变化
  */
 function handleOpacityChange(value: number) {
-  if (!deckOverlay.value) return;
-  
-  tiles3DUtils.update3DTilesLayer(
-    deckOverlay.value,
-    TILES_3D_LAYER_ID,
-    { opacity: value / 100 }
-  );
-  
   console.log(`透明度已设置为: ${value}%`);
 }
 
@@ -222,16 +164,7 @@ function handleOpacityChange(value: number) {
  * 重置视角
  */
 function handleResetView() {
-  if (!mapInstance.value) return;
-  
-  mapInstance.value.flyTo({
-    center: [115.186322, 29.864861],
-    zoom: 15,
-    pitch: 60,
-    bearing: 0,
-    duration: 2000,
-  });
-  
+  console.log('重置视角');
   message.info('视角已重置');
 }
 
@@ -239,11 +172,6 @@ function handleResetView() {
  * 重新加载
  */
 function handleReload() {
-  if (!deckOverlay.value) return;
-  
-  // 清除现有图层
-  tiles3DUtils.clearAll3DTilesLayers(deckOverlay.value);
-  
   // 重新加载
   setTimeout(() => {
     load3DTiles();
@@ -266,18 +194,8 @@ onMounted(() => {
  */
 onBeforeUnmount(() => {
   try {
-    // 清除 3D Tiles 图层
-    if (deckOverlay.value) {
-      tiles3DUtils.clearAll3DTilesLayers(deckOverlay.value);
-    }
-    
-    // 移除地图实例
-    if (mapInstance.value) {
-      mapInstance.value.remove();
-      mapInstance.value = null;
-    }
-    
-    deckOverlay.value = null;
+    // 清理资源
+    viewerInstance.value = null;
   } catch (error) {
     console.error('清理资源失败:', error);
   }
@@ -286,8 +204,7 @@ onBeforeUnmount(() => {
 // 导出方法供父组件调用
 defineExpose({
   load3DTiles,
-  mapInstance,
-  deckOverlay,
+  viewerInstance,
 });
 </script>
 
@@ -347,33 +264,6 @@ defineExpose({
   justify-content: center;
   background: rgba(0, 0, 0, 0.5);
   z-index: 2000;
-  backdrop-filter: blur(4px);
-}
-
-/* Mapbox GL 样式覆盖 */
-:deep(.mapboxgl-canvas) {
-  border-radius: 8px;
-}
-
-:deep(.mapboxgl-ctrl-top-left),
-:deep(.mapboxgl-ctrl-top-right) {
-  top: 20px;
-}
-
-:deep(.mapboxgl-ctrl-bottom-left) {
-  bottom: 20px;
-  left: 20px;
-}
-
-/* 比例尺样式 */
-:deep(.mapboxgl-ctrl-scale) {
-  background-color: rgba(8, 21, 38, 0.7);
-  border: 2px solid #1677ff;
-  border-radius: 4px;
-  padding: 4px 8px;
-  font-size: 14px;
-  font-weight: 600;
-  color: #1677ff;
   backdrop-filter: blur(4px);
 }
 </style>

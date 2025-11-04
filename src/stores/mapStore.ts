@@ -13,10 +13,10 @@ import type {
 
 /**
  * 地图状态管理 Store
- * 管理 Mapbox map 实例、地图状态、图层状态、测量工具状态、POI 数据状态和 GeoJSON 数据状态
+ * 管理 Cesium Viewer 实例、地图状态、图层状态、测量工具状态、POI 数据状态和 GeoJSON 数据状态
  */
 export const useMapStore = defineStore('map', () => {
-  // Mapbox map 实例
+  // Cesium Viewer 实例
   const map = ref<any>(null)
 
   // 地图状态
@@ -32,7 +32,7 @@ export const useMapStore = defineStore('map', () => {
     satellite: true,
     terrain: false,
     labels: true,
-    baseMap: 'mapbox',
+    baseMap: 'cesium',
     customLayers: new Map()
   })
 
@@ -91,8 +91,8 @@ export const useMapStore = defineStore('map', () => {
   })
 
   // Actions
-  const setMap = (mapboxMap: any): void => {
-    map.value = mapboxMap
+  const setMap = (cesiumViewer: any): void => {
+    map.value = cesiumViewer
   }
 
   const setMapInitialized = (initialized: boolean): void => {
@@ -234,7 +234,7 @@ export const useMapStore = defineStore('map', () => {
       satellite: true,
       terrain: false,
       labels: true,
-      baseMap: 'mapbox',
+      baseMap: 'cesium',
       customLayers: new Map()
     }
   }
