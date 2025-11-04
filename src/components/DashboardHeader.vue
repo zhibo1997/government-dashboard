@@ -75,7 +75,6 @@ function getActiveTabFromRoute() {
 
 // 头部标签点击事件
 const handleTabClick = (tab) => {
-  console.log("🚀 ~ handleTabClick ~ tab:", tab)
   // 更新激活状态
   activeTab.value = tab;
   

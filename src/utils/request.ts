@@ -33,7 +33,6 @@ request.interceptors.request.use(
   (config: AxiosRequestConfig) => {
     // 添加token到请求头
     const authStore = useAuthStore()
-    console.log("🚀 ~ authStore:", authStore)
     if (authStore.token && config.headers) {
       config.headers.Authorization = `${authStore.token}`
     }

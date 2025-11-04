@@ -14,7 +14,7 @@
         <!-- 中间地图区域 -->
         <div class="center-map">
           <keep-alive>
-            <MapboxMapComponent />
+            <MapComponent />
           </keep-alive>
         </div>
         <RightNav />
@@ -26,10 +26,10 @@
 
 <script setup>
 import ResponsiveWrapper from "@/components/ResponsiveWrapper.vue";
-import MapboxMapComponent from "@/mapComponents/MapboxMapComponent.vue";
+import MapComponent from "@/mapComponents/Map.vue";
 // 引入左侧导航组件
-import LeftNav from "./components/leftContent.vue";
-import RightNav from "./components/rightContent.vue";
+import LeftNav from "./leftContent.vue";
+import RightNav from "./rightContent.vue";
 // 引入头部组件
 import DashboardHeader from "@/components/DashboardHeader.vue";
 </script>

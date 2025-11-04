@@ -91,7 +91,6 @@ onMounted(async () => {
         parameters,
       };
     });
-    console.log("🚀 ~ waterPlants.value:", waterPlants.value);
   });
 });
 

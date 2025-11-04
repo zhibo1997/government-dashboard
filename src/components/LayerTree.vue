@@ -204,7 +204,6 @@ function handleCheckedKeysChange(keys) {
 
 // 处理图层显隐切换
 function handleLayerToggle(layerKey, visible, url = null) {
-  console.log("🚀 ~ handleLayerToggle ~ layerKey:", layerKey)
   // 更新store状态
   mapStore.updateLayerTreeState({
     layerId: layerKey,

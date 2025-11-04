@@ -11,12 +11,12 @@
         <n-form ref="formRef" :show-require-mark="false" label-placement="left" :model="formData" :rules="rules"
           class="login-form">
           <n-form-item path="username" :show-feedback="false" label="账号：" class="form-item">
-            <n-input v-model:value="formData.username" placeholder="" size="large" class="login-input">
+            <n-input v-model:value="formData.username" placeholder="请输入账号" size="large" class="login-input">
             </n-input>
           </n-form-item>
 
           <n-form-item path="password" :show-feedback="false" label="密码：" class="form-item">
-            <n-input v-model:value="formData.password" type="password" placeholder="" size="large" class="login-input">
+            <n-input v-model:value="formData.password" type="password" placeholder="请输入密码" size="large" class="login-input">
             </n-input>
           </n-form-item>
         </n-form>
@@ -35,7 +35,7 @@ import { createDiscreteApi } from "naive-ui";
 import { PersonOutline, LockClosedOutline } from "@vicons/ionicons5";
 import { useRouter } from "vue-router";
 import { useAuthStore } from "../stores/auth";
-import {loginService} from "@/services/loginService";
+import { loginService } from "@/services/loginService";
 import ResponsiveWrapper from "@/components/ResponsiveWrapper.vue";
 
 const { message } = createDiscreteApi(["message"]);
@@ -64,7 +64,7 @@ const rules = {
     { required: true, message: "请输入密码", trigger: "blur" },
   ],
 };
-onMounted(()=>{
+onMounted(() => {
   loginService.getPublicKey();
 })
 // 登录处理
@@ -224,12 +224,12 @@ const handleLogin = async () => {
         color: #fff;
         width: 320px;
         font-size: 36px;
-        
+
         // 添加这些样式来确保彻底移除Naive UI的默认边框
         :deep(.n-input__border) {
           display: none !important;
         }
-        
+
         :deep(.n-input__state-border) {
           display: none !important;
         }

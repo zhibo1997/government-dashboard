@@ -20,9 +20,9 @@
 </template>
 
 <script setup>
-import OverviewModule from './OverviewModule.vue'
-import WaterQualityModule from './WaterQualityModule.vue'
-import PipelineModule from './PipelineModule.vue'
+import OverviewModule from './components/OverviewModule.vue'
+import WaterQualityModule from './components/WaterQualityModule.vue'
+import PipelineModule from './components/PipelineModule.vue'
 </script>
 
 <style lang="scss" scoped>

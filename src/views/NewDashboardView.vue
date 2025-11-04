@@ -19,7 +19,7 @@
         <!-- 中间地图区域 -->
         <div class="center-map">
           <keep-alive>
-            <MapboxMapComponent />
+            <MapComponent />
           </keep-alive>
           <!-- 图例 -->
           <img class="map-legend" src="../assets/map-img/legend.png" alt="" />
@@ -61,7 +61,7 @@
 
 <script setup>
 import ResponsiveWrapper from "../components/ResponsiveWrapper.vue";
-import MapboxMapComponent from "../mapComponents/MapboxMapComponent.vue";
+import MapComponent from "@/mapComponents/Map.vue";
 // 引入新的头部组件
 import DashboardHeader from "../components/DashboardHeader.vue";
 </script>
@@ -73,10 +73,23 @@ import DashboardHeader from "../components/DashboardHeader.vue";
   position: relative;
   background-image: url("@/assets/images/viewer-bg.webp");
   background-size: cover;
-
+  
+  // 主体容器
+  .container {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    flex: 1;
+    // padding: 0 20px 20px;
+    position: relative;
+    height: calc(100% - 180px);
+    z-index: 1;
+    top: -56px;
+  }
   // 左侧导航区域
   .left-nav {
-    width: 1160px;
+    width:160px;
+    display: none;
     height: 100%;
     position: relative;
     z-index: 10;
@@ -109,6 +122,7 @@ import DashboardHeader from "../components/DashboardHeader.vue";
   // 中间地图区域
   .center-map {
     width: 4096px;
+    height: 100vh;
     position: absolute;
     top: 0;
     height: 100%;
@@ -147,6 +161,7 @@ import DashboardHeader from "../components/DashboardHeader.vue";
     backdrop-filter: blur(2px);
     padding: 16px;
     border-radius: 8px;
+    display: none;
 
     .right-image {
       flex: 1;

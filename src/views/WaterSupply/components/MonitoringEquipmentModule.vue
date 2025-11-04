@@ -59,12 +59,10 @@ const monitoringData = ref([]);
 // 初始化监控设备数据
 const initMonitoringData = async () => {
   const dictionaries = await getDataItemDetails("jcsblx_gs");
-  console.log("🚀 ~ initMonitoringData ~ dictionaries:", dictionaries)
   csblxMap.value = dictionaries.reduce((acc, cur) => {
     acc[cur.f_ItemValue] = cur.f_ItemName;
     return acc;
   }, {});
-  console.log("🚀 ~ initMonitoringData ~ csblxMap.value:", csblxMap.value)
 
   const res = await getDeviceTypeStatusCount();
   nextTick(() => {
@@ -84,7 +82,6 @@ const initMonitoringData = async () => {
     });
   });
 
-  // console.log("🚀 ~ initMonitoringData ~ res:", res);
 };
 
 const rateMap = {
