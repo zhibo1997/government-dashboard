@@ -2,19 +2,17 @@
  * @Author: Do not edit
  * @Date: 2025-11-04 21:08:01
  * @LastEditors: 王志博
- * @LastEditTime: 2025-11-04 21:08:05
+ * @LastEditTime: 2025-11-05 19:55:11
  * @Description: 
  */
+
+
+import {VcViewer} from 'vue-cesium'
+import MVTImageryProvider from 'mvt-imagery-provider'
 /**
  * Cesium地图工具类
  * @description 基于vue-cesium实现的地图工具函数集合
  * @module cesiumUtils
- */
-
-import type { VcViewerRef } from 'vue-cesium'
-
-/**
- * Cesium地图工具类
  */
 export const cesiumUtils = {
   /**
@@ -91,6 +89,33 @@ export const cesiumUtils = {
     console.log(`创建天地图样式，类型: ${type}`)
     // 实际实现将在后续步骤中完成
     return {}
+  },
+
+  /**
+   * 加载MVT矢量瓦片图层
+   * @param viewer - Cesium Viewer实例
+   * @param styleUrl - 样式文件URL (如: '/style.json')
+   * @param options - 加载选项
+   * @returns Promise<void>
+   */
+  async loadMVTLayer(
+    styleUrl: string,
+  ): Promise<void> {
+    try {
+      console.log(`开始加载MVT图层，样式URL: ${styleUrl}`)
+
+      // 创建MVT Imagery Provider
+      const provider = await MVTImageryProvider.fromUrl(styleUrl)
+
+      // 将图层添加到viewer中
+
+      VcViewer.imageryLayers.addImageryProvider(provider)
+
+      console.log('MVT图层加载成功')
+    } catch (error) {
+      console.error('加载MVT图层失败:', error)
+      throw new Error(`Failed to load MVT layer: ${error}`)
+    }
   }
 }
 

@@ -1,3 +1,10 @@
+<!--
+ * @Author: Do not edit
+ * @Date: 2025-11-04 21:31:32
+ * @LastEditors: 王志博
+ * @LastEditTime: 2025-11-05 19:32:12
+ * @Description: 
+-->
 <template>
   <div class="map-container">
     <vc-viewer ref="cesiumViewer"  :sceneMode="2" :base-layer="baseLayer || false" @ready="onViewerReady">
@@ -15,6 +22,7 @@
 <script setup lang="ts">
 import { ref, onMounted, onBeforeUnmount } from 'vue'
 import { VcImageryProvider } from 'vue-cesium/lib/utils/types.js'
+import cesiumUtils from '../mapUtils/mapUtils'
 
 // Cesium Viewer引用
 const cesiumViewer = ref(null)
@@ -30,8 +38,7 @@ const baseLayer = ref(null);
  * Viewer准备就绪回调
  */
 function onViewerReady() {
-  console.log('Cesium Viewer准备就绪')
-  console.log('天地图Token:', tiandituToken)
+  cesiumUtils.loadMVTLayer('/clmap/style.json')
   // 可以在这里进行一些初始化操作
 }
 

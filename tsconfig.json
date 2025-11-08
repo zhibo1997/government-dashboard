@@ -1,40 +1,40 @@
 {
   "compilerOptions": {
-    "target": "ES2020",
-    "useDefineForClassFields": true,
-    "module": "ESNext",
-    "lib": ["ES2020", "DOM", "DOM.Iterable"],
-    "skipLibCheck": true,
-
-    /* Bundler mode */
-    "moduleResolution": "bundler",
-    "allowImportingTsExtensions": true,
-    "resolveJsonModule": true,
-    "isolatedModules": true,
-    "noEmit": true,
-
-    /* Linting */
     "strict": true,
-    "noUnusedLocals": true,
-    "noUnusedParameters": true,
-    "noFallthroughCasesInSwitch": true,
-
-    /* Path aliases */
-    "baseUrl": ".",
+    "module": "ESNEXT",
+    "target": "ESNEXT",
+    "noImplicitAny": false,
+    "declaration": true,
+    "moduleResolution": "Node",
+    "esModuleInterop": true,
+    "jsx": "preserve",
+    "sourceMap": true,
+    "lib": ["ESNEXT", "DOM", "DOM.Iterable"],
+    "allowSyntheticDefaultImports": true,
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true,
+    "skipLibCheck": true,
+    "strictNullChecks": false,
+    "baseUrl": "./",
+    "types": ["vue-cesium/global", "vue-cesium/Cesium", "vite/client"],
     "paths": {
-      "@/*": ["src/*"]
-    },
-    "types": [
-      // ...
-      "vue-cesium/global",
-      "vue-cesium/Cesium"
-    ]
+      "@src/*": ["src/*"],
+      "@api/*": ["src/api/*"],
+      "@assets/*": ["src/assets/*"],
+      "@common/*": ["src/common/*"],
+      "@components/*": ["src/components/*"],
+      "@composables/*": ["src/composables/*"],
+      "@config/*": ["src/config/*"],
+      "@i18n/*": ["src/i18n/*"],
+      "@layouts/*": ["src/layouts/*"],
+      "@pages/*": ["src/pages/*"],
+      "@router/*": ["src/router/*"],
+      "@store/*": ["src/store/*"],
+      "@types/*": ["src/types/*"],
+      "@utils/*": ["src/utils/*"],
+      "vue$": ["node_modules/vue/dist/vue.runtime.esm-bundler.js"]
+    }
   },
-  "include": [
-    "src/**/*.ts",
-    "src/**/*.tsx",
-    "src/**/*.vue",
-    "node_modules/vue-cesium/Cesium.d.ts", "node_modules/vue-cesium/global.d.ts"
-  ],
-  "exclude": ["node_modules", "dist"]
+  "exclude": ["public"],
+  "include": ["src/**/*", "typings/*", "node_modules/vue-cesium/Cesium.d.ts", "node_modules/vue-cesium/global.d.ts"]
 }
