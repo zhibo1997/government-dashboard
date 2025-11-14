@@ -7,7 +7,6 @@
  */
 
 
-import {VcViewer} from 'vue-cesium'
 import MVTImageryProvider from 'mvt-imagery-provider'
 /**
  * Cesium地图工具类
@@ -95,26 +94,144 @@ export const cesiumUtils = {
    * 加载MVT矢量瓦片图层
    * @param viewer - Cesium Viewer实例
    * @param styleUrl - 样式文件URL (如: '/style.json')
-   * @param options - 加载选项
-   * @returns Promise<void>
+   * @returns Promise<MVTImageryProvider>
    */
   async loadMVTLayer(
+    viewer: any,
     styleUrl: string,
-  ): Promise<void> {
+  ): Promise<any> {
     try {
       console.log(`开始加载MVT图层，样式URL: ${styleUrl}`)
 
       // 创建MVT Imagery Provider
       const provider = await MVTImageryProvider.fromUrl(styleUrl)
 
-      // 将图层添加到viewer中
+      // 将图层添加到viewer的imageryLayers中
+      if (viewer && viewer.imageryLayers) {
+        viewer.imageryLayers.addImageryProvider(provider)
+        console.log('MVT图层加载成功')
+      } else {
+        throw new Error('Viewer或imageryLayers不可用')
+      }
 
-      VcViewer.imageryLayers.addImageryProvider(provider)
-
-      console.log('MVT图层加载成功')
+      return provider
     } catch (error) {
       console.error('加载MVT图层失败:', error)
       throw new Error(`Failed to load MVT layer: ${error}`)
+    }
+  },
+
+  /**
+   * 查询WFS服务数据
+   * @param baseUrl - GeoServer WFS服务基础URL
+   * @param layerName - 图层名称
+   * @param options - 查询选项
+   * @returns Promise<GeoJSON>
+   */
+  async queryWFSData(
+    baseUrl: string,
+    layerName: string,
+    options: {
+      outputFormat?: string
+      maxFeatures?: number
+      srsName?: string
+      bbox?: string
+      cqlFilter?: string
+    } = {}
+  ): Promise<any> {
+    try {
+      const {
+        outputFormat = 'application/json',
+        maxFeatures = 1000,
+        srsName = 'EPSG:4326',
+        bbox,
+        cqlFilter
+      } = options
+
+      // 构建WFS请求参数
+      const params = new URLSearchParams({
+        service: 'WFS',
+        version: '1.1.0',
+        request: 'GetFeature',
+        typeName: layerName,
+        outputFormat,
+        maxFeatures: maxFeatures.toString(),
+        srsName
+      })
+
+      // 添加可选参数
+      if (bbox) {
+        params.append('bbox', bbox)
+      }
+      if (cqlFilter) {
+        params.append('cql_filter', cqlFilter)
+      }
+
+      const url = `${baseUrl}?${params.toString()}`
+      console.log(`查询WFS数据: ${url}`)
+
+      const response = await fetch(url)
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`)
+      }
+
+      const data = await response.json()
+      console.log(`WFS数据查询成功，共 ${data.features?.length || 0} 条数据`)
+      
+      return data
+    } catch (error) {
+      console.error('WFS数据查询失败:', error)
+      throw error
+    }
+  },
+
+  /**
+   * 将WFS点数据添加到地图
+   * @param viewer - Cesium Viewer实例
+   * @param geoJsonData - GeoJSON数据
+   * @param options - 显示选项
+   * @returns 数据源对象
+   */
+  async addWFSPointsToMap(
+    viewer: any,
+    geoJsonData: any,
+    options: {
+      markerColor?: string
+      markerSymbol?: string
+      markerSize?: number
+      clampToGround?: boolean
+    } = {}
+  ): Promise<any> {
+    try {
+      const Cesium = (window as any).Cesium
+      if (!Cesium) {
+        throw new Error('Cesium未加载')
+      }
+
+      const {
+        markerColor = '#1677ff',
+        markerSymbol = 'circle',
+        markerSize = 10,
+        clampToGround = true
+      } = options
+
+      // 创建GeoJSON数据源
+      const dataSource = await Cesium.GeoJsonDataSource.load(geoJsonData, {
+        clampToGround,
+        markerColor: Cesium.Color.fromCssColorString(markerColor),
+        markerSize
+      })
+
+      // 添加到viewer
+      viewer.dataSources.add(dataSource)
+
+      console.log(`成功添加 ${geoJsonData.features?.length || 0} 个点要素到地图`)
+      
+      return dataSource
+    } catch (error) {
+      console.error('添加WFS点数据到地图失败:', error)
+      throw error
     }
   }
 }

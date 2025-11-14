@@ -18,6 +18,7 @@
     "baseUrl": "./",
     "types": ["vue-cesium/global", "vue-cesium/Cesium", "vite/client"],
     "paths": {
+      "@/*": ["src/*"],  
       "@src/*": ["src/*"],
       "@api/*": ["src/api/*"],
       "@assets/*": ["src/assets/*"],

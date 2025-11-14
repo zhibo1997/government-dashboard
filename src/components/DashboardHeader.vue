@@ -19,7 +19,7 @@
         </div>
       </div>
     </div>
-    <div class="head-title" title="阳新县城市安全综合监测预警平台">
+    <div class="head-title" title="阳新县城市安全综合监测预警平台" @click="handleTitleClick">
       <img src="@/assets/images/title.png" alt="头部标题" class="head-title-img" />
     </div>
     <div class="right-tabs tabs">
@@ -103,6 +103,13 @@ const handleSystemAdmin = () => {
   // 这里可以添加系统管理的逻辑
 };
 
+// 标题点击事件 - 返回主页
+const handleTitleClick = () => {
+  if (route.name !== 'home') {
+    router.push('/');
+  }
+};
+
 // 退出登录点击事件
 const handleLogout = () => {
   // 这里可以添加退出登录的逻辑
@@ -127,6 +134,13 @@ const handleLogout = () => {
     height: 148px;
     display: flex;
     align-items: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+
+    &:hover {
+      opacity: 0.9;
+      transform: scale(1.02);
+    }
 
     >img {
       margin-top: 18px;

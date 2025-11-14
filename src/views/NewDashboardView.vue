@@ -121,13 +121,9 @@ import DashboardHeader from "../components/DashboardHeader.vue";
 
   // 中间地图区域
   .center-map {
-    width: 4096px;
-    height: 100vh;
     position: absolute;
-    top: 0;
-    height: 100%;
-    left: 50%;
-    transform: translateX(-50%);
+    width: 100vw;
+    height: 100vh;
     z-index: 1;
     background: linear-gradient(
       to right,

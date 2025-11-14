@@ -16,6 +16,7 @@ export interface POIMarker {
   type: string
   description?: string
   icon?: string
+  visible?: boolean
   properties?: Record<string, any>
 }
 
@@ -42,7 +43,7 @@ export interface LayerState {
   terrain: boolean
   labels: boolean
   baseMap: string
-  customLayers: Record<string, boolean>
+  customLayers: Map<string, any>
 }
 
 // 测量工具状态类型
@@ -161,9 +162,10 @@ export interface LayerTreeNode {
 }
 
 export interface LayerTreeState {
-  nodes: LayerTreeNode[]
+  tree: any[]
   expandedNodes: Set<string>
-  selectedNode: string | null
+  selectedLayer: string | null
+  layerStates: Map<string, any>
 }
 
 export interface LayerService {

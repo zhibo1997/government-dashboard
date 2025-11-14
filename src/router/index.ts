@@ -3,6 +3,8 @@ import { useAuthStore } from '../stores/auth'
 import LoginView from '../views/LoginView.vue'
 import NewDashboardView from '../views/NewDashboardView.vue'
 import WaterSupplyView from '../views/WaterSupply/index.vue'
+import SafetyMonitoringView from '../views/SafetyMonitoring/index.vue'
+import MapView from '@/views/MapView.vue'
 
 // 路由配置
 const routes: RouteRecordRaw[] = [
@@ -13,6 +15,23 @@ const routes: RouteRecordRaw[] = [
     meta: {
       requiresAuth: false,
       title: '登录 - 安全综合检测预警平台'
+    }
+  },
+  {
+    path: '/mapView',
+    name: 'mapView',
+    component: MapView,
+    meta: {
+      requiresAuth: false,
+    }
+  },
+  {
+    path: '/',
+    name: 'home',
+    component: SafetyMonitoringView,
+    meta: {
+      requiresAuth: true,
+      title: '阳新县城市安全综合监测预警平台'
     }
   },
   {
@@ -54,7 +73,7 @@ const routes: RouteRecordRaw[] = [
   {
     path: '/:pathMatch(.*)*',
     name: 'NotFound',
-    redirect: '/waterProject' // 404页面也重定向到供水专项
+    redirect: '/' // 404页面重定向到主页
   }
 ]
 
@@ -92,7 +111,7 @@ router.beforeEach(async (to, from, next) => {
     if (to.name === 'Login' && authStore.isLoggedIn) {
       const isValidToken = await authStore.validateToken()
       if (isValidToken) {
-        next({ name: 'waterProject' }) // 登录后重定向到供水专项
+        next({ name: 'home' }) // 登录后重定向到主页
         return
       } else {
         authStore.logout()
