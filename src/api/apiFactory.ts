@@ -180,8 +180,9 @@ export function createApiClient<TClient extends ApiClientBase>(
       // HTTP 状态码处理
       switch (status) {
         case 401:
+        case 500:
           localStorage.removeItem('token')
-          window.location.href = '/login'
+          router.push('/login')
           message.error('登录已过期，请重新登录')
           break
         case 403:
@@ -189,9 +190,6 @@ export function createApiClient<TClient extends ApiClientBase>(
           break
         case 404:
           message.error('请求的资源不存在')
-          break
-        case 500:
-          message.error('服务器内部错误')
           break
         case 502:
           message.error('网关错误')
@@ -214,6 +212,7 @@ export function createApiClient<TClient extends ApiClientBase>(
 
 import { Api as WaterSupplyApi } from './waterSupplyAndDrainage'
 import { Api as CommonApi } from './common'
+import router from '@/router'
 
 /**
  * 创建供水模块 API 实例

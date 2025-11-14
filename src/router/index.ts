@@ -16,11 +16,6 @@ const routes: RouteRecordRaw[] = [
     }
   },
   {
-    path: '/',
-    name: 'dashboard',
-    redirect: '/waterProject' // 默认路由重定向到供水专项
-  },
-  {
     path: '/waterProject',
     name: 'waterProject',
     component: WaterSupplyView,

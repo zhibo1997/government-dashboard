@@ -1,28 +1,24 @@
-<!--
- * @Author: Do not edit
- * @Date: 2025-11-04 21:31:32
- * @LastEditors: 王志博
- * @LastEditTime: 2025-11-05 19:32:12
- * @Description: 
--->
 <template>
   <div class="map-container">
-    <vc-viewer ref="cesiumViewer"  :sceneMode="2" :base-layer="baseLayer || false" @ready="onViewerReady">
+    <vc-viewer ref="cesiumViewer" :camera="camera" :sceneMode="2" @ready="onViewerReady">
       <!-- 天地图影像 -->
       <vc-layer-imagery>
-        <vc-imagery-provider-tianditu map-style="img_c" :token="tiandituToken" @readyPromise="() => {
+        <vc-imagery-provider-tianditu map-style="vec_c" :token="tiandituToken" @readyPromise="() => {
           console.log('Tianditu Img Ready', this)
           baseLayer = this
         }" @errorEvent="console.log('Tianditu Img Error', this)" />
       </vc-layer-imagery>
+      <vc-datasource-geojson :data="yangxinData"   stroke="red" />
     </vc-viewer>
   </div>
+  
 </template>
 
 <script setup lang="ts">
 import { ref, onMounted, onBeforeUnmount } from 'vue'
-import { VcImageryProvider } from 'vue-cesium/lib/utils/types.js'
+import { VcImageryProvider ,VcCamera} from 'vue-cesium/lib/utils/types.js'
 import cesiumUtils from '../mapUtils/mapUtils'
+import yangxinData from '../assets/yangxin.json'
 
 // Cesium Viewer引用
 const cesiumViewer = ref(null)
@@ -30,16 +26,17 @@ const cesiumViewer = ref(null)
 // 从环境变量获取天地图token
 const tiandituToken = import.meta.env ? import.meta.env.VITE_TIANDITU_KEY || '' : ''
 
-// 控制图层显示
-const showTiandituImg = ref(true)
-const showTiandituVec = ref(true)
 const baseLayer = ref(null);
+const camera = ref<VcCamera | null>({
+  position: [115.1, 29.841572, 200000],
+})
+
 /**
  * Viewer准备就绪回调
  */
-function onViewerReady() {
+function onViewerReady({ Cesium ,viewer}: any) {
   cesiumUtils.loadMVTLayer('/clmap/style.json')
-  // 可以在这里进行一些初始化操作
+  
 }
 
 /**
