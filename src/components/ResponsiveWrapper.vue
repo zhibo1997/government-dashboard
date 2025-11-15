@@ -3,7 +3,7 @@
     <div 
       class="scale-content" 
       :style="{
-        // transform: `scale(${scaleRatio})`,
+        transform: `scale(${scaleRatio})`,
         transformOrigin: 'top left',
         width: `${actualBaseWidth}px`,
         height: `${actualBaseHeight}px`

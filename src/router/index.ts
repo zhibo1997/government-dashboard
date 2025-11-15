@@ -3,8 +3,8 @@ import { useAuthStore } from '../stores/auth'
 import LoginView from '../views/LoginView.vue'
 import NewDashboardView from '../views/NewDashboardView.vue'
 import WaterSupplyView from '../views/WaterSupply/index.vue'
-import SafetyMonitoringView from '../views/SafetyMonitoring/index.vue'
 import MapView from '@/views/MapView.vue'
+import GasModule from '../views/GasModule/index.vue'
 
 // 路由配置
 const routes: RouteRecordRaw[] = [
@@ -26,15 +26,6 @@ const routes: RouteRecordRaw[] = [
     }
   },
   {
-    path: '/',
-    name: 'home',
-    component: SafetyMonitoringView,
-    meta: {
-      requiresAuth: true,
-      title: '阳新县城市安全综合监测预警平台'
-    }
-  },
-  {
     path: '/waterProject',
     name: 'waterProject',
     component: WaterSupplyView,
@@ -46,7 +37,7 @@ const routes: RouteRecordRaw[] = [
   {
     path: '/gas',
     name: 'gas',
-    component: NewDashboardView,
+    component: GasModule,
     meta: {
       requiresAuth: true,
       title: '燃气专项'
@@ -90,7 +81,7 @@ router.beforeEach(async (to, from, next) => {
   if (to.meta.title) {
     document.title = to.meta.title as string
   }
-
+  
   // 只在应用启动时初始化认证状态，避免每次路由都重新初始化
   if (from.name === undefined) {
     authStore.initAuth()

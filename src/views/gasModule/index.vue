@@ -14,7 +14,7 @@
         <!-- 中间地图区域 -->
         <div class="center-map">
           <keep-alive>
-            <MapComponent />
+            <!-- <MapComponent /> -->
           </keep-alive>
         </div>
 
