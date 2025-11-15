@@ -19,8 +19,8 @@
     "axios": "^1.11.0",
     "dayjs": "^1.11.15",
     "echarts": "^6.0.0",
+    "echarts-gl": "^2.0.9",
     "jsencrypt": "^3.5.4",
-    
     "lodash-es": "^4.17.21",
     "lossless-json": "^4.3.0",
     "mvt-imagery-provider": "^1.0.3",

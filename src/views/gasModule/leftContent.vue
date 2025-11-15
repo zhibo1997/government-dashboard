@@ -1,20 +1,20 @@
 <template>
   <div class="left-content">
-    <!-- 监测管理模块 -->
-    <MonitoringManagementModule />
+    <!-- 基础设施模块 -->
+    <InfrastructureModule />
 
-    <!-- 监测综合模块 -->
-    <MonitoringComprehensiveModule />
+    <!-- 燃气管网模块 -->
+    <GasPipelineModule />
 
-    <!-- 井盖统计模块 -->
-    <ManholeStatisticsModule />
+    <!-- 监测设备模块 -->
+    <MonitoringDeviceModule />
   </div>
 </template>
 
 <script setup>
-import MonitoringManagementModule from './components/MonitoringManagementModule.vue';
-import MonitoringComprehensiveModule from './components/MonitoringComprehensiveModule.vue';
-import ManholeStatisticsModule from './components/ManholeStatisticsModule.vue';
+import InfrastructureModule from './components/InfrastructureModule.vue';
+import GasPipelineModule from './components/GasPipelineModule.vue';
+import MonitoringDeviceModule from './components/MonitoringDeviceModule.vue';
 </script>
 
 <style lang="scss" scoped>

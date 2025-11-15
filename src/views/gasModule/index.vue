@@ -1,5 +1,5 @@
 <template>
-  <div class="safety-monitoring-container">
+  <div class="gas-module-container">
     <ResponsiveWrapper :base-width="4096" :base-height="1920">
       <!-- 头部区域 -->
       <keep-alive>
@@ -8,17 +8,17 @@
 
       <!-- 主体容器 -->
       <div class="container">
-        <!-- 左侧监测管理区 -->
+        <!-- 左侧数据展示区 -->
         <LeftContent />
 
         <!-- 中间地图区域 -->
         <div class="center-map">
           <keep-alive>
-            <!-- <MapComponent /> -->
+            <!-- 地图组件 -->
           </keep-alive>
         </div>
 
-        <!-- 右侧预警通报区 -->
+        <!-- 右侧数据展示区 -->
         <RightContent />
       </div>
     </ResponsiveWrapper>
@@ -27,14 +27,13 @@
 
 <script setup>
 import ResponsiveWrapper from "@/components/ResponsiveWrapper.vue";
-import MapComponent from "@/mapComponents/Map.vue";
 import LeftContent from "./leftContent.vue";
 import RightContent from "./rightContent.vue";
 import DashboardHeader from "@/components/DashboardHeader.vue";
 </script>
 
 <style lang="scss" scoped>
-.safety-monitoring-container {
+.gas-module-container {
   width: 100%;
   height: 100vh;
   position: relative;
@@ -73,6 +72,10 @@ import DashboardHeader from "@/components/DashboardHeader.vue";
 
 <!-- 公用数据模块样式 - 供子组件使用 -->
 <style lang="scss">
+.gas-module-container {
+  
+    background-color: #444;
+}
 // 数据模块通用样式（非scoped，可被子组件继承）
 .data-module {
   flex: 1;
@@ -115,5 +118,12 @@ import DashboardHeader from "@/components/DashboardHeader.vue";
     flex-direction: column;
     border-radius: 8px;
   }
+}
+
+// 渐变文字效果
+.gradient-text {
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 </style>
