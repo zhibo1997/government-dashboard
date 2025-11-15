@@ -68,7 +68,8 @@
 
 <script setup>
 import { ref } from 'vue';
-import { message } from 'ant-design-vue';
+import {createDiscreteApi} from "naive-ui"
+const { message } = createDiscreteApi(['message'])
 import { 
   DashboardOutlined, 
   CheckCircleOutlined, 
