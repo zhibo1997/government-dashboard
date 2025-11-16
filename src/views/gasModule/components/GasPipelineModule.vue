@@ -222,7 +222,7 @@ function getPie3D(pieData, internalDiameterRatio) {
 
 // 生成3D饼图option
 function get3DPieOption(pieData) {
-    const series = getPie3D(pieData, 0.5);
+    const series = getPie3D(pieData, 0.6);
 
     // 添加2D饼图用于显示label
     series.push({
@@ -231,22 +231,22 @@ function get3DPieOption(pieData) {
         label: {
             opacity: 1,
             position: 'outside',
-            fontSize: 26,
-            lineHeight: 32,
+            fontSize: 18,
+            lineHeight: 22,
             formatter: '{b}\n{d}%',
-            color: '#e4f3ff'
+            color: '#E4F3FF'
         },
         labelLine: {
-            length: 30,
-            length2: 40,
+            length: 15,
+            length2: 20,
             lineStyle: {
-                color: 'rgba(255, 255, 255, 0.5)',
-                width: 2
+                color: 'rgba(228, 243, 255, 0.5)',
+                width: 1
             }
         },
         startAngle: -20,
         clockwise: false,
-        radius: ['20%', '70%'],
+        radius: ['20%', '60%'],
         center: ['50%', '50%'],
         data: pieData.map(item => {
             return {
@@ -274,7 +274,7 @@ function get3DPieOption(pieData) {
             borderWidth: 1,
             textStyle: {
                 color: '#ffffff',
-                fontSize: 24
+                fontSize: 18
             }
         },
         xAxis3D: {
@@ -295,10 +295,9 @@ function get3DPieOption(pieData) {
             viewControl: {
                 alpha: 30,
                 beta: 40,
-                distance: 200,
-                autoRotate: true,
-                autoRotateSpeed: 10,
-                rotateSensitivity: 1,
+                distance: 150,
+                autoRotate: false,
+                rotateSensitivity: 0,
                 zoomSensitivity: 0,
                 panSensitivity: 0
             }
