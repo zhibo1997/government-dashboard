@@ -39,7 +39,7 @@ const routes: RouteRecordRaw[] = [
     name: 'gas',
     component: GasModule,
     meta: {
-      requiresAuth: true,
+      requiresAuth: false,
       title: '燃气专项'
     }
   },
