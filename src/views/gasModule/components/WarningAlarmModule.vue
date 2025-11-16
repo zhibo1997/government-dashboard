@@ -43,10 +43,10 @@
         </div>
 
         <!-- 报警总数 -->
-        <div class="alarm-total-card">
+        <div class="warning-total-card alarm-card">
           <div class="total-ring alarm">
-            <div class="ring-value gradient-text alarm">{{ alarmTotal }}</div>
-            <div class="total-label">报警<br />总数</div>
+            <div class="ring-value gradient-text">{{ alarmTotal }}</div>
+            <span class="total-label">报警<br />总数</span>
           </div>
           <div class="right-content">
             <!-- 状态统计 -->
@@ -57,7 +57,7 @@
                 :key="item.label"
               >
                 <div class="status-ring">
-                  <div class="ring-num">{{ item.count }}</div>
+                  <span class="ring-num gradient-text">{{ item.count }}</span>
                 </div>
                 <div class="status-label">{{ item.label }}</div>
               </div>
@@ -100,35 +100,32 @@
         </div>
 
         <!-- 数据表格 -->
-        <div class="data-table">
-          <div class="table">
-            <!-- 企业列表表头 -->
-            <div class="enterprise-header">
-              <div
-                class="header-col col-name"
-                v-for="column in columns"
-                :key="column.key"
-              >
-                {{ column.title }}
-              </div>
-            </div>
+        <div class="custom-table">
+          <!-- 表头 -->
+          <div class="table-header">
+            <div class="th th-type">类型</div>
+            <div class="th">一级</div>
+            <div class="th">二级</div>
+            <div class="th">三级</div>
+            <div class="th">已处置</div>
+            <div class="th">处置中</div>
+            <div class="th">未处置</div>
+          </div>
 
-            <!-- 企业列表 -->
-            <div class="enterprise-list">
-              <div
-                class="enterprise-row"
-                v-for="enterprise in warningTableData"
-                :key="enterprise.id"
-              >
-                <div class="row-col col-name">{{ enterprise.name }}</div>
-                <div class="row-col col-station">{{ enterprise.stations }}</div>
-                <div class="row-col col-cylinder">
-                  {{ enterprise.cylinders }}
-                </div>
-                <div class="row-col col-vehicle">{{ enterprise.vehicles }}</div>
-                <div class="row-col col-user">{{ enterprise.users }}</div>
-                <div class="row-col col-monitor">{{ enterprise.monitors }}</div>
-              </div>
+          <!-- 表体 -->
+          <div class="table-body">
+            <div
+              class="table-row"
+              v-for="item in currentTableData"
+              :key="item.key"
+            >
+              <div class="td td-type">{{ item.type }}</div>
+              <div class="td">{{ item.level1 }}</div>
+              <div class="td">{{ item.level2 }}</div>
+              <div class="td">{{ item.level3 }}</div>
+              <div class="td">{{ item.handled }}</div>
+              <div class="td">{{ item.handling }}</div>
+              <div class="td">{{ item.unhandled }}</div>
             </div>
           </div>
         </div>
@@ -138,7 +135,7 @@
 </template>
 
 <script setup>
-import { ref } from "vue";
+import { ref, computed } from "vue";
 
 // 当前激活的Tab
 const activeTab = ref("warning");
@@ -177,53 +174,6 @@ const alarmLevels = ref([
   { label: "三级报警", count: 210 },
 ]);
 
-// 表格列定义
-const columns = [
-  { title: "类型", key: "type", dataIndex: "type", width: 180 },
-  {
-    title: "一级",
-    key: "level1",
-    dataIndex: "level1",
-    width: 100,
-    align: "center",
-  },
-  {
-    title: "二级",
-    key: "level2",
-    dataIndex: "level2",
-    width: 100,
-    align: "center",
-  },
-  {
-    title: "三级",
-    key: "level3",
-    dataIndex: "level3",
-    width: 100,
-    align: "center",
-  },
-  {
-    title: "已处置",
-    key: "handled",
-    dataIndex: "handled",
-    width: 100,
-    align: "center",
-  },
-  {
-    title: "处置中",
-    key: "handling",
-    dataIndex: "handling",
-    width: 100,
-    align: "center",
-  },
-  {
-    title: "未处置",
-    key: "unhandled",
-    dataIndex: "unhandled",
-    width: 100,
-    align: "center",
-  },
-];
-
 // 预警表格数据
 const warningTableData = ref([
   {
@@ -235,6 +185,26 @@ const warningTableData = ref([
     handled: 56,
     handling: 23,
     unhandled: 12,
+  },
+  {
+    key: 5,
+    type: "管网腐蚀预警",
+    level1: 9,
+    level2: 34,
+    level3: 88,
+    handled: 99,
+    handling: 34,
+    unhandled: 70,
+  },
+  {
+    key: 5,
+    type: "管网腐蚀预警",
+    level1: 9,
+    level2: 34,
+    level3: 88,
+    handled: 99,
+    handling: 34,
+    unhandled: 70,
   },
   {
     key: 2,
@@ -311,6 +281,13 @@ const alarmTableData = ref([
     unhandled: 80,
   },
 ]);
+
+// 当前表格数据
+const currentTableData = computed(() => {
+  return activeTab.value === "warning"
+    ? warningTableData.value
+    : alarmTableData.value;
+});
 </script>
 
 <style lang="scss" scoped>
@@ -331,9 +308,8 @@ const alarmTableData = ref([
     gap: 30px;
   }
 
-  // 预警/报警总数卡片
-  .warning-total-card,
-  .alarm-total-card {
+  // 预警/报警总数卡片（统一样式）
+  .warning-total-card {
     display: grid;
     grid-template-columns: auto auto 1fr;
     grid-template-rows: auto auto;
@@ -343,6 +319,17 @@ const alarmTableData = ref([
     &:hover {
       border-color: rgba(22, 119, 255, 0.4);
       box-shadow: 0 4px 12px rgba(22, 119, 255, 0.2);
+    }
+
+    // 报警卡片特殊样式
+    &.alarm-card {
+      .total-ring.alarm {
+        background-image: url("@/assets/img/gasModule/alarm_total.webp");
+
+        .ring-value {
+          background: linear-gradient(0deg, #ff4d4f 0%, #ff7875 100%);
+        }
+      }
     }
 
     // 总数环形
@@ -367,18 +354,6 @@ const alarmTableData = ref([
         margin-top: 40px;
         margin-bottom: 30px;
       }
-
-      &.alarm {
-        background-image: url("@/assets/img/gasModule/alarm_total.webp");
-
-        &::before {
-          border-color: rgba(255, 77, 79, 0.2);
-        }
-
-        .ring-value {
-          background: linear-gradient(0deg, #ff4d4f 0%, #ff7875 100%);
-        }
-      }
     }
 
     // 总数标签
@@ -388,15 +363,19 @@ const alarmTableData = ref([
       font-size: 24px;
       color: #d3eaf1;
       line-height: 35px;
-      letter-spacing: 1px;
       text-align: center;
       font-style: normal;
     }
-
+    .right-content {
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
     // 状态统计
     .status-stats {
       display: flex;
       gap: 15px;
+      justify-content: space-between;
 
       .status-item {
         display: flex;
@@ -411,6 +390,7 @@ const alarmTableData = ref([
           display: flex;
           align-items: center;
           justify-content: center;
+          margin-bottom: 11px;
 
           .ring-num {
             font-family: YouSheBiaoTiHei;
@@ -433,7 +413,9 @@ const alarmTableData = ref([
     // 等级统计
     .level-stats {
       display: flex;
-      gap: 20px;
+      gap: 10px;
+      align-items: center;
+      justify-content: space-between;
 
       .level-item {
         display: flex;
@@ -468,6 +450,9 @@ const alarmTableData = ref([
         .level-value {
           width: 64.56px;
           height: 27.29px;
+          text-align: center;
+          line-height: 27.29px;
+          margin-bottom: 11px;
           > span {
             font-family: YouSheBiaoTiHei;
             font-size: 24px;
@@ -484,7 +469,6 @@ const alarmTableData = ref([
           font-size: 16px;
           color: #d3eaf1;
           line-height: 24px;
-          letter-spacing: 1px;
           text-align: center;
           font-style: normal;
         }
@@ -509,7 +493,10 @@ const alarmTableData = ref([
     .tab-btn {
       width: 160.24px;
       height: 60px;
-      padding: 10px 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
       background-image: url("@/assets/img/gasModule/tab.webp");
       span {
         font-family: YouSheBiaoTiHei;
@@ -530,44 +517,126 @@ const alarmTableData = ref([
     }
   }
 
-  // 数据表格
-  .data-table {
+  // 自定义表格
+  .custom-table {
     flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    margin-top: 24px;
+  }
 
-    :deep(.ant-table) {
-      background: transparent;
-      color: #ffffff;
+  // 表头
+  .table-header {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr 1fr 1fr 1fr 1fr;
+    height: 50px;
+    background: linear-gradient(
+      90deg,
+      rgba(22, 119, 255, 0.15) 0%,
+      rgba(22, 119, 255, 0.08) 100%
+    );
+    border: 1px solid rgba(22, 119, 255, 0.25);
+    border-radius: 4px 4px 0 0;
 
-      .ant-table-thead > tr > th {
-        background: rgba(22, 119, 255, 0.2);
-        color: #ffffff;
-        font-weight: 600;
-        border-bottom: 1px solid rgba(22, 119, 255, 0.3);
-        font-size: 16px;
-        padding: 12px 8px;
+    .th {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: SourceHanSansSC, SourceHanSansSC;
+      font-weight: bold;
+      font-size: 20px;
+      color: #e4f3ff;
+      line-height: 29px;
+      text-align: left;
+      font-style: normal;
+      padding: 0 10px;
+
+      &.th-type {
+        justify-content: flex-start;
+        padding-left: 20px;
+        width: 220px;
       }
+    }
+  }
 
-      .ant-table-tbody > tr > td {
-        background: transparent;
-        border-bottom: 1px solid rgba(22, 119, 255, 0.1);
-        color: rgba(255, 255, 255, 0.85);
-        font-size: 14px;
-        padding: 10px 8px;
-      }
+  // 表体
+  .table-body {
+    border: 1px solid rgba(22, 119, 255, 0.15);
+    border-top: none;
+    border-radius: 0 0 4px 4px;
+    height: 232px;
+    overflow-y: auto;
 
-      .ant-table-tbody > tr:hover > td {
-        background: rgba(22, 119, 255, 0.1);
+    &::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    &::-webkit-scrollbar-track {
+      background: rgba(0, 0, 0, 0.1);
+      border-radius: 3px;
+    }
+
+    &::-webkit-scrollbar-thumb {
+      background: rgba(22, 119, 255, 0.3);
+      border-radius: 3px;
+
+      &:hover {
+        background: rgba(22, 119, 255, 0.5);
       }
     }
 
-    .type-cell {
-      color: #ffffff;
-      font-weight: 500;
-    }
+    .table-row {
+      display: grid;
+      grid-template-columns: 2fr 1fr 1fr 1fr 1fr 1fr 1fr;
+      min-height: 52px;
+      background: linear-gradient(
+        90deg,
+        rgba(0, 150, 255, 0.04) 0%,
+        rgba(0, 100, 200, 0.02) 100%
+      );
+      border-bottom: 1px solid rgba(22, 119, 255, 0.1);
+      transition: all 0.3s ease;
 
-    .number-cell {
-      color: rgba(255, 255, 255, 0.85);
-      font-family: "DIN", Arial, sans-serif;
+      &:hover {
+        background: linear-gradient(
+          90deg,
+          rgba(0, 150, 255, 0.1) 0%,
+          rgba(0, 100, 200, 0.05) 100%
+        );
+      }
+
+      &:last-child {
+        border-bottom: none;
+      }
+
+      .td {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-family: SourceHanSansSC, SourceHanSansSC;
+        font-weight: 400;
+        font-size: 20px;
+        color: #e4f3ff;
+        padding: 8px 10px;
+
+        &.td-type {
+          justify-content: flex-start;
+          padding-left: 20px;
+          color: #ffffff;
+        width: 220px;
+        }
+
+        &.td-level {
+          color: #faad14;
+          font-weight: 500;
+        }
+
+        &.td-status {
+          color: #10adc0;
+          font-weight: 500;
+        }
+      }
     }
   }
 }

@@ -14,37 +14,30 @@
             :class="`resource-${item.type}`"
           >
             <div class="stat-icon">
-              <component :is="item.icon" />
+              <!-- 预留图片位置，可自定义添加 -->
             </div>
             <div class="stat-info">
-              <div class="stat-value">{{ item.count }}</div>
               <div class="stat-label">{{ item.label }}</div>
+              <div class="stat-value">{{ item.count }}</div>
             </div>
           </div>
         </div>
 
-        <!-- 资源列表 -->
-        <div class="resource-list">
-          <div class="list-header">
-            <span class="header-title">应急资源清单</span>
+        <!-- 中心应急资源圆环 -->
+        <div class="center-resource">
+          <div class="center-ring">
+            <div class="ring-text">应急<br />资源</div>
           </div>
-          <div class="list-content">
-            <a-table
-              :columns="columns"
-              :data-source="resourceData"
-              :pagination="false"
-              size="small"
-              :scroll="{ y: 280 }"
-            >
-              <template #bodyCell="{ column, record }">
-                <template v-if="column.key === 'status'">
-                  <a-tag :color="record.statusColor">{{ record.status }}</a-tag>
-                </template>
-                <template v-else-if="column.key === 'action'">
-                  <a-button type="link" size="small">调度</a-button>
-                </template>
-              </template>
-            </a-table>
+        </div>
+
+        <!-- 底部车辆统计 -->
+        <div class="vehicle-stat">
+          <div class="vehicle-icon">
+            <!-- 预留图片位置 -->
+          </div>
+          <div class="vehicle-info">
+            <span class="vehicle-label">救援车辆：</span>
+            <span class="vehicle-count">102辆</span>
           </div>
         </div>
       </div>
@@ -54,110 +47,71 @@
 
 <script setup>
 import { ref } from 'vue';
-import { 
-  TeamOutlined, 
-  CarOutlined, 
-  ToolOutlined,
-  MedicineBoxOutlined 
-} from '@ant-design/icons-vue';
 
-// 资源统计
+// 资源统计（根据设计图布局：左侧3个，右侧3个）
 const resourceStats = ref([
-  { type: 'personnel', label: '应急人员', count: 156, icon: TeamOutlined },
-  { type: 'vehicle', label: '应急车辆', count: 28, icon: CarOutlined },
-  { type: 'equipment', label: '应急装备', count: 342, icon: ToolOutlined },
-  { type: 'material', label: '应急物资', count: 1250, icon: MedicineBoxOutlined },
-]);
-
-// 表格列定义
-const columns = [
-  { title: '资源名称', key: 'name', dataIndex: 'name', width: 150 },
-  { title: '类型', key: 'type', dataIndex: 'type', width: 100 },
-  { title: '数量', key: 'quantity', dataIndex: 'quantity', width: 80 },
-  { title: '状态', key: 'status', dataIndex: 'status', width: 80 },
-  { title: '操作', key: 'action', width: 80 },
-];
-
-// 资源数据
-const resourceData = ref([
-  { key: 1, name: '抢险队伍', type: '人员', quantity: '45人', status: '待命', statusColor: 'success' },
-  { key: 2, name: '抢险车辆', type: '车辆', quantity: '8辆', status: '待命', statusColor: 'success' },
-  { key: 3, name: '检测仪器', type: '装备', quantity: '32套', status: '可用', statusColor: 'processing' },
-  { key: 4, name: '维修工具', type: '装备', quantity: '156件', status: '可用', statusColor: 'processing' },
-  { key: 5, name: '防护用品', type: '物资', quantity: '520套', status: '充足', statusColor: 'success' },
-  { key: 6, name: '应急照明', type: '装备', quantity: '68套', status: '可用', statusColor: 'processing' },
-  { key: 7, name: '通讯设备', type: '装备', quantity: '45套', status: '待命', statusColor: 'success' },
-  { key: 8, name: '专家团队', type: '人员', quantity: '12人', status: '待命', statusColor: 'success' },
+  // 左侧
+  { type: 'expert', label: '应急专家', count: '12人' },
+  { type: 'medical', label: '医疗队伍', count: '12支' },
+  { type: 'shelter', label: '避难场所', count: '128处' },
+  // 右侧
+  { type: 'rescue-team', label: '救援队伍', count: '98支' },
+  { type: 'rescue-personnel', label: '救援人员', count: '128人' },
+  { type: 'rescue-warehouse', label: '救援仓库', count: '612个' },
 ]);
 </script>
 
 <style lang="scss" scoped>
 .emergency-resource-module {
-  flex:0.7;
-  .emergency-content {
-    display: flex;
-    flex-direction: column;
-    height: 100%;
-    gap: 20px;
+  flex: 0.7;
+  background-image: url("@/assets/img/gasModule/emergency_resource_bg.webp");
+
+  .module-content {
+    padding: 20px 30px;
   }
 
-  .resource-stats {
+  .emergency-content {
     display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 15px;
+    grid-template-columns: 1fr auto 1fr;
+    grid-template-rows: auto auto auto;
+    gap: 20px;
+    align-items: center;
+    position: relative;
+  }
+
+  // 资源统计卡片
+  .resource-stats {
+    display: contents;
 
     .resource-stat-card {
       display: flex;
       align-items: center;
-      gap: 12px;
-      padding: 15px;
-      border-radius: 8px;
-      border: 1px solid rgba(22, 119, 255, 0.3);
+      gap: 10px;
+      padding: 10px 15px;
+      border-radius: 6px;
+      background: linear-gradient(
+        90deg,
+        rgba(22, 119, 255, 0.12) 0%,
+        rgba(22, 119, 255, 0.04) 100%
+      );
+      border: 1px solid rgba(22, 119, 255, 0.25);
       transition: all 0.3s ease;
 
       &:hover {
-        background: rgba(22, 119, 255, 0.2);
-        transform: translateY(-2px);
-      }
-
-      &.resource-personnel {
-        background: linear-gradient(135deg, rgba(82, 196, 26, 0.2), rgba(82, 196, 26, 0.1));
-        border-color: #52c41a;
-
-        .stat-icon {
-          color: #52c41a;
-        }
-      }
-
-      &.resource-vehicle {
-        background: linear-gradient(135deg, rgba(24, 144, 255, 0.2), rgba(24, 144, 255, 0.1));
-        border-color: #1890ff;
-
-        .stat-icon {
-          color: #1890ff;
-        }
-      }
-
-      &.resource-equipment {
-        background: linear-gradient(135deg, rgba(250, 173, 20, 0.2), rgba(250, 173, 20, 0.1));
-        border-color: #faad14;
-
-        .stat-icon {
-          color: #faad14;
-        }
-      }
-
-      &.resource-material {
-        background: linear-gradient(135deg, rgba(114, 46, 209, 0.2), rgba(114, 46, 209, 0.1));
-        border-color: #722ed1;
-
-        .stat-icon {
-          color: #722ed1;
-        }
+        border-color: rgba(22, 119, 255, 0.4);
+        box-shadow: 0 2px 8px rgba(22, 119, 255, 0.2);
       }
 
       .stat-icon {
-        font-size: 32px;
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: rgba(22, 119, 255, 0.2);
+        flex-shrink: 0;
+        // 预留图片背景位置
+        background-size: contain;
+        background-position: center;
+        background-repeat: no-repeat;
       }
 
       .stat-info {
@@ -165,70 +119,154 @@ const resourceData = ref([
         flex-direction: column;
         gap: 2px;
 
-        .stat-value {
-          font-size: 28px;
-          font-weight: bold;
-          color: #ffffff;
-          font-family: 'DIN', Arial, sans-serif;
+        .stat-label {
+          font-family: SourceHanSansSC, SourceHanSansSC;
+          font-weight: 400;
+          font-size: 14px;
+          color: #d3eaf1;
+          line-height: 20px;
         }
 
-        .stat-label {
-          font-size: 14px;
-          color: rgba(255, 255, 255, 0.85);
+        .stat-value {
+          font-family: YouSheBiaoTiHei;
+          font-size: 20px;
+          color: #ffffff;
+          line-height: 26px;
+          background: linear-gradient(90deg, #ffffff 0%, #10adc0 100%);
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+          background-clip: text;
         }
+      }
+
+      // 左侧3个卡片
+      &.resource-expert {
+        grid-column: 1;
+        grid-row: 1;
+      }
+      &.resource-medical {
+        grid-column: 1;
+        grid-row: 2;
+      }
+      &.resource-shelter {
+        grid-column: 1;
+        grid-row: 3;
+      }
+
+      // 右侧3个卡片
+      &.resource-rescue-team {
+        grid-column: 3;
+        grid-row: 1;
+      }
+      &.resource-rescue-personnel {
+        grid-column: 3;
+        grid-row: 2;
+      }
+      &.resource-rescue-warehouse {
+        grid-column: 3;
+        grid-row: 3;
       }
     }
   }
 
-  .resource-list {
-    flex: 1;
+  // 中心应急资源圆环
+  .center-resource {
+    grid-column: 2;
+    grid-row: 1 / 3;
     display: flex;
-    flex-direction: column;
+    align-items: center;
+    justify-content: center;
 
-    .list-header {
-      padding-bottom: 15px;
-      border-bottom: 1px solid rgba(22, 119, 255, 0.2);
+    .center-ring {
+      width: 180px;
+      height: 180px;
+      border-radius: 50%;
+      background: radial-gradient(
+        circle,
+        rgba(255, 77, 79, 0.3) 0%,
+        rgba(255, 77, 79, 0.1) 40%,
+        transparent 70%
+      );
+      border: 3px solid rgba(255, 77, 79, 0.5);
+      box-shadow: 
+        0 0 20px rgba(255, 77, 79, 0.4),
+        inset 0 0 30px rgba(255, 77, 79, 0.2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
 
-      .header-title {
-        font-size: 18px;
-        font-weight: 600;
+      &::before {
+        content: '';
+        position: absolute;
+        width: 140px;
+        height: 140px;
+        border-radius: 50%;
+        border: 2px dashed rgba(255, 77, 79, 0.4);
+      }
+
+      .ring-text {
+        font-family: SourceHanSansSC, SourceHanSansSC;
+        font-weight: bold;
+        font-size: 28px;
         color: #ffffff;
+        line-height: 40px;
+        text-align: center;
+        z-index: 1;
+        text-shadow: 0 2px 8px rgba(255, 77, 79, 0.6);
       }
     }
+  }
 
-    .list-content {
-      flex: 1;
-      margin-top: 15px;
+  // 底部车辆统计
+  .vehicle-stat {
+    grid-column: 2;
+    grid-row: 3;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 10px 20px;
+    border-radius: 6px;
+    background: linear-gradient(
+      90deg,
+      rgba(22, 119, 255, 0.12) 0%,
+      rgba(22, 119, 255, 0.04) 100%
+    );
+    border: 1px solid rgba(22, 119, 255, 0.25);
 
-      :deep(.ant-table) {
-        background: transparent;
+    .vehicle-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: rgba(250, 173, 20, 0.2);
+      flex-shrink: 0;
+      // 预留图片背景位置
+      background-size: contain;
+      background-position: center;
+      background-repeat: no-repeat;
+    }
+
+    .vehicle-info {
+      display: flex;
+      align-items: baseline;
+      gap: 5px;
+
+      .vehicle-label {
+        font-family: SourceHanSansSC, SourceHanSansSC;
+        font-weight: 400;
+        font-size: 16px;
+        color: #d3eaf1;
+      }
+
+      .vehicle-count {
+        font-family: YouSheBiaoTiHei;
+        font-size: 20px;
         color: #ffffff;
-
-        .ant-table-thead > tr > th {
-          background: rgba(22, 119, 255, 0.2);
-          color: #ffffff;
-          font-weight: 600;
-          border-bottom: 1px solid rgba(22, 119, 255, 0.3);
-          font-size: 16px;
-          padding: 12px 8px;
-        }
-
-        .ant-table-tbody > tr > td {
-          background: transparent;
-          border-bottom: 1px solid rgba(22, 119, 255, 0.1);
-          color: rgba(255, 255, 255, 0.85);
-          font-size: 14px;
-          padding: 10px 8px;
-        }
-
-        .ant-table-tbody > tr:hover > td {
-          background: rgba(22, 119, 255, 0.1);
-        }
-
-        .ant-btn-link {
-          color: #1677ff;
-          padding: 0;
-        }
+        background: linear-gradient(90deg, #faad14 0%, #ff7875 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
       }
     }
   }
