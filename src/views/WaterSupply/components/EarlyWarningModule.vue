@@ -2,7 +2,7 @@
   <div class="data-module early-warning-module">
     <div class="module-header">
       <div class="module-title">预警处置</div>
-      <n-date-picker
+      <!-- <n-date-picker
         v-model:value="warningDate"
         type="year"
         clearable
@@ -11,7 +11,7 @@
         :format="'yyyy年'"
         :actions="null"
         @update:value="onChangeWarningDate"
-      />
+      /> -->
     </div>
     <div class="module-content warning-content">
       <div class="warning-list">
@@ -267,7 +267,7 @@ watch(monthlyData, (newData) => {
   flex-direction: row;
   .handled-chart {
     width: 531px;
-    height: 194px;
+    height: 100%;
   }
   .handled-item {
     background-size: 100% 100%;

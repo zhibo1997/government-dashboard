@@ -153,7 +153,7 @@ export function createApiClient<TClient extends ApiClientBase>(
         // 未授权
         if (response.data.code === 401) {
           localStorage.removeItem('token')
-          window.location.href = '/login'
+          router.push('/login')
           message.error('登录已过期，请重新登录')
           return Promise.reject(new Error('未授权'))
         }

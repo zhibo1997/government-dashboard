@@ -161,11 +161,18 @@ const waterPlants = ref();
 .quality-content {
   display: flex;
   flex-direction: row;
-  justify-content: space-between;
+  flex-wrap: wrap;
+  justify-content: flex-start;
   height: 100%;
   width: 100%;
   overflow-y: auto;
-
+  gap: 0;
+  
+  .quality-item{
+    width: 50%;
+    flex-shrink: 0;
+    flex-grow: 0;
+  }
   .quality-item-title {
     background-image: url("@/assets/img/waterSupply/quality_title.png");
     width: auto;

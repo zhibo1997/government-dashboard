@@ -226,14 +226,14 @@ export const handledOption = {
       type: "shadow",
     },
   },
-  legend: {
-    data: ["未处置", "已处置", "处置率"],
-    textStyle: {
-      color: "#fff",
-      fontSize: 14,
-    },
-    right: "10%",
-  },
+  // legend: {
+  //   data: ["未处置", "已处置", "处置率"],
+  //   textStyle: {
+  //     color: "#fff",
+  //     fontSize: 14,
+  //   },
+  //   right: "10%",
+  // },
   grid: {
     left: 2,
     right: 2,

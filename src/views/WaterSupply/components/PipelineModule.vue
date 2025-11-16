@@ -234,6 +234,7 @@ const initChart = () => {};
 <style lang="scss" scoped>
 .pipeline-module-content {
   display: flex;
+  flex-direction: row !important;
 }
 
 .material-content {
@@ -294,7 +295,7 @@ const initChart = () => {};
 }
 
 .hidden-danger {
-  width: 50%;
+  width:50%;
   display: flex;
   flex-direction: column;
   align-items: center;

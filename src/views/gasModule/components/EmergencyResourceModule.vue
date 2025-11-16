@@ -93,6 +93,7 @@ const resourceData = ref([
 
 <style lang="scss" scoped>
 .emergency-resource-module {
+  flex:0.7;
   .emergency-content {
     display: flex;
     flex-direction: column;
