@@ -283,10 +283,7 @@ defineExpose({
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
 
     &:hover:not(.disabled) {
-      border-color: rgba(22, 119, 255, 0.6);
-      background: rgba(22, 119, 255, 0.15);
-      transform: translateX(-4px);
-      box-shadow: 0 6px 24px rgba(22, 119, 255, 0.4);
+      transform: scale(1.05);
     }
 
     &.active {
@@ -325,9 +322,6 @@ defineExpose({
       }
     }
 
-    &:hover .tool-icon:not(.compass) {
-      transform: scale(1.1);
-    }
   }
 
   // 底图切换面板

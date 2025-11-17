@@ -9,14 +9,14 @@
     </div>
 
     <!-- 图层管理面板 -->
-    <div class="layer-panel">
+    <!-- <div class="layer-panel">
       <LayerManager
         ref="layerManagerRef"
         @layer-visibility-change="handleLayerVisibilityChange"
         @layer-opacity-change="handleLayerOpacityChange"
         @locate-layer="handleLocateLayer"
       />
-    </div>
+    </div> -->
 
     <!-- 控制按钮 -->
     <div class="map-controls">
