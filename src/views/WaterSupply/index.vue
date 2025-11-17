@@ -1,5 +1,11 @@
 <template>
   <div class="water-supply-special-container">
+    <!-- 中间地图区域 -->
+    <div class="center-map">
+      <keep-alive>
+        <MapComponent />
+      </keep-alive>
+    </div>
     <ResponsiveWrapper :base-width="4096" :base-height="1920">
       <!-- 头部区域 -->
       <keep-alive>
@@ -11,12 +17,6 @@
         <!-- 左侧数据展示区 -->
         <LeftNav />
 
-        <!-- 中间地图区域 -->
-        <div class="center-map">
-          <keep-alive>
-            <MapComponent />
-          </keep-alive>
-        </div>
         <RightNav />
         <!-- 右侧数据展示区 -->
       </div>

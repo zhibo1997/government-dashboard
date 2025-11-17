@@ -138,6 +138,8 @@ defineExpose({
 .responsive-wrapper {
   overflow-x: auto;
   position: relative;
+  z-index: 10;
+  pointer-events: none;
 }
 
 /* 外层滚动条样式优化 */

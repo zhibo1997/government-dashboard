@@ -30,7 +30,7 @@ import ResponsiveWrapper from "@/components/ResponsiveWrapper.vue";
 import LeftContent from "./leftContent.vue";
 import RightContent from "./rightContent.vue";
 import DashboardHeader from "@/components/DashboardHeader.vue";
-import SidebarModule from "./sidebarModule.vue";
+import SidebarModule from "./SidebarModule.vue";
 </script>
 
 <style lang="scss" scoped>

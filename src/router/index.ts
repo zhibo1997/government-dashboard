@@ -6,8 +6,12 @@ import WaterSupplyView from '../views/WaterSupply/index.vue'
 import MapView from '@/views/MapView.vue'
 import GasModule from '../views/GasModule/index.vue'
 
-// 路由配置
 const routes: RouteRecordRaw[] = [
+  // 👇 新增：根路径重定向到默认页面
+  {
+    path: '/',
+    redirect: '/mapView' // 或 '/bridge'，按需选择
+  },
   {
     path: '/login',
     name: 'Login',
@@ -64,33 +68,28 @@ const routes: RouteRecordRaw[] = [
   {
     path: '/:pathMatch(.*)*',
     name: 'NotFound',
-    redirect: '/' // 404页面重定向到主页
+    redirect: '/' // 现在 / 有定义了，不会死循环
   }
 ]
 
-// 创建路由实例
 const router = createRouter({
   history: createWebHashHistory(),
   routes
 })
 
-// 全局前置守卫
 router.beforeEach(async (to, from, next) => {
   const authStore = useAuthStore()
-  // 设置页面标题
+  
   if (to.meta.title) {
     document.title = to.meta.title as string
   }
   
-  // 只在应用启动时初始化认证状态，避免每次路由都重新初始化
+  // 初始化认证（仅首次）
   if (from.name === undefined) {
     authStore.initAuth()
   }
 
-  // 检查是否需要认证
   if (to.meta.requiresAuth) {
-
-    // 验证token有效性
     const isValidToken = await authStore.validateToken()
     if (!isValidToken) {
       authStore.logout()
@@ -98,11 +97,12 @@ router.beforeEach(async (to, from, next) => {
       return
     }
   } else {
-    // 如果已登录且访问登录页，重定向到仪表板
+    // 已登录用户访问登录页，跳转到首页
     if (to.name === 'Login' && authStore.isLoggedIn) {
       const isValidToken = await authStore.validateToken()
       if (isValidToken) {
-        next({ name: 'home' }) // 登录后重定向到主页
+        // ✅ 修复：跳转到存在的路由
+        next({ name: 'mapView' }) // 或 next('/')
         return
       } else {
         authStore.logout()
@@ -113,9 +113,7 @@ router.beforeEach(async (to, from, next) => {
   next()
 })
 
-// 全局后置钩子
 router.afterEach((to, from) => {
-  // 可以在这里添加页面访问统计等逻辑
   console.log(`路由跳转: ${from.path} -> ${to.path}`)
 })
 
