@@ -115,22 +115,12 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, onMounted } from 'vue'
+import { useVueCesium } from 'vue-cesium'
+import type { VcViewerProvider, VcReadyObject } from 'vue-cesium/es/utils/types'
 import mapConfig from '@/config/mapConfig'
 
-// Props定义
-const props = defineProps<{
-  viewerInstance?: any
-}>()
-
-// Emits定义
-const emit = defineEmits<{
-  baseMapChange: [type: 'vec' | 'img' | 'ter']
-  resetMap: []
-  viewModeChange: [is3D: boolean]
-  measureStart: [mode: 'distance' | 'area']
-  measureClear: []
-}>()
+const $vc: VcViewerProvider = useVueCesium()
 
 // 状态管理
 const isCollapsed = ref(false)
@@ -140,6 +130,7 @@ const currentBaseMap = ref<'vec' | 'img' | 'ter'>('vec')
 const is3D = ref(false)
 const measureMode = ref<'distance' | 'area' | null>(null)
 const compassRotation = ref(0)
+const viewerInstance = ref<any>(null)
 
 // 底图类型配置
 const baseMapTypes = [
@@ -147,6 +138,21 @@ const baseMapTypes = [
   { value: 'img', label: '影像地图', icon: '🛰️' },
   { value: 'ter', label: '地形地图', icon: '🏔️' }
 ] as const
+
+// 获取 viewer 实例
+onMounted(() => {
+  // 如果 MapToolbar 作为 vc-viewer 的子组件，直接访问
+  if ($vc.viewer) {
+    viewerInstance.value = $vc.viewer
+    console.log('✅ MapToolbar: 获取到 viewer 实例')
+  } else {
+    // 如果不是子组件，等待 viewer 创建完成
+    $vc.creatingPromise.then((readyObj: VcReadyObject) => {
+      viewerInstance.value = readyObj.viewer
+      console.log('✅ MapToolbar: 通过 Promise 获取到 viewer 实例')
+    })
+  }
+})
 
 // 切换收缩状态
 const toggleCollapse = () => {
@@ -173,65 +179,104 @@ const toggleMeasurePanel = () => {
 // 切换底图
 const switchBaseMap = (type: 'vec' | 'img' | 'ter') => {
   currentBaseMap.value = type
-  emit('baseMapChange', type)
   console.log(`切换底图: ${type}`)
   
-  // 可选：切换后自动关闭面板
-  // showBaseMapPanel.value = false
+  // TODO: 实现底图切换逻辑
+  // 需要通过 viewer 实例来切换天地图样式
 }
 
 // 重置地图
 const resetMap = () => {
-  emit('resetMap')
-  console.log('重置地图视角')
+  if (!viewerInstance.value) {
+    console.warn('⚠️ Viewer 实例未就绪')
+    return
+  }
+
+  const Cesium = (window as any).Cesium
+  if (Cesium) {
+    viewerInstance.value.camera.flyTo({
+      destination: Cesium.Cartesian3.fromDegrees(
+        mapConfig.center[0],
+        mapConfig.center[1],
+        50000
+      ),
+      orientation: {
+        heading: 0,
+        pitch: Cesium.Math.toRadians(-90),
+        roll: 0
+      },
+      duration: 2
+    })
+    console.log('✅ 地图视角已重置')
+  }
 }
 
 // 切换2D/3D视图
 const toggleViewMode = () => {
+  if (!viewerInstance.value) {
+    console.warn('⚠️ Viewer 实例未就绪')
+    return
+  }
+
   is3D.value = !is3D.value
-  emit('viewModeChange', is3D.value)
-  console.log(`切换视图模式: ${is3D.value ? '3D' : '2D'}`)
+  const Cesium = (window as any).Cesium
+  if (Cesium) {
+    viewerInstance.value.scene.mode = is3D.value 
+      ? Cesium.SceneMode.SCENE3D 
+      : Cesium.SceneMode.SCENE2D
+    console.log(`切换视图模式: ${is3D.value ? '3D' : '2D'}`)
+  }
 }
 
 // 重置指北
 const resetNorth = () => {
-  compassRotation.value = 0
-  console.log('重置指北方向')
-  
-  // TODO: 调用Cesium API重置相机朝向
-  if (props.viewerInstance) {
-    // props.viewerInstance.camera.setView({
-    //   orientation: {
-    //     heading: 0,
-    //     pitch: -90,
-    //     roll: 0
-    //   }
-    // })
+  if (!viewerInstance.value) {
+    console.warn('⚠️ Viewer 实例未就绪')
+    return
+  }
+
+  const Cesium = (window as any).Cesium
+  if (Cesium) {
+    viewerInstance.value.camera.setView({
+      orientation: {
+        heading: 0,
+        pitch: Cesium.Math.toRadians(-90),
+        roll: 0
+      }
+    })
+    compassRotation.value = 0
+    console.log('✅ 重置指北方向')
   }
 }
 
 // 开始测量
 const startMeasure = (mode: 'distance' | 'area') => {
   measureMode.value = mode
-  emit('measureStart', mode)
   console.log(`开始${mode === 'distance' ? '距离' : '面积'}测量`)
+  
+  // TODO: 实现测量功能
+  // 需要使用Cesium的绘制工具
 }
 
 // 清除测量
 const clearMeasure = () => {
   measureMode.value = null
-  emit('measureClear')
   console.log('清除测量结果')
+  
+  // TODO: 清除地图上的测量标注
 }
 
 // 监听相机朝向变化更新指北针
-watch(() => props.viewerInstance, (viewer) => {
+watch(() => viewerInstance.value, (viewer) => {
   if (viewer) {
-    // TODO: 监听相机变化更新指北针旋转角度
-    // viewer.camera.changed.addEventListener(() => {
-    //   const heading = viewer.camera.heading
-    //   compassRotation.value = Cesium.Math.toDegrees(heading)
-    // })
+    const Cesium = (window as any).Cesium
+    if (Cesium) {
+      // 监听相机变化更新指北针旋转角度
+      viewer.camera.changed.addEventListener(() => {
+        const heading = viewer.camera.heading
+        compassRotation.value = Cesium.Math.toDegrees(heading)
+      })
+    }
   }
 }, { immediate: true })
 
@@ -239,16 +284,13 @@ watch(() => props.viewerInstance, (viewer) => {
 defineExpose({
   isCollapsed,
   currentBaseMap,
-  measureMode
+  measureMode,
+  viewerInstance
 })
 </script>
 
 <style lang="scss" scoped>
 .map-toolbar {
-  position: fixed;
-  right: 40px;
-  top: 50%;
-  transform: translateY(-50%);
   display: flex;
   flex-direction: column;
   gap: 16px;

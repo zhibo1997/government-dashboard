@@ -18,16 +18,6 @@
         />
       </vc-layer-imagery>
     </vc-viewer>
-
-    <!-- 地图工具栏 -->
-    <MapToolbar 
-      :viewer-instance="viewerInstance"
-      @base-map-change="handleBaseMapChange"
-      @reset-map="handleResetMap"
-      @view-mode-change="handleViewModeChange"
-      @measure-start="handleMeasureStart"
-      @measure-clear="handleMeasureClear"
-    />
   </div>
   
 </template>
@@ -38,7 +28,6 @@ import { VcCamera } from 'vue-cesium/lib/utils/types.js'
 import cesiumUtils from '../mapUtils/mapUtils'
 import { geoServerWFS } from '../services/wfsService'
 import yangxinData from '../assets/yangxin.json'
-import MapToolbar from './MapToolbar.vue'
 import mapConfig from '@/config/mapConfig'
 
 // Cesium Viewer引用
@@ -278,70 +267,7 @@ function onTiandituError(error: any) {
   console.error('请检查天地图Token是否配置正确')
 }
 
-/**
- * 处理底图切换
- */
-function handleBaseMapChange(type: 'vec' | 'img' | 'ter') {
-  console.log(`切换底图类型: ${type}`)
-  currentBaseMapType.value = type
-}
 
-/**
- * 重置地图视角
- */
-function handleResetMap() {
-  if (viewerInstance.value) {
-    const Cesium = (window as any).Cesium
-    if (Cesium) {
-      viewerInstance.value.camera.flyTo({
-        destination: Cesium.Cartesian3.fromDegrees(
-          mapConfig.center[0],
-          mapConfig.center[1],
-          50000
-        ),
-        orientation: {
-          heading: 0,
-          pitch: Cesium.Math.toRadians(-90),
-          roll: 0
-        },
-        duration: 2
-      })
-      console.log('✅ 地图视角已重置')
-    }
-  }
-}
-
-/**
- * 处理2D/3D视图切换
- */
-function handleViewModeChange(is3D: boolean) {
-  const Cesium = (window as any).Cesium
-  if (Cesium) {
-    sceneMode.value = is3D ? 3 : 2
-    console.log(`切换到${is3D ? '3D' : '2D'}视图`)
-  }
-}
-
-/**
- * 开始测量
- */
-function handleMeasureStart(mode: 'distance' | 'area') {
-  measureMode.value = mode
-  console.log(`开始${mode === 'distance' ? '距离' : '面积'}测量`)
-  
-  // TODO: 实现测量功能
-  // 需要使用Cesium的绘制工具
-}
-
-/**
- * 清除测量
- */
-function handleMeasureClear() {
-  measureMode.value = null
-  console.log('清除测量结果')
-  
-  // TODO: 清除地图上的测量标注
-}
 
 /**
  * 组件挂载
@@ -370,8 +296,6 @@ defineExpose({
   cesiumViewer,
   viewerInstance,
   queryFeatureInfo,
-  handleBaseMapChange,
-  handleResetMap
 })
 </script>
 

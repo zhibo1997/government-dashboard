@@ -1,11 +1,13 @@
 <template>
   <div class="water-supply-special-container">
     <!-- 中间地图区域 -->
-    <div class="center-map">
+    <div class="center-map" data-interactive>
       <keep-alive>
         <MapComponent />
       </keep-alive>
     </div>
+
+
     <ResponsiveWrapper :base-width="4096" :base-height="1920">
       <!-- 头部区域 -->
       <keep-alive>
@@ -17,6 +19,8 @@
         <!-- 左侧数据展示区 -->
         <LeftNav />
 
+        <!-- 地图工具栏 -->
+        <MapToolbar data-interactive />
         <RightNav />
         <!-- 右侧数据展示区 -->
       </div>
@@ -27,6 +31,7 @@
 <script setup>
 import ResponsiveWrapper from "@/components/ResponsiveWrapper.vue";
 import MapComponent from "@/mapComponents/Map.vue";
+import MapToolbar from "@/mapComponents/MapToolbar.vue";
 // 引入左侧导航组件
 import LeftNav from "./leftContent.vue";
 import RightNav from "./rightContent.vue";
@@ -54,6 +59,12 @@ import DashboardHeader from "@/components/DashboardHeader.vue";
     top: -56px;
   }
 
+  .map-toolbar {
+    position: absolute;
+    right: 830px;
+    top: 20px;
+  }
+
   // 左侧数据展示区域
   .left-content {
     width: 820px;
@@ -70,13 +81,14 @@ import DashboardHeader from "@/components/DashboardHeader.vue";
 
   // 中间地图区域
   .center-map {
-    width: 4096px;
+    width: 100%;
     position: absolute;
     top: 0;
     height: 100%;
     left: 50%;
     transform: translateX(-50%);
     z-index: 1;
+    pointer-events: auto;
 
     // 确保地图组件填满容器
     :deep(.mapbox-map-container) {

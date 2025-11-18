@@ -142,6 +142,18 @@ defineExpose({
   pointer-events: none;
 }
 
+/* 为需要交互的特定元素恢复鼠标事件 */
+.responsive-wrapper :deep(.header),
+.responsive-wrapper :deep(.left-content),
+.responsive-wrapper :deep(.right-content),
+.responsive-wrapper :deep(.map-toolbar),
+.responsive-wrapper :deep(.login-card)
+{
+  pointer-events: auto;
+}
+
+/* container 不设置 pointer-events，让中间区域可以穿透到地图 */
+
 /* 外层滚动条样式优化 */
 .responsive-wrapper::-webkit-scrollbar {
   width: 12px;
