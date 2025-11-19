@@ -15,6 +15,26 @@
           <img src="@/assets/map/map_tree.webp" alt="">
         </div>
       </div>
+      <!-- 优化地图内容渲染功能，基于@commonService.ts提供的getLayerTree接口返回的JSON数据结构（包含业务图层、燃气专项、桥梁专项等层级关系） ，实现以下功能：
+
+1. 使用n-tree组件渲染图层树结构，正确处理各层级的父子关系（group类型为分组节点，tile/wms为叶子节点）
+
+2. 根据type字段区分渲染方式：
+   - 当type为'tile'时，调用Map.vue中的loadMVTLayer方法加载切片图层
+   - 当type为'wms'时，采用Cesium的3dtiles方式加载三维模型
+
+3. 实现图层控制功能：
+   - 集成@MapToolbar.vue中的控制按钮
+   - 支持图层可见性(visible)、透明度(opacity)等属性调整
+   - 处理分组节点的展开/折叠(expanded)状态
+
+4. 代码结构要求：
+   - 将图层树渲染逻辑封装为独立函数
+   - 与地图加载逻辑解耦，通过事件通信
+   - 优化性能，避免重复渲染
+
+注意：不需要生成任何文档说明，专注于功能实现。 -->
+
 
       <!-- 底图切换 -->
       <div 
