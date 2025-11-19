@@ -30,6 +30,11 @@ import { geoServerWFS } from '../services/wfsService'
 import yangxinData from '../assets/yangxin.json'
 import mapConfig from '@/config/mapConfig'
 
+// 定义组件名称以支持keep-alive
+defineOptions({
+  name: 'CesiumMap'
+});
+
 // Cesium Viewer引用
 const cesiumViewer = ref(null)
 const viewerInstance = ref<any>(null)

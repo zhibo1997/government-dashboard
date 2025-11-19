@@ -56,6 +56,14 @@ export async function getModuleTree() {
 }
 
 /**
+ * 获取图层树
+ */
+export async function getLayerTree() {
+  const res = await commonApi.layer.treeList();
+  return res.data;
+}
+
+/**
  * 使用 RSA 公钥加密密码
  * @param password 原始密码
  * @param publicKey RSA 公钥

@@ -1,3 +1,10 @@
+/*
+ * @Author: Do not edit
+ * @Date: 2025-11-02 09:01:09
+ * @LastEditors: 王志博
+ * @LastEditTime: 2025-11-19 23:55:37
+ * @Description: 
+ */
 /* eslint-disable */
 /* tslint:disable */
 /*
@@ -902,6 +909,62 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
     moduleTreeList: (params: RequestParams = {}) =>
       this.request<LearunUtilResponseDto, any>({
         path: `/system/module/tree`,
+        method: "GET",
+        format: "json",
+        ...params,
+      }),
+  };
+  layer = {
+    /**
+     * No description
+     *
+     * @name TreeList
+     * @summary 获取图层树
+     * @request GET:/layer/tree
+     */
+    treeList: (params: RequestParams = {}) =>
+      this.request<
+        {
+          code: number;
+          info: string;
+          data: {
+            id?: string;
+            name?: null;
+            parentId?: string;
+            type?: string;
+            expanded?: string;
+            url?: null;
+            visible?: string;
+            opacity?: null;
+            sortOrder?: number;
+            child?: {
+              id: string;
+              name: string;
+              parentId: string;
+              type: string;
+              expanded: string;
+              url: null;
+              visible: string;
+              opacity: null;
+              sortOrder: number;
+              child: {
+                id: string;
+                name: string;
+                parentId: string;
+                type: string;
+                expanded: string | null;
+                url: string;
+                visible: string;
+                opacity: number;
+                sortOrder: number;
+                child: null;
+              }[];
+            }[];
+          }[];
+        },
+        any
+      >({
+        path: `/layer/tree`,
         method: "GET",
         format: "json",
         ...params,

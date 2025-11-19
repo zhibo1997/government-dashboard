@@ -532,42 +532,4 @@ defineExpose({
   }
 }
 
-// 响应式适配
-@media (max-width: 1920px) {
-  .map-toolbar {
-    right: 20px;
-    
-    .toolbar-item {
-      width: 60px;
-      height: 60px;
-      
-      .tool-icon .icon-placeholder {
-        font-size: 24px;
-      }
-    }
-    
-    .base-map-panel,
-    .measure-panel {
-      width: 200px;
-      padding: 16px;
-      
-      .panel-title {
-        font-size: 16px;
-      }
-      
-      .base-map-option,
-      .measure-option {
-        padding: 10px 12px;
-        
-        .option-icon {
-          font-size: 20px;
-        }
-        
-        .option-label {
-          font-size: 14px;
-        }
-      }
-    }
-  }
-}
 </style>
