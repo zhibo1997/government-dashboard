@@ -1,0 +1,154 @@
+{
+  "code": 200,
+  "message": "success",
+  "data": [
+    {
+      "id": "group-business",
+      "name": "业务图层",
+      "parentId": "root",
+      "type": "group",
+      "expanded": "true",
+      "url": null,
+      "visible": "true",
+      "opacity": null,
+      "sortOrder": 1,
+      "child": [
+        {
+          "id": "layer-bridge-mvt",
+          "name": "桥梁设施(MVT)",
+          "parentId": "group-business",
+          "type": "mvt",
+          "expanded": "false",
+          "url": "/clmap/style.json",
+          "visible": "true",
+          "opacity": 1.0,
+          "sortOrder": 1,
+          "child": null
+        },
+        {
+          "id": "layer-manhole",
+          "name": "井盖设施",
+          "parentId": "group-business",
+          "type": "tile",
+          "expanded": "false",
+          "url": "https://webres.cityfun.com.cn/CSSMX/CSSMX_ZT/manholes/{z}/{x}/{y}.pbf",
+          "visible": "false",
+          "opacity": 0.8,
+          "sortOrder": 2,
+          "child": null
+        }
+      ]
+    },
+    {
+      "id": "group-gas",
+      "name": "燃气专项",
+      "parentId": "root",
+      "type": "group",
+      "expanded": "true",
+      "url": null,
+      "visible": "true",
+      "opacity": null,
+      "sortOrder": 2,
+      "child": [
+        {
+          "id": "layer-gas-pipeline",
+          "name": "燃气管网",
+          "parentId": "group-gas",
+          "type": "wms",
+          "expanded": "false",
+          "url": "http://map4.cityfun.com.cn/geoserver/wms",
+          "visible": "false",
+          "opacity": 0.9,
+          "sortOrder": 1,
+          "child": null
+        },
+        {
+          "id": "layer-gas-station",
+          "name": "燃气站点",
+          "parentId": "group-gas",
+          "type": "tile",
+          "expanded": "false",
+          "url": "https://api.example.com/tiles/gas-stations/{z}/{x}/{y}",
+          "visible": "false",
+          "opacity": 1.0,
+          "sortOrder": 2,
+          "child": null
+        }
+      ]
+    },
+    {
+      "id": "group-bridge-special",
+      "name": "桥梁专项",
+      "parentId": "root",
+      "type": "group",
+      "expanded": "false",
+      "url": null,
+      "visible": "true",
+      "opacity": null,
+      "sortOrder": 3,
+      "child": [
+        {
+          "id": "layer-bridge-3d",
+          "name": "桥梁三维模型",
+          "parentId": "group-bridge-special",
+          "type": "3dTile",
+          "expanded": "false",
+          "url": "https://api.example.com/3dtiles/bridges/tileset.json",
+          "visible": "false",
+          "opacity": 1.0,
+          "sortOrder": 1,
+          "child": null
+        },
+        {
+          "id": "layer-bridge-info",
+          "name": "桥梁基础信息",
+          "parentId": "group-bridge-special",
+          "type": "tile",
+          "expanded": "false",
+          "url": "https://webres.cityfun.com.cn/CSSMX/CSSMX_ZT/gspsp_dtrans_bridgebscinfo/{z}/{x}/{y}.pbf",
+          "visible": "false",
+          "opacity": 0.85,
+          "sortOrder": 2,
+          "child": null
+        }
+      ]
+    },
+    {
+      "id": "group-water",
+      "name": "供水专项",
+      "parentId": "root",
+      "type": "group",
+      "expanded": "false",
+      "url": null,
+      "visible": "true",
+      "opacity": null,
+      "sortOrder": 4,
+      "child": [
+        {
+          "id": "layer-water-pipeline",
+          "name": "供水管网",
+          "parentId": "group-water",
+          "type": "mvt",
+          "expanded": "false",
+          "url": "/api/mvt/water/pipeline/style.json",
+          "visible": "false",
+          "opacity": 0.9,
+          "sortOrder": 1,
+          "child": null
+        },
+        {
+          "id": "layer-water-plant-3d",
+          "name": "水厂三维模型",
+          "parentId": "group-water",
+          "type": "3dTile",
+          "expanded": "false",
+          "url": "https://api.example.com/3dtiles/water-plants/tileset.json",
+          "visible": "false",
+          "opacity": 1.0,
+          "sortOrder": 2,
+          "child": null
+        }
+      ]
+    }
+  ]
+}

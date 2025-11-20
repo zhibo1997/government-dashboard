@@ -233,6 +233,103 @@ export const cesiumUtils = {
       console.error('添加WFS点数据到地图失败:', error)
       throw error
     }
+  },
+
+  /**
+   * 加载3D Tiles图层
+   * @param viewer - Cesium Viewer实例
+   * @param url - 3D Tiles tileset.json URL
+   * @param options - 加载选项
+   * @returns Promise<Cesium3DTileset>
+   */
+  async load3DTiles(
+    viewer: any,
+    url: string,
+    options: {
+      maximumScreenSpaceError?: number
+      maximumMemoryUsage?: number
+      show?: boolean
+    } = {}
+  ): Promise<any> {
+    try {
+      const Cesium = (window as any).Cesium
+      if (!Cesium) {
+        throw new Error('Cesium未加载')
+      }
+
+      const {
+        maximumScreenSpaceError = 16,
+        maximumMemoryUsage = 512,
+        show = true
+      } = options
+
+      console.log(`开始加载3D Tiles: ${url}`)
+
+      // 创建3D Tileset
+      const tileset = await Cesium.Cesium3DTileset.fromUrl(url, {
+        maximumScreenSpaceError,
+        maximumMemoryUsage,
+        show
+      })
+
+      // 添加到场景
+      viewer.scene.primitives.add(tileset)
+
+      // 调整相机视角到tileset
+      await viewer.zoomTo(tileset)
+
+      console.log('✅ 3D Tiles加载成功')
+      
+      return tileset
+    } catch (error) {
+      console.error('❌ 加载3D Tiles失败:', error)
+      throw new Error(`Failed to load 3D Tiles: ${error}`)
+    }
+  },
+
+  /**
+   * 移除3D Tiles图层
+   * @param viewer - Cesium Viewer实例
+   * @param tileset - 3D Tileset实例
+   */
+  remove3DTiles(viewer: any, tileset: any): void {
+    try {
+      if (viewer && viewer.scene && tileset) {
+        viewer.scene.primitives.remove(tileset)
+        console.log('✅ 3D Tiles已移除')
+      }
+    } catch (error) {
+      console.error('❌ 移除3D Tiles失败:', error)
+    }
+  },
+
+  /**
+   * 设置3D Tiles可见性
+   * @param tileset - 3D Tileset实例
+   * @param visible - 是否可见
+   */
+  set3DTilesVisibility(tileset: any, visible: boolean): void {
+    if (tileset) {
+      tileset.show = visible
+      console.log(`3D Tiles可见性已设置为: ${visible}`)
+    }
+  },
+
+  /**
+   * 设置3D Tiles样式
+   * @param tileset - 3D Tileset实例
+   * @param style - Cesium3DTileStyle样式对象
+   */
+  set3DTilesStyle(tileset: any, style: any): void {
+    const Cesium = (window as any).Cesium
+    if (!Cesium || !tileset) return
+
+    try {
+      tileset.style = new Cesium.Cesium3DTileStyle(style)
+      console.log('✅ 3D Tiles样式已更新')
+    } catch (error) {
+      console.error('❌ 设置3D Tiles样式失败:', error)
+    }
   }
 }
 

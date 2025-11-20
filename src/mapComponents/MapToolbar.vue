@@ -9,32 +9,31 @@
 
     <!-- 工具按钮组 (收缩时隐藏) -->
     <template v-if="!isCollapsed">
-      <!-- 图层树 (暂不开发) -->
-      <div class="toolbar-item disabled" title="图层树 (敬请期待)">
+      <!-- 图层树 -->
+      <div 
+        class="toolbar-item" 
+        :class="{ active: showLayerTreePanel }"
+        @click="toggleLayerTreePanel" 
+        title="图层树"
+      >
         <div class="tool-icon">
           <img src="@/assets/map/map_tree.webp" alt="">
         </div>
+        <!-- 图层树面板 -->
+        <transition name="slide-left">
+          <div v-if="showLayerTreePanel" class="layer-tree-panel">
+            <div class="panel-title">图层管理</div>
+            <OptimizedLayerTree
+              ref="layerTreeRef"
+              :viewer-instance="viewerInstance"
+              @load-mvt="handleLoadMVT"
+              @load-3dtiles="handleLoad3DTiles"
+              @layer-toggle="handleLayerToggle"
+              @layer-opacity-change="handleLayerOpacityChange"
+            />
+          </div>
+        </transition>
       </div>
-      <!-- 优化地图内容渲染功能，基于@commonService.ts提供的getLayerTree接口返回的JSON数据结构（包含业务图层、燃气专项、桥梁专项等层级关系） ，实现以下功能：
-
-1. 使用n-tree组件渲染图层树结构，正确处理各层级的父子关系（group类型为分组节点，tile/wms为叶子节点）
-
-2. 根据type字段区分渲染方式：
-   - 当type为'tile'时，调用Map.vue中的loadMVTLayer方法加载切片图层
-   - 当type为'wms'时，采用Cesium的3dtiles方式加载三维模型
-
-3. 实现图层控制功能：
-   - 集成@MapToolbar.vue中的控制按钮
-   - 支持图层可见性(visible)、透明度(opacity)等属性调整
-   - 处理分组节点的展开/折叠(expanded)状态
-
-4. 代码结构要求：
-   - 将图层树渲染逻辑封装为独立函数
-   - 与地图加载逻辑解耦，通过事件通信
-   - 优化性能，避免重复渲染
-
-注意：不需要生成任何文档说明，专注于功能实现。 -->
-
 
       <!-- 底图切换 -->
       <div 
@@ -135,15 +134,18 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch, onMounted } from 'vue'
+import { ref, watch, onMounted } from 'vue'
 import { useVueCesium } from 'vue-cesium'
 import type { VcViewerProvider, VcReadyObject } from 'vue-cesium/es/utils/types'
 import mapConfig from '@/config/mapConfig'
+import OptimizedLayerTree from './OptimizedLayerTree.vue'
+import cesiumUtils from '@/mapUtils/mapUtils'
 
 const $vc: VcViewerProvider = useVueCesium()
 
 // 状态管理
 const isCollapsed = ref(false)
+const showLayerTreePanel = ref(false)
 const showBaseMapPanel = ref(false)
 const showMeasurePanel = ref(false)
 const currentBaseMap = ref<'vec' | 'img' | 'ter'>('vec')
@@ -151,6 +153,10 @@ const is3D = ref(false)
 const measureMode = ref<'distance' | 'area' | null>(null)
 const compassRotation = ref(0)
 const viewerInstance = ref<any>(null)
+const layerTreeRef = ref<any>(null)
+
+// 存储已加载的图层实例
+const loadedLayers = ref<Map<string, any>>(new Map())
 
 // 底图类型配置
 const baseMapTypes = [
@@ -179,21 +185,141 @@ const toggleCollapse = () => {
   isCollapsed.value = !isCollapsed.value
   // 收缩时关闭所有面板
   if (isCollapsed.value) {
+    showLayerTreePanel.value = false
     showBaseMapPanel.value = false
     showMeasurePanel.value = false
   }
 }
 
+// 切换图层树面板
+const toggleLayerTreePanel = () => {
+  showLayerTreePanel.value = !showLayerTreePanel.value
+  showBaseMapPanel.value = false
+  showMeasurePanel.value = false
+}
+
 // 切换底图面板
 const toggleBaseMapPanel = () => {
   showBaseMapPanel.value = !showBaseMapPanel.value
+  showLayerTreePanel.value = false
   showMeasurePanel.value = false
 }
 
 // 切换测量面板
 const toggleMeasurePanel = () => {
   showMeasurePanel.value = !showMeasurePanel.value
+  showLayerTreePanel.value = false
   showBaseMapPanel.value = false
+}
+
+// 处理加载MVT图层
+const handleLoadMVT = async (url: string, layerId: string) => {
+  if (!viewerInstance.value) {
+    console.warn('⚠️ Viewer 实例未就绪')
+    return
+  }
+
+  try {
+    console.log(`🔄 加载MVT图层: ${url}`)
+    
+    const provider = await cesiumUtils.loadMVTLayer(viewerInstance.value, url)
+    loadedLayers.value.set(layerId, { type: 'mvt', instance: provider })
+    
+    console.log(`✅ MVT图层加载成功: ${layerId}`)
+  } catch (error) {
+    console.error(`❌ MVT图层加载失败: ${layerId}`, error)
+    
+    // 更新图层树状态
+    if (layerTreeRef.value) {
+      layerTreeRef.value.updateLayerState(layerId, {
+        loading: false,
+        error: '加载失败'
+      })
+    }
+  }
+}
+
+// 处理加载3D Tiles图层
+const handleLoad3DTiles = async (url: string, layerId: string) => {
+  if (!viewerInstance.value) {
+    console.warn('⚠️ Viewer 实例未就绪')
+    return
+  }
+
+  try {
+    console.log(`🔄 加载3D Tiles图层: ${url}`)
+    
+    const tileset = await cesiumUtils.load3DTiles(viewerInstance.value, url)
+    loadedLayers.value.set(layerId, { type: '3dtiles', instance: tileset })
+    
+    console.log(`✅ 3D Tiles图层加载成功: ${layerId}`)
+  } catch (error) {
+    console.error(`❌ 3D Tiles图层加载失败: ${layerId}`, error)
+    
+    // 更新图层树状态
+    if (layerTreeRef.value) {
+      layerTreeRef.value.updateLayerState(layerId, {
+        loading: false,
+        error: '加载失败'
+      })
+    }
+  }
+}
+
+// 处理图层显隐切换
+const handleLayerToggle = (layerId: string, visible: boolean, layerData: any) => {
+  console.log(`${visible ? '显示' : '隐藏'}图层:`, layerId)
+  
+  const layer = loadedLayers.value.get(layerId)
+  
+  if (!visible && layer) {
+    // 隐藏或移除图层
+    if (layer.type === '3dtiles') {
+      cesiumUtils.set3DTilesVisibility(layer.instance, false)
+    } else if (layer.type === 'mvt') {
+      // MVT图层显隐控制
+      if (layer.instance && layer.instance.show !== undefined) {
+        layer.instance.show = false
+      }
+    }
+  } else if (visible && !layer) {
+    // 图层未加载,需要加载
+    if (layerData.type === 'mvt') {
+      handleLoadMVT(layerData.url, layerId)
+    } else if (layerData.type === '3dTile') {
+      handleLoad3DTiles(layerData.url, layerId)
+    }
+  } else if (visible && layer) {
+    // 显示已加载的图层
+    if (layer.type === '3dtiles') {
+      cesiumUtils.set3DTilesVisibility(layer.instance, true)
+    } else if (layer.type === 'mvt') {
+      if (layer.instance && layer.instance.show !== undefined) {
+        layer.instance.show = true
+      }
+    }
+  }
+}
+
+// 处理图层透明度变化
+const handleLayerOpacityChange = (layerId: string, opacity: number) => {
+  console.log(`调整图层透明度: ${layerId}, ${opacity}`)
+  
+  const layer = loadedLayers.value.get(layerId)
+  
+  if (layer) {
+    if (layer.type === '3dtiles' && layer.instance) {
+      // 3D Tiles透明度控制
+      cesiumUtils.set3DTilesStyle(layer.instance, {
+        color: `color('white', ${opacity})`
+      })
+    } else if (layer.type === 'mvt' && layer.instance) {
+      // MVT图层透明度控制
+      if (layer.instance.alpha !== undefined) {
+        layer.instance.alpha = opacity
+      }
+    }
+  }
 }
 
 // 切换底图
@@ -305,7 +431,9 @@ defineExpose({
   isCollapsed,
   currentBaseMap,
   measureMode,
-  viewerInstance
+  viewerInstance,
+  loadedLayers,
+  layerTreeRef
 })
 </script>
 
@@ -384,6 +512,35 @@ defineExpose({
       }
     }
 
+  }
+
+  // 图层树面板
+  .layer-tree-panel {
+    position: absolute;
+    right: 100%;
+    top: 0;
+    margin-right: 16px;
+    width: 400px;
+    max-height: 600px;
+    background: rgba(0, 15, 35, 0.95);
+    backdrop-filter: blur(10px);
+    border: 2px solid rgba(22, 119, 255, 0.3);
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+
+    .panel-title {
+      font-size: 18px;
+      font-weight: bold;
+      color: #ffffff;
+      margin-bottom: 16px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid rgba(22, 119, 255, 0.2);
+      flex-shrink: 0;
+    }
   }
 
   // 底图切换面板

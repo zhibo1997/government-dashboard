@@ -65,12 +65,12 @@ const measureMode = ref<'distance' | 'area' | null>(null)
 
 // 计算天地图样式字符串
 const currentMapStyle = computed(() => {
-  const styleMap = {
+  const styleMap: Record<string, string> = {
     'vec': 'vec_c',  // 矢量+中文标注
     'img': 'img_c',  // 影像+中文标注
     'ter': 'ter_c'   // 地形+中文标注
   }
-  return styleMap[currentBaseMapType.value]
+  return styleMap[currentBaseMapType.value] as any
 })
 
 /**
@@ -301,6 +301,7 @@ defineExpose({
   cesiumViewer,
   viewerInstance,
   queryFeatureInfo,
+  loadMVTLayer  // 暴露MVT图层加载方法
 })
 </script>
 
