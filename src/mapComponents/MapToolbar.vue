@@ -9,30 +9,18 @@
 
     <!-- 工具按钮组 (收缩时隐藏) -->
     <template v-if="!isCollapsed">
-      <!-- 图层树 -->
-      <div 
-        class="toolbar-item" 
-        :class="{ active: showLayerTreePanel }"
-        @click="toggleLayerTreePanel" 
-        title="图层树"
-      >
-        <div class="tool-icon">
-          <img src="@/assets/map/map_tree.webp" alt="">
+      <!-- 图层树 - 常驻显示 -->
+      <div class="layer-tree-container">
+        <div class="layer-tree-panel permanent">
+          <OptimizedLayerTree
+            ref="layerTreeRef"
+            :viewer-instance="viewerInstance"
+            @load-mvt="handleLoadMVT"
+            @load-3dtiles="handleLoad3DTiles"
+            @layer-toggle="handleLayerToggle"
+            @layer-opacity-change="handleLayerOpacityChange"
+          />
         </div>
-        <!-- 图层树面板 -->
-        <transition name="slide-left">
-          <div v-if="showLayerTreePanel" class="layer-tree-panel">
-            <div class="panel-title">图层管理</div>
-            <OptimizedLayerTree
-              ref="layerTreeRef"
-              :viewer-instance="viewerInstance"
-              @load-mvt="handleLoadMVT"
-              @load-3dtiles="handleLoad3DTiles"
-              @layer-toggle="handleLayerToggle"
-              @layer-opacity-change="handleLayerOpacityChange"
-            />
-          </div>
-        </transition>
       </div>
 
       <!-- 底图切换 -->
@@ -89,45 +77,12 @@
       <!-- 测量工具 -->
       <div 
         class="toolbar-item" 
-        :class="{ active: showMeasurePanel }"
-        @click="toggleMeasurePanel" 
+        @click="$emit('toggle-measure')" 
         title="测量工具"
       >
         <div class="tool-icon">
           <img src="@/assets/map/measure.webp" alt="">
         </div>
-        <!-- 测量工具面板 -->
-        <transition name="slide-left">
-          <div v-if="showMeasurePanel" class="measure-panel">
-            <div class="panel-title">测量工具</div>
-            <div class="measure-options">
-              <div 
-                class="measure-option"
-                :class="{ active: measureMode === 'distance' }"
-                @click.stop="startMeasure('distance')"
-              >
-                <span class="option-icon">📐</span>
-                <span class="option-label">距离测量</span>
-              </div>
-              <div 
-                class="measure-option"
-                :class="{ active: measureMode === 'area' }"
-                @click.stop="startMeasure('area')"
-              >
-                <span class="option-icon">📦</span>
-                <span class="option-label">面积测量</span>
-              </div>
-              <div 
-                v-if="measureMode"
-                class="measure-option clear"
-                @click.stop="clearMeasure"
-              >
-                <span class="option-icon">🗑️</span>
-                <span class="option-label">清除测量</span>
-              </div>
-            </div>
-          </div>
-        </transition>
       </div>
     </template>
   </div>
@@ -137,6 +92,7 @@
 import { ref, watch, onMounted } from 'vue'
 import { useVueCesium } from 'vue-cesium'
 import type { VcViewerProvider, VcReadyObject } from 'vue-cesium/es/utils/types'
+
 import mapConfig from '@/config/mapConfig'
 import OptimizedLayerTree from './OptimizedLayerTree.vue'
 import cesiumUtils from '@/mapUtils/mapUtils'
@@ -145,12 +101,9 @@ const $vc: VcViewerProvider = useVueCesium()
 
 // 状态管理
 const isCollapsed = ref(false)
-const showLayerTreePanel = ref(false)
 const showBaseMapPanel = ref(false)
-const showMeasurePanel = ref(false)
 const currentBaseMap = ref<'vec' | 'img' | 'ter'>('vec')
 const is3D = ref(false)
-const measureMode = ref<'distance' | 'area' | null>(null)
 const compassRotation = ref(0)
 const viewerInstance = ref<any>(null)
 const layerTreeRef = ref<any>(null)
@@ -183,33 +136,15 @@ onMounted(() => {
 // 切换收缩状态
 const toggleCollapse = () => {
   isCollapsed.value = !isCollapsed.value
-  // 收缩时关闭所有面板
+  // 收缩时关闭底图面板
   if (isCollapsed.value) {
-    showLayerTreePanel.value = false
     showBaseMapPanel.value = false
-    showMeasurePanel.value = false
   }
-}
-
-// 切换图层树面板
-const toggleLayerTreePanel = () => {
-  showLayerTreePanel.value = !showLayerTreePanel.value
-  showBaseMapPanel.value = false
-  showMeasurePanel.value = false
 }
 
 // 切换底图面板
 const toggleBaseMapPanel = () => {
   showBaseMapPanel.value = !showBaseMapPanel.value
-  showLayerTreePanel.value = false
-  showMeasurePanel.value = false
-}
-
-// 切换测量面板
-const toggleMeasurePanel = () => {
-  showMeasurePanel.value = !showMeasurePanel.value
-  showLayerTreePanel.value = false
-  showBaseMapPanel.value = false
 }
 
 // 处理加载MVT图层
@@ -395,23 +330,6 @@ const resetNorth = () => {
   }
 }
 
-// 开始测量
-const startMeasure = (mode: 'distance' | 'area') => {
-  measureMode.value = mode
-  console.log(`开始${mode === 'distance' ? '距离' : '面积'}测量`)
-  
-  // TODO: 实现测量功能
-  // 需要使用Cesium的绘制工具
-}
-
-// 清除测量
-const clearMeasure = () => {
-  measureMode.value = null
-  console.log('清除测量结果')
-  
-  // TODO: 清除地图上的测量标注
-}
-
 // 监听相机朝向变化更新指北针
 watch(() => viewerInstance.value, (viewer) => {
   if (viewer) {
@@ -430,7 +348,6 @@ watch(() => viewerInstance.value, (viewer) => {
 defineExpose({
   isCollapsed,
   currentBaseMap,
-  measureMode,
   viewerInstance,
   loadedLayers,
   layerTreeRef
@@ -455,6 +372,10 @@ defineExpose({
         margin-bottom: 0;
       }
     }
+
+    .layer-tree-container {
+      display: none;
+    }
   }
 
   .toolbar-item {
@@ -472,24 +393,10 @@ defineExpose({
     justify-content: center;
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
 
-    &:hover:not(.disabled) {
-      transform: scale(1.05);
-    }
 
     &.active {
       border-color: #1677ff;
       background: rgba(22, 119, 255, 0.25);
-    }
-
-    &.disabled {
-      opacity: 0.4;
-      cursor: not-allowed;
-      
-      &:hover {
-        transform: none;
-        border-color: rgba(22, 119, 255, 0.3);
-        background: rgba(0, 15, 35, 0.85);
-      }
     }
 
     .tool-icon {
@@ -501,6 +408,9 @@ defineExpose({
       transition: transform 0.3s ease;
       background-image: url('@/assets/map/tool_bg.webp');
 
+    &:hover {
+      transform: scale(1.2);
+    }
       &.compass {
         transition: transform 0.6s ease;
       }
@@ -514,32 +424,32 @@ defineExpose({
 
   }
 
-  // 图层树面板
+  // 图层树容器 - 常驻显示
+  .layer-tree-container {
+    position: relative;
+  }
+
+  // 图层树面板 - 常驻样式
   .layer-tree-panel {
     position: absolute;
     right: 100%;
     top: 0;
     margin-right: 16px;
     width: 400px;
-    max-height: 600px;
-    background: rgba(0, 15, 35, 0.95);
+    height: 600px;
+    background: rgba(11, 28, 45, 0.95);
     backdrop-filter: blur(10px);
-    border: 2px solid rgba(22, 119, 255, 0.3);
-    border-radius: 12px;
-    padding: 20px;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
     display: flex;
     flex-direction: column;
     overflow: hidden;
 
-    .panel-title {
-      font-size: 18px;
-      font-weight: bold;
-      color: #ffffff;
-      margin-bottom: 16px;
-      padding-bottom: 12px;
-      border-bottom: 1px solid rgba(22, 119, 255, 0.2);
-      flex-shrink: 0;
+    &.permanent {
+      // 常驻显示，没有动画
+      opacity: 1;
+      transform: none;
     }
   }
 
@@ -600,87 +510,6 @@ defineExpose({
 
         .option-icon {
           font-size: 24px;
-        }
-
-        .option-label {
-          font-size: 16px;
-          color: #ffffff;
-          flex: 1;
-        }
-      }
-    }
-  }
-
-  // 测量工具面板
-  .measure-panel {
-    position: absolute;
-    right: 100%;
-    top: 0;
-    margin-right: 16px;
-    width: 240px;
-    background: rgba(0, 15, 35, 0.95);
-    backdrop-filter: blur(10px);
-    border: 2px solid rgba(22, 119, 255, 0.3);
-    border-radius: 12px;
-    padding: 20px;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
-
-    .panel-title {
-      font-size: 18px;
-      font-weight: bold;
-      color: #ffffff;
-      margin-bottom: 16px;
-      padding-bottom: 12px;
-      border-bottom: 1px solid rgba(22, 119, 255, 0.2);
-    }
-
-    .measure-options {
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-
-      .measure-option {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        padding: 12px 16px;
-        background: rgba(255, 255, 255, 0.05);
-        border: 1px solid rgba(22, 119, 255, 0.2);
-        border-radius: 8px;
-        cursor: pointer;
-        transition: all 0.3s ease;
-
-        &:hover {
-          background: rgba(22, 119, 255, 0.15);
-          border-color: rgba(22, 119, 255, 0.5);
-          transform: translateX(-4px);
-        }
-
-        &.active {
-          background: rgba(22, 119, 255, 0.25);
-          border-color: #1677ff;
-          
-          .option-label {
-            color: #1677ff;
-            font-weight: bold;
-          }
-        }
-
-        &.clear {
-          border-color: rgba(255, 77, 79, 0.3);
-          
-          &:hover {
-            background: rgba(255, 77, 79, 0.15);
-            border-color: rgba(255, 77, 79, 0.6);
-          }
-          
-          .option-label {
-            color: #ff4d4f;
-          }
-        }
-
-        .option-icon {
-          font-size: 20px;
         }
 
         .option-label {

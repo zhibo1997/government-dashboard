@@ -2,21 +2,13 @@
   <div class="map-view">
     <!-- 地图容器 -->
     <div class="map-wrapper">
-      <Map
-        ref="mapRef"
-        @layer-visibility-change="handleLayerVisibilityChange"
-      />
+      <Map ref="mapRef" @layer-visibility-change="handleLayerVisibilityChange" />
     </div>
 
     <!-- 图层管理面板 -->
-    <!-- <div class="layer-panel">
-      <LayerManager
-        ref="layerManagerRef"
-        @layer-visibility-change="handleLayerVisibilityChange"
-        @layer-opacity-change="handleLayerOpacityChange"
-        @locate-layer="handleLocateLayer"
-      />
-    </div> -->
+    <div class="layer-panel">
+      <MapToolbar data-interactive @toggle-measure="handleToggleMeasure" />
+    </div>
 
     <!-- 控制按钮 -->
     <div class="map-controls">
@@ -36,6 +28,7 @@ import { ref } from "vue";
 import { NSpace, NButton, createDiscreteApi } from "naive-ui";
 import Map from "@/mapComponents/Map.vue";
 import LayerManager from "@/mapComponents/LayerManager.vue";
+import MapToolbar from "@/mapComponents/MapToolbar.vue";
 
 const { message } = createDiscreteApi(["message"]);
 // 组件引用
@@ -110,6 +103,15 @@ function toggleLayerPanel() {
 }
 
 /**
+ * 处理测量工具切换
+ */
+function handleToggleMeasure() {
+  if (mapRef.value?.toggleMeasureTool) {
+    mapRef.value.toggleMeasureTool()
+  }
+}
+
+/**
  * 测试点位查询
  */
 async function testQuery() {
@@ -139,6 +141,13 @@ async function testQuery() {
 .map-wrapper {
   width: 100%;
   height: 100%;
+}
+.map-toolbar {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  z-index: 1000;
+  transition: transform 0.3s ease;
 }
 
 .layer-panel {

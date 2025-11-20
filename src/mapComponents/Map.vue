@@ -17,7 +17,26 @@
           @errorEvent="onTiandituError" 
         />
       </vc-layer-imagery>
+
+      <!-- VcMeasurements 组件 (隐藏默认UI,仅使用功能) -->
+      <vc-measurements
+        ref="measurementsRef"
+        :main-fab-opts="mainFabOpts"
+        :measurements="['polyline', 'area']"
+        :editable="true"
+        @active-evt="handleMeasureActiveEvt"
+        @draw-evt="handleMeasureDrawEvt"
+      />
     </vc-viewer>
+
+    <!-- 测量工具面板 -->
+    <MeasureTool
+      v-model:visible="showMeasureTool"
+      @toggle-distance="toggleDistance"
+      @toggle-area="toggleArea"
+      @clear="clearMeasurements"
+      ref="measureToolRef"
+    />
   </div>
   
 </template>
@@ -29,6 +48,7 @@ import cesiumUtils from '../mapUtils/mapUtils'
 import { geoServerWFS } from '../services/wfsService'
 import yangxinData from '../assets/yangxin.json'
 import mapConfig from '@/config/mapConfig'
+import MeasureTool from './MeasureTool.vue'
 
 // 定义组件名称以支持keep-alive
 defineOptions({
@@ -39,6 +59,16 @@ defineOptions({
 const cesiumViewer = ref(null)
 const viewerInstance = ref<any>(null)
 const basemapLayer = ref(null)
+
+// 测量工具引用
+const measurementsRef = ref<any>(null)
+const measureToolRef = ref<any>(null)
+const showMeasureTool = ref(false)
+
+// VcMeasurements 配置
+const mainFabOpts = {
+  modelValue: false
+}
 
 // 从环境变量获取天地图token
 const tiandituToken = import.meta.env ? import.meta.env.VITE_TIANDITU_KEY || '' : ''
@@ -60,8 +90,53 @@ const selectedFeature = ref<any>(null)
 // MVT图层实例
 const mvtProvider = ref<any>(null)
 
-// 测量状态
-const measureMode = ref<'distance' | 'area' | null>(null)
+// 切换距离测量
+const toggleDistance = () => {
+  if (!measurementsRef.value) {
+    return
+  }
+  measurementsRef.value.toggleAction('polyline')
+  console.log('✅ 切换距离测量')
+}
+
+// 切换面积测量
+const toggleArea = () => {
+  if (!measurementsRef.value) {
+    console.warn('⚠️ VcMeasurements 组件未就绪')
+    return
+  }
+  measurementsRef.value.toggleAction('area')
+  console.log('✅ 切换面积测量')
+}
+
+// 清除所有测量
+const clearMeasurements = () => {
+  if (!measurementsRef.value) {
+    console.warn('⚠️ VcMeasurements 组件未就绪')
+    return
+  }
+  measurementsRef.value.clearAll()
+  console.log('🗑️ 清除所有测量结果')
+}
+
+// 处理测量激活事件
+const handleMeasureActiveEvt = (e: any) => {
+  console.log('测量工具激活状态:', e)
+  // 同步更新面板中的激活状态
+  if (measureToolRef.value) {
+    if (!e.isActive) {
+      measureToolRef.value.setActiveTool(null)
+    }
+  }
+}
+
+// 处理测量绘制事件
+const handleMeasureDrawEvt = (e: any) => {
+  console.log('测量绘制事件:', e)
+  if (e.finished) {
+    console.log('✅ 测量完成')
+  }
+}
 
 // 计算天地图样式字符串
 const currentMapStyle = computed(() => {
@@ -301,7 +376,9 @@ defineExpose({
   cesiumViewer,
   viewerInstance,
   queryFeatureInfo,
-  loadMVTLayer  // 暴露MVT图层加载方法
+  loadMVTLayer,
+  showMeasureTool,
+  toggleMeasureTool: () => { showMeasureTool.value = !showMeasureTool.value }
 })
 </script>
 

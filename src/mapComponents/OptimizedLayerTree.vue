@@ -1,67 +1,73 @@
 <template>
   <div class="optimized-layer-tree">
-    <n-spin :show="loading" description="加载图层树...">
-      <n-tree
-        :data="treeData"
-        :show-line="false"
-        :default-expand-all="false"
-        :expanded-keys="expandedKeys"
-        :checked-keys="checkedKeys"
-        :checkable="true"
-        :selectable="false"
-        :block-line="true"
-        :cascade="false"
-        key-field="key"
-        label-field="title"
-        children-field="children"
-        @update:expanded-keys="handleExpandedKeysChange"
-        @update:checked-keys="handleCheckedKeysChange"
+    <!-- 标题栏 -->
+    <div class="tree-header">
+      <span class="header-title">图层</span>
+    </div>
+
+    <!-- 搜索框 -->
+    <div class="search-box">
+      <n-input
+        v-model:value="searchKeyword"
+        placeholder="请输入关键字"
+        clearable
+        :input-props="{ style: 'background: transparent; color: #ffffff;' }"
       >
-        <template #default="{ option }">
-          <div class="layer-item">
-            <div class="layer-info">
-              <n-icon v-if="option.icon" :component="option.icon" class="layer-icon" />
-              <span class="layer-name">{{ option.title }}</span>
-              <n-tag
-                v-if="option.layerType"
-                :type="getLayerTypeTag(option.layerType)"
-                size="small"
-                class="layer-type-tag"
-              >
-                {{ getLayerTypeLabel(option.layerType) }}
-              </n-tag>
-            </div>
-            <div
-              v-if="option.isLayer && option.visible"
-              class="layer-controls"
-              @click.stop
-            >
-              <n-tooltip placement="top">
-                <template #trigger>
-                  <n-slider
-                    :value="option.opacity * 100"
-                    :min="0"
-                    :max="100"
-                    :step="10"
-                    :format-tooltip="(value) => `${value}%`"
-                    @update:value="(value) => handleOpacityChange(option.key, value / 100)"
-                    style="width: 100px"
-                  />
-                </template>
-                透明度
-              </n-tooltip>
-            </div>
-          </div>
+        <template #prefix>
+          <n-icon :component="SearchOutline" style="color: rgba(255, 255, 255, 0.45);" />
         </template>
-      </n-tree>
-    </n-spin>
+      </n-input>
+    </div>
+
+    <!-- 图层数统计 -->
+    <div class="layer-count">
+      <span>图层数：</span>
+      <span class="count-number">{{ totalLayerCount }}</span>
+    </div>
+
+    <!-- 图层树 -->
+    <div class="tree-content">
+      <n-spin :show="loading" description="加载图层树...">
+        <n-tree
+          :data="filteredTreeData"
+          :show-line="false"
+          :default-expand-all="false"
+          :expanded-keys="expandedKeys"
+          :checked-keys="checkedKeys"
+          :checkable="true"
+          :selectable="false"
+          :block-line="true"
+          :cascade="false"
+          key-field="key"
+          label-field="title"
+          children-field="children"
+          @update:expanded-keys="handleExpandedKeysChange"
+          @update:checked-keys="handleCheckedKeysChange"
+        >
+          <template #default="{ option }">
+            <div class="layer-item">
+              <div class="layer-info">
+                <span class="layer-name">{{ option.title }}</span>
+              </div>
+              <div class="layer-actions" v-if="option.isLayer" @click.stop>
+                <n-icon 
+                  :component="StarOutline" 
+                  class="action-icon favorite-icon"
+                  title="收藏"
+                />
+              </div>
+            </div>
+          </template>
+        </n-tree>
+      </n-spin>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue'
-import { NTree, NSlider, NSpin, NIcon, NTag, NTooltip } from 'naive-ui'
-import { LayersOutline, MapOutline, CubeOutline, FolderOutline } from '@vicons/ionicons5'
+import { NTree, NSpin, NIcon, NInput } from 'naive-ui'
+import { SearchOutline, StarOutline } from '@vicons/ionicons5'
 import { getLayerTree } from '@/services/commonService'
 import { useMapStore } from '@/stores/mapStore'
 
@@ -85,6 +91,7 @@ const loading = ref(false)
 const expandedKeys = ref<string[]>([])
 const checkedKeys = ref<string[]>([])
 const rawLayerData = ref<any[]>([])
+const searchKeyword = ref('')
 const mapStore = useMapStore()
 
 // 图层状态映射
@@ -118,25 +125,6 @@ async function fetchLayerTree() {
     }
   } catch (error) {
     console.error('❌ 获取图层树失败:', error)
-    
-    // 开发模式下使用mock数据
-    if (import.meta.env.DEV) {
-      console.log('🔧 开发模式: 尝试加载mock数据')
-      try {
-        const mockData = await import('@/assets/mockLayerTree.json')
-        if (mockData.default && mockData.default.data) {
-          rawLayerData.value = mockData.default.data
-          console.log('✅ Mock数据加载成功')
-          initializeLayerStates(rawLayerData.value)
-          initExpandedKeys()
-        }
-      } catch (mockError) {
-        console.error('❌ Mock数据加载失败:', mockError)
-        rawLayerData.value = []
-      }
-    } else {
-      rawLayerData.value = []
-    }
   } finally {
     loading.value = false
   }
@@ -196,7 +184,6 @@ const treeData = computed(() => {
     const treeNode: any = {
       title: node.name || '未命名',
       key: node.id,
-      icon: getNodeIcon(layerType),
       isLayer: !isGroup,
       layerType: isGroup ? null : layerType,
       visible: state?.visible || false,
@@ -217,44 +204,76 @@ const treeData = computed(() => {
 })
 
 /**
- * 获取节点图标
+ * 过滤后的树形数据（根据搜索关键词）
  */
-function getNodeIcon(type: string) {
-  const iconMap: Record<string, any> = {
-    'group': FolderOutline,
-    'mvt': LayersOutline,
-    'tile': MapOutline,
-    'wms': MapOutline,
-    '3dTile': CubeOutline
+const filteredTreeData = computed(() => {
+  if (!searchKeyword.value.trim()) {
+    return treeData.value
   }
-  return iconMap[type] || LayersOutline
-}
+
+  const keyword = searchKeyword.value.toLowerCase().trim()
+  const expandedNodeKeys: string[] = []
+  
+  const filterNode = (node: any): any | null => {
+    // 检查当前节点是否匹配
+    const titleMatch = node.title.toLowerCase().includes(keyword)
+    
+    // 处理子节点
+    let filteredChildren: any[] = []
+    if (node.children && node.children.length > 0) {
+      filteredChildren = node.children
+        .map((child: any) => filterNode(child))
+        .filter((child: any) => child !== null)
+    }
+    
+    // 如果当前节点匹配或有子节点匹配，则保留该节点
+    if (titleMatch || filteredChildren.length > 0) {
+      // 如果有子节点匹配，自动展开此节点
+      if (filteredChildren.length > 0 && !node.isLayer) {
+        expandedNodeKeys.push(node.key)
+      }
+      
+      return {
+        ...node,
+        children: filteredChildren
+      }
+    }
+    
+    return null
+  }
+  
+  const filtered = treeData.value
+    .map(node => filterNode(node))
+    .filter(node => node !== null)
+  
+  // 自动展开匹配节点的父节点
+  if (expandedNodeKeys.length > 0) {
+    expandedKeys.value = [...new Set([...expandedKeys.value, ...expandedNodeKeys])]
+  }
+  
+  return filtered
+})
 
 /**
- * 获取图层类型标签样式
+ * 计算总图层数
  */
-function getLayerTypeTag(type: string): 'info' | 'success' | 'warning' | 'error' {
-  const tagMap: Record<string, 'info' | 'success' | 'warning' | 'error'> = {
-    'mvt': 'info',
-    'tile': 'success',
-    'wms': 'warning',
-    '3dTile': 'error'
+const totalLayerCount = computed(() => {
+  let count = 0
+  
+  const countLayers = (nodes: any[]) => {
+    nodes.forEach(node => {
+      if (node.isLayer) {
+        count++
+      }
+      if (node.children && node.children.length > 0) {
+        countLayers(node.children)
+      }
+    })
   }
-  return tagMap[type] || 'info'
-}
-
-/**
- * 获取图层类型标签文字
- */
-function getLayerTypeLabel(type: string): string {
-  const labelMap: Record<string, string> = {
-    'mvt': 'MVT',
-    'tile': 'Tile',
-    'wms': 'WMS',
-    '3dTile': '3D'
-  }
-  return labelMap[type] || type
-}
+  
+  countLayers(treeData.value)
+  return count
+})
 
 /**
  * 处理展开/折叠
@@ -326,22 +345,6 @@ function handleLayerVisibilityChange(layerId: string, visible: boolean) {
 }
 
 /**
- * 处理透明度变化
- */
-function handleOpacityChange(layerId: string, opacity: number) {
-  const currentState = layerStates.value.get(layerId)
-  
-  if (currentState) {
-    layerStates.value.set(layerId, {
-      ...currentState,
-      opacity
-    })
-    
-    emit('layer-opacity-change', layerId, opacity)
-  }
-}
-
-/**
  * 根据ID查找图层数据
  */
 function findLayerById(nodes: any[], id: string): any | null {
@@ -394,123 +397,233 @@ defineExpose({
 <style lang="scss" scoped>
 .optimized-layer-tree {
   height: 100%;
-  overflow-y: auto;
-  padding: 8px;
+  display: flex;
+  flex-direction: column;
   background: transparent;
+  overflow: hidden;
 }
 
+// 标题栏
+.tree-header {
+  flex-shrink: 0;
+  padding: 16px 20px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  background: transparent;
+
+  .header-title {
+    font-size: 16px;
+    font-weight: 500;
+    color: #ffffff;
+  }
+}
+
+// 搜索框
+.search-box {
+  flex-shrink: 0;
+  padding: 16px 20px 12px;
+
+  :deep(.n-input) {
+    background: rgba(255, 255, 255, 0.05) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+    transition: all 0.3s ease;
+
+    &:hover {
+      border-color: rgba(255, 255, 255, 0.2);
+    }
+
+    &.n-input--focus {
+      background: rgba(255, 255, 255, 0.08) !important;
+      border-color: rgba(22, 119, 255, 0.5);
+    }
+
+    .n-input__input-el {
+      color: #ffffff !important;
+      
+      &::placeholder {
+        color: rgba(255, 255, 255, 0.45);
+      }
+    }
+
+    .n-input__border,
+    .n-input__state-border {
+      border: none;
+    }
+  }
+}
+
+// 图层数统计
+.layer-count {
+  flex-shrink: 0;
+  padding: 12px 20px;
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.65);
+
+  .count-number {
+    color: #1890ff;
+    font-weight: 500;
+    margin-left: 4px;
+  }
+}
+
+// 树形内容区域
+.tree-content {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 0 12px 16px;
+
+  // 自定义滚动条
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 3px;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 3px;
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.25);
+    }
+  }
+}
+
+// 图层项
 .layer-item {
   display: flex;
   align-items: center;
   justify-content: space-between;
   width: 100%;
   padding: 2px 0;
-  min-height: 36px;
+  min-height: 32px;
 }
 
 .layer-info {
   flex: 1;
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
   min-width: 0;
 }
 
-.layer-icon {
-  font-size: 16px;
-  color: #1677ff;
-  flex-shrink: 0;
-}
-
 .layer-name {
-  font-size: 13px;
+  font-size: 14px;
   color: #ffffff;
-  font-weight: 500;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
-.layer-type-tag {
-  flex-shrink: 0;
-  font-size: 11px;
-}
-
-.layer-controls {
+.layer-actions {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
   flex-shrink: 0;
   margin-left: 8px;
+
+  .action-icon {
+    font-size: 18px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    padding: 4px;
+    border-radius: 4px;
+
+    &.favorite-icon {
+      color: rgba(255, 255, 255, 0.45);
+
+      &:hover {
+        color: #fadb14;
+        background: rgba(250, 219, 20, 0.1);
+      }
+
+      &.favorited {
+        color: #fadb14;
+      }
+    }
+  }
 }
 
 // 自定义 n-tree 样式
 :deep(.n-tree) {
   background: transparent;
   color: #ffffff;
-}
+  font-size: 14px;
 
-:deep(.n-tree-node) {
+  .n-tree-node {
+    margin: 4px 0;
+  }
+
   .n-tree-node-content {
     color: #ffffff;
-    padding: 2px 6px;
-    
+    padding: 4px 8px;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+
     &:hover {
-      background: rgba(22, 119, 255, 0.15);
+      background: rgba(255, 255, 255, 0.08);
     }
   }
-  
+
   .n-tree-node-content__text {
     width: 100%;
   }
+
+  // 展开/收起图标
+  .n-tree-node-switcher {
+    width: 20px;
+    height: 20px;
+
+    .n-base-icon {
+      color: rgba(255, 255, 255, 0.65);
+      font-size: 16px;
+    }
+  }
+
+  // 复选框样式
+  .n-checkbox {
+    .n-checkbox-box {
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      background-color: transparent;
+      border-radius: 2px;
+    }
+
+    &.n-checkbox--checked .n-checkbox-box {
+      background-color: #1890ff;
+      border-color: #1890ff;
+    }
+
+    .n-checkbox-box .n-checkbox-box__border {
+      border: none;
+    }
+
+    .n-checkbox-box .n-checkbox-icon {
+      color: #ffffff;
+    }
+  }
+
+  .n-tree-node-indent {
+    width: 20px;
+  }
+
+  // 空状态
+  .n-empty {
+    .n-empty__description {
+      color: rgba(255, 255, 255, 0.45);
+    }
+  }
 }
 
-:deep(.n-tree-node-switcher) {
-  width: 20px;
-  height: 20px;
-  
-  .n-base-icon {
-    color: rgba(255, 255, 255, 0.8);
-  }
-}
+// 加载状态
+:deep(.n-spin-container) {
+  min-height: 200px;
 
-:deep(.n-checkbox) {
-  .n-checkbox-box {
-    border: 2px solid rgba(22, 119, 255, 0.6);
-    background-color: transparent;
-  }
-  
-  &.n-checkbox--checked .n-checkbox-box {
-    background-color: #1677ff;
-    border-color: #1677ff;
-  }
-  
-  .n-checkbox-box .n-checkbox-icon {
-    color: #ffffff;
-  }
-}
-
-:deep(.n-tree-node-indent) {
-  width: 20px;
-}
-
-// 滑块样式
-:deep(.n-slider) {
-  .n-slider-rail {
-    background-color: rgba(255, 255, 255, 0.2);
-  }
-  
-  .n-slider-rail__fill {
-    background-color: #1677ff;
-  }
-  
-  .n-slider-handle {
-    border-color: #1677ff;
-    background-color: #1677ff;
-  }
-  
-  .n-slider-handle:hover {
-    box-shadow: 0 0 0 4px rgba(22, 119, 255, 0.2);
+  .n-spin-description {
+    color: rgba(255, 255, 255, 0.65);
   }
 }
 </style>
