@@ -5,17 +5,17 @@
       <div class="tabs-content">
         <div 
           class="left-tab-item tab-item" 
-          :class="{ active: activeTab === TABS.GAS }" 
-          @click="handleTabClick(TABS.GAS)"
+          :class="{ active: activeTab === '/gas' }" 
+          @click="handleTabClick('/gas')"
         >
           <span>燃气专项</span>
         </div>
         <div 
           class="left-tab-item tab-item" 
-          :class="{ active: activeTab === TABS.BRIDGE }" 
-          @click="handleTabClick(TABS.BRIDGE)"
+          :class="{ active: activeTab === '/bridge' }" 
+          @click="handleTabClick('/bridge')"
         >
-          <span>{{ activeTab }}</span>
+          <span>桥梁专项</span>
         </div>
       </div>
     </div>
@@ -26,15 +26,15 @@
       <div class="tabs-content">
         <div 
           class="right-tab-item tab-item" 
-          :class="{ active: activeTab === TABS.WATER }" 
-          @click="handleTabClick(TABS.WATER)"
+          :class="{ active: activeTab === '/waterProject' }" 
+          @click="handleTabClick('/waterProject')"
         >
           <span>供水专项</span>
         </div>
         <div 
           class="right-tab-item tab-item" 
-          :class="{ active: activeTab === TABS.DRAINAGE }" 
-          @click="handleTabClick(TABS.DRAINAGE)"
+          :class="{ active: activeTab === '/drainage' }" 
+          @click="handleTabClick('/drainage')"
         >
           <span>排水专项</span>
         </div>
@@ -52,59 +52,33 @@
 </template>
 
 <script setup>
-import { onMounted, ref } from 'vue';
+import { onMounted, ref, watch } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import TimeDisplay from "@/components/TimeDisplay.vue";
-
-// 定义 tab 常量
-const TABS = {
-  GAS: '燃气专项',
-  BRIDGE: '桥梁专项',
-  WATER: '供水专项',
-  DRAINAGE: '排水专项'
-};
 
 // 初始化路由
 const router = useRouter();
 const route = useRoute();
 
 // 当前选中的tab，默认根据路由路径确定
-const activeTab = ref();
+const activeTab = ref('');
 
-// 根据当前路由确定激活的标签页
-function getActiveTabFromRoute() {
-  const path = route.path;
-  if (path.includes('/waterProject')) return TABS.WATER;
-  if (path.includes('/gas')) return TABS.GAS;
-  if (path.includes('/bridge')) return TABS.BRIDGE;
-  if (path.includes('/drainage')) return TABS.DRAINAGE;
-  return TABS.WATER; // 默认值
-}
-onMounted(() => {
-  activeTab.value = getActiveTabFromRoute();
-});
+// 监听路由变化，更新激活状态
+watch(
+  () => route.path,
+  (newPath) => {
+    activeTab.value = newPath;
+  },
+  { immediate: true }
+);
+
 // 头部标签点击事件
-const handleTabClick = (tab) => {
+const handleTabClick = (path) => {
   // 更新激活状态
-  activeTab.value = tab;
+  activeTab.value = path;
   
-  // 根据标签切换路由
-  switch (tab) {
-    case TABS.GAS:
-      router.push('/gas');
-      break;
-    case TABS.BRIDGE:
-      router.push('/bridge');
-      break;
-    case TABS.WATER:
-      router.push('/waterProject');
-      break;
-    case TABS.DRAINAGE:
-      router.push('/drainage');
-      break;
-    default:
-      router.push('/');
-  }
+  // 路由跳转
+  router.push(path);
 };
 
 // 系统管理按钮点击事件
@@ -115,8 +89,8 @@ const handleSystemAdmin = () => {
 
 // 标题点击事件 - 返回主页
 const handleTitleClick = () => {
-  if (route.name !== 'home') {
-    router.push('/');
+  if (route.name !== 'mapView') {
+    router.push('/mapView');
   }
 };
 

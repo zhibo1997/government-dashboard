@@ -60,7 +60,7 @@ export async function getModuleTree() {
  */
 export async function getLayerTree() {
   const res = await commonApi.layer.treeList();
-  return res.data;
+  return res;
 }
 
 /**

@@ -395,10 +395,8 @@ defineExpose({
 .optimized-layer-tree {
   height: 100%;
   overflow-y: auto;
-  padding: 12px;
-  background: rgba(0, 15, 35, 0.85);
-  backdrop-filter: blur(10px);
-  border-radius: 8px;
+  padding: 8px;
+  background: transparent;
 }
 
 .layer-item {
@@ -406,26 +404,26 @@ defineExpose({
   align-items: center;
   justify-content: space-between;
   width: 100%;
-  padding: 8px 0;
-  min-height: 48px;
+  padding: 2px 0;
+  min-height: 36px;
 }
 
 .layer-info {
   flex: 1;
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   min-width: 0;
 }
 
 .layer-icon {
-  font-size: 18px;
+  font-size: 16px;
   color: #1677ff;
   flex-shrink: 0;
 }
 
 .layer-name {
-  font-size: 14px;
+  font-size: 13px;
   color: #ffffff;
   font-weight: 500;
   white-space: nowrap;
@@ -435,41 +433,50 @@ defineExpose({
 
 .layer-type-tag {
   flex-shrink: 0;
-  font-size: 12px;
+  font-size: 11px;
 }
 
 .layer-controls {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   flex-shrink: 0;
-  margin-left: 12px;
+  margin-left: 8px;
 }
 
 // 自定义 n-tree 样式
+:deep(.n-tree) {
+  background: transparent;
+  color: #ffffff;
+}
+
 :deep(.n-tree-node) {
   .n-tree-node-content {
     color: #ffffff;
-    padding: 4px 8px;
+    padding: 2px 6px;
     
     &:hover {
-      background: rgba(22, 119, 255, 0.1);
+      background: rgba(22, 119, 255, 0.15);
     }
+  }
+  
+  .n-tree-node-content__text {
+    width: 100%;
   }
 }
 
 :deep(.n-tree-node-switcher) {
-  width: 24px;
-  height: 24px;
+  width: 20px;
+  height: 20px;
   
   .n-base-icon {
-    color: #ffffff;
+    color: rgba(255, 255, 255, 0.8);
   }
 }
 
 :deep(.n-checkbox) {
   .n-checkbox-box {
-    border: 2px solid rgba(22, 119, 255, 0.5);
+    border: 2px solid rgba(22, 119, 255, 0.6);
     background-color: transparent;
   }
   
@@ -484,7 +491,7 @@ defineExpose({
 }
 
 :deep(.n-tree-node-indent) {
-  width: 24px;
+  width: 20px;
 }
 
 // 滑块样式
@@ -499,6 +506,11 @@ defineExpose({
   
   .n-slider-handle {
     border-color: #1677ff;
+    background-color: #1677ff;
+  }
+  
+  .n-slider-handle:hover {
+    box-shadow: 0 0 0 4px rgba(22, 119, 255, 0.2);
   }
 }
 </style>
