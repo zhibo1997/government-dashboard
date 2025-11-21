@@ -9,37 +9,48 @@
 
     <!-- 工具按钮组 (收缩时隐藏) -->
     <template v-if="!isCollapsed">
-      <!-- 图层树 - 常驻显示 -->
-      <div class="layer-tree-container">
-        <div class="layer-tree-panel permanent">
-          <OptimizedLayerTree
-            ref="layerTreeRef"
-            :viewer-instance="viewerInstance"
-            @load-mvt="handleLoadMVT"
-            @load-3dtiles="handleLoad3DTiles"
-            @layer-toggle="handleLayerToggle"
-            @layer-opacity-change="handleLayerOpacityChange"
-          />
+      <!-- 图层树 -->
+      <div
+        class="toolbar-item"
+        :class="{ active: showLayerTreePanel }"
+        title="图层树"
+      >
+        <div class="tool-icon" @click="toggleLayerTreePanel">
+          <img src="@/assets/map/map_tree.webp" alt="" />
         </div>
+        {{ showLayerTreePanel }}
+        <!-- 图层树面板 -->
+        <transition name="slide-left">
+          <div v-if="showLayerTreePanel" class="layer-tree-panel">
+            <OptimizedLayerTree
+              ref="layerTreeRef"
+              :viewer-instance="viewerInstance"
+              @load-mvt="handleLoadMVT"
+              @load-3dtiles="handleLoad3DTiles"
+              @layer-toggle="handleLayerToggle"
+              @layer-opacity-change="handleLayerOpacityChange"
+            />
+          </div>
+        </transition>
       </div>
 
       <!-- 底图切换 -->
-      <div 
-        class="toolbar-item" 
+      <div
+        class="toolbar-item"
         :class="{ active: showBaseMapPanel }"
-        @click="toggleBaseMapPanel" 
+        @click.stop="toggleBaseMapPanel"
         title="底图切换"
       >
         <div class="tool-icon">
-          <img src="@/assets/map/base_map.webp" alt="">
+          <img src="@/assets/map/base_map.webp" alt="" />
         </div>
         <!-- 底图切换面板 -->
         <transition name="slide-left">
           <div v-if="showBaseMapPanel" class="base-map-panel">
             <div class="panel-title">底图切换</div>
             <div class="base-map-options">
-              <div 
-                v-for="item in baseMapTypes" 
+              <div
+                v-for="item in baseMapTypes"
                 :key="item.value"
                 class="base-map-option"
                 :class="{ active: currentBaseMap === item.value }"
@@ -56,32 +67,35 @@
       <!-- 地图重置 -->
       <div class="toolbar-item" @click="resetMap" title="重置地图">
         <div class="tool-icon">
-          <img src="@/assets/map/reset_map.webp" alt="">
+          <img src="@/assets/map/reset_map.webp" alt="" />
         </div>
       </div>
 
       <!-- 2D/3D切换 -->
       <div class="toolbar-item" @click="toggleViewMode" title="2D/3D切换">
         <div class="tool-icon">
-          <img src="@/assets/map/view_mode.webp" alt="">
+          <img src="@/assets/map/view_mode.webp" alt="" />
         </div>
       </div>
 
       <!-- 指北针 -->
       <div class="toolbar-item" @click="resetNorth" title="指北针">
-        <div class="tool-icon compass" :style="{ transform: `rotate(${compassRotation}deg)` }">
-          <img src="@/assets/map/compass.webp" alt="">
+        <div
+          class="tool-icon compass"
+          :style="{ transform: `rotate(${compassRotation}deg)` }"
+        >
+          <img src="@/assets/map/compass.webp" alt="" />
         </div>
       </div>
 
       <!-- 测量工具 -->
-      <div 
-        class="toolbar-item" 
-        @click="$emit('toggle-measure')" 
+      <div
+        class="toolbar-item"
+        @click="$emit('toggle-measure')"
         title="测量工具"
       >
         <div class="tool-icon">
-          <img src="@/assets/map/measure.webp" alt="">
+          <img src="@/assets/map/measure.webp" alt="" />
         </div>
       </div>
     </template>
@@ -89,191 +103,237 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, onMounted } from 'vue'
-import { useVueCesium } from 'vue-cesium'
-import type { VcViewerProvider, VcReadyObject } from 'vue-cesium/es/utils/types'
+import { ref, watch, onMounted } from "vue";
+import { useVueCesium } from "vue-cesium";
+import type {
+  VcViewerProvider,
+  VcReadyObject,
+} from "vue-cesium/es/utils/types";
 
-import mapConfig from '@/config/mapConfig'
-import OptimizedLayerTree from './OptimizedLayerTree.vue'
-import cesiumUtils from '@/mapUtils/mapUtils'
+import mapConfig from "@/config/mapConfig";
+import OptimizedLayerTree from "./OptimizedLayerTree.vue";
+import cesiumUtils from "@/mapUtils/mapUtils";
 
-const $vc: VcViewerProvider = useVueCesium()
+const $vc: VcViewerProvider = useVueCesium();
 
 // 状态管理
-const isCollapsed = ref(false)
-const showBaseMapPanel = ref(false)
-const currentBaseMap = ref<'vec' | 'img' | 'ter'>('vec')
-const is3D = ref(false)
-const compassRotation = ref(0)
-const viewerInstance = ref<any>(null)
-const layerTreeRef = ref<any>(null)
+const isCollapsed = ref(false);
+const showLayerTreePanel = ref(false);
+const showBaseMapPanel = ref(false);
+const currentBaseMap = ref<"vec" | "img" | "ter">("vec");
+const is3D = ref(false);
+const compassRotation = ref(0);
+const viewerInstance = ref<any>(null);
+const layerTreeRef = ref<any>(null);
 
 // 存储已加载的图层实例
-const loadedLayers = ref<Map<string, any>>(new Map())
+const loadedLayers = ref<Map<string, any>>(new Map());
 
 // 底图类型配置
 const baseMapTypes = [
-  { value: 'vec', label: '矢量地图', icon: '🗺️' },
-  { value: 'img', label: '影像地图', icon: '🛰️' },
-  { value: 'ter', label: '地形地图', icon: '🏔️' }
-] as const
+  { value: "vec", label: "矢量地图", icon: "🗺️" },
+  { value: "img", label: "影像地图", icon: "🛰️" },
+  { value: "ter", label: "地形地图", icon: "🏔️" },
+] as const;
 
 // 获取 viewer 实例
 onMounted(() => {
   // 如果 MapToolbar 作为 vc-viewer 的子组件，直接访问
   if ($vc.viewer) {
-    viewerInstance.value = $vc.viewer
-    console.log('✅ MapToolbar: 获取到 viewer 实例')
+    viewerInstance.value = $vc.viewer;
+    console.log("✅ MapToolbar: 获取到 viewer 实例");
   } else {
     // 如果不是子组件，等待 viewer 创建完成
     $vc.creatingPromise.then((readyObj: VcReadyObject) => {
-      viewerInstance.value = readyObj.viewer
-      console.log('✅ MapToolbar: 通过 Promise 获取到 viewer 实例')
-    })
+      viewerInstance.value = readyObj.viewer;
+      console.log("✅ MapToolbar: 通过 Promise 获取到 viewer 实例");
+    });
   }
-})
+});
 
 // 切换收缩状态
 const toggleCollapse = () => {
-  isCollapsed.value = !isCollapsed.value
-  // 收缩时关闭底图面板
+  isCollapsed.value = !isCollapsed.value;
+  // 收缩时关闭所有面板
   if (isCollapsed.value) {
-    showBaseMapPanel.value = false
+    showLayerTreePanel.value = false;
+    showBaseMapPanel.value = false;
   }
-}
+};
+
+// 切换图层树面板
+const toggleLayerTreePanel = () => {
+  showLayerTreePanel.value = !showLayerTreePanel.value;
+  // 打开图层树时关闭底图面板
+  if (showLayerTreePanel.value) {
+    showBaseMapPanel.value = false;
+  }
+};
 
 // 切换底图面板
 const toggleBaseMapPanel = () => {
-  showBaseMapPanel.value = !showBaseMapPanel.value
-}
+  showBaseMapPanel.value = !showBaseMapPanel.value;
+  // 打开底图面板时关闭图层树
+  if (showBaseMapPanel.value) {
+    showLayerTreePanel.value = false;
+  }
+};
 
 // 处理加载MVT图层
 const handleLoadMVT = async (url: string, layerId: string) => {
   if (!viewerInstance.value) {
-    console.warn('⚠️ Viewer 实例未就绪')
-    return
+    console.warn("⚠️ Viewer 实例未就绪");
+    return;
   }
 
   try {
-    console.log(`🔄 加载MVT图层: ${url}`)
-    
-    const provider = await cesiumUtils.loadMVTLayer(viewerInstance.value, url)
-    loadedLayers.value.set(layerId, { type: 'mvt', instance: provider })
-    
-    console.log(`✅ MVT图层加载成功: ${layerId}`)
-  } catch (error) {
-    console.error(`❌ MVT图层加载失败: ${layerId}`, error)
-    
-    // 更新图层树状态
+    console.log(`🔄 加载MVT图层: ${url}`);
+
+    const provider = await cesiumUtils.loadMVTLayer(viewerInstance.value, url);
+    loadedLayers.value.set(layerId, { type: "mvt", instance: provider });
+
+    console.log(`✅ MVT图层加载成功: ${layerId}`);
+  } catch (error: any) {
+    const errorMessage = error?.message || error;
+    console.error(`❌ MVT图层加载失败: ${layerId}`, errorMessage);
+
+    // 更新图层树状态 - 显示具体错误信息
     if (layerTreeRef.value) {
+      let userFriendlyError = "加载失败";
+
+      if (errorMessage.includes("404") || errorMessage.includes("不存在")) {
+        userFriendlyError = "样式文件不存在";
+      } else if (
+        errorMessage.includes("version") ||
+        errorMessage.includes("sources") ||
+        errorMessage.includes("layers")
+      ) {
+        userFriendlyError = "样式文件格式错误";
+      }
+
       layerTreeRef.value.updateLayerState(layerId, {
         loading: false,
-        error: '加载失败'
-      })
+        error: userFriendlyError,
+      });
     }
   }
-}
+};
 
 // 处理加载3D Tiles图层
 const handleLoad3DTiles = async (url: string, layerId: string) => {
   if (!viewerInstance.value) {
-    console.warn('⚠️ Viewer 实例未就绪')
-    return
+    console.warn("⚠️ Viewer 实例未就绪");
+    return;
   }
 
   try {
-    console.log(`🔄 加载3D Tiles图层: ${url}`)
-    
-    const tileset = await cesiumUtils.load3DTiles(viewerInstance.value, url)
-    loadedLayers.value.set(layerId, { type: '3dtiles', instance: tileset })
-    
-    console.log(`✅ 3D Tiles图层加载成功: ${layerId}`)
-  } catch (error) {
-    console.error(`❌ 3D Tiles图层加载失败: ${layerId}`, error)
-    
-    // 更新图层树状态
+    console.log(`🔄 加载3D Tiles图层: ${url}`);
+
+    const tileset = await cesiumUtils.load3DTiles(viewerInstance.value, url);
+    loadedLayers.value.set(layerId, { type: "3dtiles", instance: tileset });
+
+    console.log(`✅ 3D Tiles图层加载成功: ${layerId}`);
+  } catch (error: any) {
+    const errorMessage = error?.message || error;
+    console.error(`❌ 3D Tiles图层加载失败: ${layerId}`, errorMessage);
+
+    // 更新图层树状态 - 显示具体错误信息
     if (layerTreeRef.value) {
+      let userFriendlyError = "加载失败";
+
+      if (
+        errorMessage.includes("404") ||
+        errorMessage.includes("Failed to fetch")
+      ) {
+        userFriendlyError = "3D模型文件不存在";
+      } else if (errorMessage.includes("not a function")) {
+        userFriendlyError = "Cesium版本不兼容";
+      }
+
       layerTreeRef.value.updateLayerState(layerId, {
         loading: false,
-        error: '加载失败'
-      })
+        error: userFriendlyError,
+      });
     }
   }
-}
+};
 
 // 处理图层显隐切换
-const handleLayerToggle = (layerId: string, visible: boolean, layerData: any) => {
-  console.log(`${visible ? '显示' : '隐藏'}图层:`, layerId)
-  
-  const layer = loadedLayers.value.get(layerId)
-  
+const handleLayerToggle = (
+  layerId: string,
+  visible: boolean,
+  layerData: any
+) => {
+  console.log(`${visible ? "显示" : "隐藏"}图层:`, layerId);
+
+  const layer = loadedLayers.value.get(layerId);
+
   if (!visible && layer) {
     // 隐藏或移除图层
-    if (layer.type === '3dtiles') {
-      cesiumUtils.set3DTilesVisibility(layer.instance, false)
-    } else if (layer.type === 'mvt') {
+    if (layer.type === "3dtiles") {
+      cesiumUtils.set3DTilesVisibility(layer.instance, false);
+    } else if (layer.type === "mvt") {
       // MVT图层显隐控制
       if (layer.instance && layer.instance.show !== undefined) {
-        layer.instance.show = false
+        layer.instance.show = false;
       }
     }
   } else if (visible && !layer) {
     // 图层未加载,需要加载
-    if (layerData.type === 'mvt') {
-      handleLoadMVT(layerData.url, layerId)
-    } else if (layerData.type === '3dTile') {
-      handleLoad3DTiles(layerData.url, layerId)
+    if (layerData.type === "mvt") {
+      handleLoadMVT(layerData.url, layerId);
+    } else if (layerData.type === "3dTile") {
+      handleLoad3DTiles(layerData.url, layerId);
     }
   } else if (visible && layer) {
     // 显示已加载的图层
-    if (layer.type === '3dtiles') {
-      cesiumUtils.set3DTilesVisibility(layer.instance, true)
-    } else if (layer.type === 'mvt') {
+    if (layer.type === "3dtiles") {
+      cesiumUtils.set3DTilesVisibility(layer.instance, true);
+    } else if (layer.type === "mvt") {
       if (layer.instance && layer.instance.show !== undefined) {
-        layer.instance.show = true
+        layer.instance.show = true;
       }
     }
   }
-}
+};
 
 // 处理图层透明度变化
 const handleLayerOpacityChange = (layerId: string, opacity: number) => {
-  console.log(`调整图层透明度: ${layerId}, ${opacity}`)
-  
-  const layer = loadedLayers.value.get(layerId)
-  
+  console.log(`调整图层透明度: ${layerId}, ${opacity}`);
+
+  const layer = loadedLayers.value.get(layerId);
+
   if (layer) {
-    if (layer.type === '3dtiles' && layer.instance) {
+    if (layer.type === "3dtiles" && layer.instance) {
       // 3D Tiles透明度控制
       cesiumUtils.set3DTilesStyle(layer.instance, {
-        color: `color('white', ${opacity})`
-      })
-    } else if (layer.type === 'mvt' && layer.instance) {
+        color: `color('white', ${opacity})`,
+      });
+    } else if (layer.type === "mvt" && layer.instance) {
       // MVT图层透明度控制
       if (layer.instance.alpha !== undefined) {
-        layer.instance.alpha = opacity
+        layer.instance.alpha = opacity;
       }
     }
   }
-}
+};
 
 // 切换底图
-const switchBaseMap = (type: 'vec' | 'img' | 'ter') => {
-  currentBaseMap.value = type
-  console.log(`切换底图: ${type}`)
-  
+const switchBaseMap = (type: "vec" | "img" | "ter") => {
+  currentBaseMap.value = type;
+
   // TODO: 实现底图切换逻辑
   // 需要通过 viewer 实例来切换天地图样式
-}
+};
 
 // 重置地图
 const resetMap = () => {
   if (!viewerInstance.value) {
-    console.warn('⚠️ Viewer 实例未就绪')
-    return
+    console.warn("⚠️ Viewer 实例未就绪");
+    return;
   }
 
-  const Cesium = (window as any).Cesium
+  const Cesium = (window as any).Cesium;
   if (Cesium) {
     viewerInstance.value.camera.flyTo({
       destination: Cesium.Cartesian3.fromDegrees(
@@ -284,65 +344,69 @@ const resetMap = () => {
       orientation: {
         heading: 0,
         pitch: Cesium.Math.toRadians(-90),
-        roll: 0
+        roll: 0,
       },
-      duration: 2
-    })
-    console.log('✅ 地图视角已重置')
+      duration: 2,
+    });
+    console.log("✅ 地图视角已重置");
   }
-}
+};
 
 // 切换2D/3D视图
 const toggleViewMode = () => {
   if (!viewerInstance.value) {
-    console.warn('⚠️ Viewer 实例未就绪')
-    return
+    console.warn("⚠️ Viewer 实例未就绪");
+    return;
   }
 
-  is3D.value = !is3D.value
-  const Cesium = (window as any).Cesium
+  is3D.value = !is3D.value;
+  const Cesium = (window as any).Cesium;
   if (Cesium) {
-    viewerInstance.value.scene.mode = is3D.value 
-      ? Cesium.SceneMode.SCENE3D 
-      : Cesium.SceneMode.SCENE2D
-    console.log(`切换视图模式: ${is3D.value ? '3D' : '2D'}`)
+    viewerInstance.value.scene.mode = is3D.value
+      ? Cesium.SceneMode.SCENE3D
+      : Cesium.SceneMode.SCENE2D;
+    console.log(`切换视图模式: ${is3D.value ? "3D" : "2D"}`);
   }
-}
+};
 
 // 重置指北
 const resetNorth = () => {
   if (!viewerInstance.value) {
-    console.warn('⚠️ Viewer 实例未就绪')
-    return
+    console.warn("⚠️ Viewer 实例未就绪");
+    return;
   }
 
-  const Cesium = (window as any).Cesium
+  const Cesium = (window as any).Cesium;
   if (Cesium) {
     viewerInstance.value.camera.setView({
       orientation: {
         heading: 0,
         pitch: Cesium.Math.toRadians(-90),
-        roll: 0
-      }
-    })
-    compassRotation.value = 0
-    console.log('✅ 重置指北方向')
+        roll: 0,
+      },
+    });
+    compassRotation.value = 0;
+    console.log("✅ 重置指北方向");
   }
-}
+};
 
 // 监听相机朝向变化更新指北针
-watch(() => viewerInstance.value, (viewer) => {
-  if (viewer) {
-    const Cesium = (window as any).Cesium
-    if (Cesium) {
-      // 监听相机变化更新指北针旋转角度
-      viewer.camera.changed.addEventListener(() => {
-        const heading = viewer.camera.heading
-        compassRotation.value = Cesium.Math.toDegrees(heading)
-      })
+watch(
+  () => viewerInstance.value,
+  (viewer) => {
+    if (viewer) {
+      const Cesium = (window as any).Cesium;
+      if (Cesium) {
+        // 监听相机变化更新指北针旋转角度
+        viewer.camera.changed.addEventListener(() => {
+          const heading = viewer.camera.heading;
+          compassRotation.value = Cesium.Math.toDegrees(heading);
+        });
+      }
     }
-  }
-}, { immediate: true })
+  },
+  { immediate: true }
+);
 
 // 暴露方法
 defineExpose({
@@ -350,8 +414,8 @@ defineExpose({
   currentBaseMap,
   viewerInstance,
   loadedLayers,
-  layerTreeRef
-})
+  layerTreeRef,
+});
 </script>
 
 <style lang="scss" scoped>
@@ -364,17 +428,13 @@ defineExpose({
 
   &.collapsed {
     gap: 0;
-    
+
     .toolbar-item {
       margin-bottom: 16px;
-      
+
       &:last-child {
         margin-bottom: 0;
       }
-    }
-
-    .layer-tree-container {
-      display: none;
     }
   }
 
@@ -393,7 +453,6 @@ defineExpose({
     justify-content: center;
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
 
-
     &.active {
       border-color: #1677ff;
       background: rgba(22, 119, 255, 0.25);
@@ -406,11 +465,11 @@ defineExpose({
       width: 100%;
       height: 100%;
       transition: transform 0.3s ease;
-      background-image: url('@/assets/map/tool_bg.webp');
+      background-image: url("@/assets/map/tool_bg.webp");
 
-    &:hover {
-      transform: scale(1.2);
-    }
+      &:hover {
+        transform: scale(1.2);
+      }
       &.compass {
         transition: transform 0.6s ease;
       }
@@ -421,36 +480,24 @@ defineExpose({
         text-shadow: 0 2px 8px rgba(22, 119, 255, 0.5);
       }
     }
-
   }
 
-  // 图层树容器 - 常驻显示
-  .layer-tree-container {
-    position: relative;
-  }
-
-  // 图层树面板 - 常驻样式
+  // 图层树面板
   .layer-tree-panel {
     position: absolute;
     right: 100%;
     top: 0;
     margin-right: 16px;
     width: 400px;
-    height: 600px;
-    background: rgba(11, 28, 45, 0.95);
+    max-height: 600px;
+    background: rgba(11, 28, 45, 0.65);
     backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 8px;
+    border: 2px solid rgba(22, 119, 255, 0.3);
+    border-radius: 12px;
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
     display: flex;
     flex-direction: column;
     overflow: hidden;
-
-    &.permanent {
-      // 常驻显示，没有动画
-      opacity: 1;
-      transform: none;
-    }
   }
 
   // 底图切换面板
@@ -460,12 +507,12 @@ defineExpose({
     top: 0;
     margin-right: 16px;
     width: 240px;
-    background: rgba(0, 15, 35, 0.95);
+    background: rgba(0, 15, 35, 0.65);
     backdrop-filter: blur(10px);
     border: 2px solid rgba(22, 119, 255, 0.3);
     border-radius: 12px;
     padding: 20px;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
 
     .panel-title {
       font-size: 18px;
@@ -501,7 +548,7 @@ defineExpose({
         &.active {
           background: rgba(22, 119, 255, 0.25);
           border-color: #1677ff;
-          
+
           .option-label {
             color: #1677ff;
             font-weight: bold;
@@ -537,5 +584,4 @@ defineExpose({
     transform: translateX(20px);
   }
 }
-
 </style>

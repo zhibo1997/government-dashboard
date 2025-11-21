@@ -14,7 +14,10 @@
         :input-props="{ style: 'background: transparent; color: #ffffff;' }"
       >
         <template #prefix>
-          <n-icon :component="SearchOutline" style="color: rgba(255, 255, 255, 0.45);" />
+          <n-icon
+            :component="SearchOutline"
+            style="color: rgba(255, 255, 255, 0.45)"
+          />
         </template>
       </n-input>
     </div>
@@ -50,8 +53,8 @@
                 <span class="layer-name">{{ option.title }}</span>
               </div>
               <div class="layer-actions" v-if="option.isLayer" @click.stop>
-                <n-icon 
-                  :component="StarOutline" 
+                <n-icon
+                  :component="StarOutline"
                   class="action-icon favorite-icon"
                   title="收藏"
                 />
@@ -65,68 +68,73 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, watch } from 'vue'
-import { NTree, NSpin, NIcon, NInput } from 'naive-ui'
-import { SearchOutline, StarOutline } from '@vicons/ionicons5'
-import { getLayerTree } from '@/services/commonService'
-import { useMapStore } from '@/stores/mapStore'
+import { ref, computed, onMounted, watch } from "vue";
+import { NTree, NSpin, NIcon, NInput } from "naive-ui";
+import { SearchOutline, StarOutline } from "@vicons/ionicons5";
+import { getLayerTree } from "@/services/commonService";
+import { useMapStore } from "@/stores/mapStore";
 
 // Props
 interface Props {
-  viewerInstance?: any
+  viewerInstance?: any;
 }
 
-const props = defineProps<Props>()
+const props = defineProps<Props>();
 
 // Emits
 const emit = defineEmits<{
-  'layer-toggle': [layerId: string, visible: boolean, layerData: any]
-  'layer-opacity-change': [layerId: string, opacity: number]
-  'load-mvt': [url: string, layerId: string]
-  'load-3dtiles': [url: string, layerId: string]
-}>()
+  "layer-toggle": [layerId: string, visible: boolean, layerData: any];
+  "layer-opacity-change": [layerId: string, opacity: number];
+  "load-mvt": [url: string, layerId: string];
+  "load-3dtiles": [url: string, layerId: string];
+}>();
 
 // State
-const loading = ref(false)
-const expandedKeys = ref<string[]>([])
-const checkedKeys = ref<string[]>([])
-const rawLayerData = ref<any[]>([])
-const searchKeyword = ref('')
-const mapStore = useMapStore()
+const loading = ref(false);
+const expandedKeys = ref<string[]>([]);
+const checkedKeys = ref<string[]>([]);
+const rawLayerData = ref<any[]>([]);
+const searchKeyword = ref("");
+const mapStore = useMapStore();
 
 // 图层状态映射
-const layerStates = ref<Map<string, {
-  visible: boolean
-  opacity: number
-  loading: boolean
-  error: string | null
-}>>(new Map())
+const layerStates = ref<
+  Map<
+    string,
+    {
+      visible: boolean;
+      opacity: number;
+      loading: boolean;
+      error: string | null;
+    }
+  >
+>(new Map());
 
 /**
  * 从API获取图层树数据
  */
 async function fetchLayerTree() {
-  loading.value = true
+  loading.value = true;
   try {
-    const response = await getLayerTree()
-    
+    const response = await getLayerTree();
+
     if (response && response.data) {
-      rawLayerData.value = response.data
-      console.log('✅ 图层树数据加载成功:', rawLayerData.value)
-      
+      rawLayerData.value = response.data;
+      console.log("✅ 图层树数据加载成功:", rawLayerData.value);
+
       // 初始化图层状态
-      initializeLayerStates(rawLayerData.value)
-      
+      initializeLayerStates(rawLayerData.value);
+
       // 初始化展开的节点
-      initExpandedKeys()
+      initExpandedKeys();
     } else {
-      console.warn('⚠️ 图层树数据为空')
-      rawLayerData.value = []
+      console.warn("⚠️ 图层树数据为空");
+      rawLayerData.value = [];
     }
   } catch (error) {
-    console.error('❌ 获取图层树失败:', error)
+    console.error("❌ 获取图层树失败:", error);
   } finally {
-    loading.value = false
+    loading.value = false;
   }
 }
 
@@ -135,41 +143,44 @@ async function fetchLayerTree() {
  */
 function initializeLayerStates(nodes: any[]) {
   const processNode = (node: any) => {
-    if (node.type !== 'group' && node.url) {
+    if (node.type !== "group" && node.url) {
       layerStates.value.set(node.id, {
-        visible: node.visible === 'true' || node.visible === true,
+        visible: node.visible === "true" || node.visible === true,
         opacity: node.opacity || 1.0,
         loading: false,
-        error: null
-      })
+        error: null,
+      });
     }
-    
+
     if (node.child && Array.isArray(node.child)) {
-      node.child.forEach(processNode)
+      node.child.forEach(processNode);
     }
-  }
-  
-  nodes.forEach(processNode)
+  };
+
+  nodes.forEach(processNode);
 }
 
 /**
  * 初始化展开的节点
  */
 function initExpandedKeys() {
-  const keys: string[] = []
-  
+  const keys: string[] = [];
+
   const processNode = (node: any) => {
-    if (node.type === 'group' && (node.expanded === 'true' || node.expanded === true)) {
-      keys.push(node.id)
+    if (
+      node.type === "group" &&
+      (node.expanded === "true" || node.expanded === true)
+    ) {
+      keys.push(node.id);
     }
-    
+
     if (node.child && Array.isArray(node.child)) {
-      node.child.forEach(processNode)
+      node.child.forEach(processNode);
     }
-  }
-  
-  rawLayerData.value.forEach(processNode)
-  expandedKeys.value = keys
+  };
+
+  rawLayerData.value.forEach(processNode);
+  expandedKeys.value = keys;
 }
 
 /**
@@ -177,170 +188,207 @@ function initExpandedKeys() {
  */
 const treeData = computed(() => {
   const convertToTreeNode = (node: any): any => {
-    const isGroup = node.type === 'group'
-    const layerType = node.type
-    const state = layerStates.value.get(node.id)
-    
+    const isGroup = node.type === "group";
+    const layerType = node.type;
+    const state = layerStates.value.get(node.id);
+
     const treeNode: any = {
-      title: node.name || '未命名',
+      title: node.name || "未命名",
       key: node.id,
       isLayer: !isGroup,
       layerType: isGroup ? null : layerType,
       visible: state?.visible || false,
       opacity: state?.opacity || 1.0,
       url: node.url,
-      layerData: node
-    }
-    
+      layerData: node,
+    };
+
     // 递归处理子节点
     if (node.child && Array.isArray(node.child) && node.child.length > 0) {
-      treeNode.children = node.child.map(convertToTreeNode)
+      treeNode.children = node.child.map(convertToTreeNode);
     }
-    
-    return treeNode
-  }
-  
-  return rawLayerData.value.map(convertToTreeNode)
-})
+
+    return treeNode;
+  };
+
+  return rawLayerData.value.map(convertToTreeNode);
+});
 
 /**
  * 过滤后的树形数据（根据搜索关键词）
  */
 const filteredTreeData = computed(() => {
   if (!searchKeyword.value.trim()) {
-    return treeData.value
+    return treeData.value;
   }
 
-  const keyword = searchKeyword.value.toLowerCase().trim()
-  const expandedNodeKeys: string[] = []
-  
+  const keyword = searchKeyword.value.toLowerCase().trim();
+  const expandedNodeKeys: string[] = [];
+
   const filterNode = (node: any): any | null => {
     // 检查当前节点是否匹配
-    const titleMatch = node.title.toLowerCase().includes(keyword)
-    
+    const titleMatch = node.title.toLowerCase().includes(keyword);
+
     // 处理子节点
-    let filteredChildren: any[] = []
+    let filteredChildren: any[] = [];
     if (node.children && node.children.length > 0) {
       filteredChildren = node.children
         .map((child: any) => filterNode(child))
-        .filter((child: any) => child !== null)
+        .filter((child: any) => child !== null);
     }
-    
+
     // 如果当前节点匹配或有子节点匹配，则保留该节点
     if (titleMatch || filteredChildren.length > 0) {
       // 如果有子节点匹配，自动展开此节点
       if (filteredChildren.length > 0 && !node.isLayer) {
-        expandedNodeKeys.push(node.key)
+        expandedNodeKeys.push(node.key);
       }
-      
+
       return {
         ...node,
-        children: filteredChildren
-      }
+        children: filteredChildren,
+      };
     }
-    
-    return null
-  }
-  
+
+    return null;
+  };
+
   const filtered = treeData.value
-    .map(node => filterNode(node))
-    .filter(node => node !== null)
-  
+    .map((node) => filterNode(node))
+    .filter((node) => node !== null);
+
   // 自动展开匹配节点的父节点
   if (expandedNodeKeys.length > 0) {
-    expandedKeys.value = [...new Set([...expandedKeys.value, ...expandedNodeKeys])]
+    expandedKeys.value = [
+      ...new Set([...expandedKeys.value, ...expandedNodeKeys]),
+    ];
   }
-  
-  return filtered
-})
+
+  return filtered;
+});
 
 /**
  * 计算总图层数
  */
 const totalLayerCount = computed(() => {
-  let count = 0
-  
+  let count = 0;
+
   const countLayers = (nodes: any[]) => {
-    nodes.forEach(node => {
+    nodes.forEach((node) => {
       if (node.isLayer) {
-        count++
+        count++;
       }
       if (node.children && node.children.length > 0) {
-        countLayers(node.children)
+        countLayers(node.children);
       }
-    })
-  }
-  
-  countLayers(treeData.value)
-  return count
-})
+    });
+  };
+
+  countLayers(treeData.value);
+  return count;
+});
 
 /**
  * 处理展开/折叠
  */
 function handleExpandedKeysChange(keys: string[]) {
-  expandedKeys.value = keys
+  expandedKeys.value = keys;
 }
 
 /**
  * 处理图层勾选
  */
 function handleCheckedKeysChange(keys: string[]) {
-  checkedKeys.value = keys
-  
+  checkedKeys.value = keys;
+
   // 遍历所有图层,处理显隐状态变化
-  const allLayerIds = Array.from(layerStates.value.keys())
-  
-  allLayerIds.forEach(layerId => {
-    const isChecked = keys.includes(layerId)
-    const currentState = layerStates.value.get(layerId)
-    
+  const allLayerIds = Array.from(layerStates.value.keys());
+
+  allLayerIds.forEach((layerId) => {
+    const isChecked = keys.includes(layerId);
+    const currentState = layerStates.value.get(layerId);
+
     if (currentState && currentState.visible !== isChecked) {
       // 更新状态
       layerStates.value.set(layerId, {
         ...currentState,
-        visible: isChecked
-      })
-      
+        visible: isChecked,
+      });
+
       // 触发图层加载/卸载
-      handleLayerVisibilityChange(layerId, isChecked)
+      handleLayerVisibilityChange(layerId, isChecked);
     }
-  })
+  });
+}
+
+/**
+ * 智能判断图层类型（容错机制）
+ * 当后端返回的type不正确时，根据URL自动判断
+ */
+function detectLayerType(layerData: any): string {
+  const url = layerData.url || '';
+  const type = layerData.type || '';
+  
+  // 如果URL包含tileset.json，一定是3D Tiles
+  if (url.includes('tileset.json')) {
+    if (type !== '3dTile') {
+      console.warn(`⚠️ 图层类型不匹配: ${layerData.name}, 配置类型=${type}, 实际应为=3dTile`);
+    }
+    return '3dTile';
+  }
+  
+  // 如果URL包含style.json或.pbf，可能是MVT
+  if (url.includes('style.json') || url.includes('.pbf')) {
+    if (type !== 'mvt' && type !== 'tile') {
+      console.warn(`⚠️ 图层类型不匹配: ${layerData.name}, 配置类型=${type}, 实际应为=mvt`);
+    }
+    return url.includes('style.json') ? 'mvt' : 'tile';
+  }
+  
+  // 使用配置的类型
+  return type;
 }
 
 /**
  * 处理图层显隐变化
  */
 function handleLayerVisibilityChange(layerId: string, visible: boolean) {
-  const layerData = findLayerById(rawLayerData.value, layerId)
-  
+  const layerData = findLayerById(rawLayerData.value, layerId);
+
   if (!layerData) {
-    console.warn('⚠️ 未找到图层数据:', layerId)
-    return
+    console.warn("⚠️ 未找到图层数据:", layerId);
+    return;
   }
+
+  // 智能判断图层类型
+  const actualType = detectLayerType(layerData);
   
-  console.log(`${visible ? '✅ 加载' : '❌ 卸载'}图层:`, layerData.name, layerData.type)
-  
+  console.log(
+    `${visible ? "✅ 加载" : "❌ 卸载"}图层:`,
+    layerData.name,
+    `配置类型=${layerData.type}, 实际类型=${actualType}`
+  );
+
   // 根据图层类型触发不同的加载方法
   if (visible) {
-    switch (layerData.type) {
-      case 'mvt':
-        emit('load-mvt', layerData.url, layerId)
-        break
-      case '3dTile':
-        emit('load-3dtiles', layerData.url, layerId)
-        break
-      case 'tile':
-      case 'wms':
+    switch (actualType) {
+      case "mvt":
+        emit("load-mvt", layerData.url, layerId);
+        break;
+      case "3dTile":
+        emit("load-3dtiles", layerData.url, layerId);
+        break;
+      case "tile":
+      case "wms":
         // 通用图层加载
-        emit('layer-toggle', layerId, visible, layerData)
-        break
+        emit("layer-toggle", layerId, visible, layerData);
+        break;
       default:
-        console.warn('⚠️ 未知图层类型:', layerData.type)
+        console.warn("⚠️ 未知图层类型:", actualType);
     }
   } else {
     // 卸载图层
-    emit('layer-toggle', layerId, false, layerData)
+    emit("layer-toggle", layerId, false, layerData);
   }
 }
 
@@ -350,48 +398,51 @@ function handleLayerVisibilityChange(layerId: string, visible: boolean) {
 function findLayerById(nodes: any[], id: string): any | null {
   for (const node of nodes) {
     if (node.id === id) {
-      return node
+      return node;
     }
-    
+
     if (node.child && Array.isArray(node.child)) {
-      const found = findLayerById(node.child, id)
-      if (found) return found
+      const found = findLayerById(node.child, id);
+      if (found) return found;
     }
   }
-  
-  return null
+
+  return null;
 }
 
 /**
  * 更新图层状态（供外部调用）
  */
-function updateLayerState(layerId: string, state: Partial<{
-  visible: boolean
-  opacity: number
-  loading: boolean
-  error: string | null
-}>) {
-  const currentState = layerStates.value.get(layerId)
-  
+function updateLayerState(
+  layerId: string,
+  state: Partial<{
+    visible: boolean;
+    opacity: number;
+    loading: boolean;
+    error: string | null;
+  }>
+) {
+  const currentState = layerStates.value.get(layerId);
+
   if (currentState) {
     layerStates.value.set(layerId, {
       ...currentState,
-      ...state
-    })
+      ...state,
+    });
   }
 }
 
 // 组件挂载时加载数据
 onMounted(() => {
-  fetchLayerTree()
-})
+  fetchLayerTree();
+});
 
 // 暴露方法
 defineExpose({
   updateLayerState,
   fetchLayerTree,
-  layerStates
-})
+  layerStates,
+});
 </script>
 
 <style lang="scss" scoped>
@@ -439,7 +490,7 @@ defineExpose({
 
     .n-input__input-el {
       color: #ffffff !important;
-      
+
       &::placeholder {
         color: rgba(255, 255, 255, 0.45);
       }
@@ -472,7 +523,6 @@ defineExpose({
   overflow-y: auto;
   overflow-x: hidden;
   padding: 0 12px 16px;
-
   // 自定义滚动条
   &::-webkit-scrollbar {
     width: 6px;
@@ -489,6 +539,12 @@ defineExpose({
 
     &:hover {
       background: rgba(255, 255, 255, 0.25);
+    }
+  }
+  :deep() {
+    .n-tree-node-wrapper {
+      --n-node-color-hover: transparent !important;
+      padding: 0;
     }
   }
 }

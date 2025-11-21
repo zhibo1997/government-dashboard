@@ -10,7 +10,7 @@ const routes: RouteRecordRaw[] = [
   // 👇 新增：根路径重定向到默认页面
   {
     path: '/',
-    redirect: '/mapView' // 或 '/bridge'，按需选择
+    redirect: '/gas' // 或 '/bridge'，按需选择
   },
   {
     path: '/login',

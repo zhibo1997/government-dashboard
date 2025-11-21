@@ -19,7 +19,7 @@
           "parentId": "group-business",
           "type": "mvt",
           "expanded": "false",
-          "url": "/clmap/style.json",
+          "url": "/style.json",
           "visible": "true",
           "opacity": 1.0,
           "sortOrder": 1,
