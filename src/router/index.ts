@@ -1,7 +1,6 @@
 import { createRouter, createWebHashHistory, RouteRecordRaw } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
 import LoginView from '../views/LoginView.vue'
-import NewDashboardView from '../views/NewDashboardView.vue'
 import WaterSupplyView from '../views/WaterSupply/index.vue'
 import MapView from '@/views/MapView.vue'
 import GasModule from '../views/GasModule/index.vue'
@@ -47,24 +46,24 @@ const routes: RouteRecordRaw[] = [
       title: '燃气专项'
     }
   },
-  {
-    path: '/bridge',
-    name: 'bridge',
-    component: NewDashboardView,
-    meta: {
-      requiresAuth: true,
-      title: '桥梁专项'
-    }
-  },
-  {
-    path: '/drainage',
-    name: 'drainage',
-    component: NewDashboardView,
-    meta: {
-      requiresAuth: true,
-      title: '排水专项'
-    }
-  },
+  // {
+  //   path: '/bridge',
+  //   name: 'bridge',
+  //   component: NewDashboardView,
+  //   meta: {
+  //     requiresAuth: true,
+  //     title: '桥梁专项'
+  //   }
+  // },
+  // {
+  //   path: '/drainage',
+  //   name: 'drainage',
+  //   component: NewDashboardView,
+  //   meta: {
+  //     requiresAuth: true,
+  //     title: '排水专项'
+  //   }
+  // },
   {
     path: '/:pathMatch(.*)*',
     name: 'NotFound',

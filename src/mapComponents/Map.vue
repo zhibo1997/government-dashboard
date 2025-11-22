@@ -76,7 +76,7 @@ const tiandituToken = import.meta.env ? import.meta.env.VITE_TIANDITU_KEY || '' 
 const currentBaseMapType = ref<'vec' | 'img' | 'ter'>('vec')
 
 // 场景模式: 2=2D, 3=3D
-const sceneMode = ref(3)
+const sceneMode = ref(2)
 
 // 初始相机位置
 const camera = ref<VcCamera | null>({

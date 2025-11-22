@@ -1,3 +1,10 @@
+/*
+ * @Author: Do not edit
+ * @Date: 2025-11-02 09:00:58
+ * @LastEditors: 王志博
+ * @LastEditTime: 2025-11-22 13:13:14
+ * @Description: 
+ */
 import { fileURLToPath, URL } from "node:url";
 import { defineConfig, loadEnv } from "vite";
 import vue from "@vitejs/plugin-vue";
@@ -71,7 +78,7 @@ export default defineConfig(({ command, mode }) => {
     css: {
       preprocessorOptions: {
         scss: {
-          additionalData: `@import "@/assets/styles/variables.scss";`,
+          additionalData: `@use "@/assets/styles/variables.scss";`,
         },
       },
     },

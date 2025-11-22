@@ -212,6 +212,7 @@ export function createApiClient<TClient extends ApiClientBase>(
 
 import { Api as WaterSupplyApi } from './waterSupplyAndDrainage'
 import { Api as CommonApi } from './common'
+import { Api as GasApi } from './gas'
 import router from '@/router'
 
 /**
@@ -231,8 +232,8 @@ export function createDrainageApi(): WaterSupplyApi<unknown> {
 /**
  * 创建燃气模块 API 实例
  */
-export function createGasApi(): WaterSupplyApi<unknown> {
-  return createApiClient(WaterSupplyApi, { module: BusinessModule.GAS })
+export function createGasApi(): GasApi<unknown> {
+  return createApiClient(GasApi, { module: BusinessModule.GAS })
 }
 
 /**

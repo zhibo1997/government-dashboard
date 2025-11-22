@@ -465,7 +465,7 @@ defineExpose({
       width: 100%;
       height: 100%;
       transition: transform 0.3s ease;
-      background-image: url("@/assets/map/tool_bg.webp");
+      background-image: url("@/assets/map/tools_bg.webp");
 
       &:hover {
         transform: scale(1.2);
