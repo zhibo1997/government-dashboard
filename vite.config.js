@@ -2,7 +2,7 @@
  * @Author: Do not edit
  * @Date: 2025-11-02 09:00:58
  * @LastEditors: 王志博
- * @LastEditTime: 2025-11-22 13:13:14
+ * @LastEditTime: 2025-11-22 18:16:00
  * @Description: 
  */
 import { fileURLToPath, URL } from "node:url";
@@ -27,7 +27,7 @@ export default defineConfig(({ command, mode }) => {
     // 开发服务器配置
     server: {
       host: "0.0.0.0",
-      port: 5173,
+      port: 5174,
       open: false,
       cors: true,
       // 反向代理配置
@@ -35,13 +35,7 @@ export default defineConfig(({ command, mode }) => {
         [env.VITE_API_BASE_URL]: {
           target: env.VITE_API_URL, // 后端服务地址
           changeOrigin: true,
-        },
-        // 天地图API代理（解决跨域问题）
-        "/tianditu": {
-          target: "http://api.tianditu.gov.cn",
-          changeOrigin: true,
-          rewrite: (path) => path.replace(/^\/tianditu/, ""),
-        },
+        }
       },
     },
     // 构建配置

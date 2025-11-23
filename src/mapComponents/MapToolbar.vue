@@ -10,37 +10,22 @@
     <!-- 工具按钮组 (收缩时隐藏) -->
     <template v-if="!isCollapsed">
       <!-- 图层树 -->
-      <div
-        class="toolbar-item"
-        :class="{ active: showLayerTreePanel }"
-        title="图层树"
-      >
+      <div class="toolbar-item" :class="{ active: showLayerTreePanel }" title="图层树">
         <div class="tool-icon" @click="toggleLayerTreePanel">
           <img src="@/assets/map/map_tree.webp" alt="" />
         </div>
-        {{ showLayerTreePanel }}
         <!-- 图层树面板 -->
         <transition name="slide-left">
           <div v-if="showLayerTreePanel" class="layer-tree-panel">
-            <OptimizedLayerTree
-              ref="layerTreeRef"
-              :viewer-instance="viewerInstance"
-              @load-mvt="handleLoadMVT"
-              @load-3dtiles="handleLoad3DTiles"
-              @layer-toggle="handleLayerToggle"
-              @layer-opacity-change="handleLayerOpacityChange"
-            />
+            <OptimizedLayerTree ref="layerTreeRef" :viewer-instance="props.viewerInstance" @load-mvt="handleLoadMVT"
+              @load-3dtiles="handleLoad3DTiles" @layer-toggle="handleLayerToggle"
+              @layer-opacity-change="handleLayerOpacityChange" />
           </div>
         </transition>
       </div>
 
       <!-- 底图切换 -->
-      <div
-        class="toolbar-item"
-        :class="{ active: showBaseMapPanel }"
-        @click.stop="toggleBaseMapPanel"
-        title="底图切换"
-      >
+      <div class="toolbar-item" :class="{ active: showBaseMapPanel }" @click.stop="toggleBaseMapPanel" title="底图切换">
         <div class="tool-icon">
           <img src="@/assets/map/base_map.webp" alt="" />
         </div>
@@ -49,13 +34,8 @@
           <div v-if="showBaseMapPanel" class="base-map-panel">
             <div class="panel-title">底图切换</div>
             <div class="base-map-options">
-              <div
-                v-for="item in baseMapTypes"
-                :key="item.value"
-                class="base-map-option"
-                :class="{ active: currentBaseMap === item.value }"
-                @click.stop="switchBaseMap(item.value)"
-              >
+              <div v-for="item in baseMapTypes" :key="item.value" class="base-map-option"
+                :class="{ active: props.currentBaseMap === item.value }" @click.stop="switchBaseMap(item.value)">
                 <div class="option-icon">{{ item.icon }}</div>
                 <div class="option-label">{{ item.label }}</div>
               </div>
@@ -80,20 +60,13 @@
 
       <!-- 指北针 -->
       <div class="toolbar-item" @click="resetNorth" title="指北针">
-        <div
-          class="tool-icon compass"
-          :style="{ transform: `rotate(${compassRotation}deg)` }"
-        >
+        <div class="tool-icon compass" :style="{ transform: `rotate(${props.compassRotation}deg)` }">
           <img src="@/assets/map/compass.webp" alt="" />
         </div>
       </div>
 
       <!-- 测量工具 -->
-      <div
-        class="toolbar-item"
-        @click="$emit('toggle-measure')"
-        title="测量工具"
-      >
+      <div class="toolbar-item" @click="$emit('toggle-measure')" title="测量工具">
         <div class="tool-icon">
           <img src="@/assets/map/measure.webp" alt="" />
         </div>
@@ -103,27 +76,32 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, onMounted } from "vue";
-import { useVueCesium } from "vue-cesium";
-import type {
-  VcViewerProvider,
-  VcReadyObject,
-} from "vue-cesium/es/utils/types";
-
-import mapConfig from "@/config/mapConfig";
+import { ref } from "vue";
 import OptimizedLayerTree from "./OptimizedLayerTree.vue";
 import cesiumUtils from "@/mapUtils/mapUtils";
 
-const $vc: VcViewerProvider = useVueCesium();
+// Props - 从父组件接收状态
+interface Props {
+  viewerInstance: any
+  sceneMode: 2 | 3
+  currentBaseMap: 'vec' | 'img' | 'ter'
+  compassRotation: number
+}
 
-// 状态管理
+const props = defineProps<Props>()
+
+// Emits - 通知父组件
+const emit = defineEmits<{
+  'update:scene-mode': [mode: 2 | 3]
+  'update:base-map': [type: 'vec' | 'img' | 'ter']
+  'reset-map': []
+  'toggle-measure': []
+}>()
+
+// 本地UI状态管理
 const isCollapsed = ref(false);
 const showLayerTreePanel = ref(false);
 const showBaseMapPanel = ref(false);
-const currentBaseMap = ref<"vec" | "img" | "ter">("vec");
-const is3D = ref(false);
-const compassRotation = ref(0);
-const viewerInstance = ref<any>(null);
 const layerTreeRef = ref<any>(null);
 
 // 存储已加载的图层实例
@@ -135,21 +113,6 @@ const baseMapTypes = [
   { value: "img", label: "影像地图", icon: "🛰️" },
   { value: "ter", label: "地形地图", icon: "🏔️" },
 ] as const;
-
-// 获取 viewer 实例
-onMounted(() => {
-  // 如果 MapToolbar 作为 vc-viewer 的子组件，直接访问
-  if ($vc.viewer) {
-    viewerInstance.value = $vc.viewer;
-    console.log("✅ MapToolbar: 获取到 viewer 实例");
-  } else {
-    // 如果不是子组件，等待 viewer 创建完成
-    $vc.creatingPromise.then((readyObj: VcReadyObject) => {
-      viewerInstance.value = readyObj.viewer;
-      console.log("✅ MapToolbar: 通过 Promise 获取到 viewer 实例");
-    });
-  }
-});
 
 // 切换收缩状态
 const toggleCollapse = () => {
@@ -181,7 +144,7 @@ const toggleBaseMapPanel = () => {
 
 // 处理加载MVT图层
 const handleLoadMVT = async (url: string, layerId: string) => {
-  if (!viewerInstance.value) {
+  if (!props.viewerInstance) {
     console.warn("⚠️ Viewer 实例未就绪");
     return;
   }
@@ -189,8 +152,9 @@ const handleLoadMVT = async (url: string, layerId: string) => {
   try {
     console.log(`🔄 加载MVT图层: ${url}`);
 
-    const provider = await cesiumUtils.loadMVTLayer(viewerInstance.value, url);
-    loadedLayers.value.set(layerId, { type: "mvt", instance: provider });
+    // loadMVTLayer 返回的是 ImageryLayer 对象
+    const imageryLayer = await cesiumUtils.loadMVTLayer(props.viewerInstance, url);
+    loadedLayers.value.set(layerId, { type: "mvt", instance: imageryLayer });
 
     console.log(`✅ MVT图层加载成功: ${layerId}`);
   } catch (error: any) {
@@ -221,7 +185,7 @@ const handleLoadMVT = async (url: string, layerId: string) => {
 
 // 处理加载3D Tiles图层
 const handleLoad3DTiles = async (url: string, layerId: string) => {
-  if (!viewerInstance.value) {
+  if (!props.viewerInstance) {
     console.warn("⚠️ Viewer 实例未就绪");
     return;
   }
@@ -229,7 +193,7 @@ const handleLoad3DTiles = async (url: string, layerId: string) => {
   try {
     console.log(`🔄 加载3D Tiles图层: ${url}`);
 
-    const tileset = await cesiumUtils.load3DTiles(viewerInstance.value, url);
+    const tileset = await cesiumUtils.load3DTiles(props.viewerInstance, url);
     loadedLayers.value.set(layerId, { type: "3dtiles", instance: tileset });
 
     console.log(`✅ 3D Tiles图层加载成功: ${layerId}`);
@@ -269,13 +233,14 @@ const handleLayerToggle = (
   const layer = loadedLayers.value.get(layerId);
 
   if (!visible && layer) {
-    // 隐藏或移除图层
+    // 隐藏图层
     if (layer.type === "3dtiles") {
       cesiumUtils.set3DTilesVisibility(layer.instance, false);
     } else if (layer.type === "mvt") {
-      // MVT图层显隐控制
-      if (layer.instance && layer.instance.show !== undefined) {
+      // MVT图层显隐控制 - 使用 ImageryLayer 的 show 属性
+      if (layer.instance) {
         layer.instance.show = false;
+        console.log(`✅ MVT图层已隐藏: ${layerId}`);
       }
     }
   } else if (visible && !layer) {
@@ -290,8 +255,10 @@ const handleLayerToggle = (
     if (layer.type === "3dtiles") {
       cesiumUtils.set3DTilesVisibility(layer.instance, true);
     } else if (layer.type === "mvt") {
-      if (layer.instance && layer.instance.show !== undefined) {
+      // MVT图层显示控制 - 使用 ImageryLayer 的 show 属性
+      if (layer.instance) {
         layer.instance.show = true;
+        console.log(`✅ MVT图层已显示: ${layerId}`);
       }
     }
   }
@@ -310,109 +277,56 @@ const handleLayerOpacityChange = (layerId: string, opacity: number) => {
         color: `color('white', ${opacity})`,
       });
     } else if (layer.type === "mvt" && layer.instance) {
-      // MVT图层透明度控制
-      if (layer.instance.alpha !== undefined) {
-        layer.instance.alpha = opacity;
-      }
+      // MVT图层透明度控制 - 使用 ImageryLayer 的 alpha 属性
+      layer.instance.alpha = opacity;
+      console.log(`✅ MVT图层透明度已设置: ${layerId} = ${opacity}`);
     }
   }
 };
 
 // 切换底图
 const switchBaseMap = (type: "vec" | "img" | "ter") => {
-  currentBaseMap.value = type;
-
-  // TODO: 实现底图切换逻辑
-  // 需要通过 viewer 实例来切换天地图样式
-};
+  emit('update:base-map', type)
+  showBaseMapPanel.value = false
+  console.log(`✅ 请求切换底图: ${type}`)
+}
 
 // 重置地图
 const resetMap = () => {
-  if (!viewerInstance.value) {
-    console.warn("⚠️ Viewer 实例未就绪");
-    return;
-  }
-
-  const Cesium = (window as any).Cesium;
-  if (Cesium) {
-    viewerInstance.value.camera.flyTo({
-      destination: Cesium.Cartesian3.fromDegrees(
-        mapConfig.center[0],
-        mapConfig.center[1],
-        50000
-      ),
-      orientation: {
-        heading: 0,
-        pitch: Cesium.Math.toRadians(-90),
-        roll: 0,
-      },
-      duration: 2,
-    });
-    console.log("✅ 地图视角已重置");
-  }
-};
+  emit('reset-map')
+  console.log('✅ 请求重置地图')
+}
 
 // 切换2D/3D视图
 const toggleViewMode = () => {
-  if (!viewerInstance.value) {
-    console.warn("⚠️ Viewer 实例未就绪");
-    return;
-  }
-
-  is3D.value = !is3D.value;
-  const Cesium = (window as any).Cesium;
-  if (Cesium) {
-    viewerInstance.value.scene.mode = is3D.value
-      ? Cesium.SceneMode.SCENE3D
-      : Cesium.SceneMode.SCENE2D;
-    console.log(`切换视图模式: ${is3D.value ? "3D" : "2D"}`);
-  }
-};
+  const newMode = props.sceneMode === 2 ? 3 : 2
+  emit('update:scene-mode', newMode)
+  console.log(`✅ 请求切换视图模式: ${newMode === 2 ? '2D' : '3D'}`)
+}
 
 // 重置指北
 const resetNorth = () => {
-  if (!viewerInstance.value) {
+  if (!props.viewerInstance) {
     console.warn("⚠️ Viewer 实例未就绪");
     return;
   }
 
   const Cesium = (window as any).Cesium;
   if (Cesium) {
-    viewerInstance.value.camera.setView({
+    props.viewerInstance.camera.setView({
       orientation: {
         heading: 0,
         pitch: Cesium.Math.toRadians(-90),
         roll: 0,
       },
     });
-    compassRotation.value = 0;
     console.log("✅ 重置指北方向");
   }
 };
 
-// 监听相机朝向变化更新指北针
-watch(
-  () => viewerInstance.value,
-  (viewer) => {
-    if (viewer) {
-      const Cesium = (window as any).Cesium;
-      if (Cesium) {
-        // 监听相机变化更新指北针旋转角度
-        viewer.camera.changed.addEventListener(() => {
-          const heading = viewer.camera.heading;
-          compassRotation.value = Cesium.Math.toDegrees(heading);
-        });
-      }
-    }
-  },
-  { immediate: true }
-);
-
 // 暴露方法
 defineExpose({
   isCollapsed,
-  currentBaseMap,
-  viewerInstance,
   loadedLayers,
   layerTreeRef,
 });
@@ -442,16 +356,16 @@ defineExpose({
     position: relative;
     width: 80px;
     height: 80px;
-    background: rgba(0, 15, 35, 0.85);
-    backdrop-filter: blur(10px);
-    border: 2px solid rgba(22, 119, 255, 0.3);
     border-radius: 12px;
     cursor: pointer;
     transition: all 0.3s ease;
     display: flex;
     align-items: center;
     justify-content: center;
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+    border-radius: 8px;
+    background-image: url("@/assets/map/tools_bg.webp");
+    background-size: 100% 100%;
+
 
     &.active {
       border-color: #1677ff;
@@ -465,11 +379,12 @@ defineExpose({
       width: 100%;
       height: 100%;
       transition: transform 0.3s ease;
-      background-image: url("@/assets/map/tools_bg.webp");
+
 
       &:hover {
         transform: scale(1.2);
       }
+
       &.compass {
         transition: transform 0.6s ease;
       }

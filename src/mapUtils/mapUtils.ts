@@ -101,7 +101,7 @@ export const cesiumUtils = {
    * 加载MVT矢量瓦片图层
    * @param viewer - Cesium Viewer实例
    * @param styleUrl - 样式文件URL (如: '/style.json')
-   * @returns Promise<MVTImageryProvider>
+   * @returns Promise<ImageryLayer> - 返回图层对象而非Provider，以便控制显隐
    */
   async loadMVTLayer(viewer: any, styleUrl: string): Promise<any> {
     try {
@@ -142,15 +142,16 @@ export const cesiumUtils = {
       // 创建MVT Imagery Provider
       const provider = await MVTImageryProvider.fromUrl(styleUrl);
 
-      // 将图层添加到viewer的imageryLayers中
+      // 将图层添加到viewer的imageryLayers中，返回ImageryLayer对象
       if (viewer && viewer.imageryLayers) {
-        viewer.imageryLayers.addImageryProvider(provider);
+        const imageryLayer = viewer.imageryLayers.addImageryProvider(provider);
         console.log("✅ MVT图层加载成功");
+        
+        // 返回ImageryLayer对象，而非Provider
+        return imageryLayer;
       } else {
         throw new Error("Viewer或imageryLayers不可用");
       }
-
-      return provider;
     } catch (error) {
       console.error("❌ 加载MVT图层失败:", error);
       throw new Error(`Failed to load MVT layer: ${error}`);

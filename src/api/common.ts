@@ -1,10 +1,3 @@
-/*
- * @Author: Do not edit
- * @Date: 2025-11-02 09:01:09
- * @LastEditors: 王志博
- * @LastEditTime: 2025-11-19 23:55:37
- * @Description: 
- */
 /* eslint-disable */
 /* tslint:disable */
 /*
@@ -704,12 +697,6 @@ export interface LearunUtilResponseDto1SystemStringSystemPrivateCoreLibVersion80
   data?: string | null;
 }
 
-export interface LearunUtilResponseDto {
-  code?: LearunUtilResponseCode;
-  info?: string | null;
-  data?: null;
-}
-
 import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse, HeadersDefaults, ResponseType } from "axios";
 
 export type QueryParamsType = Record<string | number, any>;
@@ -850,6 +837,22 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * No description
      *
      * @tags DataItem
+     * @name DataitemDetailsAllDetail
+     * @summary 获取多个数据字典明细根据分类编码逗号分隔
+     * @request GET:/data/dataitem/details/all/{code}
+     */
+    dataitemDetailsAllDetail: (code: string, params: RequestParams = {}) =>
+      this.request<object, any>({
+        path: `/data/dataitem/details/all/${code}`,
+        method: "GET",
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags DataItem
      * @name DataitemDetailsDetail
      * @summary 获取数据字典明显根据分类编号
      * @request GET:/data/dataitem/details/{code}
@@ -892,23 +895,6 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
     publicKeyList: (params: RequestParams = {}) =>
       this.request<any, any>({
         path: `/login/publicKey`,
-        method: "GET",
-        format: "json",
-        ...params,
-      }),
-  };
-  system = {
-    /**
-     * No description
-     *
-     * @tags Module
-     * @name ModuleTreeList
-     * @summary 获取菜单树
-     * @request GET:/system/module/tree
-     */
-    moduleTreeList: (params: RequestParams = {}) =>
-      this.request<LearunUtilResponseDto, any>({
-        path: `/system/module/tree`,
         method: "GET",
         format: "json",
         ...params,

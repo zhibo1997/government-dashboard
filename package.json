@@ -10,7 +10,7 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "swagger": "npx swagger-typescript-api -p http://127.0.0.1:4523/export/openapi/3?version=3.0 -o ./src/api/ -n gas --axios"
+    "swagger": "npx swagger-typescript-api -p http://127.0.0.1:4523/export/openapi/2?version=3.0 -o ./src/api/ -n common --axios"
   },
   "dependencies": {
     "@ant-design/icons-vue": "^7.0.1",

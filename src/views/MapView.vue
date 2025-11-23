@@ -5,10 +5,6 @@
       <Map ref="mapRef" @layer-visibility-change="handleLayerVisibilityChange" />
     </div>
 
-    <!-- 图层管理面板 -->
-    <div class="layer-panel">
-      <MapToolbar data-interactive @toggle-measure="handleToggleMeasure" />
-    </div>
 
     <!-- 控制按钮 -->
     <div class="map-controls">

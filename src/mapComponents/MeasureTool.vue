@@ -59,7 +59,7 @@ const props = defineProps<Props>()
 const emit = defineEmits<Emits>()
 
 // 拖拽相关
-const position = ref({ x: 100, y: 100 })
+const position = ref({ x: 840, y: 200 })
 const isDragging = ref(false)
 const dragStart = ref({ x: 0, y: 0 })
 
@@ -148,6 +148,7 @@ defineExpose({
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
   z-index: 2000;
   cursor: move;
+  pointer-events: auto;
 
   .panel-header {
     display: flex;

@@ -1,21 +1,18 @@
 <template>
   <div class="responsive-wrapper">
-    <div 
-      class="scale-content" 
-      :style="{
-        transform: `scale(${scaleRatio})`,
-        transformOrigin: 'top left',
-        width: `${actualBaseWidth}px`,
-        height: `${actualBaseHeight}px`
-      }"
-    >
+    <div class="scale-content" :style="{
+      transform: `scale(${scaleRatio})`,
+      transformOrigin: 'top left',
+      width: `${actualBaseWidth}px`,
+      height: `${actualBaseHeight}px`
+    }">
       <slot></slot>
-    </div> 
+    </div>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted, computed, watch } from 'vue'
+import { ref, onMounted, onUnmounted, computed, watch, provide } from 'vue'
 
 // 定义props
 const props = defineProps({
@@ -70,9 +67,9 @@ const actualBaseHeight = computed(() => props.baseHeight)
 function calculateResponsive() {
   const windowWidth = window.innerWidth
   const windowHeight = window.innerHeight
-  
+
   let scale = 1
-  
+
   if (currentScaleMode.value === 'width') {
     // 按宽度缩放：屏幕宽度 / 基准宽度
     scale = windowWidth / actualBaseWidth.value
@@ -80,12 +77,12 @@ function calculateResponsive() {
     // 按高度缩放：屏幕高度 / 基准高度
     scale = windowHeight / actualBaseHeight.value
   }
-  
+
   // 限制缩放比例在指定范围内
   scale = Math.max(props.minScale, Math.min(props.maxScale, scale))
-  
+
   scaleRatio.value = scale
-  
+
   console.log('缩放计算:', {
     mode: currentScaleMode.value,
     windowSize: `${windowWidth}x${windowHeight}`,
@@ -106,7 +103,7 @@ function watchUrlParams() {
 // 防抖处理
 function debounce(func, wait) {
   let timeout
-  return function(...args) {
+  return function (...args) {
     clearTimeout(timeout)
     timeout = setTimeout(() => func.apply(this, args), wait)
   }
@@ -114,10 +111,13 @@ function debounce(func, wait) {
 
 const debouncedCalculate = debounce(calculateResponsive, 100)
 
+// 提供scaleRatio给子组件使用
+provide('responsiveScale', scaleRatio)
+
 onMounted(() => {
   calculateResponsive()
   window.addEventListener('resize', debouncedCalculate)
-  
+
   // 监听URL变化
   const observer = new MutationObserver(watchUrlParams)
   observer.observe(document, { subtree: true, childList: true })
@@ -140,6 +140,9 @@ defineExpose({
   position: relative;
   z-index: 10;
   pointer-events: none;
+  position: absolute;
+  top: 0;
+  left: 0;
 }
 
 /* 为需要交互的特定元素恢复鼠标事件 */
@@ -147,8 +150,7 @@ defineExpose({
 .responsive-wrapper :deep(.left-content),
 .responsive-wrapper :deep(.right-content),
 .responsive-wrapper :deep(.map-toolbar),
-.responsive-wrapper :deep(.login-card)
-{
+.responsive-wrapper :deep(.login-card) {
   pointer-events: auto;
 }
 
@@ -192,5 +194,17 @@ defineExpose({
   transform-origin: top left;
   will-change: transform;
   display: inline-block;
+
+}
+
+.responsive-wrapper :deep(.center-map) {
+  transform: scale(1) !important;
+  transform-origin: center center;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: auto;
 }
 </style>

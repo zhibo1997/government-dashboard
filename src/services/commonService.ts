@@ -45,14 +45,41 @@ export async function getDataItemDetails(code: string) {
   return res.data || [];
 }
 
+/**
+ * 获取多个数据字典明细根据分类编码逗号分隔
+ * @param codes 分类编号
+ * @returns 数据字典明细数组数组
+ */
+export async function getDataItemDetailsByCodes(codes: string) {
+  const res = await commonApi.data.dataitemDetailsAllDetail(codes);
+  return res.data || [];
+}
 
 /**
- * 获取菜单树
- * @returns 菜单树数据
+ * 优化的字典数据获取函数，带缓存功能
+ * @param code 字典编码
+ * @returns 字典数据数组
  */
-export async function getModuleTree() {
-  const res = await commonApi.system.moduleTreeList();
-  return res.data;
+export async function getDataItems(code: string): Promise<any[]> {
+  // 直接调用批量接口获取数据
+  const result = await getDataItemDetailsByCodes(code);
+
+  if (Array.isArray(result) && result.length > 0) {
+    const dict = result[0];
+
+    if (dict.itemCode && Array.isArray(dict.itemDetailEntityList)) {
+      // 提取有用的数据字段
+      const items = dict.itemDetailEntityList.map((item: any) => ({
+        f_ItemValue: item.f_ItemValue,
+        f_ItemName: item.f_ItemName,
+        f_SimpleSpelling: item.f_SimpleSpelling
+      }));
+
+      return items;
+    }
+  }
+
+  return [];
 }
 
 /**
@@ -60,7 +87,7 @@ export async function getModuleTree() {
  */
 export async function getLayerTree() {
   const res = await commonApi.layer.treeList();
-  return res;
+  return res.data;
 }
 
 /**
@@ -69,10 +96,10 @@ export async function getLayerTree() {
  * @param publicKey RSA 公钥
  * @returns 加密后的密码
  */
-export function encryptPasswordWithPublicKey(
+export async function encryptPasswordWithPublicKey(
   password: string,
   publicKey: string
-): string {
+): Promise<string> {
   if (!publicKey) {
     console.warn("公钥为空，将使用原始密码");
     return password;
@@ -80,7 +107,13 @@ export function encryptPasswordWithPublicKey(
 
   try {
     // 动态导入 jsencrypt
-    const JSEncrypt = require("jsencrypt").default;
+    let JSEncrypt;
+    if (typeof window !== 'undefined' && (window as any).JSEncrypt) {
+      JSEncrypt = (window as any).JSEncrypt;
+    } else {
+      const jsEncryptModule = await import("jsencrypt");
+      JSEncrypt = jsEncryptModule.default;
+    }
     const encrypt = new JSEncrypt();
     encrypt.setPublicKey(publicKey);
     const encrypted = encrypt.encrypt(password);

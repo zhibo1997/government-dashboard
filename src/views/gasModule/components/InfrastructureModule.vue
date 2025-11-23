@@ -56,30 +56,17 @@
 </template>
 
 <script setup>
-import { ref, computed } from "vue";
+import { ref, computed, onMounted } from "vue";
+import { getNaturalGasCountList, getLiquefiedGasCountList } from "@/services/gasService";
 
 // 当前选中的气体类型
 const activeGasType = ref('liquefied'); // 默认液化气
 
 // 天然气统计数据
-const naturalGasStats = ref([
-    { key: 'enterprises', label: '企业', value: 6, unit: '家' },
-    { key: 'stations', label: '供应站', value: 15, unit: '座' },
-    { key: 'cylinders', label: '气瓶', value: 1120, unit: '个' },
-    { key: 'vehicles', label: '运送车', value: 980.5, unit: 'km' },
-    { key: 'users', label: '用户', value: 2450, unit: '户' },
-    { key: 'monitors', label: '监测点', value: 145, unit: '个' },
-]);
+const naturalGasStats = ref([]);
 
 // 液化气统计数据
-const liquefiedGasStats = ref([
-    { key: 'enterprises', label: '企业', value: 4, unit: '家' },
-    { key: 'stations', label: '供应站', value: 13, unit: '座' },
-    { key: 'cylinders', label: '气瓶', value: 999, unit: '个' },
-    { key: 'vehicles', label: '运送车', value: 876.5, unit: 'km' },
-    { key: 'users', label: '用户', value: 2199, unit: '户' },
-    { key: 'monitors', label: '监测点', value: 123, unit: '个' },
-]);
+const liquefiedGasStats = ref([]);
 
 // 天然气企业数据
 const naturalGasEnterprises = ref([
@@ -108,6 +95,55 @@ const currentStatistics = computed(() => {
 // 当前显示的企业列表
 const currentEnterprises = computed(() => {
     return activeGasType.value === 'natural' ? naturalGasEnterprises.value : liquefiedGasEnterprises.value;
+});
+
+// 获取天然气基础设施数量统计
+const fetchNaturalGasStats = async () => {
+    try {
+        const data = await getNaturalGasCountList();
+        naturalGasStats.value = data.map(item => ({
+            key: item.name,
+            label: item.name,
+            value: item.count,
+            unit: getUnitByName(item.name)
+        }));
+    } catch (error) {
+        console.error('获取天然气统计数据失败:', error);
+    }
+};
+
+// 获取液化气基础设施数量统计
+const fetchLiquefiedGasStats = async () => {
+    try {
+        const data = await getLiquefiedGasCountList();
+        liquefiedGasStats.value = data.map(item => ({
+            key: item.name,
+            label: item.name,
+            value: item.count,
+            unit: getUnitByName(item.name)
+        }));
+    } catch (error) {
+        console.error('获取液化气统计数据失败:', error);
+    }
+};
+
+// 根据名称获取单位
+const getUnitByName = (name) => {
+    const unitMap = {
+        '企业': '家',
+        '场站': '座',
+        '管网': '公里',
+        '井盖': '个',
+        '用户': '户',
+        '监测点': '个'
+    };
+    return unitMap[name] || '';
+};
+
+// 初始化数据
+onMounted(async () => {
+    await fetchNaturalGasStats();
+    await fetchLiquefiedGasStats();
 });
 </script>
 

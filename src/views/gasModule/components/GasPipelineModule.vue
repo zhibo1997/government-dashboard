@@ -9,13 +9,13 @@
                 <div class="stat-card">
                     <div class="stat-label">管线总长</div>
                     <span class="stat-value gradient-text">
-                        {{ 765.9 }}km
+                        {{ totalLength }}km
                     </span>
                 </div>
                 <div class="stat-card">
                     <div class="stat-label">管点</div>
                     <span class="stat-value gradient-text">
-                        {{ 1248 }}个
+                        {{ totalPoints }}个
                     </span>
                 </div>
             </div>
@@ -37,7 +37,7 @@
             <div class="well-statistics">
                 <div class="well-total">
                     <span class="total-label">管井总数</span>
-                    <span class="total-value gradient-text">999个</span>
+                    <span class="total-value gradient-text">{{ totalWells }}个</span>
                 </div>
 
                 <div class="well-list">
@@ -76,14 +76,26 @@
 </template>
 
 <script setup>
-import { ref, onMounted, nextTick, onBeforeUnmount } from "vue";
+import { ref, onMounted, nextTick, onBeforeUnmount, computed } from "vue";
 import * as echarts from "echarts";
 import 'echarts-gl';
+import { getGasCdRatio, getGasPubunderpointRatio } from "@/services/gasService";
 
 const pressureChartRef = ref(null);
 const gasTypeChartRef = ref(null);
 let pressureChart = null;
 let gasTypeChart = null;
+
+// 管线总长
+const totalLength = ref(0);
+
+// 管点总数
+const totalPoints = ref(0);
+
+// 管井总数
+const totalWells = computed(() => {
+    return wellData.value.reduce((sum, item) => sum + item.total, 0);
+});
 
 // 管井数据
 const wellData = ref([
@@ -390,6 +402,30 @@ const initGasTypeChart = () => {
     gasTypeChart.setOption(option);
 };
 
+// 获取管线长度数据
+const fetchGasCdRatio = async () => {
+    try {
+        const data = await getGasCdRatio();
+        // 计算总长度（假设ratio是百分比，count是公里数）
+        totalLength.value = data.reduce((sum, item) => sum + item.count, 0);
+        console.log('获取管线长度数据:', data);
+    } catch (error) {
+        console.error('获取管线长度数据失败:', error);
+    }
+};
+
+// 获取管点数据
+const fetchGasPubunderpointRatio = async () => {
+    try {
+        const data = await getGasPubunderpointRatio();
+        // 计算管点总数
+        totalPoints.value = data.reduce((sum, item) => sum + item.count, 0);
+        console.log('获取管点数据:', data);
+    } catch (error) {
+        console.error('获取管点数据失败:', error);
+    }
+};
+
 // 窗口调整
 const handleResize = () => {
     pressureChart?.resize();
@@ -397,6 +433,10 @@ const handleResize = () => {
 };
 
 onMounted(async () => {
+    // 获取真实数据
+    await fetchGasCdRatio();
+    await fetchGasPubunderpointRatio();
+    
     await nextTick();
     initPressureChart();
     initGasTypeChart();

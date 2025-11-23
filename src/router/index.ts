@@ -33,7 +33,7 @@ const routes: RouteRecordRaw[] = [
     name: 'waterProject',
     component: WaterSupplyView,
     meta: {
-      requiresAuth: true,
+      requiresAuth: false,
       title: '供水专项'
     }
   },

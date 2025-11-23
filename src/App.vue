@@ -1,8 +1,8 @@
 <!--
  * @Author: Do not edit
  * @Date: 2025-10-30 20:50:05
- * @LastEditors: zhibo1997 1174985654@qq.com
- * @LastEditTime: 2025-11-19 23:01:11
+ * @LastEditors: 王志博
+ * @LastEditTime: 2025-11-22 19:53:32
  * @Description: 
 -->
 <script setup lang="ts">
@@ -110,7 +110,7 @@ import { NMessageProvider, NDialogProvider, NConfigProvider, zhCN, dateZhCN } fr
 .map-toolbar {
   position: absolute;
   right: 830px;
-  top: 20px;
+  top: 180px;
 }
 
 // 渐变文字效果
