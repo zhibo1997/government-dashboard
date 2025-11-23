@@ -65,7 +65,7 @@ import {
   getWaterSupplyMaterialRatio,
   getWaterSupplyRiskCount,
 } from "@/services/waterSupplyService";
-import { getDataItemDetails } from "@/services/commonService";
+import { getDataItems } from "@/services/commonService";
 
 // 引入图片资源
 import baseDangerImage from "@/assets/img/waterSupply/base_danger.png";
@@ -91,7 +91,7 @@ const colors = ["#00bfff", "#ff4500", "#ffff00", "#66cc66"];
 
 const gwczMap = ref({});
 const initMaterialList = async () => {
-  const dictionaries = await getDataItemDetails("gwcz");
+  const dictionaries = await getDataItems("gwcz");
   gwczMap.value = dictionaries.reduce((acc, cur) => {
     acc[cur.f_ItemValue] = cur.f_ItemName;
     return acc;
@@ -177,7 +177,7 @@ const generateRandomPosition = (existingPositions, ballSize) => {
 };
 
 const initHiddenDangerTypes = async () => {
-  const res = await getDataItemDetails("yhlx_gs");
+  const res = await getDataItems("yhlx_gs");
   // 创建隐患类型映射
   const dangerTypeMap = {};
   res.forEach((item) => {

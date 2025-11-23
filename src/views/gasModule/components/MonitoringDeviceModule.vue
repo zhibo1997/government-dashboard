@@ -16,11 +16,11 @@
           <div class="stat-info">
             <div class="stat-label">监测设备总数</div>
             <div class="stat-value">
-              <span class="value-total gradient-text">25</span>
+              <span class="value-total gradient-text">{{ topStats.online }}</span>
               <span class="value-separator">/</span>
-              <span class="value-online gradient-text">11</span>
+              <span class="value-online gradient-text">{{ topStats.offline }}</span>
               <span class="value-separator">/</span>
-              <span class="value-offline gradient-text">0</span>
+              <span class="value-offline gradient-text">{{ topStats.fault }}</span>
             </div>
           </div>
         </div>
@@ -32,7 +32,7 @@
           <div class="stat-info">
             <div class="stat-label">在线率</div>
             <div class="stat-value">
-              <span class="value-rate gradient-text">98%</span>
+              <span class="value-rate gradient-text">{{ topStats.onlineRate }}</span>
             </div>
           </div>
         </div>
@@ -71,35 +71,102 @@
 </template>
 
 <script setup>
-import { ref } from "vue";
+import { getDeviceStatusRate, getDeviceTypeStatusCount } from "@/services/waterSupplyService";
+import { ref, onMounted } from "vue";
+
+
+// 初始化获取状态数据
+onMounted(() => {
+  initMonitoringCount();
+  getDeviceTypeRate();
+});
+
+// 获取设备运行状态
+const getDeviceTypeRate = async () => {
+  const res = await getDeviceStatusRate({ Sszx: "csaqzx_gs" });
+  topStats.value.onlineRate = res.find(item => item.name === '在线率')?.value || '-';
+};
+const initMonitoringCount = async () => {
+  try {
+    const res = await getDeviceTypeStatusCount({Sszx:'csaqzx_rq'});
+    
+    // 计算总设备数
+    let total = 0;
+    let online = 0;
+    let offline = 0;
+    let fault = 0;
+    
+    // 遍历所有设备类型的状态数据
+    res.forEach(item => {
+      item.statusCounts.forEach(status => {
+        const count = status.count || 0;
+        total += count;
+        
+        switch(status.status) {
+          case 'sbyxzt001': // 在线
+            online += count;
+            break;
+          case 'sbyxzt002': // 离线
+            offline += count;
+            break;
+          case 'sbyxzt003': // 故障
+            fault += count;
+            break;
+        }
+      });
+    });
+    
+    // 更新顶部统计数据
+    topStats.value = {
+      total,
+      online,
+      offline,
+    };
+    
+    // 这里可以进一步处理设备分类数据，如果需要的话
+    // 目前保持原有的硬编码数据不变
+  } catch (error) {
+    console.error("获取设备状态数据失败:", error);
+  }
+};
+
+// 顶部统计数据
+const topStats = ref({
+  total: 0,
+  online: 0,
+  offline: 0,
+  onlineRate: "-"
+});
 
 // 设备分类数据
 const deviceCategories = ref([
   {
     title: "燃气管网",
     devices: [
-      { name: "可燃气体", onlineNum: "25", offlineNum: "0" },
-      { name: "物联网远程终端", onlineNum: "25", offlineNum: "0" },
-      { name: "阴极保护桩", onlineNum: "25", offlineNum: "0" },
-    ],
+      { name: "调压设备", onlineNum: "0", offlineNum: "0" },
+      { name: "阀门设备", onlineNum: "0", offlineNum: "0" },
+      { name: "流量计", onlineNum: "0", offlineNum: "0" }
+    ]
   },
   {
     title: "燃气场站",
     devices: [
-      { name: "场站可燃气体", onlineNum: "25", offlineNum: "0" },
-      { name: "燃气压力计", onlineNum: "25", offlineNum: "0" },
-      { name: "燃气流量计", onlineNum: "25", offlineNum: "0" },
-    ],
+      { name: "门站", onlineNum: "0", offlineNum: "0" },
+      { name: "储配站", onlineNum: "0", offlineNum: "0" },
+      { name: "加气站", onlineNum: "0", offlineNum: "0" }
+    ]
   },
   {
     title: "终端用户",
     devices: [
-      { name: "家用可燃气体", onlineNum: "25", offlineNum: "0" },
-      { name: "工商业可燃气体", onlineNum: "25", offlineNum: "0" },
-      { name: "小型餐饮厨房用气", onlineNum: "25", offlineNum: "0" },
-    ],
-  },
+      { name: "工商用户", onlineNum: "0", offlineNum: "0" },
+      { name: "居民用户", onlineNum: "0", offlineNum: "0" },
+      { name: "压力监测", onlineNum: "0", offlineNum: "0" }
+    ]
+  }
 ]);
+
+
 </script>
 
 <style lang="scss" scoped>

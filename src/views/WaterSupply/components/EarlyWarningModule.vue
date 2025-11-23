@@ -90,7 +90,7 @@ import {
   getWarnStatistics,
   getCheckResultStatistics,
 } from "@/services/waterSupplyService";
-import { getDataItemDetails } from "@/services/commonService";
+import { getDataItems } from "@/services/commonService";
 
 // 预警处置时间
 const warningDate = ref('2025');
@@ -166,7 +166,7 @@ const onChangeWarningDate = (value) => {
 // 初始化字典数据
 const initDictionary = async () => {
   try {
-    const dictionaries = await getDataItemDetails("yjlx_gs");
+    const dictionaries = await getDataItems("yjlx_gs");
     yjlxMap.value = dictionaries.reduce((acc, cur) => {
       acc[cur.f_ItemValue] = cur.f_ItemName;
       return acc;

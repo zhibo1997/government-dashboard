@@ -2,7 +2,7 @@
  * @Author: Do not edit
  * @Date: 2025-09-01 20:25:59
  * @LastEditors: 王志博
- * @LastEditTime: 2025-10-19 18:30:10
+ * @LastEditTime: 2025-11-23 14:00:39
  * @Description: 
 -->
 <template>
@@ -28,8 +28,6 @@ function updateTime() {
   const year = now.getFullYear()
   const month = String(now.getMonth() + 1).padStart(2, '0')
   const day = String(now.getDate()).padStart(2, '0')
-  const weekdays = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六']
-  const weekday = weekdays[now.getDay()]
 
   currentDate.value = `${year}.${month}.${day}`
 

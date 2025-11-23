@@ -169,3 +169,21 @@ export async function getEquipmentPageList(params?: {
   const res = await gasApi.gspspDtrans.eqpPageList(params);
   return res.data || [];
 }
+
+/**
+ * 获取瓶装气企业台账列表
+ * @returns 瓶装气企业台账列表数据
+ */
+export async function getBottleGasEnterpriseLedgerList() {
+  const res = await gasApi.gspspDtransGas.bottlegasenterpriseledgerListList();
+  return res.data || [];
+}
+
+/**
+ * 获取燃气企业台账列表
+ * @returns 燃气企业台账列表数据
+ */
+export async function getGasEnterpriseLedgerList() {
+  const res = await gasApi.gspspDtransGas.gasenterpriseledgerListList();
+  return res.data || [];
+}

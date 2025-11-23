@@ -377,6 +377,36 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         format: "json",
         ...params,
       }),
+
+    /**
+     * No description
+     *
+     * @name BottlegasenterpriseledgerListList
+     * @summary 获取瓶装气企业台账列表
+     * @request GET:/gspspDtransGas/bottlegasenterpriseledger/list
+     */
+    bottlegasenterpriseledgerListList: (params: RequestParams = {}) =>
+      this.request<object, any>({
+        path: `/gspspDtransGas/bottlegasenterpriseledger/list`,
+        method: "GET",
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @name GasenterpriseledgerListList
+     * @summary 获取燃气企业台账列表
+     * @request GET:/gspspDtransGas/gasenterpriseledger/list
+     */
+    gasenterpriseledgerListList: (params: RequestParams = {}) =>
+      this.request<object, any>({
+        path: `/gspspDtransGas/gasenterpriseledger/list`,
+        method: "GET",
+        format: "json",
+        ...params,
+      }),
   };
   gspspDtrans = {
     /**

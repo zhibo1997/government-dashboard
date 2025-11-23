@@ -92,6 +92,12 @@ const totalLength = ref(0);
 // 管点总数
 const totalPoints = ref(0);
 
+// 压力等级分布饼图数据
+const pressureChartData = ref([]);
+
+// 气源类型分布饼图数据
+const gasTypeChartData = ref([]);
+
 // 管井总数
 const totalWells = computed(() => {
     return wellData.value.reduce((sum, item) => sum + item.total, 0);
@@ -326,41 +332,7 @@ const initPressureChart = () => {
 
     pressureChart = echarts.init(pressureChartRef.value);
 
-    const pressureData = [
-        {
-            name: '高压',
-            value: 35,
-            itemStyle: {
-                color: '#73d13d',
-                opacity: 0.9
-            }
-        },
-        {
-            name: '次高压',
-            value: 35,
-            itemStyle: {
-                color: '#4096ff',
-                opacity: 0.9
-            }
-        },
-        {
-            name: '中压',
-            value: 20,
-            itemStyle: {
-                color: '#69c0ff',
-                opacity: 0.9
-            }
-        },
-        {
-            name: '低压',
-            value: 20,
-            itemStyle: {
-                color: '#ffd666',
-                opacity: 0.9
-            }
-        }
-    ];
-
+    const pressureData = pressureChartData.value;
     const option = get3DPieOption(pressureData);
     pressureChart.setOption(option);
 };
@@ -371,32 +343,7 @@ const initGasTypeChart = () => {
 
     gasTypeChart = echarts.init(gasTypeChartRef.value);
 
-    const gasTypeData = [
-        {
-            name: '煤气',
-            value: 50,
-            itemStyle: {
-                color: '#95de64',
-                opacity: 0.9
-            }
-        },
-        {
-            name: '天然气',
-            value: 25,
-            itemStyle: {
-                color: '#ff9c6e',
-                opacity: 0.9
-            }
-        },
-        {
-            name: '液化气',
-            value: 25,
-            itemStyle: {
-                color: '#ffd666',
-                opacity: 0.9
-            }
-        }
-    ];
+    const gasTypeData = gasTypeChartData.value;
 
     const option = get3DPieOption(gasTypeData);
     gasTypeChart.setOption(option);
@@ -408,6 +355,16 @@ const fetchGasCdRatio = async () => {
         const data = await getGasCdRatio();
         // 计算总长度（假设ratio是百分比，count是公里数）
         totalLength.value = data.reduce((sum, item) => sum + item.count, 0);
+        
+        // 转换为压力等级分布饼图数据
+        pressureChartData.value = data.map(item => ({
+            name: item.materialType ,
+            value: parseFloat(item.ratio) || 0,
+            itemStyle: {
+                opacity: 0.9
+            }
+        }));
+        
         console.log('获取管线长度数据:', data);
     } catch (error) {
         console.error('获取管线长度数据失败:', error);
@@ -420,6 +377,16 @@ const fetchGasPubunderpointRatio = async () => {
         const data = await getGasPubunderpointRatio();
         // 计算管点总数
         totalPoints.value = data.reduce((sum, item) => sum + item.count, 0);
+        
+        // 转换为气源类型分布饼图数据
+        gasTypeChartData.value = data.map(item => ({
+            name: item.materialType,
+            value: parseFloat(item.ratio) || 0,
+            itemStyle: {
+                opacity: 0.9
+            }
+        }));
+        
         console.log('获取管点数据:', data);
     } catch (error) {
         console.error('获取管点数据失败:', error);
@@ -473,6 +440,7 @@ onBeforeUnmount(() => {
             padding: 0 47px 0 26px;
             justify-content: space-around;
             align-items: center;
+            background-size: 100% 100%;
 
             .stat-label {
                 font-family: SourceHanSansSC, SourceHanSansSC;

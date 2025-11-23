@@ -6,7 +6,6 @@ import MapView from '@/views/MapView.vue'
 import GasModule from '../views/GasModule/index.vue'
 
 const routes: RouteRecordRaw[] = [
-  // 👇 新增：根路径重定向到默认页面
   {
     path: '/',
     redirect: '/gas' // 或 '/bridge'，按需选择
@@ -101,7 +100,7 @@ router.beforeEach(async (to, from, next) => {
       const isValidToken = await authStore.validateToken()
       if (isValidToken) {
         // ✅ 修复：跳转到存在的路由
-        next({ name: 'mapView' }) // 或 next('/')
+        next({ name: '/' }) // 或 next('/')
         return
       } else {
         authStore.logout()

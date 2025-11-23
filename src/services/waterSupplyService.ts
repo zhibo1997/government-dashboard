@@ -24,8 +24,16 @@ export async function getWaterOverview(params?: {
  * 获取设备运行状态比例
  * @returns 设备状态比例数据
  */
-export async function getDeviceStatusRate() {
-  const res = await waterApi.gspspDtransPubmnteqpinfo.rateListList();
+export async function getDeviceStatusRate(param: {
+  Sszx: string;
+  Sjly?: string;
+}) {
+  const queryParam = {
+    Dsbm: "420200",
+    Qhbm: "420222",
+    ...param
+  }
+  const res = await waterApi.gspspDtransPubmnteqpinfo.rateListList(queryParam);
   return res.data || [];
 }
 
@@ -33,9 +41,17 @@ export async function getDeviceStatusRate() {
  * 获取设备类型状态统计
  * @returns 设备类型统计数据
  */
-export async function getDeviceTypeStatusCount() {
+export async function getDeviceTypeStatusCount(param: {
+  Sszx: string;
+  Sjly?: string;
+}) {
+  const queryParam = {
+    Dsbm: "420200",
+    Qhbm: "420222",
+    ...param
+  }
   const res =
-    await waterApi.gspspDtransPubmnteqpinfo.deviceTypeStatusCountList();
+    await waterApi.gspspDtransPubmnteqpinfo.deviceTypeStatusCountList(queryParam);
   return res?.data || [];
 }
 
@@ -62,8 +78,16 @@ export async function getRiskTypeCount() {
  * 获取隐患整改状态统计
  * @returns 隐患整改状态数据
  */
-export async function getRiskStatusCount() {
-  const res = await waterApi.gspspDtransPubrisks.riskStatusCountList();
+export async function getRiskStatusCount(param: {
+  Sszx: string;
+  Sjly?: string;
+}) {
+  const queryParam = {
+    Dsbm: "420200",
+    Qhbm: "420222",
+    ...param
+  }
+  const res = await waterApi.gspspDtransPubrisks.riskStatusCountList(queryParam);
   return res.data || [];
 }
 

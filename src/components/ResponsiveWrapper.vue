@@ -150,6 +150,7 @@ defineExpose({
 .responsive-wrapper :deep(.left-content),
 .responsive-wrapper :deep(.right-content),
 .responsive-wrapper :deep(.map-toolbar),
+.responsive-wrapper :deep(.sidebar-module),
 .responsive-wrapper :deep(.login-card) {
   pointer-events: auto;
 }

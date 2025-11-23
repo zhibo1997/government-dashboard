@@ -9,16 +9,9 @@
         <div class="left-chart">
           <div id="risk-chart" class="risk-echart"></div>
           <div class="risk-legend">
-            <div
-              class="legend-item"
-              v-for="item in riskLegend"
-              :key="item.name"
-            >
+            <div class="legend-item" v-for="item in riskLegend" :key="item.name">
               <div class="legend-name">
-                <span
-                  class="legend-color"
-                  :style="{ backgroundColor: item.color }"
-                ></span>
+                <span class="legend-color" :style="{ backgroundColor: item.color }"></span>
                 {{ item.name }}
               </div>
               <div class="legend-value gradient-text">
@@ -40,12 +33,7 @@
 
             <!-- 三类隐患统计 -->
             <div class="hazard-types">
-              <div
-                class="hazard-type-item"
-                v-for="item in hazardTypes"
-                :key="item.type"
-                :class="`type-${item.type}`"
-              >
+              <div class="hazard-type-item" v-for="item in hazardTypes" :key="item.type" :class="`type-${item.type}`">
                 <div class="type-value gradient-text">{{ item.count }}</div>
                 <div class="type-label">{{ item.label }}</div>
               </div>
@@ -54,25 +42,14 @@
 
           <!-- 整改状态 -->
           <div class="rectification-section">
-            <div
-              class="rectification-item"
-              v-for="item in rectificationData"
-              :key="item.status"
-            >
+            <div class="rectification-item" v-for="item in rectificationData" :key="item.status">
               <div class="right-chart">
-                <div
-                  class="status-chart"
-                  :id="`status-chart-${item.status}`"
-                ></div>
+                <div class="status-chart" :id="`status-chart-${item.status}`"></div>
               </div>
               <div class="left-nums">
                 <div class="rectification-item-title">{{ item.title }}</div>
                 <div class="rectification-item-value">
-                  <span
-                    class="value gradient-text"
-                    :class="`progress-${item.status}`"
-                    >{{ item.count }}</span
-                  >
+                  <span class="value gradient-text" :class="`progress-${item.status}`">{{ item.count }}</span>
                   <span class="unit">个</span>
                 </div>
               </div>
@@ -87,6 +64,15 @@
 <script setup>
 import { nextTick, onMounted, ref } from "vue";
 import * as echarts from "echarts";
+import { getRiskStatusCount } from "@/services/waterSupplyService";
+import { getDataItems } from "@/services/commonService";
+
+const zgztMap = {
+  已整改: "rectified",
+  未整改: "notRectified",
+  整改中: "inRectification",
+  持续跟进: "continuousImprovement",
+};
 
 // 风险图例数据
 const riskLegend = ref([
@@ -107,19 +93,42 @@ const hazardTypes = ref([
 ]);
 
 // 整改状态数据
-const rectificationData = ref([
-  {
-    title: "持续跟进",
-    count: 27,
-    status: "continuousImprovement",
-    progress: 0.45,
-  },
-  { title: "已整改", count: 20, status: "rectified", progress: 0.45 },
-  { title: "整改中", count: 13, status: "inRectification", progress: 0.45 },
-  { title: "未整改", count: 58, status: "notRectified", progress: 0.45 },
-]);
+const rectificationData = ref([]);
 
-onMounted(() => {
+onMounted(async () => {
+  try {
+    // 获取整改状态字典
+    const dictionaries = await getDataItems("zgzt");
+    const res = await getRiskStatusCount({ Sszx: "csaqzx_rq" });
+
+    const zgCount = res.reduce((sum, item) => sum + item.count, 0);
+    rectificationData.value = res.map((item) => {
+      const status = dictionaries.find(
+        (statusItem) => statusItem.f_ItemValue === item.riskStatus
+      );
+      return {
+        title: status ? status.f_ItemName : "未知状态",
+        count: item.count,
+        status: status ? zgztMap[status.f_ItemName] : "unknown",
+        progress: zgCount > 0 ? item.count / zgCount : 0,
+      };
+    });
+  } catch (error) {
+    console.error("获取整改状态数据失败:", error);
+    // 使用默认数据
+    rectificationData.value = [
+      {
+        title: "持续跟进",
+        count: 27,
+        status: "continuousImprovement",
+        progress: 0.45,
+      },
+      { title: "已整改", count: 20, status: "rectified", progress: 0.45 },
+      { title: "整改中", count: 13, status: "inRectification", progress: 0.45 },
+      { title: "未整改", count: 58, status: "notRectified", progress: 0.45 },
+    ];
+  }
+
   // 初始化风险隐患多环形图
   const chartDom = document.getElementById("risk-chart");
   if (chartDom) {
@@ -380,6 +389,7 @@ const createProgressOption = (progress, status) => {
     display: flex;
     flex-direction: column;
     gap: 20px;
+
     .stats-container {
       display: flex;
       flex-direction: column;

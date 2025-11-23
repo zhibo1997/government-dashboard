@@ -181,9 +181,8 @@ export function createApiClient<TClient extends ApiClientBase>(
       switch (status) {
         case 401:
         case 500:
-          // todo 因为接口有问题先注释掉
-          // localStorage.removeItem('token')
-          // router.push('/login')
+          localStorage.removeItem('token')
+          router.push('/login')
           message.error('登录已过期，请重新登录')
           break
         case 403:

@@ -4,9 +4,9 @@
       <div class="module-title">风险隐患</div>
     </div>
     <div class="module-content">
-      <!-- <div class="risk-content">
+      <div class="risk-content">
         <div id="risk-chart" class="risk-echart"></div>
-        <div class="risk-legend">
+        <!-- <div class="risk-legend">
           <div class="legend-item" v-for="item in riskLegend" :key="item.name">
             <div class="legend-name">
               <span
@@ -20,23 +20,15 @@
               <span class="unit">个</span>
             </div>
           </div>
-        </div>
-      </div> -->
+        </div> -->
+      </div>
       <!-- 整改状态 -->
       <div class="rectification-section">
-        <div
-          class="rectification-item"
-          v-for="item in rectificationData"
-          :key="item.status"
-        >
+        <div class="rectification-item" v-for="item in rectificationData" :key="item.status">
           <div class="left-nums">
             <div class="rectification-item-title">{{ item.title }}</div>
             <div class="rectification-item-value">
-              <span
-                class="value gradient-text"
-                :class="`progress-${item.status}`"
-                >{{ item.count }}</span
-              >
+              <span class="value gradient-text" :class="`progress-${item.status}`">{{ item.count }}</span>
               <span class="unit">个</span>
             </div>
           </div>
@@ -53,7 +45,7 @@
 import { nextTick, onMounted, ref } from "vue";
 import * as echarts from "echarts";
 import { getRiskStatusCount } from "@/services/waterSupplyService";
-import { getDataItemDetails } from "@/services/commonService";
+import { getDataItems } from "@/services/commonService";
 
 const zgztMap = {
   已整改: "rectified",
@@ -65,8 +57,8 @@ const rectificationData = ref([]);
 
 onMounted(async () => {
   // 获取整改状态字典
-  const dictionaries = await getDataItemDetails("zgzt");
-  const res = await getRiskStatusCount();
+  const dictionaries = await getDataItems("zgzt");
+  const res = await getRiskStatusCount({ Szzx: "csaqzx_gs" });
 
   const zgCount = res.reduce((sum, item) => sum + item.count, 0);
   rectificationData.value = res.map((item) => {
@@ -217,7 +209,7 @@ onMounted(async () => {
       ],
     });
   }
-  nextTick(() => { 
+  nextTick(() => {
 
     rectificationData.value.forEach((item) => {
       const chartDom = document.getElementById(`status-chart-${item.status}`);

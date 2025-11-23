@@ -7,11 +7,7 @@
       <div class="monitoring-content">
         <!-- 在线率概览 -->
         <div class="overview-section">
-          <div
-            class="overview-item"
-            v-for="item in monitoringRate"
-            :key="item.type"
-          >
+          <div class="overview-item" v-for="item in monitoringRate" :key="item.type">
             <div class="rate-badge" :class="`rate-${item.type}`">
               <div class="rate-value gradient-text">{{ item.value }}</div>
               <div class="rate-name">{{ item.name }}</div>
@@ -21,11 +17,7 @@
 
         <!-- 设备列表 -->
         <div class="devices-section">
-          <div
-            class="device-item"
-            v-for="device in monitoringData"
-            :key="device.name"
-          >
+          <div class="device-item" v-for="device in monitoringData" :key="device.name">
             <div class="device-count">
               <span class="count-online gradient-text">{{
                 device.online
@@ -46,7 +38,7 @@
 </template>
 
 <script setup>
-import { getDataItemDetails } from "@/services/commonService";
+import { getDataItems } from "@/services/commonService";
 import {
   getDeviceStatusRate,
   getDeviceTypeStatusCount,
@@ -58,13 +50,13 @@ const devicesData = ref([]);
 const monitoringData = ref([]);
 // 初始化监控设备数据
 const initMonitoringData = async () => {
-  const dictionaries = await getDataItemDetails("jcsblx_gs");
+  const dictionaries = await getDataItems("jcsblx_gs");
   csblxMap.value = dictionaries.reduce((acc, cur) => {
     acc[cur.f_ItemValue] = cur.f_ItemName;
     return acc;
   }, {});
 
-  const res = await getDeviceTypeStatusCount();
+  const res = await getDeviceTypeStatusCount({ Sszx: "csaqzx_gw" });
   nextTick(() => {
     monitoringData.value = res.map((item) => {
       return {
@@ -81,7 +73,6 @@ const initMonitoringData = async () => {
       };
     });
   });
-
 };
 
 const rateMap = {
@@ -92,7 +83,7 @@ const rateMap = {
 const monitoringRate = ref([]);
 // 获取设备运行状态
 const getDeviceTypeRate = async () => {
-  const res = await getDeviceStatusRate();
+  const res = await getDeviceStatusRate({ Sszx: "csaqzx_gs" });
   res.forEach((item) => {
     item["type"] = rateMap[item.name];
   });

@@ -30,6 +30,7 @@
 </template>
 
 <script setup>
+import { onMounted } from 'vue';
 import ResponsiveWrapper from "@/components/ResponsiveWrapper.vue";
 import MapComponent from "@/mapComponents/Map.vue";
 // 引入左侧导航组件
@@ -37,6 +38,27 @@ import LeftNav from "./leftContent.vue";
 import RightNav from "./rightContent.vue";
 // 引入头部组件
 import DashboardHeader from "@/components/DashboardHeader.vue";
+// 引入字典缓存服务
+import { getCachedDictionaries } from "@/services/dictionaryService";
+
+// 在页面初始化时预加载所有字典数据
+onMounted(async () => {
+  try {
+    // 批量预加载所有需要的字典数据
+    await getCachedDictionaries([
+      'jcssdstjlx_gs',  // OverviewModule
+      'gwcz',           // PipelineModule
+      'yhlx_gs',        // PipelineModule
+      'jcsblx_gs',      // MonitoringEquipmentModule
+      'zgzt',           // RiskHazardModule
+      'yjlx_gs',        // EarlyWarningModule
+      'gs_szjcsb'       // WaterQualityModule
+    ]);
+    console.log('字典数据预加载完成');
+  } catch (error) {
+    console.error('字典数据预加载失败:', error);
+  }
+});
 
 // 定义组件名称以支持keep-alive
 defineOptions({
