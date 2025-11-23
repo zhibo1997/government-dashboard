@@ -7,18 +7,14 @@
       <div class="emergency-content">
         <!-- 资源统计 -->
         <div class="resource-stats">
-          <div 
-            class="resource-stat-card" 
-            v-for="item in resourceStats" 
-            :key="item.type"
-            :class="`resource-${item.type}`"
-          >
+          <div class="resource-stat-card" v-for="(item, idx) in resourceStats" :key="item.type"
+            :class="`resource-${item.type}  resource-${idx > 2 ? 'right' : 'left'}`">
             <div class="stat-icon">
-              <!-- 预留图片位置，可自定义添加 -->
+              <img :src="item.icon" :alt="item.label">
             </div>
             <div class="stat-info">
-              <div class="stat-label">{{ item.label }}</div>
-              <div class="stat-value">{{ item.count }}</div>
+              <span class="stat-label">{{ item.label }}：</span>
+              <span class="stat-value">{{ item.count }}</span>
             </div>
           </div>
         </div>
@@ -31,13 +27,13 @@
         </div>
 
         <!-- 底部车辆统计 -->
-        <div class="vehicle-stat">
-          <div class="vehicle-icon">
-            <!-- 预留图片位置 -->
+        <div class="resource-stat-card resource-vehicle">
+          <div class="stat-icon">
+            <img :src="rescueVehicleIcon" alt="救援车辆">
           </div>
-          <div class="vehicle-info">
-            <span class="vehicle-label">救援车辆：</span>
-            <span class="vehicle-count">102辆</span>
+          <div class="stat-info">
+            <span class="stat-label">救援车辆：</span>
+            <span class="stat-value">{{ vehicleCount }}</span>
           </div>
         </div>
       </div>
@@ -46,19 +42,73 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
+import { ref, onMounted } from 'vue';
+import { getEmergencyCapacityList } from '@/services/gasService';
+import expertIcon from '@/assets/img/gasModule/expert.webp';
+import medicalIcon from '@/assets/img/gasModule/medical.webp';
+import shelterIcon from '@/assets/img/gasModule/shelter.webp';
+import rescueTeamIcon from '@/assets/img/gasModule/rescue_team.webp';
+import rescuePersonnelIcon from '@/assets/img/gasModule/rescue_personnel.webp';
+import rescueWarehouseIcon from '@/assets/img/gasModule/rescue_warehouse.webp';
+import rescueVehicleIcon from '@/assets/img/gasModule/rescue_vehicle.webp';
+
+// 救援车辆数量
+const vehicleCount = ref('0');
 
 // 资源统计（根据设计图布局：左侧3个，右侧3个）
 const resourceStats = ref([
   // 左侧
-  { type: 'expert', label: '应急专家', count: '12人' },
-  { type: 'medical', label: '医疗队伍', count: '12支' },
-  { type: 'shelter', label: '避难场所', count: '128处' },
+  { type: 'expert', label: '应急专家', count: '0', icon: expertIcon },
+  { type: 'medical', label: '医疗队伍', count: '0', icon: medicalIcon },
+  { type: 'shelter', label: '避难场所', count: '0', icon: shelterIcon },
   // 右侧
-  { type: 'rescue-team', label: '救援队伍', count: '98支' },
-  { type: 'rescue-personnel', label: '救援人员', count: '128人' },
-  { type: 'rescue-warehouse', label: '救援仓库', count: '612个' },
+  { type: 'rescue-team', label: '救援队伍', count: '0', icon: rescueTeamIcon },
+  { type: 'rescue-personnel', label: '救援人员', count: '0', icon: rescuePersonnelIcon },
+  { type: 'rescue-warehouse', label: '救援仓库', count: '0', icon: rescueWarehouseIcon },
 ]);
+
+// 获取应急资源数据
+const fetchEmergencyCapacityList = async () => {
+  try {
+    const data = await getEmergencyCapacityList();
+
+    // 映射接口数据到组件数据结构
+    const typeMap = {
+      '应急专家': 'expert',
+      '医疗队伍': 'medical',
+      '避难场所': 'shelter',
+      '救援队伍': 'rescue-team',
+      '救援人员': 'rescue-personnel',
+      '救援仓库': 'rescue-warehouse',
+      '救援车辆': 'rescue-vehicle'  // 用于车辆统计
+    };
+
+    // 更新资源统计数据
+    data.forEach(item => {
+      const type = typeMap[item.name];
+      if (type) {
+        // 更新普通资源统计
+        if (type !== 'rescue-vehicle') {
+          const stat = resourceStats.value.find(s => s.type === type);
+          if (stat) {
+            stat.count = item.count;
+          }
+        }
+        // 特殊处理救援车辆
+        else {
+          vehicleCount.value = item.count;
+        }
+      }
+    });
+  } catch (error) {
+    console.error('获取应急资源数据失败:', error);
+  }
+};
+
+// 组件挂载时获取数据
+onMounted(() => {
+  fetchEmergencyCapacityList();
+});
 </script>
 
 <style lang="scss" scoped>
@@ -67,105 +117,125 @@ const resourceStats = ref([
   background-image: url("@/assets/img/gasModule/emergency_resource_bg.webp");
 
   .module-content {
-    padding: 20px 30px;
+    padding: 12px 20px;
   }
 
   .emergency-content {
     display: grid;
-    grid-template-columns: 1fr auto 1fr;
-    grid-template-rows: auto auto auto;
-    gap: 20px;
+    grid-template-columns: 200px 1fr 200px;
+    grid-template-rows: repeat(3, 1fr);
+    row-gap: 8px;
+    column-gap: 30px;
     align-items: center;
     position: relative;
+    background: url("@/assets/img/gasModule/emergency_list.webp") no-repeat center center;
+    background-size: contain;
+    background-position: center;
+    height: 220px;
+    padding: 20px 0;
   }
 
   // 资源统计卡片
   .resource-stats {
     display: contents;
+  }
 
-    .resource-stat-card {
+  .resource-stat-card {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.3s ease;
+
+    .stat-icon {
+      width: 36px;
+      height: 36px;
       display: flex;
       align-items: center;
-      gap: 10px;
-      padding: 10px 15px;
-      border-radius: 6px;
-      background: linear-gradient(
-        90deg,
-        rgba(22, 119, 255, 0.12) 0%,
-        rgba(22, 119, 255, 0.04) 100%
-      );
-      border: 1px solid rgba(22, 119, 255, 0.25);
-      transition: all 0.3s ease;
+      justify-content: center;
+      flex-shrink: 0;
 
-      &:hover {
-        border-color: rgba(22, 119, 255, 0.4);
-        box-shadow: 0 2px 8px rgba(22, 119, 255, 0.2);
+      img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
       }
+    }
 
-      .stat-icon {
-        width: 40px;
-        height: 40px;
-        border-radius: 50%;
-        background: rgba(22, 119, 255, 0.2);
-        flex-shrink: 0;
-        // 预留图片背景位置
-        background-size: contain;
-        background-position: center;
-        background-repeat: no-repeat;
-      }
+    &.resource-left {
+      justify-self: flex-start;
+      padding-left: 10px;
+    }
+
+    &.resource-right {
+      flex-direction: row-reverse;
+      justify-self: flex-end;
+      padding-right: 10px;
 
       .stat-info {
-        display: flex;
-        flex-direction: column;
-        gap: 2px;
-
-        .stat-label {
-          font-family: SourceHanSansSC, SourceHanSansSC;
-          font-weight: 400;
-          font-size: 14px;
-          color: #d3eaf1;
-          line-height: 20px;
-        }
-
-        .stat-value {
-          font-family: YouSheBiaoTiHei;
-          font-size: 20px;
-          color: #ffffff;
-          line-height: 26px;
-          background: linear-gradient(90deg, #ffffff 0%, #10adc0 100%);
-          -webkit-background-clip: text;
-          -webkit-text-fill-color: transparent;
-          background-clip: text;
-        }
+        background-image: url("@/assets/img/gasModule/resource_right.webp");
+        flex-direction: row-reverse;
       }
+    }
 
-      // 左侧3个卡片
-      &.resource-expert {
-        grid-column: 1;
-        grid-row: 1;
-      }
-      &.resource-medical {
-        grid-column: 1;
-        grid-row: 2;
-      }
-      &.resource-shelter {
-        grid-column: 1;
-        grid-row: 3;
+    .stat-info {
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      height: 32px;
+      min-width: 160px;
+      padding: 0 12px;
+      justify-content: space-between;
+      background-size: 100% 100%;
+      background-repeat: no-repeat;
+      gap: 4px;
+      font-family: SourceHanSansSC, SourceHanSansSC;
+      background-image: url("@/assets/img/gasModule/resource_left.webp");
+
+      .stat-label {
+        font-weight: 400;
+        font-size: 16px;
+        color: #B8D8FF;
+        white-space: nowrap;
       }
 
-      // 右侧3个卡片
-      &.resource-rescue-team {
-        grid-column: 3;
-        grid-row: 1;
+      .stat-value {
+        font-weight: 500;
+        font-size: 18px;
+        color: #FFFFFF;
+        white-space: nowrap;
       }
-      &.resource-rescue-personnel {
-        grid-column: 3;
-        grid-row: 2;
-      }
-      &.resource-rescue-warehouse {
-        grid-column: 3;
-        grid-row: 3;
-      }
+    }
+
+    // 左侧3个卡片
+    &.resource-expert {
+      grid-column: 1;
+      grid-row: 1;
+    }
+
+    &.resource-medical {
+      grid-column: 1;
+      grid-row: 2;
+    }
+
+    &.resource-shelter {
+      grid-column: 1;
+      grid-row: 3;
+    }
+
+    // 右侧3个卡片
+    &.resource-rescue-team {
+      grid-column: 3;
+      grid-row: 1;
+    }
+
+    &.resource-rescue-personnel {
+      grid-column: 3;
+      grid-row: 2;
+    }
+
+    &.resource-rescue-warehouse {
+      grid-column: 3;
+      grid-row: 3;
     }
   }
 
@@ -176,98 +246,38 @@ const resourceStats = ref([
     display: flex;
     align-items: center;
     justify-content: center;
+    align-self: center;
 
     .center-ring {
-      width: 180px;
-      height: 180px;
-      border-radius: 50%;
-      background: radial-gradient(
-        circle,
-        rgba(255, 77, 79, 0.3) 0%,
-        rgba(255, 77, 79, 0.1) 40%,
-        transparent 70%
-      );
-      border: 3px solid rgba(255, 77, 79, 0.5);
-      box-shadow: 
-        0 0 20px rgba(255, 77, 79, 0.4),
-        inset 0 0 30px rgba(255, 77, 79, 0.2);
+      position: relative;
       display: flex;
       align-items: center;
       justify-content: center;
-      position: relative;
+    }
 
-      &::before {
-        content: '';
-        position: absolute;
-        width: 140px;
-        height: 140px;
-        border-radius: 50%;
-        border: 2px dashed rgba(255, 77, 79, 0.4);
-      }
-
-      .ring-text {
-        font-family: SourceHanSansSC, SourceHanSansSC;
-        font-weight: bold;
-        font-size: 28px;
-        color: #ffffff;
-        line-height: 40px;
-        text-align: center;
-        z-index: 1;
-        text-shadow: 0 2px 8px rgba(255, 77, 79, 0.6);
-      }
+    .ring-text {
+      font-family: SourceHanSansSC, SourceHanSansSC;
+      font-weight: bold;
+      font-size: 26px;
+      color: #FF6B6D;
+      line-height: 36px;
+      text-align: center;
+      letter-spacing: 2px;
+      text-shadow: 0 0 10px rgba(255, 107, 109, 0.8),
+                   0 0 20px rgba(255, 107, 109, 0.5);
     }
   }
 
   // 底部车辆统计
-  .vehicle-stat {
+  .resource-vehicle {
     grid-column: 2;
     grid-row: 3;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
-    padding: 10px 20px;
-    border-radius: 6px;
-    background: linear-gradient(
-      90deg,
-      rgba(22, 119, 255, 0.12) 0%,
-      rgba(22, 119, 255, 0.04) 100%
-    );
-    border: 1px solid rgba(22, 119, 255, 0.25);
+    justify-self: center;
+    align-self: flex-end;
+    margin-bottom: 5px;
 
-    .vehicle-icon {
-      width: 40px;
-      height: 40px;
-      border-radius: 50%;
-      background: rgba(250, 173, 20, 0.2);
-      flex-shrink: 0;
-      // 预留图片背景位置
-      background-size: contain;
-      background-position: center;
-      background-repeat: no-repeat;
-    }
-
-    .vehicle-info {
-      display: flex;
-      align-items: baseline;
-      gap: 5px;
-
-      .vehicle-label {
-        font-family: SourceHanSansSC, SourceHanSansSC;
-        font-weight: 400;
-        font-size: 16px;
-        color: #d3eaf1;
-      }
-
-      .vehicle-count {
-        font-family: YouSheBiaoTiHei;
-        font-size: 20px;
-        color: #ffffff;
-        background: linear-gradient(90deg, #faad14 0%, #ff7875 100%);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-clip: text;
-      }
+    .stat-info {
+      min-width: 180px;
     }
   }
 }

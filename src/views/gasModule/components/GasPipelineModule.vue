@@ -52,24 +52,10 @@
                             </div>
                             <div class="well-value">
                                 <span class="normal-text">{{ item.normal }}</span>
-                                <span class="separator">/</span>
-                                <span class="abnormal-text">{{ item.abnormal }}</span>
                             </div>
                         </div>
                     </div>
-                    <!-- 图例 -->
-                    <div class="legend">
-                        <div class="legend-item">
-                            <span class="legend-color normal"></span>
-                            <span class="legend-text">正常</span>
-                        </div>
-                        <div class="legend-item">
-                            <span class="legend-color abnormal"></span>
-                            <span class="legend-text">异常</span>
-                        </div>
-                    </div>
                 </div>
-
             </div>
         </div>
     </div>
@@ -79,7 +65,7 @@
 import { ref, onMounted, nextTick, onBeforeUnmount, computed } from "vue";
 import * as echarts from "echarts";
 import 'echarts-gl';
-import { getGasCdRatio, getGasPubunderpointRatio } from "@/services/gasService";
+import { getGasCdRatio, getGasPubunderpointRatio, getGasMaterialRatio } from "@/services/gasService";
 
 const pressureChartRef = ref(null);
 const gasTypeChartRef = ref(null);
@@ -104,11 +90,7 @@ const totalWells = computed(() => {
 });
 
 // 管井数据
-const wellData = ref([
-    { type: 'gas', label: '燃气阀井', normal: 546, abnormal: 30, total: 576 },
-    { type: 'pollution', label: '关联污水井', normal: 25, abnormal: 72, total: 97 },
-    { type: 'drainage', label: '关联排水井', normal: 34.5, abnormal: 86, total: 120.5 },
-]);
+const wellData = ref([]);
 
 // 获取3D扇形的参数方程
 function getParametricEquation(startRatio, endRatio, isSelected, isHovered, k, height) {
@@ -393,6 +375,26 @@ const fetchGasPubunderpointRatio = async () => {
     }
 };
 
+// 获取管井材料类型数据
+const fetchGasMaterialRatio = async () => {
+    try {
+        const data = await getGasMaterialRatio();
+        
+        // 更新管井数据
+        wellData.value = data.map(item => ({
+            type: item.materialType,
+            label: item.materialType, // 可根据需要映射为中文名称
+            normal: item.count,
+            abnormal: 0, // 如果没有异常数据，可以设为0或者从其他地方获取
+            total: item.count
+        }));
+        
+        console.log('获取管井材料类型数据:', data);
+    } catch (error) {
+        console.error('获取管井材料类型数据失败:', error);
+    }
+};
+
 // 窗口调整
 const handleResize = () => {
     pressureChart?.resize();
@@ -403,6 +405,7 @@ onMounted(async () => {
     // 获取真实数据
     await fetchGasCdRatio();
     await fetchGasPubunderpointRatio();
+    await fetchGasMaterialRatio(); // 获取管井材料类型数据
     
     await nextTick();
     initPressureChart();

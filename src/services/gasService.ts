@@ -2,7 +2,7 @@
  * @Author: Do not edit
  * @Date: 2025-11-22 12:20:48
  * @LastEditors: 王志博
- * @LastEditTime: 2025-11-22 12:20:52
+ * @LastEditTime: 2025-11-23 23:43:52
  * @Description: 
  */
 /**
@@ -185,5 +185,12 @@ export async function getBottleGasEnterpriseLedgerList() {
  */
 export async function getGasEnterpriseLedgerList() {
   const res = await gasApi.gspspDtransGas.gasenterpriseledgerListList();
+  return res.data || [];
+}
+/**
+ * 获取燃气在线状态
+ */
+export async function getGasOnlineStatus() {
+  const res = await gasApi.gspspDtransPubmnteqpinfo.gasRateListList();
   return res.data || [];
 }

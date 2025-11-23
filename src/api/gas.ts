@@ -482,4 +482,20 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         ...params,
       }),
   };
+  gspspDtransPubmnteqpinfo = {
+    /**
+     * No description
+     *
+     * @name GasRateListList
+     * @summary 燃气专项-监测设备在线数量
+     * @request GET:/gspspDtransPubmnteqpinfo/gas/rateList
+     */
+    gasRateListList: (params: RequestParams = {}) =>
+      this.request<object, any>({
+        path: `/gspspDtransPubmnteqpinfo/gas/rateList`,
+        method: "GET",
+        format: "json",
+        ...params,
+      }),
+  };
 }
