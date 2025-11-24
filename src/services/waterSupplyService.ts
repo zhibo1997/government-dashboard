@@ -148,3 +148,17 @@ export async function getWaterSupplyMaterialRatio() {
     await waterApi.gspspDtransPubunderpipeline.waterSupplyMaterialRatioList();
   return res?.data || [];
 }
+/**
+ * 获取风险等级数量
+ */
+export async function getRiskLevelCount(param: {
+  Sszx: string;
+}) {
+  const queryParam = {
+    Dsbm: "420200",
+    Qhbm: "420222",
+    ...param
+  }
+  const res = await waterApi.gspspDtransPubrisks.inventoryRiskStatusCountList(queryParam);
+  return res?.data || [];
+}

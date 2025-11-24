@@ -56,7 +56,7 @@ const initMonitoringData = async () => {
     return acc;
   }, {});
 
-  const res = await getDeviceTypeStatusCount({ Sszx: "csaqzx_gw" });
+  const res = await getDeviceTypeStatusCount({ Sszx: "csaqzx_gs" });
   nextTick(() => {
     monitoringData.value = res.map((item) => {
       return {

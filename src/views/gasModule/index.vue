@@ -21,7 +21,7 @@
       <div class="container">
         <!-- 左侧数据展示区 -->
         <LeftContent />
-        <SidebarModule />
+        <!-- <SidebarModule /> -->
         
         <!-- 右侧数据展示区 -->
         <RightContent />

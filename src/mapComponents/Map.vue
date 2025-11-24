@@ -12,6 +12,16 @@
         />
       </vc-layer-imagery>
 
+      <!-- 阳新县行政区域边界 -->
+      <vc-datasource-geojson
+        ref="yangxinBoundary"
+        :data="yangxinGeoJSON"
+        :show="true"
+        :fill="'rgba(255, 255, 255, 0.1)'"
+        @ready="onBoundaryReady"
+      >
+      </vc-datasource-geojson>
+
       <!-- VcMeasurements 组件 (隐藏默认UI,仅使用功能) -->
       <vc-measurements ref="measurementsRef" :main-fab-opts="mainFabOpts" :measurements="['polyline', 'area']"
         :editable="true" @active-evt="handleMeasureActiveEvt" @draw-evt="handleMeasureDrawEvt" />
@@ -34,7 +44,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted, onBeforeUnmount, computed, watch } from 'vue'
-import { VcCamera } from 'vue-cesium/lib/utils/types.js'
+import { VcCamera ,VcColor} from 'vue-cesium/lib/utils/types.js'
 import cesiumUtils from '../mapUtils/mapUtils'
 import { geoServerWFS } from '../services/wfsService'
 import mapConfig from '@/config/mapConfig'
@@ -43,10 +53,14 @@ import MapToolbar from './MapToolbar.vue'
 
 import { inject } from 'vue'
 import ResponsiveWrapper from '@/components/ResponsiveWrapper.vue'
+
 // 定义组件名称以支持keep-alive
 defineOptions({
   name: 'CesiumMap'
 });
+
+// 行政区域边界引用
+const yangxinBoundary = ref(null)
 
 // Cesium Viewer引用
 const cesiumViewer = ref(null)
@@ -71,7 +85,7 @@ const mainFabOpts = {
 const tiandituToken = '301000118c7a8ef7a3897a037689c5ea'
 
 // 底图类型
-const currentBaseMapType = ref<'vec' | 'img' | 'ter'>('vec')
+const currentBaseMapType = ref<'vec' | 'img' | 'ter'>('img')
 
 // 场景模式: 2=2D, 3=3D
 const sceneMode = ref(2)
@@ -92,6 +106,9 @@ const mvtProvider = ref<any>(null)
 
 // 点击查询清理函数
 let clickQueryCleanup: (() => void) | null = null
+
+// 阳新县行政区域GeoJSON数据
+const yangxinGeoJSON = ref<any>(null)
 
 // 切换距离测量
 const toggleDistance = () => {
@@ -153,6 +170,40 @@ const currentMapStyle = computed(() => {
 
 // 如果 ResponsiveWrapper 提供了 scale（推荐）
 const responsiveScale = inject('responsiveScale', ref(1))
+/**
+ * 加载阳新县行政区域数据
+ */
+async function loadYangxinBoundary() {
+  try {
+    const baseUrl = import.meta.env.BASE_URL;
+    const response = await fetch(baseUrl+'yangxin.json')
+    yangxinGeoJSON.value = await response.json()
+    console.log('✅ 阳新县行政区域数据加载成功')
+  } catch (error) {
+    console.error('❌ 加载阳新县边界数据失败:', error)
+  }
+}
+
+/**
+ * 行政区域边界加载完成回调
+ */
+function onBoundaryReady({ Cesium, cesiumObject }: any) {
+  console.log('✅ 阳新县行政区域边界加载完成')
+  
+  // 设置边界样式：红色边框，透明填充
+  const entities = cesiumObject.entities.values
+  entities.forEach((entity: any) => {
+    if (entity.polygon) {
+      // 设置填充颜色：红色，透明度0.05
+      entity.polygon.material = Cesium.Color.RED.withAlpha(0.05)
+      // 设置边框：红色，不透明
+      entity.polygon.outline = true
+      entity.polygon.outlineColor = Cesium.Color.RED
+      entity.polygon.outlineWidth = 2
+    }
+  })
+}
+
 /**
  * Viewer准备就绪回调
  */
@@ -271,6 +322,15 @@ const handleResetMap = () => {
   }
 }
 
+
+/**
+ * 组件挂载
+ */
+onMounted(() => {
+  console.log('🗺️ 地图组件挂载完成')
+  // 加载阳新县行政区域边界
+  loadYangxinBoundary()
+})
 
 /**
  * 组件卸载前

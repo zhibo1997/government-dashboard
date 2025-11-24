@@ -118,8 +118,9 @@ async function fetchLayerTree() {
   try {
     const response = await getLayerTree();
 
-    if (response && response.data) {
-      rawLayerData.value = response.data;
+    console.log("🚀 ~ fetchLayerTree ~ response:", response)
+    if (response) {
+      rawLayerData.value = response;
       console.log("✅ 图层树数据加载成功:", rawLayerData.value);
 
       // 初始化图层状态

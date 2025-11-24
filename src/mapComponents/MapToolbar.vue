@@ -109,8 +109,8 @@ const loadedLayers = ref<Map<string, any>>(new Map());
 
 // 底图类型配置
 const baseMapTypes = [
-  { value: "vec", label: "矢量地图", icon: "🗺️" },
   { value: "img", label: "影像地图", icon: "🛰️" },
+  { value: "vec", label: "矢量地图", icon: "🗺️" },
   { value: "ter", label: "地形地图", icon: "🏔️" },
 ] as const;
 

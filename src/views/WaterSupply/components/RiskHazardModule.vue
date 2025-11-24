@@ -318,6 +318,9 @@ const createProgressOption = (progress, status) => {
 </script>
 
 <style lang="scss" scoped>
+.module-content{
+  flex-direction: row;
+}
 .risk-content {
   display: flex;
   flex-direction: column;
