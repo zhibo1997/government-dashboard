@@ -47,11 +47,11 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from "vue";
+import { ref, computed, onMounted, watch } from "vue";
 import { getNaturalGasCountList, getLiquefiedGasCountList, getGasEnterpriseLedgerList, getBottleGasEnterpriseLedgerList } from "@/services/gasService";
 
 // 当前选中的气体类型
-const activeGasType = ref('liquefied'); // 默认液化气
+const activeGasType = ref('natural'); // 默认天然气
 
 // 天然气统计数据
 const naturalGasStats = ref([]);
@@ -82,6 +82,14 @@ const liquefiedGasTableConfig = ref({
   data: []
 });
 
+// 数据加载状态，避免重复请求
+const loadedData = ref({
+  naturalGasStats: false,
+  liquefiedGasStats: false,
+  naturalGasEnterprises: false,
+  liquefiedGasEnterprises: false
+});
+
 // 当前显示的统计数据
 const currentStatistics = computed(() => {
   return activeGasType.value === 'natural' ? naturalGasStats.value : liquefiedGasStats.value;
@@ -93,6 +101,7 @@ const currentTable = computed(() => {
 
 // 获取天然气基础设施数量统计
 const fetchNaturalGasStats = async () => {
+  if (loadedData.value.naturalGasStats) return; // 已加载则跳过
   try {
     const data = await getNaturalGasCountList();
     naturalGasStats.value = data.map(item => ({
@@ -101,6 +110,7 @@ const fetchNaturalGasStats = async () => {
       value: item.count,
       unit: getUnitByName(item.name)
     }));
+    loadedData.value.naturalGasStats = true;
   } catch (error) {
     console.error('获取天然气统计数据失败:', error);
   }
@@ -108,9 +118,11 @@ const fetchNaturalGasStats = async () => {
 
 // 获取天然气企业列表
 const fetchNaturalGasEnterprises = async () => {
+  if (loadedData.value.naturalGasEnterprises) return; // 已加载则跳过
   try {
     const data = await getGasEnterpriseLedgerList();
     naturalGasTableConfig.value.data = data;
+    loadedData.value.naturalGasEnterprises = true;
   } catch (error) {
     console.error('获取天然气企业列表失败:', error);
   }
@@ -118,9 +130,11 @@ const fetchNaturalGasEnterprises = async () => {
 
 // 获取液化气企业列表
 const fetchLiquefiedGasEnterprises = async () => {
+  if (loadedData.value.liquefiedGasEnterprises) return; // 已加载则跳过
   try {
     const data = await getBottleGasEnterpriseLedgerList();
     liquefiedGasTableConfig.value.data = data;
+    loadedData.value.liquefiedGasEnterprises = true;
   } catch (error) {
     console.error('获取液化气企业列表失败:', error);
   }
@@ -128,6 +142,7 @@ const fetchLiquefiedGasEnterprises = async () => {
 
 // 获取液化气基础设施数量统计
 const fetchLiquefiedGasStats = async () => {
+  if (loadedData.value.liquefiedGasStats) return; // 已加载则跳过
   try {
     const data = await getLiquefiedGasCountList();
     liquefiedGasStats.value = data.map(item => ({
@@ -136,6 +151,7 @@ const fetchLiquefiedGasStats = async () => {
       value: item.count,
       unit: getUnitByName(item.name)
     }));
+    loadedData.value.liquefiedGasStats = true;
   } catch (error) {
     console.error('获取液化气统计数据失败:', error);
   }
@@ -154,11 +170,22 @@ const getUnitByName = (name) => {
   return unitMap[name] || '';
 };
 
-// 初始化数据
+// 监听气体类型切换，按需加载数据
+watch(activeGasType, async (newType) => {
+  if (newType === 'natural') {
+    // 切换到天然气，确保数据已加载
+    await fetchNaturalGasStats();
+    await fetchNaturalGasEnterprises();
+  } else {
+    // 切换到液化气，确保数据已加载
+    await fetchLiquefiedGasStats();
+    await fetchLiquefiedGasEnterprises();
+  }
+});
+
+// 初始化数据 - 只加载天然气数据
 onMounted(async () => {
   await fetchNaturalGasStats();
-  await fetchLiquefiedGasStats();
-  await fetchLiquefiedGasEnterprises();
   await fetchNaturalGasEnterprises();
 });
 </script>

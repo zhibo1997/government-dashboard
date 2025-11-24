@@ -131,7 +131,7 @@ const fetchAllData = async (year) => {
     // 获取预警统计数据
     const [checkResultData, warnStatisticsData, monthlyWarnData] = await Promise.all([
       getCheckResultStatistics(year),
-      getWarnStatistics(year),
+      getWarnStatistics('csaqzx_gs'),
       getMonthlyWarnStatistics(year)
     ]);
     

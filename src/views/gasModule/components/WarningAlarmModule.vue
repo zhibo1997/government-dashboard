@@ -134,44 +134,39 @@
   </div>
 </template>
 
-<script setup>
-import { ref, computed } from "vue";
+<script setup lang="ts">
+import { RANQI_SSZX } from "@/types";
+import { ref, computed, onMounted } from "vue";
+import { getWarnStatistics } from "@/services/waterSupplyService";
 
+// ==================== 数据状态 ====================
 // 当前激活的Tab
 const activeTab = ref("warning");
 
-// 预警总数
-const warningTotal = ref(31);
-
-// 预警状态统计
+// 预警数据
+const warningTotal = ref(0);
 const warningStatus = ref([
-  { label: "已处置", count: 9 },
-  { label: "处置中", count: 18 },
-  { label: "未处置", count: 17 },
+  { label: "已处置", count: 0 },
+  { label: "处置中", count: 0 },
+  { label: "未处置", count: 0 },
 ]);
-
-// 预警等级统计
 const warningLevels = ref([
-  { label: "一级预警", count: 143 },
-  { label: "二级预警", count: 109 },
-  { label: "三级预警", count: 210 },
+  { label: "一级预警", count: 0 },
+  { label: "二级预警", count: 0 },
+  { label: "三级预警", count: 0 },
 ]);
 
-// 报警总数
-const alarmTotal = ref(40);
-
-// 报警状态统计
+// 报警数据
+const alarmTotal = ref(0);
 const alarmStatus = ref([
-  { label: "已处置", count: 9 },
-  { label: "处置中", count: 18 },
-  { label: "未处置", count: 17 },
+  { label: "已处置", count: 0 },
+  { label: "处置中", count: 0 },
+  { label: "未处置", count: 0 },
 ]);
-
-// 报警等级统计
 const alarmLevels = ref([
-  { label: "一级报警", count: 143 },
-  { label: "二级报警", count: 109 },
-  { label: "三级报警", count: 210 },
+  { label: "一级报警", count: 0 },
+  { label: "二级报警", count: 0 },
+  { label: "三级报警", count: 0 },
 ]);
 
 // 预警表格数据
@@ -282,12 +277,77 @@ const alarmTableData = ref([
   },
 ]);
 
+// ==================== 计算属性 ====================
 // 当前表格数据
 const currentTableData = computed(() => {
   return activeTab.value === "warning"
     ? warningTableData.value
     : alarmTableData.value;
 });
+
+// ==================== 数据获取 ====================
+/**
+ * 获取预警和报警统计数据
+ * 数据结构:
+ * {
+ *   totalCount: 预警总数,
+ *   handlingCount: 处置中,
+ *   handledCount: 已处置,
+ *   unhandledCount: 未处置,
+ *   yjyjCount: 一级预警,
+ *   ejyjCount: 二级预警,
+ *   sjyjCount: 三级预警,
+ *   alarmCount: {
+ *     totalCount: 报警总数,
+ *     yjc: 已解除,
+ *     wjc: 未解除,
+ *     yjyjCount: 一级报警,
+ *     ejyjCount: 二级报警,
+ *     sjyjCount: 三级报警
+ *   }
+ * }
+ */
+const fetchWarningAndAlarmData = async () => {
+  try {
+    const data = await getWarnStatistics(RANQI_SSZX);
+    console.log("🚀 ~ fetchWarningAndAlarmData ~ data:", data)
+    
+    // 更新预警数据
+    warningTotal.value = data.totalCount || 0;
+    warningStatus.value = [
+      { label: "已处置", count: data.handledCount || 0 },
+      { label: "处置中", count: data.handlingCount || 0 },
+      { label: "未处置", count: data.unhandledCount || 0 },
+    ];
+    warningLevels.value = [
+      { label: "一级预警", count: data.yjyjCount || 0 },
+      { label: "二级预警", count: data.ejyjCount || 0 },
+      { label: "三级预警", count: data.sjyjCount || 0 },
+    ];
+    
+    // 更新报警数据
+    if (data.alarmCount) {
+      alarmTotal.value = data.alarmCount.totalCount || 0;
+      alarmStatus.value = [
+        { label: "已解除", count: data.alarmCount.yjc || 0 },
+        { label: "未解除", count: data.alarmCount.wjc || 0 },
+      ];
+      alarmLevels.value = [
+        { label: "一级报警", count: data.alarmCount.yjyjCount || 0 },
+        { label: "二级报警", count: data.alarmCount.ejyjCount || 0 },
+        { label: "三级报警", count: data.alarmCount.sjyjCount || 0 },
+      ];
+    }
+  } catch (error) {
+    console.error("获取预警报警数据失败:", error);
+  }
+};
+
+// ==================== 生命周期 ====================
+onMounted(() => {
+  fetchWarningAndAlarmData();
+});
+
 </script>
 
 <style lang="scss" scoped>

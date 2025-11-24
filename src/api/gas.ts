@@ -407,6 +407,36 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         format: "json",
         ...params,
       }),
+
+    /**
+     * No description
+     *
+     * @name JcsbYxztSjtjListList
+     * @summary 获取监测设备运行状态统计列表
+     * @request GET:/gspspDtransGas/jcsbYxztSjtj/list
+     */
+    jcsbYxztSjtjListList: (params: RequestParams = {}) =>
+      this.request<object, any>({
+        path: `/gspspDtransGas/jcsbYxztSjtj/list`,
+        method: "GET",
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @name GasYjListListList
+     * @summary 获取燃气预警类型统计列表
+     * @request GET:/gspspDtransGas/gasYjList/list
+     */
+    gasYjListListList: (params: RequestParams = {}) =>
+      this.request<object, any>({
+        path: `/gspspDtransGas/gasYjList/list`,
+        method: "GET",
+        format: "json",
+        ...params,
+      }),
   };
   gspspDtrans = {
     /**

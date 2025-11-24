@@ -61,20 +61,14 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { nextTick, onMounted, ref } from "vue";
 import * as echarts from "echarts";
 import { getRiskStatusCount } from "@/services/waterSupplyService";
 import { getDataItems } from "@/services/commonService";
 
-const zgztMap = {
-  已整改: "rectified",
-  未整改: "notRectified",
-  整改中: "inRectification",
-  持续跟进: "continuousImprovement",
-};
-
-// 风险图例数据
+// ==================== 数据状态 ====================
+// 风险等级数据
 const riskLegend = ref([
   { name: "低风险", color: "#9bb8c7", value: 24 },
   { name: "一般风险", color: "#61E29D", value: 30 },
@@ -82,10 +76,8 @@ const riskLegend = ref([
   { name: "重大风险", color: "#E88D6B", value: 27 },
 ]);
 
-// 隐患总数
+// 隐患统计数据
 const totalHazard = ref(28);
-
-// 三类隐患
 const hazardTypes = ref([
   { type: "major", label: "较大隐患", count: 11 },
   { type: "significant", label: "重大隐患", count: 8 },
@@ -95,152 +87,148 @@ const hazardTypes = ref([
 // 整改状态数据
 const rectificationData = ref([]);
 
-onMounted(async () => {
+// ==================== 整改状态映射 ====================
+const zgztMap = {
+  已整改: "rectified",
+  未整改: "notRectified",
+  整改中: "inRectification",
+  持续跟进: "continuousImprovement",
+};
+
+// ==================== 数据获取 ====================
+/**
+ * 获取整改状态数据
+ */
+const fetchRectificationData = async () => {
   try {
     // 获取整改状态字典
-    const dictionaries = await getDataItems("zgzt");
-    const res = await getRiskStatusCount({ Sszx: "csaqzx_rq" });
-
-    const zgCount = res.reduce((sum, item) => sum + item.count, 0);
-    rectificationData.value = res.map((item) => {
-      const status = dictionaries.find(
-        (statusItem) => statusItem.f_ItemValue === item.riskStatus
+    const zgDictionaries = await getDataItems("zgzt");
+    
+    // 获取燃气专项综合关联目标类型
+    const rqzxGlmbzxDictionaries = await getDataItems('rqzx_glmbzx');
+    const glmblxs = rqzxGlmbzxDictionaries.map(item => item.f_ItemValue).join(',');
+    
+    // 获取整改状态统计数据
+    const statusCountData = await getRiskStatusCount({ Glmblx: glmblxs });
+    
+    // 计算总数用于计算百分比
+    const totalCount = statusCountData.reduce((sum, item) => sum + item.count, 0);
+    
+    // 转换数据格式
+    rectificationData.value = statusCountData.map((item) => {
+      const statusInfo = zgDictionaries.find(
+        (dict) => dict.f_ItemValue === item.riskStatus
       );
+      
       return {
-        title: status ? status.f_ItemName : "未知状态",
+        title: statusInfo?.f_ItemName || "未知状态",
         count: item.count,
-        status: status ? zgztMap[status.f_ItemName] : "unknown",
-        progress: zgCount > 0 ? item.count / zgCount : 0,
+        status: statusInfo ? zgztMap[statusInfo.f_ItemName] : "unknown",
+        progress: totalCount > 0 ? item.count / totalCount : 0,
       };
     });
+    
+    // 初始化整改状态环形图
+    await nextTick();
+    renderRectificationCharts();
   } catch (error) {
     console.error("获取整改状态数据失败:", error);
-    // 使用默认数据
-    rectificationData.value = [
-      {
-        title: "持续跟进",
-        count: 27,
-        status: "continuousImprovement",
-        progress: 0.45,
-      },
-      { title: "已整改", count: 20, status: "rectified", progress: 0.45 },
-      { title: "整改中", count: 13, status: "inRectification", progress: 0.45 },
-      { title: "未整改", count: 58, status: "notRectified", progress: 0.45 },
-    ];
   }
+};
 
-  // 初始化风险隐患多环形图
+// ==================== 图表渲染 ====================
+/**
+ * 渲染风险等级多环形图
+ */
+const renderRiskLevelChart = () => {
   const chartDom = document.getElementById("risk-chart");
-  if (chartDom) {
-    const myChart = echarts.init(chartDom);
+  if (!chartDom) return;
 
-    // 反向阴影效果
-    const placeHolderStyle = {
-      label: { show: false, position: "center" },
-      labelLine: { show: false },
-      itemStyle: {
-        color: "rgba(29, 57, 64, 0.5)",
-        borderColor: "rgba(29, 57, 64, 0.8)",
-        borderWidth: 8,
-      },
-      emphasis: { disabled: true },
-    };
+  const myChart = echarts.init(chartDom);
 
-    const labelStyle = (color, length = 100) => {
-      return {
-        label: {
-          show: true,
-          position: "outside",
-          formatter: "{a}: {c}个",
-          color: "#D3EAF1",
-          fontSize: 14,
-        },
-        labelLine: {
-          show: true,
-          length,
-          smooth: 0.5,
-          lineStyle: { color: "rgba(211, 234, 241, 0.3)" },
-        },
-        itemStyle: {
-          borderWidth: 8,
-          shadowBlur: 20,
-          borderColor: color,
-          shadowColor: color,
-        },
-      };
-    };
+  // 占位样式(背景环)
+  const placeHolderStyle = {
+    label: { show: false },
+    labelLine: { show: false },
+    itemStyle: {
+      color: "rgba(29, 57, 64, 0.5)",
+      borderColor: "rgba(29, 57, 64, 0.8)",
+      borderWidth: 8,
+    },
+    emphasis: { disabled: true },
+  };
 
-    myChart.setOption({
-      backgroundColor: "transparent",
-      color: ["#9bb8c7", "#61E29D", "#F4D982", "#E88D6B"],
-      legend: { show: false },
-      series: [
-        {
-          name: "低风险",
-          type: "pie",
-          clockWise: true,
-          hoverAnimation: true,
-          radius: [90, 91],
-          ...labelStyle("#9bb8c7", 40),
-          data: [
-            { value: 24, name: "低风险" },
-            { value: 58, name: "", ...placeHolderStyle },
-          ],
-        },
-        {
-          name: "一般风险",
-          type: "pie",
-          clockWise: true,
-          hoverAnimation: true,
-          radius: [70, 71],
-          ...labelStyle("#61E29D", 50),
-          data: [
-            { value: 30, name: "一般风险" },
-            { value: 52, name: "", ...placeHolderStyle },
-          ],
-        },
-        {
-          name: "较大风险",
-          type: "pie",
-          clockWise: true,
-          hoverAnimation: true,
-          radius: [50, 51],
-          ...labelStyle("#F4D982", 60),
-          data: [
-            { value: 1, name: "较大风险" },
-            { value: 81, name: "", ...placeHolderStyle },
-          ],
-        },
-        {
-          name: "重大风险",
-          type: "pie",
-          clockWise: true,
-          hoverAnimation: true,
-          radius: [30, 31],
-          ...labelStyle("#E88D6B", 70),
-          data: [
-            { value: 27, name: "重大风险" },
-            { value: 55, name: "", ...placeHolderStyle },
-          ],
-        },
-      ],
-    });
-  }
-
-  // 初始化整改状态环形图
-  nextTick(() => {
-    rectificationData.value.forEach((item) => {
-      const chartDom = document.getElementById(`status-chart-${item.status}`);
-      if (chartDom) {
-        const chart = echarts.init(chartDom);
-        chart.setOption(createProgressOption(item.progress, item.status));
-      }
-    });
+  // 数据环样式
+  const createLabelStyle = (color: string, lineLength = 100) => ({
+    label: {
+      show: true,
+      position: "outside",
+      formatter: "{a}: {c}个",
+      color: "#D3EAF1",
+      fontSize: 14,
+    },
+    labelLine: {
+      show: true,
+      length: lineLength,
+      smooth: 0.5,
+      lineStyle: { color: "rgba(211, 234, 241, 0.3)" },
+    },
+    itemStyle: {
+      borderWidth: 8,
+      shadowBlur: 20,
+      borderColor: color,
+      shadowColor: color,
+    },
   });
-});
 
-// 创建环形进度图配置
-const createProgressOption = (progress, status) => {
+  // 图表配置
+  myChart.setOption({
+    backgroundColor: "transparent",
+    color: ["#9bb8c7", "#61E29D", "#F4D982", "#E88D6B"],
+    legend: { show: false },
+    series: riskLegend.value.map((risk, index) => {
+      const radiusMap = [
+        [90, 91],
+        [70, 71],
+        [50, 51],
+        [30, 31],
+      ];
+      const lineLengthMap = [40, 50, 60, 70];
+      const maxValue = 82; // 环形图最大值
+
+      return {
+        name: risk.name,
+        type: "pie",
+        clockWise: true,
+        hoverAnimation: true,
+        radius: radiusMap[index],
+        ...createLabelStyle(risk.color, lineLengthMap[index]),
+        data: [
+          { value: risk.value, name: risk.name },
+          { value: maxValue - risk.value, name: "", ...placeHolderStyle },
+        ],
+      };
+    }),
+  });
+};
+
+/**
+ * 渲染整改状态环形进度图
+ */
+const renderRectificationCharts = () => {
+  rectificationData.value.forEach((item) => {
+    const chartDom = document.getElementById(`status-chart-${item.status}`);
+    if (!chartDom) return;
+
+    const chart = echarts.init(chartDom);
+    chart.setOption(createProgressOption(item.progress, item.status));
+  });
+};
+
+/**
+ * 创建环形进度图配置
+ */
+const createProgressOption = (progress: number, status: string) => {
   const colorMap = {
     continuousImprovement: ["#10ADC0", "#FFFFFF"],
     rectified: ["#FFF407", "#3FFEFD"],
@@ -302,6 +290,15 @@ const createProgressOption = (progress, status) => {
     ],
   };
 };
+
+// ==================== 生命周期 ====================
+onMounted(async () => {
+  // 获取整改状态数据
+  await fetchRectificationData();
+  
+  // 渲染风险等级图表(使用示例数据)
+  renderRiskLevelChart();
+});
 </script>
 
 <style lang="scss" scoped>

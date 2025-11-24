@@ -8,19 +8,14 @@
       <div class="top-stats">
         <div class="stat-card">
           <div class="stat-icon">
-            <img
-              src="@/assets/img/gasModule/device_count.webp"
-              alt="监测设备"
-            />
+            <img src="@/assets/img/gasModule/device_count.webp" alt="监测设备" />
           </div>
           <div class="stat-info">
             <div class="stat-label">监测设备总数</div>
             <div class="stat-value">
               <span class="value-total gradient-text">{{ topStats.online }}</span>
               <span class="value-separator">/</span>
-              <span class="value-online gradient-text">{{ topStats.offline }}</span>
-              <span class="value-separator">/</span>
-              <span class="value-offline gradient-text">{{ topStats.fault }}</span>
+              <span class="value-offline gradient-text">{{ topStats.offline }}</span>
             </div>
           </div>
         </div>
@@ -40,20 +35,12 @@
 
       <!-- 设备分类统计 -->
       <div class="device-categories">
-        <div
-          class="category-column"
-          v-for="category in deviceCategories"
-          :key="category.title"
-        >
+        <div class="category-column" v-for="category in deviceCategories" :key="category.title">
           <div class="category-header">
             <span class="header-title">{{ category.title }}</span>
           </div>
           <div class="category-items">
-            <div
-              class="device-row"
-              v-for="device in category.devices"
-              :key="device.name"
-            >
+            <div class="device-row" v-for="device in category.devices" :key="device.name">
               <div class="device-name">{{ device.name }}</div>
               <div class="device-count ">
                 <span class="online gradient-text">{{ device.onlineNum }}</span>
@@ -70,8 +57,10 @@
   </div>
 </template>
 
-<script setup>
-import { getDeviceStatusRate, getDeviceTypeStatusCount } from "@/services/waterSupplyService";
+<script setup lang="ts">
+import {  getEquipmentOperationStatusList } from "@/services/gasService";
+import { getDeviceStatusRate, getDeviceTypeStatusCount, } from "@/services/waterSupplyService";
+
 import { ref, onMounted } from "vue";
 
 
@@ -79,30 +68,70 @@ import { ref, onMounted } from "vue";
 onMounted(() => {
   initMonitoringCount();
   getDeviceTypeRate();
+
+  initGasOnlineStatus();
 });
 
 // 获取设备运行状态
 const getDeviceTypeRate = async () => {
-  const res = await getDeviceStatusRate({ Sszx: "csaqzx_gs" });
-  topStats.value.onlineRate = res.find(item => item.name === '在线率')?.value || '-';
+  const res = await getDeviceStatusRate({ Sszx: "csaqzx_rq" });
+  topStats.value.onlineRate = (res as Array<any>).find(item => item.name === '在线率')?.value || '-';
 };
+
+//获取设备情况并更新分类统计
+const initGasOnlineStatus = async () => {
+  try {
+    const res = await getEquipmentOperationStatusList();
+    
+    // 按 bigType 和 sblx 聚合数据
+    const aggregated: Record<string, Record<string, { onlineNum: number; offlineNum: number }>> = {};
+    
+    (res as Array<any>).forEach(item => {
+      if (!aggregated[item.bigType]) {
+        aggregated[item.bigType] = {};
+      }
+      if (!aggregated[item.bigType][item.sblx]) {
+        aggregated[item.bigType][item.sblx] = { onlineNum: 0, offlineNum: 0 };
+      }
+      
+      if (item.sbyxzt === 'sbyxzt001') {
+        aggregated[item.bigType][item.sblx].onlineNum += item.number;
+      } else if (item.sbyxzt === 'sbyxzt002') {
+        aggregated[item.bigType][item.sblx].offlineNum += item.number;
+      }
+    });
+    console.log("🚀 ~ initGasOnlineStatus ~ aggregated:", aggregated)
+
+    // 更新设备分类数据
+    deviceCategories.value = Object.keys(aggregated).map(bigType => ({
+      title: bigType,
+      devices: Object.keys(aggregated[bigType]).map(sblx => ({
+        name: sblx,
+        ...aggregated[bigType][sblx]
+      }))
+    }));
+  } catch (error) {
+    console.error("获取设备在线状态失败:", error);
+  }
+};
+
 const initMonitoringCount = async () => {
   try {
-    const res = await getDeviceTypeStatusCount({Sszx:'csaqzx_rq'});
-    
+    const res = await getDeviceTypeStatusCount({ Sszx: 'csaqzx_rq' });
+
     // 计算总设备数
     let total = 0;
     let online = 0;
     let offline = 0;
     let fault = 0;
-    
+
     // 遍历所有设备类型的状态数据
-    res.forEach(item => {
+    (res as Array<any>).forEach(item => {
       item.statusCounts.forEach(status => {
         const count = status.count || 0;
         total += count;
-        
-        switch(status.status) {
+
+        switch (status.status) {
           case 'sbyxzt001': // 在线
             online += count;
             break;
@@ -115,14 +144,10 @@ const initMonitoringCount = async () => {
         }
       });
     });
-    
-    // 更新顶部统计数据
-    topStats.value = {
-      total,
-      online,
-      offline,
-    };
-    
+
+    topStats.value.online = online;
+    topStats.value.offline = offline;
+
     // 这里可以进一步处理设备分类数据，如果需要的话
     // 目前保持原有的硬编码数据不变
   } catch (error) {
@@ -139,32 +164,10 @@ const topStats = ref({
 });
 
 // 设备分类数据
-const deviceCategories = ref([
-  {
-    title: "燃气管网",
-    devices: [
-      { name: "调压设备", onlineNum: "0", offlineNum: "0" },
-      { name: "阀门设备", onlineNum: "0", offlineNum: "0" },
-      { name: "流量计", onlineNum: "0", offlineNum: "0" }
-    ]
-  },
-  {
-    title: "燃气场站",
-    devices: [
-      { name: "门站", onlineNum: "0", offlineNum: "0" },
-      { name: "储配站", onlineNum: "0", offlineNum: "0" },
-      { name: "加气站", onlineNum: "0", offlineNum: "0" }
-    ]
-  },
-  {
-    title: "终端用户",
-    devices: [
-      { name: "工商用户", onlineNum: "0", offlineNum: "0" },
-      { name: "居民用户", onlineNum: "0", offlineNum: "0" },
-      { name: "压力监测", onlineNum: "0", offlineNum: "0" }
-    ]
-  }
-]);
+const deviceCategories = ref<Array<{
+  title: string;
+  devices: Array<{ name: string; onlineNum: number; offlineNum: number }>;
+}>>([]);
 
 
 </script>
@@ -224,7 +227,8 @@ const deviceCategories = ref([
           display: flex;
           align-items: baseline;
           gap: 8px;
-          > span {
+
+          >span {
             font-family: YouSheBiaoTiHei;
             font-size: 32px;
             color: #ffffff;
@@ -232,6 +236,7 @@ const deviceCategories = ref([
             text-align: center;
             font-style: normal;
           }
+
           .value-total {
             background: linear-gradient(90deg, #ffffff 0%, #1677ff 100%);
           }
@@ -266,6 +271,7 @@ const deviceCategories = ref([
       background-image: url("@/assets/img/gasModule/device_item.webp");
       width: 33.3%;
       height: 285px;
+
       .category-header {
         height: 70px;
         display: flex;
@@ -273,6 +279,7 @@ const deviceCategories = ref([
         justify-content: center;
         gap: 15px;
         position: relative;
+
         .header-title {
           font-family: SourceHanSansSC, SourceHanSansSC;
           font-weight: bold;
@@ -306,20 +313,24 @@ const deviceCategories = ref([
           .device-count {
             display: flex;
             align-items: baseline;
-            gap:2px;
-            > span {
+            gap: 2px;
+
+            >span {
               font-family: YouSheBiaoTiHei;
               font-size: 20px;
               color: #ffffff;
               line-height: 26px;
               font-style: normal;
             }
+
             .online {
               background: linear-gradient(90deg, #ffffff 0%, #10adc0 100%);
             }
+
             .separator {
               color: #fff;
             }
+
             .offline {
               background: linear-gradient(90deg, #ffe9da 0%, #ce5a0d 100%);
             }

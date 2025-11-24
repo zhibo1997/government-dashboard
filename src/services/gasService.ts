@@ -194,3 +194,21 @@ export async function getGasOnlineStatus() {
   const res = await gasApi.gspspDtransPubmnteqpinfo.gasRateListList();
   return res.data || [];
 }
+
+/**
+ * 获取监测设备运行状态统计列表
+ * @returns 监测设备运行状态统计数据
+ */
+export async function getEquipmentOperationStatusList() {
+  const res = await gasApi.gspspDtransGas.jcsbYxztSjtjListList();
+  return res.data || [];
+}
+
+/**
+ * 获取燃气预警类型统计列表
+ * @returns 燃气预警类型统计数据
+ */
+export async function getGasWarningTypeList() {
+  const res = await gasApi.gspspDtransGas.gasYjListListList();
+  return res.data || [];
+}

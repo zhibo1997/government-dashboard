@@ -69,18 +69,26 @@ export async function getLatestWaterQuality() {
  * 获取隐患类型统计
  * @returns 隐患类型统计数据
  */
-export async function getRiskTypeCount() {
-  const res = await waterApi.gspspDtransPubrisks.riskTypeCountList();
+export async function getRiskTypeCount(param:{
+  Glmblx: string;
+}) {
+  const queryParam = {
+    Dsbm: "420200",
+    Qhbm: "420222",
+    ...param
+  }
+  const res = await waterApi.gspspDtransPubrisks.riskTypeCountList(queryParam);
   return res.data || [];
 }
 
 /**
  * 获取隐患整改状态统计
+ * @param param 查询参数
+ * @param Glmblx 关联目标类型，逗号分割
  * @returns 隐患整改状态数据
  */
 export async function getRiskStatusCount(param: {
-  Sszx: string;
-  Sjly?: string;
+  Glmblx: string;
 }) {
   const queryParam = {
     Dsbm: "420200",
@@ -105,12 +113,12 @@ export async function getWaterSupplyRiskCount() {
  * @param year 年份（可选）
  * @returns 预警统计数据
  */
-export async function getWarnStatistics(year?: string) {
-  const currentYear = year || new Date().getFullYear().toString();
+export async function getWarnStatistics(Sszx:string) {
   const res = await waterApi.gspspDtransPubmnteawarn.warnStatisticsList({
-    Year: currentYear,
+    Year: '2025',
+    Sszx
   });
-  return res?.data || [];
+  return res?.data || {};
 }
 
 /**
