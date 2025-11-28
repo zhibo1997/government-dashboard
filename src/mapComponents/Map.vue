@@ -22,6 +22,15 @@
       >
       </vc-datasource-geojson>
 
+      <!-- 默认3D Tiles图层 -->
+      <vc-primitive-tileset
+        ref="defaultTileset"
+        :url="default3DTilesUrl"
+        :show="true"
+        @ready="on3DTilesReady"
+      >
+      </vc-primitive-tileset>
+
       <!-- VcMeasurements 组件 (隐藏默认UI,仅使用功能) -->
       <vc-measurements ref="measurementsRef" :main-fab-opts="mainFabOpts" :measurements="['polyline', 'area']"
         :editable="true" @active-evt="handleMeasureActiveEvt" @draw-evt="handleMeasureDrawEvt" />
@@ -62,6 +71,9 @@ defineOptions({
 // 行政区域边界引用
 const yangxinBoundary = ref(null)
 
+// 默认3D Tiles引用
+const defaultTileset = ref(null)
+
 // Cesium Viewer引用
 const cesiumViewer = ref(null)
 const viewerInstance = ref<any>(null)
@@ -81,8 +93,7 @@ const mainFabOpts = {
 }
 
 // 从环境变量获取天地图token
-// const tiandituToken = import.meta.env ? import.meta.env.VITE_TIANDITU_KEY || '' : ''
-const tiandituToken = '301000118c7a8ef7a3897a037689c5ea'
+const tiandituToken = import.meta.env ? import.meta.env.VITE_TIANDITU_KEY || '' : ''
 
 // 底图类型
 const currentBaseMapType = ref<'vec' | 'img' | 'ter'>('img')
@@ -109,6 +120,9 @@ let clickQueryCleanup: (() => void) | null = null
 
 // 阳新县行政区域GeoJSON数据
 const yangxinGeoJSON = ref<any>(null)
+
+// 默认3D Tiles URL
+const default3DTilesUrl = 'http://webres.cityfun.com.cn/CSSMX/model/JC_JGZW_JZW_P/tileset.json'
 
 // 切换距离测量
 const toggleDistance = () => {
@@ -202,6 +216,21 @@ function onBoundaryReady({ Cesium, cesiumObject }: any) {
       entity.polygon.outlineWidth = 2
     }
   })
+}
+
+/**
+ * 3D Tiles加载完成回调
+ */
+function on3DTilesReady({ Cesium, cesiumObject }: any) {
+  console.log('✅ 默认3D Tiles图层加载完成')
+  console.log('3D Tiles URL:', default3DTilesUrl)
+  
+  // 可以在这里设置3D Tiles的样式或其他属性
+  // 例如：设置最大屏幕空间误差
+  if (cesiumObject) {
+    cesiumObject.maximumScreenSpaceError = 16
+    console.log('3D Tiles配置已应用')
+  }
 }
 
 /**
@@ -355,6 +384,8 @@ defineExpose({
   sceneMode,
   currentBaseMapType,
   compassRotation,
+  defaultTileset,
+  yangxinBoundary,
   toggleMeasureTool: () => { showMeasureTool.value = !showMeasureTool.value },
   toolbarRef,
 })
