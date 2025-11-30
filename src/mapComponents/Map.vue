@@ -1,6 +1,6 @@
 <template>
   <div class="map-container">
-    <vc-viewer ref="cesiumViewer" :camera="camera" :sceneMode="sceneMode" :requestRenderMode="true"
+    <vc-viewer ref="cesiumViewer" :selectionIndicator="false" :camera="camera" :infoBox="false" :sceneMode="sceneMode" :requestRenderMode="true"
       :maximumRenderTimeChange="Infinity" @ready="onViewerReady">
       <!-- 天地图底图 -->
       <vc-layer-imagery ref="basemapLayer">
@@ -18,7 +18,7 @@
         :data="yangxinGeoJSON"
         :show="true"
         :fill="'rgba(255, 255, 255, 0.1)'"
-        @ready="onBoundaryReady"
+        :enableMouseEvent="false"
       >
       </vc-datasource-geojson>
 
@@ -209,20 +209,6 @@ async function loadYangxinBoundary() {
  * 行政区域边界加载完成回调
  */
 function onBoundaryReady({ Cesium, cesiumObject }: any) {
-  console.log('✅ 阳新县行政区域边界加载完成')
-  
-  // 设置边界样式：红色边框，透明填充
-  const entities = cesiumObject.entities.values
-  entities.forEach((entity: any) => {
-    if (entity.polygon) {
-      // 设置填充颜色：红色，透明度0.05
-      entity.polygon.material = Cesium.Color.RED.withAlpha(0.05)
-      // 设置边框：红色，不透明
-      entity.polygon.outline = true
-      entity.polygon.outlineColor = Cesium.Color.RED
-      entity.polygon.outlineWidth = 2
-    }
-  })
 }
 
 /**
@@ -258,15 +244,15 @@ async function onViewerReady({ Cesium, viewer }: any) {
 
   // 方式2：等待GeoJSON加载后基于实际边界限制（可选）
   console.log("🚀 ~ onViewerReady ~ yangxinGeoJSON.value:", yangxinGeoJSON.value)
-  if (yangxinGeoJSON.value) {
-    const { buffer, smoothCorrection, minHeight, maxHeight } = mapConfig.cameraBounds
-    cameraBoundsCleanup = restrictCameraBoundsByGeoJSON(viewer, yangxinGeoJSON.value, {
-      buffer,
-      smoothCorrection,
-      minHeight,
-      maxHeight
-    })
-  }
+  // if (yangxinGeoJSON.value) {
+  //   const { buffer, smoothCorrection, minHeight, maxHeight } = mapConfig.cameraBounds
+  //   cameraBoundsCleanup = restrictCameraBoundsByGeoJSON(viewer, yangxinGeoJSON.value, {
+  //     buffer,
+  //     smoothCorrection,
+  //     minHeight,
+  //     maxHeight
+  //   })
+  // }
 }
 /**
  * 优化Cesium性能

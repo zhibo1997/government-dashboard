@@ -116,7 +116,10 @@ export async function getGasStationPageList(params?: {
   Czlx?: string;
   Yysfzc?: string;
 }) {
-  const res = await gasApi.gspspDtransGas.gasfldstationPageList(params);
+  const filteredParams = params ? Object.fromEntries(
+    Object.entries(params).filter(([_, value]) => value !== undefined && value !== '')
+  ) : undefined;
+  const res = await gasApi.gspspDtransGas.gasfldstationPageList(filteredParams);
   return res.data || [];
 }
 

@@ -3,11 +3,7 @@
     <!-- 头部工具栏 -->
     <div class="panel-header">
       <button class="search-icon-btn btn" @click="toggleSearch">
-        <img
-          src="@/assets/img/gasModule/icon_search.webp"
-          class="icon"
-          alt=""
-        />
+        <img src="@/assets/img/gasModule/icon_search.webp" class="icon" alt="" />
       </button>
       <button class="toggle-btn btn" @click="togglePanel">
         <img src="@/assets/img/gasModule/icon_menu.webp" class="icon" alt="" />
@@ -17,123 +13,74 @@
     <div class="panel-content">
       <!-- 主标题 -->
       <div class="panel-title">
-        <span class="title-text">燃气厂站</span>
-        <span class="arrow-icon">▼</span>
+        <div class="title-container">
+          <span class="title-text">燃气企业</span>
+          <img src="@/assets/img/gasModule/pull_down.webp" class="pull-down-icon" alt="" />
+        </div>
+        <img src="@/assets/img/gasModule/icon_close.webp" class="panel-close" alt="" />
       </div>
 
       <!-- 筛选条件 -->
       <div class="filter-section">
-        <div class="filter-item">
-          <label>所属企业</label>
-          <select v-model="filters.company" class="filter-select">
-            <option value="">全部</option>
-            <option value="company1">华川燃气公司</option>
-            <option value="company2">阳新燃气公司</option>
-          </select>
+        <!-- 名称搜索 -->
+        <div class="filter-row search-row">
+          <div class="filter-item search-item">
+            <input v-model="searchKeyword" type="text" class="filter-input" placeholder="请输入燃气厂站名称" />
+          </div>
+          <button class="reset-btn" @click="resetFilters">重置</button>
         </div>
 
+
+        <!-- 燃气类型 -->
         <div class="filter-item">
-          <label>场站类型</label>
           <select v-model="filters.type" class="filter-select">
-            <option value="">全部</option>
-            <option value="cng">CNG站</option>
-            <option value="lng">LNG站</option>
+            <option value="rqlx001">天然气</option>
+            <option value="rqlx002">液化气</option>
           </select>
-        </div>
-
-        <div class="filter-item">
-          <label>运营是否正常</label>
-          <select v-model="filters.status" class="filter-select">
-            <option value="">全部</option>
-            <option value="normal">正常</option>
-            <option value="abnormal">异常</option>
-          </select>
-        </div>
-
-        <div class="filter-row">
-          <div class="filter-item-half">
-            <label>是否预警</label>
-            <select v-model="filters.warning" class="filter-select">
-              <option value="">全部</option>
-              <option value="yes">是</option>
-              <option value="no">否</option>
-            </select>
-          </div>
-          <div class="filter-item-half">
-            <label>是否报警</label>
-            <select v-model="filters.alarm" class="filter-select">
-              <option value="">全部</option>
-              <option value="yes">是</option>
-              <option value="no">否</option>
-            </select>
-          </div>
         </div>
       </div>
     </div>
 
-    <!-- 场站列表 -->
-    <div class="station-list">
-      <div class="list-header">
-        <span class="count-badge">共{{ filteredStations.length }}条记录</span>
-      </div>
+    <div class="panel-content">
 
-      <div class="list-content">
-        <div
-          class="station-item"
-          v-for="station in currentPageStations"
-          :key="station.id"
-          :class="{ active: station.id === activeStationId }"
-          @click="handleStationClick(station)"
-        >
-          <div class="station-header">
-            <div class="station-type-badge">{{ station.gasType }}</div>
-            <div
-              class="station-status-badge"
-              :class="`status-${station.status}`"
-            >
-              {{ station.statusText }}
-            </div>
-          </div>
-          <div class="station-name">{{ station.name }}</div>
-          <div class="station-address">{{ station.address }}</div>
+      <!-- 主标题 -->
+      <div class="panel-title">
+        <div class="title-container">
+          <span class="title-text">共{{ filteredStations.length }}条记录</span>
         </div>
       </div>
+      <!-- 企业列表 -->
+      <div class="list-section">
+        <div class="list-content">
+          <div class="station-item" v-for="station in currentPageStations" :key="station.lsh"
+            :class="{ active: station.lsh === activeStationId }" @click="handleStationClick(station)">
+            <div class="station-badges">
+              <span class="badge badge-type">{{ getStationType(station.rqlx) }}</span>
+            </div>
+            <div class="station-name">{{ station.qymc }}</div>
+            <div class="station-address">{{ station.xxdz }}</div>
+          </div>
+        </div>
 
-      <!-- 分页 -->
-      <div class="pagination">
-        <button
-          class="page-btn"
-          @click="prevPage"
-          :disabled="currentPage === 1"
-        >
-          &lt;
-        </button>
-        <span class="page-numbers">
-          <button
-            v-for="page in visiblePages"
-            :key="page"
-            :class="{ active: page === currentPage }"
-            @click="currentPage = page"
-            class="page-num"
-          >
+        <!-- 分页 -->
+        <div class="pagination">
+          <button class="page-btn" @click="prevPage" :disabled="currentPage === 1">‹</button>
+          <button v-for="page in visiblePages" :key="page" class="page-btn" :class="{ active: page === currentPage }"
+            @click="currentPage = page">
             {{ page }}
           </button>
-        </span>
-        <button
-          class="page-btn"
-          @click="nextPage"
-          :disabled="currentPage === totalPages"
-        >
-          &gt;
-        </button>
-        <span class="page-info">{{ currentPage }} / {{ totalPages }}</span>
+          <button class="page-btn page-more" v-if="totalPages > 6">...</button>
+          <button class="page-btn" @click="nextPage" :disabled="currentPage === totalPages">›</button>
+          <span class="page-info">{{ currentPage }} / {{ totalPages }}</span>
+        </div>
       </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, computed } from "vue";
+import { getGasEnterprisePageList, getGasEnterpriseLedgerDetail, getBottleGasEnterpriseLedgerDetail } from "@/services/gasService";
+import { ref, computed, onMounted, watch } from "vue";
 
 const props = defineProps({
   visible: {
@@ -154,10 +101,54 @@ const searchKeyword = ref("");
 // 筛选条件
 const filters = ref({
   company: "",
-  type: "",
-  status: "",
-  warning: "",
-  alarm: "",
+  type: "rqlx001",
+});
+
+// 监听筛选条件变化
+watch([searchKeyword, () => filters.value.type], () => {
+  currentPage.value = 1;
+  loadStations();
+}, { deep: true });
+
+// 重置筛选条件
+const resetFilters = () => {
+  searchKeyword.value = "";
+  filters.value = {
+    company: "",
+    type: "",
+  };
+  currentPage.value = 1;
+  loadStations();
+};
+
+// 获取场站类型文本
+const getStationType = (rqlx) => {
+  const typeMap = {
+    'rqlx001': '天然气',
+    'rqlx002': '液化气',
+  };
+  return typeMap[rqlx] || rqlx || '未知类型';
+};
+
+// 加载场站数据
+const loadStations = async () => {
+  try {
+    const res = await getGasEnterprisePageList({
+      page: currentPage.value.toString(),
+      rows: pageSize.value.toString(),
+      rqlx: filters.value.type,
+      qymc: searchKeyword.value
+    });
+    if (res) {
+      stations.value = res;
+    }
+  } catch (error) {
+    console.error("加载场站数据失败:", error);
+  }
+}
+
+onMounted(() => {
+  loadStations();
 });
 
 // 当前激活的场站
@@ -167,76 +158,11 @@ const activeStationId = ref(null);
 const currentPage = ref(1);
 const pageSize = ref(7);
 
-// 场站数据（示例）
-const stations = ref([
-  {
-    id: 1,
-    name: "华川燃气场站1",
-    address: "阳新县X区XX路1号",
-    gasType: "天然气门站",
-    status: "normal",
-    statusText: "维修站",
-    company: "company1",
-  },
-  {
-    id: 2,
-    name: "华川燃气场站2",
-    address: "阳新县X区XX路2号",
-    gasType: "天然气门站",
-    status: "normal",
-    statusText: "维修站",
-    company: "company1",
-  },
-  {
-    id: 3,
-    name: "华川燃气场站1",
-    address: "阳新县X区XX路1号",
-    gasType: "天然气门站",
-    status: "normal",
-    statusText: "维修站",
-    company: "company2",
-  },
-  {
-    id: 4,
-    name: "华川燃气场站2",
-    address: "阳新县X区XX路2号",
-    gasType: "天然气门站",
-    status: "normal",
-    statusText: "维修站",
-    company: "company2",
-  },
-  {
-    id: 5,
-    name: "华川燃气场站1",
-    address: "阳新县X区XX路1号",
-    gasType: "天然气门站",
-    status: "normal",
-    statusText: "维修站",
-    company: "company1",
-  },
-  {
-    id: 6,
-    name: "华川燃气场站2",
-    address: "阳新县X区XX路2号",
-    gasType: "天然气门站",
-    status: "normal",
-    statusText: "维修站",
-    company: "company1",
-  },
-]);
+// 场站数据
+const stations = ref([]);
 
-// 过滤后的场站列表
-const filteredStations = computed(() => {
-  return stations.value.filter((station) => {
-    if (searchKeyword.value && !station.name.includes(searchKeyword.value)) {
-      return false;
-    }
-    if (filters.value.company && station.company !== filters.value.company) {
-      return false;
-    }
-    return true;
-  });
-});
+// 过滤后的场站列表（前端过滤已移至API调用）
+const filteredStations = computed(() => stations.value);
 
 // 当前页显示的场站
 const currentPageStations = computed(() => {
@@ -269,17 +195,35 @@ const toggleSearch = () => {
   showSearch.value = !showSearch.value;
 };
 
-// 获取场站图标
-const getStationIcon = (gasType) => {
-  // 返回对应的图标路径
-  return new URL("@/assets/img/gasModule/station_icon.png", import.meta.url)
-    .href;
-};
 
 // 处理场站点击
-const handleStationClick = (station) => {
-  activeStationId.value = station.id;
-  emit("station-click", station);
+const handleStationClick = async (station) => {
+  activeStationId.value = station.lsh;
+  
+  try {
+    let detailData;
+    // 根据燃气类型调用不同的详情接口
+    if (station.rqlx === 'rqlx001') {
+      // 天然气
+      detailData = await getGasEnterpriseLedgerDetail(station.lsh);
+    } else if (station.rqlx === 'rqlx002') {
+      // 液化气
+      detailData = await getBottleGasEnterpriseLedgerDetail(station.lsh);
+    }
+    
+    // 合并基础数据和详情数据
+    const fullStationData = {
+      ...station,
+      ...detailData,
+      gasType: station.rqlx // 保留燃气类型标识
+    };
+    
+    emit("station-click", fullStationData);
+  } catch (error) {
+    console.error("获取企业详情失败:", error);
+    // 如果详情获取失败，仍然传递基础数据
+    emit("station-click", { ...station, gasType: station.rqlx });
+  }
 };
 
 // 翻页
@@ -287,25 +231,31 @@ const prevPage = () => {
   if (currentPage.value > 1) {
     currentPage.value--;
   }
-};
+}
 
 const nextPage = () => {
   if (currentPage.value < totalPages.value) {
     currentPage.value++;
   }
-};
+}
 </script>
 
 <style lang="scss" scoped>
+.panel-content {
+  margin-bottom: 20px;
+}
+
 .station-list-panel {
-  width: 380px;
+  position: absolute;
+  left: 840px;
+  width: 460px;
   height: calc(100% - 40px);
-  border: 1px solid rgba(22, 119, 255, 0.3);
   border-radius: 8px;
   z-index: 100;
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  pointer-events: auto;
 
   .panel-header {
     padding: 12px 15px;
@@ -313,11 +263,13 @@ const nextPage = () => {
     gap: 10px;
     border-bottom: 1px solid rgba(0, 255, 255, 0.2);
     flex-shrink: 0;
-    .icon{
+
+    .icon {
       width: 32px;
       height: 32px;
     }
-    .btn{
+
+    .btn {
       border-radius: 8px;
       height: 60px;
       background-size: 100% 100%;
@@ -326,10 +278,12 @@ const nextPage = () => {
       padding: 0 14px;
       cursor: pointer;
     }
+
     .search-icon-btn {
       width: 60px;
       background-image: url("@/assets/img/gasModule/icon_search_bg.webp");
     }
+
     .toggle-btn {
       width: 180px;
       background-image: url("@/assets/img/gasModule/icon_menu_bg.webp");
@@ -349,63 +303,148 @@ const nextPage = () => {
   }
 
   .panel-title {
-    padding: 15px;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    background: linear-gradient( 270deg, rgba(9,24,39,0) 0%, #083957 100%);
-    border-bottom: 1px solid rgba(0, 255, 255, 0.15);
+    width: 460px;
+    height: 70px;
+    background-image: url("@/assets/img/gasModule/panel_title.webp");
+    background-size: 100% 100%;
     flex-shrink: 0;
+    padding: 0 12px 0 30px;
 
-    .title-text {
-      font-family: SourceHanSansSC, SourceHanSansSC;
-      font-weight: bold;
-      font-size: 20px;
-      color: #00ffff;
-      text-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
+    .title-container {
+      display: flex;
+      align-items: baseline;
+
+      .pull-down-icon {
+        width: 16px;
+        height: 9px;
+      }
+
+      .title-text {
+        font-family: SourceHanSansSC, SourceHanSansSC;
+        font-weight: 500;
+        font-size: 30px;
+        color: #FFFFFF;
+        line-height: 44px;
+        text-align: center;
+        font-style: normal;
+        margin-right: 18px;
+      }
     }
 
-    .arrow-icon {
-      color: #00ffff;
-      font-size: 12px;
+    .panel-close {
+      width: 40px;
+      height: 40px;
+      cursor: pointer;
     }
   }
 
-  .filter-section {
+  // 公共内容区域样式
+  .filter-section,
+  .list-section {
     padding: 12px 15px;
     display: flex;
     flex-direction: column;
     gap: 10px;
-    background: linear-gradient( 270deg, rgb(8, 46, 77,0.4) 0%, rgba(0,0,0,0.4) 100%);
+    background: linear-gradient(270deg, rgb(8, 46, 77, 0.4) 0%, rgba(0, 0, 0, 0.4) 100%);
     border-bottom: 1px solid rgba(0, 255, 255, 0.15);
     flex-shrink: 0;
     backdrop-filter: blur(30px);
+  }
+
+  .filter-section {
+    .filter-row {
+      display: flex;
+      gap: 10px;
+
+      &.search-row {
+        align-items: stretch;
+
+        .search-item {
+          flex: 1;
+        }
+
+        .reset-btn {
+          width: 116px;
+          height: 60px;
+          background: linear-gradient(180deg, #0D9191 0%, #017474 26%, #013D3D 66%, #079090 100%);
+          border-radius: 8px;
+          border: 2px solid #3FFFFF;
+          font-weight: 500;
+          font-size: 26px;
+          color: #FFFFFF;
+          line-height: 37px;
+          text-align: center;
+          font-style: normal;
+          cursor: pointer;
+
+          &:hover {
+            background: rgba(0, 160, 200, 0.6);
+            border-color: rgba(0, 255, 255, 0.6);
+            box-shadow: 0 0 12px rgba(0, 255, 255, 0.3);
+          }
+
+          &:active {
+            background: rgba(0, 100, 140, 0.7);
+          }
+        }
+      }
+    }
 
     .filter-item {
       display: flex;
       flex-direction: column;
-      gap: 6px;
+      border-radius: 8px;
+      overflow: hidden;
+      height: 60px;
+      border: 2px solid #11A7E2;
+      padding: 0 16px;
+      background-color: rgba(0, 0, 0, 0.3);
 
-      label {
-        font-size: 13px;
-        color: #00ffff;
-        font-weight: 500;
+      .filter-input {
+        flex: 1;
+
+        font-size: 16px;
+        font-family: SourceHanSansSC, SourceHanSansSC;
+        font-weight: 400;
+        font-size: 24px;
+        line-height: 35px;
+        text-align: left;
+        font-style: normal;
+        color: #ffffff;
+        background-color: transparent;
+        outline: none;
+        border: none;
+
+        &::placeholder {
+          font-size: 24px;
+          color: #E4F3FF;
+        }
+
+        &:focus {
+          outline: none;
+          border-color: rgba(0, 255, 255, 0.6);
+          box-shadow: 0 0 8px rgba(0, 255, 255, 0.2);
+        }
       }
 
       .filter-select {
         width: 100%;
-        height: 36px;
-        padding: 0 30px 0 12px;
-        background: rgba(0, 40, 60, 0.6);
-        border: 1px solid rgba(0, 255, 255, 0.3);
-        border-radius: 4px;
+        height: 100%;
+
+        font-size: 16px;
+        font-family: SourceHanSansSC, SourceHanSansSC;
+        font-weight: 400;
+        font-size: 24px;
+        line-height: 35px;
+        text-align: left;
+        font-style: normal;
         color: #ffffff;
-        font-size: 14px;
-        cursor: pointer;
-        appearance: none;
-        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2300ffff' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
-        background-repeat: no-repeat;
-        background-position: right 10px center;
+        background-color: transparent;
+        outline: none;
+        border: none;
 
         &:focus {
           outline: none;
@@ -416,82 +455,37 @@ const nextPage = () => {
         option {
           background: #001428;
           color: #ffffff;
-        }
-      }
-    }
 
-    .filter-row {
-      display: flex;
-      gap: 10px;
-
-      .filter-item-half {
-        flex: 1;
-        display: flex;
-        flex-direction: column;
-        gap: 6px;
-
-        label {
-          font-size: 13px;
-          color: #00ffff;
-          font-weight: 500;
-        }
-
-        .filter-select {
-          width: 100%;
-          height: 36px;
-          padding: 0 30px 0 12px;
-          background: rgba(0, 40, 60, 0.6);
-          border: 1px solid rgba(0, 255, 255, 0.3);
-          border-radius: 4px;
-          color: #ffffff;
-          font-size: 14px;
-          cursor: pointer;
-          appearance: none;
-          background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2300ffff' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
-          background-repeat: no-repeat;
-          background-position: right 10px center;
-
-          &:focus {
-            outline: none;
-            border-color: rgba(0, 255, 255, 0.6);
-            box-shadow: 0 0 8px rgba(0, 255, 255, 0.2);
-          }
-
-          option {
-            background: #001428;
+          &:first-child {
+            color: rgba(255, 255, 255, 0.4);
           }
         }
       }
     }
   }
 
-  .station-list {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
+  .list-section {
+    height: 1160px;
     overflow: hidden;
+    padding: 0;
 
     .list-header {
-      padding: 12px 15px;
+      padding: 20px 15px 12px;
       display: flex;
       align-items: center;
-      flex-shrink: 0;
 
-      .count-badge {
-        font-size: 14px;
-        color: #00ffff;
-        padding: 5px 15px;
-        background: rgba(0, 40, 60, 0.6);
-        border-radius: 15px;
-        border: 1px solid rgba(0, 255, 255, 0.4);
-        box-shadow: 0 0 10px rgba(0, 255, 255, 0.2);
+      .count-text {
+        font-family: SourceHanSansSC, SourceHanSansSC;
+        font-weight: 400;
+        font-size: 20px;
+        color: #FFFFFF;
+        line-height: 29px;
       }
     }
 
     .list-content {
       flex: 1;
       overflow-y: auto;
-      padding: 0 15px 10px;
 
       &::-webkit-scrollbar {
         width: 4px;
@@ -512,142 +506,132 @@ const nextPage = () => {
       }
 
       .station-item {
-        padding: 12px;
-        margin-bottom: 10px;
-        background: rgba(0, 40, 60, 0.5);
-        border: 1px solid rgba(0, 255, 255, 0.25);
-        border-radius: 4px;
+        padding: 20px 19px 22px;
+        border-bottom: 2px solid #09739C;
+
+        background: rgba(0, 0, 0, 0.2);
         cursor: pointer;
-        transition: all 0.3s ease;
-        position: relative;
+        transition: all 0.2s ease;
 
-        &:hover {
-          background: rgba(0, 60, 80, 0.7);
-          border-color: rgba(0, 255, 255, 0.5);
-          box-shadow: 0 0 15px rgba(0, 255, 255, 0.2);
+        &:last-child {
+          border-bottom: none;
         }
 
-        &.active {
-          background: rgba(0, 80, 100, 0.8);
-          border-color: rgba(0, 255, 255, 0.6);
-          box-shadow: 0 0 20px rgba(0, 255, 255, 0.3);
-        }
-
-        .station-header {
+        .station-badges {
           display: flex;
           align-items: center;
-          gap: 8px;
-          margin-bottom: 8px;
+          gap: 12px;
+          margin-bottom: 10px;
+        }
 
-          .station-type-badge {
-            padding: 3px 10px;
-            background: rgba(0, 255, 255, 0.15);
-            border: 1px solid rgba(0, 255, 255, 0.4);
-            border-radius: 3px;
-            font-size: 12px;
-            color: #00ffff;
+        .badge {
+          padding: 6px 16px;
+          border-radius: 8px;
+          font-family: SourceHanSansSC, SourceHanSansSC;
+          font-weight: 500;
+          font-size: 20px;
+          line-height: 29px;
+
+          &.badge-type {
+            background: #313D56;
+            border-radius: 8px;
+            border: 2px solid #15779D;
+
+            color: #E4F3FF;
+            line-height: 29px;
           }
 
-          .station-status-badge {
-            padding: 3px 10px;
-            border-radius: 3px;
-            font-size: 12px;
+          &.badge-status {
+            border-radius: 8px;
 
-            &.status-normal {
-              background: rgba(0, 255, 0, 0.15);
-              color: #00ff00;
-              border: 1px solid rgba(0, 255, 0, 0.4);
+            &.badge-normal {
+              background: linear-gradient(90deg, rgba(4, 247, 103, 0.6) 0%, rgba(4, 199, 254, 0.6) 99%);
+              border: 2px solid #04C7FE;
+              color: #fff;
             }
 
-            &.status-warning {
-              background: rgba(255, 200, 0, 0.15);
-              color: #ffc800;
-              border: 1px solid rgba(255, 200, 0, 0.4);
-            }
-
-            &.status-error {
-              background: rgba(255, 50, 50, 0.15);
-              color: #ff3232;
-              border: 1px solid rgba(255, 50, 50, 0.4);
+            &.badge-error {
+              color: #fff;
+              background: linear-gradient(90deg, rgba(247, 94, 4, 0.6) 0%, rgba(254, 172, 4, 0.6) 100%);
+              border: 2px solid #F76204;
+              border-image: linear-gradient(180deg, rgba(252, 155, 10, 1), rgba(247, 98, 4, 1)) 2 2;
             }
           }
         }
 
         .station-name {
-          font-size: 15px;
-          color: #ffffff;
+          font-family: SourceHanSansCNVF, SourceHanSansCNVF;
           font-weight: 500;
-          margin-bottom: 6px;
-          text-shadow: 0 0 5px rgba(255, 255, 255, 0.3);
+          font-size: 30px;
+          color: #E4F3FF;
+          line-height: 44px;
+          text-align: left;
+          font-style: normal;
         }
 
         .station-address {
-          font-size: 13px;
-          color: rgba(255, 255, 255, 0.7);
+          font-family: SourceHanSansCNVF, SourceHanSansCNVF;
+          font-weight: 400;
+          font-size: 18px;
+          color: #BFC5C0;
+          line-height: 26px;
+          text-align: left;
+          font-style: normal;
+
         }
       }
     }
 
     .pagination {
-      padding: 12px 15px;
+      padding: 20px 15px;
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 6px;
-      border-top: 1px solid rgba(0, 255, 255, 0.2);
-      flex-shrink: 0;
+      gap: 8px;
 
       .page-btn {
-        width: 26px;
-        height: 26px;
-        background: rgba(0, 40, 60, 0.6);
-        border: 1px solid rgba(0, 255, 255, 0.3);
-        border-radius: 3px;
-        color: #00ffff;
+        min-width: 40px;
+        height: 40px;
+        padding: 0 8px;
+        background: rgba(0, 0, 0, 0.3);
+        border: 2px solid #11A7E2;
+        border-radius: 6px;
+        font-family: SourceHanSansSC, SourceHanSansSC;
+        font-weight: 400;
+        font-size: 20px;
+        color: #FFFFFF;
         cursor: pointer;
-        transition: all 0.3s ease;
-        font-size: 12px;
+        transition: all 0.2s ease;
 
-        &:hover:not(:disabled) {
-          background: rgba(0, 60, 80, 0.8);
-          border-color: rgba(0, 255, 255, 0.5);
-          box-shadow: 0 0 8px rgba(0, 255, 255, 0.3);
+        &:hover:not(:disabled):not(.page-more) {
+          background: rgba(17, 167, 226, 0.2);
+          box-shadow: 0 0 8px rgba(17, 167, 226, 0.4);
+        }
+
+        &.active {
+          background: linear-gradient(180deg, #0D9191 0%, #017474 26%, #013D3D 66%, #079090 100%);
+          border-color: #3FFFFF;
         }
 
         &:disabled {
           opacity: 0.3;
           cursor: not-allowed;
         }
-      }
 
-      .page-numbers {
-        display: flex;
-        gap: 4px;
-
-        .page-num {
-          width: 26px;
-          height: 26px;
-          background: rgba(0, 40, 60, 0.6);
-          border: 1px solid rgba(0, 255, 255, 0.3);
-          border-radius: 3px;
-          color: #00ffff;
-          cursor: pointer;
-          font-size: 12px;
-          transition: all 0.3s ease;
-
-          &:hover,
-          &.active {
-            background: rgba(0, 255, 255, 0.2);
-            border-color: rgba(0, 255, 255, 0.6);
-            box-shadow: 0 0 10px rgba(0, 255, 255, 0.4);
-          }
+        &.page-more {
+          cursor: default;
+          border-color: transparent;
+          background: transparent;
         }
       }
 
       .page-info {
-        margin-left: 6px;
-        font-size: 12px;
-        color: rgba(0, 255, 255, 0.8);
+        margin-left: 8px;
+        font-family: SourceHanSansSC, SourceHanSansSC;
+        font-weight: 400;
+        font-size: 20px;
+        color: #FFFFFF;
+        line-height: 29px;
       }
     }
   }

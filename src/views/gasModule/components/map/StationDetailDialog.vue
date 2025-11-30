@@ -1,33 +1,158 @@
 <template>
   <div class="station-detail-dialog" v-show="visible">
     <div class="dialog-header">
-      <div class="dialog-title">华川燃气场站</div>
-      <button class="close-btn" @click="handleClose">×</button>
+      <div class="dialog-title">{{ stationData?.qymc || '企业详情' }}</div>
+      <n-button text class="close-btn" @click="handleClose">
+        <n-icon size="40" color="rgb(17,167,226)" :component="Close" class="action-icon favorite-icon" />
+      </n-button>
     </div>
 
     <div class="dialog-content">
-      <!-- 基本信息 -->
-      <div class="info-section">
-        <div class="info-row">
-          <label>场站编号：</label>
-          <span>HCR0C21</span>
-          <button class="tag-btn tag-primary">查询</button>
+      <!-- 天然气企业信息 -->
+      <div class="info-section" v-if="isNaturalGas">
+        <div class="info-grid">
+          <div class="info-row">
+            <label>流水号：</label>
+            <span class="info-value">{{ stationData?.lsh || '—' }}</span>
+          </div>
+
+          <div class="info-row">
+            <label>企业编码：</label>
+            <span class="info-value">{{ stationData?.qybm || '—' }}</span>
+          </div>
+
+          <div class="info-row">
+            <label>企业名称：</label>
+            <span class="info-value">{{ stationData?.qymc || '—' }}</span>
+          </div>
+
+          <div class="info-row">
+            <label>详细地址：</label>
+            <span class="info-value">{{ stationData?.xxdz || '—' }}</span>
+          </div>
+
+          <div class="info-row">
+            <label>经营区域：</label>
+            <span class="info-value">{{ stationData?.jyqy || '—' }}</span>
+          </div>
+
+          <div class="info-row">
+            <label>职工人数：</label>
+            <span class="info-value">{{ formatNumber(stationData?.zgrs) }} 人</span>
+          </div>
+
+          <div class="info-row">
+            <label>拥有窨井数量：</label>
+            <span class="info-value">{{ formatNumber(stationData?.yyyjsl) }} 个</span>
+          </div>
+
+          <div class="info-row">
+            <label>拥有厂站数量：</label>
+            <span class="info-value">{{ formatNumber(stationData?.yyczsl) }} 个</span>
+          </div>
+
+          <div class="info-row">
+            <label>拥有管线长度：</label>
+            <span class="info-value">{{ formatNumber(stationData?.yygxcd) }} km</span>
+          </div>
         </div>
-        <div class="info-row">
-          <label>天然气门站：</label>
-          <span>—</span>
+
+        <div class="status-badge-row">
+          <button class="badge-btn badge-type">天然气企业</button>
+          <button class="badge-btn badge-normal" v-if="stationData?.sjtbzt === 'I'">正常</button>
+          <button class="badge-btn badge-error" v-else>异常</button>
         </div>
-        <div class="info-row">
-          <label>场站地址：</label>
-          <span>阳新县X区XX路街道G351</span>
+      </div>
+
+      <!-- 液化气企业信息 -->
+      <div class="info-section" v-else-if="isLiquefiedGas">
+        <div class="info-grid">
+          <div class="info-row">
+            <label>流水号：</label>
+            <span class="info-value">{{ stationData?.lsh || '—' }}</span>
+          </div>
+
+          <div class="info-row">
+            <label>企业编码：</label>
+            <span class="info-value">{{ stationData?.qybm || '—' }}</span>
+          </div>
+
+          <div class="info-row">
+            <label>企业名称：</label>
+            <span class="info-value">{{ stationData?.qymc || '—' }}</span>
+          </div>
+
+          <div class="info-row">
+            <label>详细地址：</label>
+            <span class="info-value">{{ stationData?.xxdz || '—' }}</span>
+          </div>
+
+          <div class="info-row">
+            <label>经营区域：</label>
+            <span class="info-value">{{ stationData?.jyqy || '—' }}</span>
+          </div>
+
+          <div class="info-row">
+            <label>液化气瓶数量：</label>
+            <span class="info-value">{{ formatNumber(stationData?.yhqpsl) }} 个</span>
+          </div>
+
+          <div class="info-row">
+            <label>职工人数：</label>
+            <span class="info-value">{{ formatNumber(stationData?.zgrs) }} 人</span>
+          </div>
+
+          <div class="info-row">
+            <label>充装工数量：</label>
+            <span class="info-value">{{ formatNumber(stationData?.czgsl) }} 人</span>
+          </div>
+
+          <div class="info-row">
+            <label>送气工数量：</label>
+            <span class="info-value">{{ formatNumber(stationData?.sqgsl) }} 人</span>
+          </div>
+
+          <div class="info-row">
+            <label>客户总数：</label>
+            <span class="info-value">{{ formatNumber(stationData?.khzs) }} 户</span>
+          </div>
+
+          <div class="info-row">
+            <label>居民客户数量：</label>
+            <span class="info-value">{{ formatNumber(stationData?.jmkhsl) }} 户</span>
+          </div>
+
+          <div class="info-row">
+            <label>非居民客户数量：</label>
+            <span class="info-value">{{ formatNumber(stationData?.fjmkhsl) }} 户</span>
+          </div>
+
+          <div class="info-row">
+            <label>运输车辆数量：</label>
+            <span class="info-value">{{ formatNumber(stationData?.ysclsl) }} 辆</span>
+          </div>
+
+          <div class="info-row">
+            <label>安装定位设备车辆数量：</label>
+            <span class="info-value">{{ formatNumber(stationData?.azdwsbclsl) }} 辆</span>
+          </div>
+
+          <div class="info-row">
+            <label>企业负责人姓名：</label>
+            <span class="info-value">{{ stationData?.qyfzrxm || '—' }}</span>
+          </div>
+
+          <div class="info-row">
+            <label>企业经营有效期：</label>
+            <span class="info-value">{{ stationData?.qyjyyxq || '—' }}</span>
+          </div>
+
         </div>
-        <div class="info-row">
-          <label>所属企业：</label>
-          <span>阳新县华川燃气有限公司</span>
-        </div>
-        <div class="info-row">
-          <label>设计机气量：</label>
-          <span>300,000 $m³</span>
+
+        <div class="status-badge-row">
+          <button class="badge-btn badge-type">液化气企业</button>
+          <button class="badge-btn badge-normal" v-if="stationData?.sjtbzt === 'I'">正常</button>
+          <button class="badge-btn badge-error" v-else>异常</button>
         </div>
       </div>
 
@@ -37,7 +162,7 @@
           监测设备
         </button>
         <button class="action-btn btn-warning">
-          告警监控
+          查看监控
         </button>
       </div>
     </div>
@@ -45,6 +170,10 @@
 </template>
 
 <script setup>
+import { computed } from 'vue';
+import { NButton, NIcon } from 'naive-ui';
+import { Close } from '@vicons/ionicons5';
+
 const props = defineProps({
   visible: {
     type: Boolean,
@@ -58,6 +187,35 @@ const props = defineProps({
 
 const emit = defineEmits(['update:visible', 'show-monitoring']);
 
+// 判断是否为天然气
+const isNaturalGas = computed(() => {
+  return props.stationData?.gasType === 'rqlx001' || props.stationData?.rqlx === 'rqlx001';
+});
+
+// 判断是否为液化气
+const isLiquefiedGas = computed(() => {
+  return props.stationData?.gasType === 'rqlx002' || props.stationData?.rqlx === 'rqlx002';
+});
+
+// 格式化数字
+const formatNumber = (value) => {
+  if (!value && value !== 0) return '—';
+  return value.toLocaleString('zh-CN');
+};
+
+// 格式化坐标
+const formatCoordinate = (value) => {
+  if (!value && value !== 0) return '—';
+  return parseFloat(value).toFixed(6);
+};
+
+// 格式化日期
+const formatDate = (dateString) => {
+  if (!dateString) return '—';
+  const date = new Date(dateString);
+  return date.toLocaleDateString('zh-CN');
+};
+
 const handleClose = () => {
   emit('update:visible', false);
 };
@@ -70,142 +228,168 @@ const handleShowMonitoring = () => {
 <style lang="scss" scoped>
 .station-detail-dialog {
   position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 520px;
-  background: rgba(0, 30, 60, 0.92);
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(22, 119, 255, 0.4);
-  border-radius: 8px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+  top: 80px;
+  left: 1320px;
+  width: 516px;
+  background: linear-gradient(270deg, rgba(8, 46, 77, 0.4) 0%, rgba(0, 0, 0, 0.4) 100%);
+
+  border: 3px solid #226d76;
   z-index: 200;
   overflow: hidden;
+  pointer-events: auto;
 
   .dialog-header {
-    height: 60px;
-    padding: 0 25px;
+    height: 70px;
+    padding: 0 20px;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    background: linear-gradient(
-      90deg,
-      rgba(22, 119, 255, 0.25) 0%,
-      rgba(22, 119, 255, 0.1) 100%
-    );
-    border-bottom: 1px solid rgba(22, 119, 255, 0.3);
+    background-image: url("@/assets/img/gasModule/detail_head_bg.webp");
+    border-bottom: 2px solid rgba(13, 165, 190, 0.5);
 
     .dialog-title {
       font-family: SourceHanSansSC, SourceHanSansSC;
-      font-weight: bold;
-      font-size: 20px;
-      color: #ffffff;
+      font-weight: 500;
+      font-size: 28px;
+      color: #E4F3FF;
+      line-height: 41px;
     }
 
-    .close-btn {
-      width: 32px;
-      height: 32px;
-      background: rgba(255, 77, 79, 0.15);
-      border: 1px solid rgba(255, 77, 79, 0.3);
-      border-radius: 4px;
-      color: #ff4d4f;
-      font-size: 24px;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: all 0.3s ease;
-
-      &:hover {
-        background: rgba(255, 77, 79, 0.25);
-        border-color: rgba(255, 77, 79, 0.5);
-      }
-    }
   }
 
   .dialog-content {
-    padding: 25px;
+    padding: 30px 20px 24px;
+    backdrop-filter: blur(30px);
 
     .info-section {
       display: flex;
       flex-direction: column;
-      gap: 16px;
-      margin-bottom: 25px;
+      gap: 10px;
+      margin-bottom: 30px;
+
+      .info-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 15px 20px;
+        margin-bottom: 20px;
+      }
+
+      .status-badge-row {
+        display: flex;
+        gap: 12px;
+        justify-content: center;
+        padding: 15px 0;
+        border-top: 2px solid rgba(13, 165, 190, 0.3);
+
+        .badge-btn {
+          padding: 6px 16px;
+          border-radius: 8px;
+          font-family: SourceHanSansSC, SourceHanSansSC;
+          font-weight: 500;
+          font-size: 20px;
+          line-height: 29px;
+
+          &.badge-type {
+            background: #313D56;
+            border-radius: 8px;
+            border: 2px solid #15779D;
+
+            color: #E4F3FF;
+            line-height: 29px;
+          }
+
+          &.badge-normal {
+            background: linear-gradient(90deg, rgba(4, 247, 103, 0.6) 0%, rgba(4, 199, 254, 0.6) 99%);
+            border: 2px solid #04C7FE;
+            color: #fff;
+          }
+
+          &.badge-error {
+            color: #fff;
+            background: linear-gradient(90deg, rgba(247, 94, 4, 0.6) 0%, rgba(254, 172, 4, 0.6) 100%);
+            border: 2px solid #F76204;
+            border-image: linear-gradient(180deg, rgba(252, 155, 10, 1), rgba(247, 98, 4, 1)) 2 2;
+          }
+        }
+      }
 
       .info-row {
         display: flex;
         align-items: center;
-        gap: 10px;
-        font-size: 15px;
+        gap: 12px;
+        font-size: 18px;
+        line-height: 26px;
 
         label {
-          color: #10adc0;
-          min-width: 100px;
+          font-family: SourceHanSansSC, SourceHanSansSC;
+          font-weight: 400;
+          color: #A8D4E0;
+          min-width: 140px;
           flex-shrink: 0;
         }
 
-        span {
-          color: #ffffff;
+        .info-value {
+          font-family: SourceHanSansSC, SourceHanSansSC;
+          font-weight: 400;
+          color: #E4F3FF;
           flex: 1;
-        }
-
-        .tag-btn {
-          padding: 4px 16px;
-          border-radius: 4px;
-          font-size: 13px;
-          cursor: pointer;
-          border: none;
-          transition: all 0.3s ease;
-
-          &.tag-primary {
-            background: linear-gradient(135deg, #1677ff 0%, #0d4a8f 100%);
-            color: #ffffff;
-
-            &:hover {
-              background: linear-gradient(135deg, #3d8dff 0%, #1677ff 100%);
-            }
-          }
+          min-width: 0;
         }
       }
     }
 
     .action-section {
       display: flex;
-      gap: 15px;
-      padding-top: 20px;
-      border-top: 1px solid rgba(22, 119, 255, 0.2);
+      justify-content: center;
+      gap: 16px;
+      padding-top: 24px;
+      border-top: 2px solid rgba(13, 165, 190, 0.3);
 
       .action-btn {
-        flex: 1;
-        height: 44px;
-        border: none;
-        border-radius: 6px;
-        font-size: 16px;
+        width: 170px;
+        height: 60px;
+        background: linear-gradient(180deg, #083957 0%, #091827 100%);
+        border: 2px solid;
+        border-image: linear-gradient(153deg, rgba(25, 163, 203, 1), rgba(62, 109, 123, 1), rgba(17, 171, 233, 1)) 2 2;
+
+        font-family: SourceHanSansSC, SourceHanSansSC;
         font-weight: 500;
+        font-size: 30px;
+        color: #FFFFFF;
+        line-height: 44px;
+        text-align: left;
+        font-style: normal;
+        background: linear-gradient(90deg, #FFFFFF 18%, #10ADC0 100%);
         cursor: pointer;
-        transition: all 0.3s ease;
+        text-align: center;
 
         &.btn-monitoring {
-          background: linear-gradient(135deg, #1677ff 0%, #0d4a8f 100%);
-          color: #ffffff;
+          background: rgba(0, 60, 80, 0.6);
+          border-color: #0DA5BE;
+          color: #FFFFFF;
 
           &:hover {
-            background: linear-gradient(135deg, #3d8dff 0%, #1677ff 100%);
-            box-shadow: 0 4px 12px rgba(22, 119, 255, 0.4);
+            background: rgba(13, 165, 190, 0.4);
+            border-color: #3FFFFF;
+            box-shadow: 0 0 16px rgba(13, 165, 190, 0.5);
           }
         }
 
         &.btn-warning {
-          background: linear-gradient(135deg, #52c41a 0%, #389e0d 100%);
-          color: #ffffff;
+          background: rgba(0, 60, 80, 0.6);
+          border-color: #0DA5BE;
+          color: #FFFFFF;
 
           &:hover {
-            background: linear-gradient(135deg, #73d13d 0%, #52c41a 100%);
-            box-shadow: 0 4px 12px rgba(82, 196, 26, 0.4);
+            background: rgba(13, 165, 190, 0.4);
+            border-color: #3FFFFF;
+            box-shadow: 0 0 16px rgba(13, 165, 190, 0.5);
           }
         }
       }
     }
   }
+
+
 }
 </style>

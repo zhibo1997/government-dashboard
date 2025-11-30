@@ -28,12 +28,7 @@ export async function getDeviceStatusRate(param: {
   Sszx: string;
   Sjly?: string;
 }) {
-  const queryParam = {
-    Dsbm: "420200",
-    Qhbm: "420222",
-    ...param
-  }
-  const res = await waterApi.gspspDtransPubmnteqpinfo.rateListList(queryParam);
+  const res = await waterApi.gspspDtransPubmnteqpinfo.rateListList(param);
   return res.data || [];
 }
 
@@ -45,13 +40,8 @@ export async function getDeviceTypeStatusCount(param: {
   Sszx: string;
   Sjly?: string;
 }) {
-  const queryParam = {
-    Dsbm: "420200",
-    Qhbm: "420222",
-    ...param
-  }
   const res =
-    await waterApi.gspspDtransPubmnteqpinfo.deviceTypeStatusCountList(queryParam);
+    await waterApi.gspspDtransPubmnteqpinfo.deviceTypeStatusCountList(param);
   return res?.data || [];
 }
 

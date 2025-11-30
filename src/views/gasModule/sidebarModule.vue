@@ -1,5 +1,5 @@
 <template>
-  <div class="sidebar-module">
+  <!-- <div class="sidebar-module"> -->
     <!-- 左侧燃气厂站列表 -->
     <StationListPanel
       v-model:visible="showStationList"
@@ -18,7 +18,7 @@
       v-model:visible="showMonitoringDialog"
       :station-data="selectedStation"
     />
-  </div>
+  <!-- </div> -->
 </template>
 
 <script setup lang="ts">
@@ -52,6 +52,7 @@ const handleShowMonitoring = () => {
   top: 20px;
   height: 100%;
   width: calc(100% - 1680px);
-  z-index: 20;
+  z-index: 10;
+  pointer-events: auto;
 }
 </style>
