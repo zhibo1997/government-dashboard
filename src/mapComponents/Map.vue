@@ -26,7 +26,7 @@
       <vc-primitive-tileset
         ref="defaultTileset"
         :url="default3DTilesUrl"
-        :show="true"
+        :show="false"
         @ready="on3DTilesReady"
       >
       </vc-primitive-tileset>
@@ -54,11 +54,12 @@
 <script setup lang="ts">
 import { ref, onMounted, onBeforeUnmount, computed, watch } from 'vue'
 import { VcCamera ,VcColor} from 'vue-cesium/lib/utils/types.js'
-import cesiumUtils from '../mapUtils/mapUtils'
+import cesiumUtils from '../hook/mapUtils'
 import { geoServerWFS } from '../services/wfsService'
 import mapConfig from '@/config/mapConfig'
 import MeasureTool from './MeasureTool.vue'
 import MapToolbar from './MapToolbar.vue'
+import { useMapHooks } from '@/hook/useMapHooks'
 
 import { inject } from 'vue'
 import ResponsiveWrapper from '@/components/ResponsiveWrapper.vue'
@@ -67,6 +68,12 @@ import ResponsiveWrapper from '@/components/ResponsiveWrapper.vue'
 defineOptions({
   name: 'CesiumMap'
 });
+
+// 使用地图hooks
+const { restrictCameraBoundsByGeoJSON, restrictCameraBounds } = useMapHooks()
+
+// 相机范围限制清理函数
+let cameraBoundsCleanup: (() => void) | null = null
 
 // 行政区域边界引用
 const yangxinBoundary = ref(null)
@@ -247,6 +254,19 @@ async function onViewerReady({ Cesium, viewer }: any) {
   viewer.camera.changed.addEventListener(() => {
     compassRotation.value = Cesium.Math.toDegrees(viewer.camera.heading)
   })
+
+
+  // 方式2：等待GeoJSON加载后基于实际边界限制（可选）
+  console.log("🚀 ~ onViewerReady ~ yangxinGeoJSON.value:", yangxinGeoJSON.value)
+  if (yangxinGeoJSON.value) {
+    const { buffer, smoothCorrection, minHeight, maxHeight } = mapConfig.cameraBounds
+    cameraBoundsCleanup = restrictCameraBoundsByGeoJSON(viewer, yangxinGeoJSON.value, {
+      buffer,
+      smoothCorrection,
+      minHeight,
+      maxHeight
+    })
+  }
 }
 /**
  * 优化Cesium性能
@@ -371,6 +391,12 @@ onBeforeUnmount(() => {
   if (clickQueryCleanup) {
     clickQueryCleanup()
     clickQueryCleanup = null
+  }
+
+  // 清理相机范围限制
+  if (cameraBoundsCleanup) {
+    cameraBoundsCleanup()
+    cameraBoundsCleanup = null
   }
 })
 

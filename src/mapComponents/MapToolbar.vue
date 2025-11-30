@@ -78,7 +78,8 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import OptimizedLayerTree from "./OptimizedLayerTree.vue";
-import cesiumUtils from "@/mapUtils/mapUtils";
+import { useMapHooks } from "@/hook/useMapHooks";
+const cesiumUtils = useMapHooks();
 
 // Props - 从父组件接收状态
 interface Props {

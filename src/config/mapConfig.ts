@@ -13,6 +13,18 @@ export const mapConfig = {
   // 默认缩放级别
   zoom: 11,
   
+  // 相机平移范围限制（阳新县范围）
+  cameraBounds: {
+    west: 114.8,   // 西边界（最小经度）
+    south: 29.4,   // 南边界（最小纬度）
+    east: 115.6,   // 东边界（最大经度）
+    north: 30.2,   // 北边界（最大纬度）
+    buffer: 0.1,   // 边界缓冲距离（度）
+    smoothCorrection: false,  // 立即修正，避免死循环（如需平滑效果可改为true，但可能导致重复触发）
+    minHeight: 10000,    // 最小高度10km（最大放大级别）
+    maxHeight: 150000    // 最大高度150km（最小放大级别，确保能看到整个阳新县）
+  },
+  
   // 图层数据源URL配置
   layerUrls: {
     // 桥梁设施图层
