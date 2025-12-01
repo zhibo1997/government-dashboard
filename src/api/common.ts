@@ -908,7 +908,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * @summary 获取图层树
      * @request GET:/layer/tree
      */
-    treeList: (params: RequestParams = {}) =>
+    treeList: (query: { SszxCode: string }, params: RequestParams = {}) =>
       this.request<
         {
           code: number;
@@ -953,6 +953,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         path: `/layer/tree`,
         method: "GET",
         format: "json",
+        query: query,
         ...params,
       }),
   };

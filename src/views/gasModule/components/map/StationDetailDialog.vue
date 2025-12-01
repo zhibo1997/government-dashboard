@@ -23,7 +23,11 @@
       <!-- 天然气企业信息 -->
       <div class="info-section" v-if="isNaturalGas">
         <div class="info-grid">
-          <div class="info-row" v-for="field in naturalGasFields" :key="field.key">
+          <div
+            class="info-row"
+            v-for="field in naturalGasFields"
+            :key="field.key"
+          >
             <label>{{ field.label }}：</label>
             <span class="info-value">{{ stationData[field.key] || "—" }}</span>
           </div>
@@ -44,7 +48,11 @@
       <!-- 液化气企业信息 -->
       <div class="info-section" v-else-if="isLiquefiedGas">
         <div class="info-grid">
-          <div class="info-row" v-for="field in liquefiedGasFields" :key="field.key">
+          <div
+            class="info-row"
+            v-for="field in liquefiedGasFields"
+            :key="field.key"
+          >
             <label>{{ field.label }}：</label>
             <span class="info-value">{{ stationData[field.key] || "—" }}</span>
           </div>
@@ -73,11 +81,14 @@
   </div>
 </template>
 
-<script setup>
-import { computed } from "vue";
+<script setup lang="ts">
+import { computed, watch, nextTick, onMounted, ref } from "vue";
+import { useVueCesium } from "vue-cesium";
 import { NButton, NIcon } from "naive-ui";
 import { Close } from "@vicons/ionicons5";
+import GasMarkerIcon from "@/assets/img/gasModule/gas_marker.webp";
 
+const viewer = ref<Cesium.Viewer | null>(null);
 const props = defineProps({
   visible: {
     type: Boolean,
@@ -88,7 +99,11 @@ const props = defineProps({
     default: () => ({}),
   },
 });
-
+onMounted(async () => {
+  const $vc = useVueCesium();
+  const readyObj = await $vc.creatingPromise;
+  viewer.value = readyObj.viewer;
+});
 const emit = defineEmits(["update:visible", "show-monitoring"]);
 
 // 天然气企业字段定义
@@ -138,8 +153,82 @@ const isLiquefiedGas = computed(() => {
   );
 });
 
+// 监听 stationData 变化，当有数据且包含经纬度时在地图上标注
+watch(
+  () => props.stationData,
+  (newData) => {
+    if (newData && newData.jd && newData.wd) {
+      addMarkerToMap(newData.jd, newData.wd);
+    }
+  },
+  { deep: true }
+);
+
+// 在地图上添加标记点
+const addMarkerToMap = (longitude, latitude) => {
+  try {
+    // 使用在 onMounted 中初始化的 viewer
+    if (!viewer.value) {
+      console.warn("Cesium viewer 实例未找到");
+      return;
+    }
+
+    // 移除之前添加的标记点
+    removeExistingMarkers(viewer.value);
+
+    // 创建实体标记点
+    const entity = viewer.value.entities.add({
+      id: "station-marker",
+      position: Cesium.Cartesian3.fromDegrees(longitude, latitude),
+      billboard: {
+        image: GasMarkerIcon,
+         height: 240,
+        width: 96,
+        horizontalOrigin: Cesium.HorizontalOrigin.CENTER,
+        verticalOrigin: Cesium.VerticalOrigin.BOTTOM,
+        pixelOffset: new Cesium.Cartesian2(0, 120), // 调整偏移量使图标底部对齐位置点
+      }
+    });
+
+    // 飞行到标记点位置
+    viewer.value.flyTo(entity, {
+      duration: 2,
+      offset: new Cesium.HeadingPitchRange(
+        0,
+        Cesium.Math.toRadians(-45),
+        2000
+      ),
+    });
+
+    // 计算标记点在屏幕上的位置并调整对话框位置
+  } catch (error) {
+    console.error("在地图上添加标记点失败:", error);
+  }
+};
+
+// 移除已存在的标记点
+const removeExistingMarkers = (viewer) => {
+  try {
+    // 移除之前添加的标记点
+    const existingEntity = viewer.entities.getById("station-marker");
+    if (existingEntity) {
+      viewer.entities.remove(existingEntity);
+    }
+  } catch (error) {
+    console.warn("移除已存在的标记点时出错:", error);
+  }
+};
+
 const handleClose = () => {
   emit("update:visible", false);
+  // 关闭对话框时移除标记点
+  try {
+    if (viewer.value) {
+      removeExistingMarkers(viewer.value);
+    }
+  } catch (error) {
+    console.warn("关闭对话框时移除标记点失败:", error);
+  }
 };
 
 const handleShowMonitoring = () => {
@@ -150,8 +239,8 @@ const handleShowMonitoring = () => {
 <style lang="scss" scoped>
 .station-detail-dialog {
   position: absolute;
-  top: 80px;
-  left: 1320px;
+    top: 80px;
+    left: 1320px;
   width: 516px;
   background: linear-gradient(
     270deg,
@@ -163,7 +252,7 @@ const handleShowMonitoring = () => {
   z-index: 200;
   overflow: hidden;
   pointer-events: auto;
-  &.liquefied-gas-info{
+  &.liquefied-gas-info {
     width: 620px;
   }
 

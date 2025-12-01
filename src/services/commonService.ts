@@ -85,8 +85,8 @@ export async function getDataItems(code: string): Promise<any[]> {
 /**
  * 获取图层树
  */
-export async function getLayerTree() {
-  const res = await commonApi.layer.treeList();
+export async function getLayerTree({ SszxCode }: { SszxCode: string }) {
+  const res = await commonApi.layer.treeList({SszxCode});
   return res.data;
 }
 
