@@ -78,8 +78,8 @@
   </div>
 </template>
 
-<script setup>
-import { getGasEnterprisePageList, getGasEnterpriseLedgerDetail, getBottleGasEnterpriseLedgerDetail } from "@/services/gasService";
+<script setup lang="ts">
+import { getGasEnterprisePageList, getGasEnterpriseLedgerDetail, getBottleGasEnterpriseLedgerDetail, getGasUserPageList, getGasStationPageList } from "@/services/gasService";
 import { ref, computed, onMounted, watch } from "vue";
 
 const props = defineProps({
