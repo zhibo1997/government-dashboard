@@ -22,10 +22,10 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, onMounted } from "vue";
 import { getWaterOverview } from "@/services/waterSupplyService";
-import { getDataItems } from "@/services/commonService";
+import { getCachedDictionary } from "@/services/dictionaryService";
 
 // 响应式数据
 const overviewData = ref([]);
@@ -43,7 +43,7 @@ const iconMapping = {
 // 初始化基础配置数据(从字典获取)
 const initGSItems = async () => {
   try {
-    const res = await getDataItems("jcssdstjlx_gs");
+    const res = await getCachedDictionary("jcssdstjlx_gs");
     
     if (res && res.length > 0) {
       overviewData.value = res.map(item => ({

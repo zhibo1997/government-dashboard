@@ -93,6 +93,7 @@ import { NMessageProvider, NDialogProvider, NConfigProvider, zhCN, dateZhCN } fr
       text-align: left;
       font-style: normal;
       padding-left: 140px;
+      margin-top: 10px;
     }
   }
 

@@ -57,7 +57,7 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, onMounted, nextTick } from "vue";
 import { officialWebsiteOption } from "./ehcartsOptions";
 import * as echarts from "echarts";
@@ -65,11 +65,11 @@ import {
   getWaterSupplyMaterialRatio,
   getWaterSupplyRiskCount,
 } from "@/services/waterSupplyService";
-import { getDataItems } from "@/services/commonService";
 
 // 引入图片资源
 import baseDangerImage from "@/assets/img/waterSupply/base_danger.png";
 import seriousDangerImage from "@/assets/img/waterSupply/serious_danger.png";
+import { getCachedDictionary } from "@/services/dictionaryService";
 
 // 配置项:严重隐患阈值
 const SERIOUS_DANGER_THRESHOLD = 3;
@@ -91,7 +91,7 @@ const colors = ["#00bfff", "#ff4500", "#ffff00", "#66cc66"];
 
 const gwczMap = ref({});
 const initMaterialList = async () => {
-  const dictionaries = await getDataItems("gwcz");
+  const dictionaries = await getCachedDictionary("gwcz");
   gwczMap.value = dictionaries.reduce((acc, cur) => {
     acc[cur.f_ItemValue] = cur.f_ItemName;
     return acc;

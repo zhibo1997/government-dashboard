@@ -37,8 +37,8 @@
   </div>
 </template>
 
-<script setup>
-import { getDataItems } from "@/services/commonService";
+<script setup lang="ts">
+import { getCachedDictionary } from "@/services/dictionaryService";
 import {
   getDeviceStatusRate,
   getDeviceTypeStatusCount,
@@ -50,7 +50,7 @@ const devicesData = ref([]);
 const monitoringData = ref([]);
 // 初始化监控设备数据
 const initMonitoringData = async () => {
-  const dictionaries = await getDataItems("jcsblx_gs");
+  const dictionaries = await getCachedDictionary("jcsblx_gs");
   csblxMap.value = dictionaries.reduce((acc, cur) => {
     acc[cur.f_ItemValue] = cur.f_ItemName;
     return acc;

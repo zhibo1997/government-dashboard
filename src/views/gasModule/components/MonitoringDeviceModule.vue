@@ -8,14 +8,21 @@
       <div class="top-stats">
         <div class="stat-card">
           <div class="stat-icon">
-            <img src="@/assets/img/gasModule/device_count.webp" alt="监测设备" />
+            <img
+              src="@/assets/img/gasModule/device_count.webp"
+              alt="监测设备"
+            />
           </div>
           <div class="stat-info">
             <div class="stat-label">监测设备总数</div>
             <div class="stat-value">
-              <span class="value-total gradient-text">{{ topStats.online }}</span>
+              <span class="value-total gradient-text">{{
+                topStats.online
+              }}</span>
               <span class="value-separator">/</span>
-              <span class="value-offline gradient-text">{{ topStats.offline }}</span>
+              <span class="value-offline gradient-text">{{
+                topStats.offline
+              }}</span>
             </div>
           </div>
         </div>
@@ -27,7 +34,9 @@
           <div class="stat-info">
             <div class="stat-label">在线率</div>
             <div class="stat-value">
-              <span class="value-rate gradient-text">{{ topStats.onlineRate }}</span>
+              <span class="value-rate gradient-text">{{
+                topStats.onlineRate
+              }}</span>
             </div>
           </div>
         </div>
@@ -35,14 +44,22 @@
 
       <!-- 设备分类统计 -->
       <div class="device-categories">
-        <div class="category-column" v-for="category in deviceCategories" :key="category.title">
+        <div
+          class="category-column"
+          v-for="category in deviceCategories"
+          :key="category.title"
+        >
           <div class="category-header">
             <span class="header-title">{{ category.title }}</span>
           </div>
           <div class="category-items">
-            <div class="device-row" v-for="device in category.devices" :key="device.name">
-              <div class="device-name">{{ device.name }}</div>
-              <div class="device-count ">
+            <div
+              class="device-row"
+              v-for="device in category.devices"
+              :key="device.name"
+            >
+              <div class="device-name">{{ jcsblxMap[device.name] || device.name }}</div>
+              <div class="device-count">
                 <span class="online gradient-text">{{ device.onlineNum }}</span>
                 <span class="separator">/</span>
                 <span class="offline gradient-text">{{
@@ -58,14 +75,25 @@
 </template>
 
 <script setup lang="ts">
-import {  getEquipmentOperationStatusList } from "@/services/gasService";
-import { getDeviceStatusRate, getDeviceTypeStatusCount, } from "@/services/waterSupplyService";
+import { getCachedDictionary } from "@/services/dictionaryService";
+import { getEquipmentOperationStatusList } from "@/services/gasService";
+import {
+  getDeviceStatusRate,
+  getDeviceTypeStatusCount,
+} from "@/services/waterSupplyService";
 
 import { ref, onMounted } from "vue";
 
-
+const jcsblxMap = ref<any>({});
 // 初始化获取状态数据
-onMounted(() => {
+onMounted(async () => {
+  const rqDict = await getCachedDictionary("jcsblx_rq");
+  const rqzdyhDict = await getCachedDictionary("jcsblx_rqzdyh");
+  jcsblxMap.value = [...rqDict, ...rqzdyhDict].reduce((acc, cur) => {
+    acc[cur.f_ItemValue] = cur.f_ItemName;
+    return acc;
+  }, {});
+
   initMonitoringCount();
   getDeviceTypeRate();
 
@@ -75,40 +103,44 @@ onMounted(() => {
 // 获取设备运行状态
 const getDeviceTypeRate = async () => {
   const res = await getDeviceStatusRate({ Sszx: "csaqzx_rq" });
-  topStats.value.onlineRate = (res as Array<any>).find(item => item.name === '在线率')?.value || '-';
+  topStats.value.onlineRate =
+    (res as Array<any>).find((item) => item.name === "在线率")?.value || "-";
 };
 
 //获取设备情况并更新分类统计
 const initGasOnlineStatus = async () => {
   try {
     const res = await getEquipmentOperationStatusList();
-    
+
     // 按 bigType 和 sblx 聚合数据
-    const aggregated: Record<string, Record<string, { onlineNum: number; offlineNum: number }>> = {};
-    
-    (res as Array<any>).forEach(item => {
+    const aggregated: Record<
+      string,
+      Record<string, { onlineNum: number; offlineNum: number }>
+    > = {};
+
+    (res as Array<any>).forEach((item) => {
       if (!aggregated[item.bigType]) {
         aggregated[item.bigType] = {};
       }
       if (!aggregated[item.bigType][item.sblx]) {
         aggregated[item.bigType][item.sblx] = { onlineNum: 0, offlineNum: 0 };
       }
-      
-      if (item.sbyxzt === 'sbyxzt001') {
+
+      if (item.sbyxzt === "sbyxzt001") {
         aggregated[item.bigType][item.sblx].onlineNum += item.number;
-      } else if (item.sbyxzt === 'sbyxzt002') {
+      } else if (item.sbyxzt === "sbyxzt002") {
         aggregated[item.bigType][item.sblx].offlineNum += item.number;
       }
     });
-    console.log("🚀 ~ initGasOnlineStatus ~ aggregated:", aggregated)
+    console.log("🚀 ~ initGasOnlineStatus ~ aggregated:", aggregated);
 
     // 更新设备分类数据
-    deviceCategories.value = Object.keys(aggregated).map(bigType => ({
+    deviceCategories.value = Object.keys(aggregated).map((bigType) => ({
       title: bigType,
-      devices: Object.keys(aggregated[bigType]).map(sblx => ({
+      devices: Object.keys(aggregated[bigType]).map((sblx) => ({
         name: sblx,
-        ...aggregated[bigType][sblx]
-      }))
+        ...aggregated[bigType][sblx],
+      })),
     }));
   } catch (error) {
     console.error("获取设备在线状态失败:", error);
@@ -117,7 +149,7 @@ const initGasOnlineStatus = async () => {
 
 const initMonitoringCount = async () => {
   try {
-    const res = await getDeviceTypeStatusCount({ Sszx: 'csaqzx_rq' });
+    const res = await getDeviceTypeStatusCount({ Sszx: "csaqzx_rq" });
 
     // 计算总设备数
     let total = 0;
@@ -126,19 +158,19 @@ const initMonitoringCount = async () => {
     let fault = 0;
 
     // 遍历所有设备类型的状态数据
-    (res as Array<any>).forEach(item => {
-      item.statusCounts.forEach(status => {
+    (res as Array<any>).forEach((item) => {
+      item.statusCounts.forEach((status) => {
         const count = status.count || 0;
         total += count;
 
         switch (status.status) {
-          case 'sbyxzt001': // 在线
+          case "sbyxzt001": // 在线
             online += count;
             break;
-          case 'sbyxzt002': // 离线
+          case "sbyxzt002": // 离线
             offline += count;
             break;
-          case 'sbyxzt003': // 故障
+          case "sbyxzt003": // 故障
             fault += count;
             break;
         }
@@ -160,16 +192,16 @@ const topStats = ref({
   total: 0,
   online: 0,
   offline: 0,
-  onlineRate: "-"
+  onlineRate: "-",
 });
 
 // 设备分类数据
-const deviceCategories = ref<Array<{
-  title: string;
-  devices: Array<{ name: string; onlineNum: number; offlineNum: number }>;
-}>>([]);
-
-
+const deviceCategories = ref<
+  Array<{
+    title: string;
+    devices: Array<{ name: string; onlineNum: number; offlineNum: number }>;
+  }>
+>([]);
 </script>
 
 <style lang="scss" scoped>
@@ -228,7 +260,7 @@ const deviceCategories = ref<Array<{
           align-items: baseline;
           gap: 8px;
 
-          >span {
+          > span {
             font-family: YouSheBiaoTiHei;
             font-size: 32px;
             color: #ffffff;
@@ -315,7 +347,7 @@ const deviceCategories = ref<Array<{
             align-items: baseline;
             gap: 2px;
 
-            >span {
+            > span {
               font-family: YouSheBiaoTiHei;
               font-size: 20px;
               color: #ffffff;

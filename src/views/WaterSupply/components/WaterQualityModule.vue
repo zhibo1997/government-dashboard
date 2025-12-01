@@ -55,19 +55,19 @@
   </div>
 </template>
 
-<script setup>
-import { getDataItems } from "@/services/commonService";
+<script setup lang="ts">
 import { getLatestWaterQuality } from "@/services/waterSupplyService";
 import { onMounted, ref } from "vue";
 import { parse } from "lossless-json";
 import { nextTick } from "vue";
+import { getCachedDictionary } from "@/services/dictionaryService";
 
 const waterQualityDate = ref(Date.now());
 
 const szMap = ref({});
 onMounted(async () => {
   // 获取最新供水水质字典（使用带缓存的优化函数）
-  const dictionaries = await getDataItems("gs_szjcsb");
+  const dictionaries = await getCachedDictionary("gs_szjcsb");
   szMap.value = dictionaries.reduce((acc, cur) => {
     acc[cur.f_ItemValue] = cur.f_ItemName;
     return acc;

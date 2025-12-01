@@ -41,11 +41,11 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { nextTick, onMounted, ref } from "vue";
 import * as echarts from "echarts";
 import { getRiskStatusCount } from "@/services/waterSupplyService";
-import { getDataItems } from "@/services/commonService";
+import { getCachedDictionary } from "@/services/dictionaryService";
 
 const zgztMap = {
   已整改: "rectified",
@@ -57,8 +57,8 @@ const rectificationData = ref([]);
 
 onMounted(async () => {
   // 获取整改状态字典
-  const dictionaries = await getDataItems("zgzt");
-  const res = await getRiskStatusCount({ Szzx: "csaqzx_gs" });
+  const dictionaries = await getCachedDictionary("zgzt");
+  const res = await getRiskStatusCount({ Glmblx: "glmblx_gs" });
 
   const zgCount = res.reduce((sum, item) => sum + item.count, 0);
   rectificationData.value = res.map((item) => {

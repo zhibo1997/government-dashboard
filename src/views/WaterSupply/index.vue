@@ -13,7 +13,7 @@
       <MapComponent />
     </div>
 
-    <ResponsiveWrapper :base-width="4096" :base-height="1920">
+    <ResponsiveWrapper :base-width="4096" :base-height="1920" v-if="!loading">
       <!-- 头部区域 -->
       <DashboardHeader />
 
@@ -29,8 +29,8 @@
   </div>
 </template>
 
-<script setup>
-import { onMounted } from 'vue';
+<script setup lang="ts">
+import { onBeforeMount, ref } from 'vue';
 import ResponsiveWrapper from "@/components/ResponsiveWrapper.vue";
 import MapComponent from "@/mapComponents/Map.vue";
 // 引入左侧导航组件
@@ -41,9 +41,11 @@ import DashboardHeader from "@/components/DashboardHeader.vue";
 // 引入字典缓存服务
 import { getCachedDictionaries } from "@/services/dictionaryService";
 
+const loading = ref(false);
 // 在页面初始化时预加载所有字典数据
-onMounted(async () => {
+onBeforeMount(async () => {
   try {
+    loading.value = true;
     // 批量预加载所有需要的字典数据
     await getCachedDictionaries([
       'jcssdstjlx_gs',  // OverviewModule
@@ -54,6 +56,7 @@ onMounted(async () => {
       'yjlx_gs',        // EarlyWarningModule
       'gs_szjcsb'       // WaterQualityModule
     ]);
+    loading.value = false;
     console.log('字典数据预加载完成');
   } catch (error) {
     console.error('字典数据预加载失败:', error);

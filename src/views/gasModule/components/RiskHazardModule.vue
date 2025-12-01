@@ -65,7 +65,7 @@
 import { nextTick, onMounted, ref } from "vue";
 import * as echarts from "echarts";
 import { getRiskStatusCount } from "@/services/waterSupplyService";
-import { getDataItems } from "@/services/commonService";
+import { getCachedDictionary } from "@/services/dictionaryService";
 
 // ==================== 数据状态 ====================
 // 风险等级数据
@@ -102,10 +102,10 @@ const zgztMap = {
 const fetchRectificationData = async () => {
   try {
     // 获取整改状态字典
-    const zgDictionaries = await getDataItems("zgzt");
+    const zgDictionaries = await getCachedDictionary("zgzt");
     
     // 获取燃气专项综合关联目标类型
-    const rqzxGlmbzxDictionaries = await getDataItems('rqzx_glmbzx');
+    const rqzxGlmbzxDictionaries = await getCachedDictionary('rqzx_glmbzx');
     const glmblxs = rqzxGlmbzxDictionaries.map(item => item.f_ItemValue).join(',');
     
     // 获取整改状态统计数据
