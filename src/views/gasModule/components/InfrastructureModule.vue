@@ -167,7 +167,7 @@ const getUnitByName = (name) => {
     '用户': '户',
     '监测点': '个'
   };
-  return unitMap[name] || '';
+  return unitMap[name] || '个';
 };
 
 // 监听气体类型切换，按需加载数据

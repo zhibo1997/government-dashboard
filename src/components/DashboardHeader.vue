@@ -113,6 +113,7 @@ const handleLogout = () => {
   background-size: 100% 201px;
   z-index: 10;
   position: relative;
+  top: -7px;
 
   .head-title {
     height: 148px;

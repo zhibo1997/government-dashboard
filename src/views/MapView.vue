@@ -23,7 +23,6 @@
 import { ref } from "vue";
 import { NSpace, NButton, createDiscreteApi } from "naive-ui";
 import Map from "@/mapComponents/Map.vue";
-import LayerManager from "@/mapComponents/LayerManager.vue";
 import MapToolbar from "@/mapComponents/MapToolbar.vue";
 
 const { message } = createDiscreteApi(["message"]);

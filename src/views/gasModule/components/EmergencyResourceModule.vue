@@ -135,7 +135,6 @@ onMounted(() => {
     display: grid;
     grid-template-columns: 200px 1fr 200px;
     grid-template-rows: repeat(3, 1fr);
-    row-gap: 8px;
     column-gap: 30px;
     align-items: center;
     position: relative;
@@ -144,7 +143,7 @@ onMounted(() => {
     background-size: contain;
     background-position: center;
     height: 220px;
-    padding: 20px 0;
+    padding: 10px 0;
     width: 730px
   }
 

@@ -113,10 +113,7 @@ watch([searchKeyword, () => filters.value.type], () => {
 // 重置筛选条件
 const resetFilters = () => {
   searchKeyword.value = "";
-  filters.value = {
-    company: "",
-    type: "",
-  };
+  filters.value.company = "";
   currentPage.value = 1;
   loadStations();
 };
