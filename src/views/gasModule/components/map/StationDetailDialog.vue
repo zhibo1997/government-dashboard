@@ -182,11 +182,11 @@ const addMarkerToMap = (longitude, latitude) => {
       position: Cesium.Cartesian3.fromDegrees(longitude, latitude),
       billboard: {
         image: GasMarkerIcon,
-         height: 240,
-        width: 96,
+        scale: 1.0, // 设置基础缩放比例
+        scaleByDistance: new Cesium.NearFarScalar(1000, 1, 1000000, 0),
         horizontalOrigin: Cesium.HorizontalOrigin.CENTER,
         verticalOrigin: Cesium.VerticalOrigin.BOTTOM,
-        pixelOffset: new Cesium.Cartesian2(0, 120), // 调整偏移量使图标底部对齐位置点
+        pixelOffset: new Cesium.Cartesian2(0, 0), // 调整偏移量使图标底部对齐位置点
       }
     });
 
