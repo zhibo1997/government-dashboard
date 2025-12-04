@@ -344,15 +344,10 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
          */
         Qhbm?: string;
         /**
-         * 所属专项
-         * @example "csaqzx_gs"
-         */
-        Sszx?: string;
-        /**
-         * 数据来源
+         * 关联数据类型
          * @example ""
          */
-        Sjly?: string;
+        Glmblx?: string;
       },
       params: RequestParams = {},
     ) =>

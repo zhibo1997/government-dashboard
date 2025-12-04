@@ -4,6 +4,7 @@ import LoginView from '../views/LoginView.vue'
 import WaterSupplyView from '../views/WaterSupply/index.vue'
 import MapView from '@/views/MapView.vue'
 import GasModule from '../views/GasModule/index.vue'
+import BridgeModule from '../views/BridgeModule/index.vue'
 
 const routes: RouteRecordRaw[] = [
   {
@@ -45,15 +46,15 @@ const routes: RouteRecordRaw[] = [
       title: '燃气专项'
     }
   },
-  // {
-  //   path: '/bridge',
-  //   name: 'bridge',
-  //   component: NewDashboardView,
-  //   meta: {
-  //     requiresAuth: true,
-  //     title: '桥梁专项'
-  //   }
-  // },
+  {
+    path: '/bridge',
+    name: 'bridge',
+    component: BridgeModule,
+    meta: {
+      requiresAuth: true,
+      title: 'bridgeProject'
+    }
+  },
   // {
   //   path: '/drainage',
   //   name: 'drainage',

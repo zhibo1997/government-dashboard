@@ -309,24 +309,24 @@ const currentTableData = computed(() => {
  */
 const fetchWarningAndAlarmData = async () => {
   try {
-    const data = await getWarnStatistics(RANQI_SSZX);
+    const data = await getWarnStatistics(RANQI_SSZX) as any;
     console.log("🚀 ~ fetchWarningAndAlarmData ~ data:", data)
     
     // 更新预警数据
-    warningTotal.value = data.totalCount || 0;
+    warningTotal.value = data?.totalCount || 0;
     warningStatus.value = [
-      { label: "已处置", count: data.handledCount || 0 },
-      { label: "处置中", count: data.handlingCount || 0 },
-      { label: "未处置", count: data.unhandledCount || 0 },
+      { label: "已处置", count: data?.handledCount || 0 },
+      { label: "处置中", count: data?.handlingCount || 0 },
+      { label: "未处置", count: data?.unhandledCount || 0 },
     ];
     warningLevels.value = [
-      { label: "一级预警", count: data.yjyjCount || 0 },
-      { label: "二级预警", count: data.ejyjCount || 0 },
-      { label: "三级预警", count: data.sjyjCount || 0 },
+      { label: "一级预警", count: data?.yjyjCount || 0 },
+      { label: "二级预警", count: data?.ejyjCount || 0 },
+      { label: "三级预警", count: data?.sjyjCount || 0 },
     ];
     
     // 更新报警数据
-    if (data.alarmCount) {
+    if (data?.alarmCount) {
       alarmTotal.value = data.alarmCount.totalCount || 0;
       alarmStatus.value = [
         { label: "已解除", count: data.alarmCount.yjc || 0 },
