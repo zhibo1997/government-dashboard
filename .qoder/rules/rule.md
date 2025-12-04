@@ -1,3 +1,6 @@
+---
+trigger: manual
+---
 <!--
  * @Author: Do not edit
  * @Date: 2025-10-16 20:57:08
