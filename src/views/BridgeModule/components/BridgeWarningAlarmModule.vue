@@ -309,8 +309,7 @@ const currentTableData = computed(() => {
  */
 const fetchWarningAndAlarmData = async () => {
   try {
-    const data = await getWarnStatistics(RANQI_SSZX) as any;
-    console.log("🚀 ~ fetchWarningAndAlarmData ~ data:", data)
+    const data = await getWarnStatistics('csaqzx_ql') as any;
     
     // 更新预警数据
     warningTotal.value = data?.totalCount || 0;

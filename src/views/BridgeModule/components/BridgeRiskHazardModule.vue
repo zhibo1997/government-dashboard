@@ -105,7 +105,7 @@ const fetchRectificationData = async () => {
     const zgDictionaries = await getCachedDictionary("zgzt");
     
     // 获取燃气专项综合关联目标类型
-    const rqzxGlmbzxDictionaries = await getCachedDictionary('rqzx_glmbzx');
+    const rqzxGlmbzxDictionaries = await getCachedDictionary('glmb_ql');
     const glmblxs = rqzxGlmbzxDictionaries.map(item => item.f_ItemValue).join(',');
     
     // 获取整改状态统计数据
