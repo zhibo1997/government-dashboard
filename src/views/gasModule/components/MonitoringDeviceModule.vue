@@ -206,12 +206,7 @@ const deviceCategories = ref<
 
 <style lang="scss" scoped>
 .monitoring-device-module {
-  .module-content {
-    padding: 20px 30px;
-    display: flex;
-    flex-direction: column;
-    gap: 25px;
-  }
+
 
   // 顶部统计卡片
   .top-stats {

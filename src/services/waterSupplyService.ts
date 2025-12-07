@@ -13,6 +13,7 @@ const waterApi = createWaterSupplyApi();
  * @returns 基础设施统计数据
  */
 export async function getWaterOverview(params?: {
+  Sszx: string;
   Jcsslx?: string;
   Sjly?: string;
 }) {

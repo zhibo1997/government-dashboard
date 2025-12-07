@@ -192,9 +192,7 @@ onMounted(async () => {
 
 <style lang="scss" scoped>
 .infrastructure-module {
-  .module-content {
-    padding: 20px 30px;
-  }
+
 
   .base-info {
     display: flex;

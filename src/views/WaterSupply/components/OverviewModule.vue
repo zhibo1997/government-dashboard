@@ -70,7 +70,7 @@ const getIconUrl = (iconName) => {
 // 初始化统计数据(获取 value)
 const initOverviewData = async () => {
   try {
-    const data = await getWaterOverview();
+    const data = await getWaterOverview({ Sszx: "csaqzx_gs" });
 
     if (data && data.length > 0) {
       // 更新 overviewData 中的 value 值
