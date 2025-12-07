@@ -24,6 +24,9 @@ export async function getBridgeCategoryStats() {
 export async function getBridgePageList(params?: {
   page?: string;
   rows?: string;
+  Llmc?: string;
+  Qljg?: string;
+  Qllx?: string;
 }) {
   const res = await bridgeApi.gspspDtransBridge.pageList(params);
   return res.data || [];
@@ -43,6 +46,14 @@ export async function getBridgeEquipmentOnlineCount() {
  * @returns 桥梁预警类型统计数据
  */
 export async function getBridgeWarningTypeList() {
-  const res = await bridgeApi.gspspDtransGas.bridgeYjListListList();
+  const res = await bridgeApi.gspspDtransBridge.yjlxSstjListList();
+  return res.data || [];
+}
+
+/**
+ * 获取桥梁监测设备运行状态统计列表
+ */
+export async function getBridgeEquipmentRunStatusList() {
+  const res = await bridgeApi.gspspDtransBridge.jscbYxztSstjListList();
   return res.data || [];
 }

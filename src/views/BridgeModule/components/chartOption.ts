@@ -116,7 +116,7 @@ export const createChartOption = (chart: any, chartIndex: number): echarts.EChar
       trigger: "item",
       formatter: "{b}: {c}",
       backgroundColor: "rgba(0, 0, 0, 0.7)",
-      borderColor: "#1677ff",
+      borderColor: "transparent",
       borderWidth: 1,
       textStyle: {
         color: "#ffffff",
@@ -136,21 +136,23 @@ export const createChartOption = (chart: any, chartIndex: number): echarts.EChar
         return item ? `{name|${name}}` : name;
       },
       textStyle: {
-        color: "#A0BFC9",
-        fontSize: 12,
+        color: "#fff",
+        fontSize: 16,
+        fontFamily: "SourceHanSansCNVF, SourceHanSansCNVF",
         rich: {
           name: {
-            color: "#A0BFC9",
-            fontSize: 12,
+            color: "#fff",
+            fontSize: 16,
           },
         },
       },
     },
     series: [
       {
-        name: chart.title,
+        name: chart.title.slice(0, 4)+'\n\n'+chart.title.slice(4),
+
         type: "pie",
-        radius: ["60%", "90%"],
+        radius: ["50%", "80%"],
         center: ["50%", "35%"],
         startAngle: 90,
         label: {

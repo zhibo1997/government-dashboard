@@ -353,12 +353,7 @@ onMounted(() => {
 .warning-alarm-module {
   flex: 1.3;
   background-image: url("@/assets/img/gasModule/warning_alarm_bg.webp");
-  .module-content {
-    padding: 20px 30px;
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-  }
+
 
   // 上方统计卡片区域
   .stats-section {

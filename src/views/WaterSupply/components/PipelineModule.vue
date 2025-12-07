@@ -177,7 +177,7 @@ const generateRandomPosition = (existingPositions, ballSize) => {
 };
 
 const initHiddenDangerTypes = async () => {
-  const res = await getDataItems("yhlx_gs");
+  const res = await getCachedDictionary("yhlx_gs");
   // 创建隐患类型映射
   const dangerTypeMap = {};
   res.forEach((item) => {

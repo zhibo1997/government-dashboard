@@ -163,6 +163,21 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
     /**
      * No description
      *
+     * @name YjlxSstjListList
+     * @summary 获取桥梁预警类型统计列表
+     * @request GET:/gspspDtransBridge/yjlxSstj/list
+     */
+    yjlxSstjListList: (params: RequestParams = {}) =>
+      this.request<object, any>({
+        path: `/gspspDtransBridge/yjlxSstj/list`,
+        method: "GET",
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
      * @name PageList
      * @summary 获取桥梁分页
      * @request GET:/gspspDtransBridge/page
@@ -179,6 +194,9 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
          * @example "10"
          */
         rows?: string;
+        Llmc?: string;
+        Qljg?: string;
+        Qllx?: string;
       },
       params: RequestParams = {},
     ) =>
@@ -186,6 +204,21 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         path: `/gspspDtransBridge/page`,
         method: "GET",
         query: query,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @name JscbYxztSstjListList
+     * @summary 获取桥梁监测设备运行状态统计列表
+     * @request GET:/gspspDtransBridge/jscbYxztSstj/list
+     */
+    jscbYxztSstjListList: (params: RequestParams = {}) =>
+      this.request<object, any>({
+        path: `/gspspDtransBridge/jscbYxztSstj/list`,
+        method: "GET",
         format: "json",
         ...params,
       }),
@@ -201,22 +234,6 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
     bridgeRateListList: (params: RequestParams = {}) =>
       this.request<object, any>({
         path: `/gspspDtransPubmnteqpinfo/bridge/rateList`,
-        method: "GET",
-        format: "json",
-        ...params,
-      }),
-  };
-  gspspDtransGas = {
-    /**
-     * No description
-     *
-     * @name BridgeYjListListList
-     * @summary 获取桥梁预警类型统计列表
-     * @request GET:/gspspDtransGas/BridgeYjList/list
-     */
-    bridgeYjListListList: (params: RequestParams = {}) =>
-      this.request<object, any>({
-        path: `/gspspDtransGas/BridgeYjList/list`,
         method: "GET",
         format: "json",
         ...params,

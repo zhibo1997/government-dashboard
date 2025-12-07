@@ -14,7 +14,7 @@ import { NMessageProvider, NDialogProvider, NConfigProvider, zhCN, dateZhCN } fr
     <n-dialog-provider>
       <n-message-provider>
         <RouterView v-slot="{ Component }">
-          <keep-alive :include="['WaterSupplyView', 'GasModule']">
+          <keep-alive :include="['WaterSupplyView', 'GasModule','BridgeModule']">
             <component :is="Component" />
           </keep-alive>
         </RouterView>
@@ -99,7 +99,7 @@ import { NMessageProvider, NDialogProvider, NConfigProvider, zhCN, dateZhCN } fr
 
   .module-content {
     flex: 1;
-    padding: 40px 30px;
+    padding: 20px 30px;
     height: calc(100% - 90px);
     display: flex;
     flex-direction: column;

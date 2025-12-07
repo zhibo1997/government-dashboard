@@ -39,37 +39,6 @@ export const DEFAULT_COMMON_PARAMS: Omit<CommonParams, 'Sszx'> = {
   Qhbm: '420222', // 阳新县
 }
 
-// 业务模块配置映射
-export const MODULE_CONFIG: Record<BusinessModule, CommonParams> = {
-  [BusinessModule.WATER_SUPPLY]: {
-    ...DEFAULT_COMMON_PARAMS,
-    Sszx: BusinessModule.WATER_SUPPLY,
-  },
-  [BusinessModule.DRAINAGE]: {
-    ...DEFAULT_COMMON_PARAMS,
-    Sszx: BusinessModule.DRAINAGE,
-  },
-  [BusinessModule.GAS]: {
-    ...DEFAULT_COMMON_PARAMS,
-    Sszx: BusinessModule.GAS,
-  },
-  [BusinessModule.BRIDGE]: {
-    ...DEFAULT_COMMON_PARAMS,
-    Sszx: BusinessModule.BRIDGE,
-  },
-  [BusinessModule.GAS_END_USER]: {
-    ...DEFAULT_COMMON_PARAMS,
-    Sszx: BusinessModule.GAS_END_USER,
-  },
-  [BusinessModule.BOTTLED_LPG]: {
-    ...DEFAULT_COMMON_PARAMS,
-    Sszx: BusinessModule.BOTTLED_LPG,
-  },
-  [BusinessModule.THIRD_PARTY_CONSTRUCTION]: {
-    ...DEFAULT_COMMON_PARAMS,
-    Sszx: BusinessModule.THIRD_PARTY_CONSTRUCTION,
-  },
-}
 
 /**
  * 获取业务模块的默认参数
@@ -77,7 +46,7 @@ export const MODULE_CONFIG: Record<BusinessModule, CommonParams> = {
  * @returns 默认参数对象
  */
 export function getModuleParams(module: BusinessModule): CommonParams {
-  return { ...MODULE_CONFIG[module] }
+  return { ...DEFAULT_COMMON_PARAMS }
 }
 
 /**

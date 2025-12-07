@@ -303,9 +303,7 @@ onMounted(async () => {
 
 <style lang="scss" scoped>
 .risk-hazard-module {
-  .module-content {
-    padding: 20px 30px;
-  }
+
 
   .risk-container {
     display: flex;

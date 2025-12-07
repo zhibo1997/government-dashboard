@@ -41,22 +41,22 @@ import { onMounted, ref, nextTick } from "vue";
 import * as echarts from "echarts";
 import { getBridgeCategoryStats } from "@/services/bridgeService";
 import { createChartOption, getGradientColor } from "./chartOption";
+import { getWaterOverview } from "@/services/waterSupplyService";
+import { getCachedDictionary } from "@/services/dictionaryService";
 
 defineOptions({
   name: "OverviewModule",
 });
 
 // ==================== 数据状态 ====================
-// 统计卡片数据（Mock数据）
-const statsCards = ref([
-  { id: 1, value: 16, label: "桥梁总数", type: "total" },
-  { id: 2, value: 6, label: "大桥及特大桥", type: "large" },
-  { id: 3, value: 7, label: "立交桥", type: "overpass" },
-  { id: 4, value: 3, label: "涵洞", type: "culvert" },
-]);
+// 统计卡片数据（从接口获取）
+const statsCards = ref<any[]>([]);
 
 // 图表配置
 const chartConfigs = ref<any[]>([]);
+
+// 字典映射
+const qlTypeMap = ref<any>({});
 
 // ==================== 数据获取与处理 ====================
 /**
@@ -69,6 +69,50 @@ const fetchBridgeData = async () => {
   } catch (error) {
     console.error("获取桥梁分类统计数据失败:", error);
   }
+};
+
+// 获取卡片数据
+const fetchCardData = async () => {
+  try {
+    // 获取字典数据
+    const dictionaries = await getCachedDictionary("jcssdstjlx_ql");
+    qlTypeMap.value = dictionaries.reduce((acc, cur) => {
+      acc[cur.f_ItemValue] = cur.f_ItemName;
+      return acc;
+    }, {});
+    
+    // 获取统计数据
+    const data = await getWaterOverview({ Sszx: "csaqzx_ql" }) as any[];
+    processCardData(data);
+  } catch (error) {
+    console.error("获取卡片数据失败:", error);
+  }
+};
+
+/**
+ * 处理卡片数据
+ */
+const processCardData = (data: any[]) => {
+  // 映射数据到卡片（不进行排序）
+  statsCards.value = data.map((item, index) => ({
+    id: index + 1,
+    value: item.jcsstjsl || 0, // 使用 jcsstjsl 作为数量
+    label: qlTypeMap.value[item.jcsslx] || item.jcsslx, // 使用字典映射
+    type: getTypeByCode(item.jcsslx) // 根据代码确定类型
+  }));
+};
+
+/**
+ * 根据代码确定卡片类型
+ */
+const getTypeByCode = (code: string) => {
+  const typeMap: Record<string, string> = {
+    "jcssdstj0601": "total",    // 桥梁总数
+    "jcssdstj0602": "large",    // 大桥及特大桥
+    "jcssdstj0603": "overpass", // 立交桥
+    "jcssdstj0604": "culvert"   // 涵洞
+  };
+  return typeMap[code] || "default";
 };
 
 /**
@@ -101,8 +145,6 @@ const processChartData = (data: any[]) => {
     })),
   }));
 };
-
-// ... existing code ...
 
 /**
  * 按组分解图例（每行显示2个）
@@ -138,6 +180,8 @@ const renderCharts = () => {
 
 // ==================== 生命周期 ====================
 onMounted(async () => {
+  // 获取卡片数据
+  await fetchCardData();
   // 获取桥梁分类统计数据
   await fetchBridgeData();
   // 渲染图表

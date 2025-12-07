@@ -25,20 +25,25 @@
         <!-- 名称搜索 -->
         <div class="filter-row search-row">
           <div class="filter-item search-item">
-            <input v-model="searchKeyword" type="text" class="filter-input" placeholder="请输入桥梁名称" />
+            <input v-model="filters.name" type="text" class="filter-input" placeholder="请输入桥梁名称" />
           </div>
           <button class="reset-btn" @click="resetFilters">重置</button>
         </div>
-
-        <!-- 桥梁类型 -->
-        <div class="filter-item">
-          <select v-model="filters.type" class="filter-select">
-            <option value="">全部类型</option>
-            <option value="qllx001">钢构桥</option>
-            <option value="qllx002">钢筋混凝土桥</option>
-            <option value="qllx003">圬工桥</option>
-            <option value="qllx004">其他</option>
-          </select>
+        <!-- 桥梁结构 -->
+        <div class="filter-row">
+          <div class="filter-item">
+            <select v-model="filters.structure" class="filter-select">
+              <option value="">结构</option>
+              <option :value="value.value" v-for="value in qljgDict" :key="value.value">{{ value.text }}</option>
+            </select>
+          </div>
+          <!-- 桥梁类型 -->
+          <div class="filter-item">
+            <select v-model="filters.type" class="filter-select">
+              <option value="">类型</option>
+              <option :value="value.value" v-for="value in qllxDict" :key="value.value">{{ value.text }}</option>
+            </select>
+          </div>
         </div>
       </div>
     </div>
@@ -47,19 +52,14 @@
       <!-- 主标题 -->
       <div class="panel-title">
         <div class="title-container">
-          <span class="title-text">共{{ filteredBridges.length }}条记录</span>
+          <span class="title-text">共{{ totalRecords }}条记录</span>
         </div>
       </div>
       <!-- 桥梁列表 -->
       <div class="list-section">
         <div class="list-content">
-          <div 
-            class="bridge-item" 
-            v-for="bridge in currentPageBridges" 
-            :key="bridge.lsh"
-            :class="{ active: bridge.lsh === activeBridgeId }" 
-            @click="handleBridgeClick(bridge)"
-          >
+          <div class="bridge-item" v-for="bridge in currentPageBridges" :key="bridge.lsh"
+            :class="{ active: bridge.lsh === activeBridgeId }" @click="handleBridgeClick(bridge)">
             <div class="bridge-badges">
               <span class="badge badge-type">{{ getBridgeType(bridge.qllx) }}</span>
             </div>
@@ -71,13 +71,8 @@
         <!-- 分页 -->
         <div class="pagination">
           <button class="page-btn" @click="prevPage" :disabled="currentPage === 1">‹</button>
-          <button 
-            v-for="page in visiblePages" 
-            :key="page" 
-            class="page-btn" 
-            :class="{ active: page === currentPage }"
-            @click="currentPage = page"
-          >
+          <button v-for="page in visiblePages" :key="page" class="page-btn" :class="{ active: page === currentPage }"
+            @click="currentPage = page">
             {{ page }}
           </button>
           <button class="page-btn page-more" v-if="totalPages > 6">...</button>
@@ -92,7 +87,17 @@
 <script setup lang="ts">
 import { getBridgePageList } from "@/services/bridgeService";
 import { ref, computed, onMounted, watch } from "vue";
+import { getCachedDictionary } from "@/services/dictionaryService";
 
+const qljgDict = ref([]);
+const qllxDict = ref([]);
+
+onMounted(async () => {
+  const dict1 = await getCachedDictionary("qljg");
+  const dict2 = await getCachedDictionary("qllx");
+  qljgDict.value = dict1.map((item) => ({ value: item.f_ItemValue, text: item.f_ItemName }));
+  qllxDict.value = dict2.map((item) => ({ value: item.f_ItemValue, text: item.f_ItemName }));
+});
 const props = defineProps({
   visible: {
     type: Boolean,
@@ -106,23 +111,25 @@ const emit = defineEmits(["update:visible", "bridge-click"]);
 const isCollapsed = ref(false);
 const showSearch = ref(false);
 
-// 搜索关键词
-const searchKeyword = ref("");
+
 
 // 筛选条件
 const filters = ref({
-  type: "",
+  name: "", // 桥梁名称
+  structure: "", // 桥梁结构
+  type: "", // 桥梁类型
 });
 
 // 监听筛选条件变化
-watch([searchKeyword, () => filters.value.type], () => {
+watch([() => filters.value.name, () => filters.value.structure, () => filters.value.type], () => {
   currentPage.value = 1;
   loadBridges();
 }, { deep: true });
 
 // 重置筛选条件
 const resetFilters = () => {
-  searchKeyword.value = "";
+  filters.value.name = "";
+  filters.value.structure = "";
   filters.value.type = "";
   currentPage.value = 1;
   loadBridges();
@@ -142,30 +149,36 @@ const getBridgeType = (qllx) => {
 // 加载桥梁数据
 const loadBridges = async () => {
   try {
-    const res = await getBridgePageList({
+    const params: any = {
       page: currentPage.value.toString(),
       rows: pageSize.value.toString(),
-    });
-    if (res && Array.isArray(res)) {
-      // 前端过滤
-      let filtered: any[] = res;
-      
-      if (searchKeyword.value) {
-        filtered = filtered.filter(item => 
-          item.llmc?.includes(searchKeyword.value)
-        );
-      }
-      
-      if (filters.value.type) {
-        filtered = filtered.filter(item => 
-          item.qllx === filters.value.type
-        );
-      }
-      
-      bridges.value = filtered;
+    };
+
+    // 添加搜索条件
+    if (filters.value.name) {
+      params.Llmc = filters.value.name;
+    }
+    if (filters.value.structure) {
+      params.Qljg = filters.value.structure;
+    }
+    if (filters.value.type) {
+      params.Qllx = filters.value.type;
+    }
+
+    const res: any = await getBridgePageList(params);
+    
+    // 处理分页数据结构
+    if (res && res.rows && Array.isArray(res.rows)) {
+      bridges.value = res.rows;
+      totalRecords.value = res.total || 0;
+    } else {
+      bridges.value = [];
+      totalRecords.value = 0;
     }
   } catch (error) {
     console.error("加载桥梁数据失败:", error);
+    bridges.value = [];
+    totalRecords.value = 0;
   }
 };
 
@@ -179,6 +192,7 @@ const activeBridgeId = ref(null);
 // 分页
 const currentPage = ref(1);
 const pageSize = ref(7);
+const totalRecords = ref(0);
 
 // 桥梁数据
 const bridges = ref([]);
@@ -195,7 +209,7 @@ const currentPageBridges = computed(() => {
 
 // 总页数
 const totalPages = computed(() => {
-  return Math.ceil(filteredBridges.value.length / pageSize.value);
+  return Math.ceil(totalRecords.value / pageSize.value);
 });
 
 // 可见页码
@@ -220,7 +234,7 @@ const toggleSearch = () => {
 // 处理桥梁点击
 const handleBridgeClick = async (bridge) => {
   activeBridgeId.value = bridge.lsh;
-  
+
   try {
     // 发送桥梁数据
     emit("bridge-click", bridge);

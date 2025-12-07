@@ -9,7 +9,7 @@
         <div class="stat-card">
           <div class="stat-icon">
             <img
-              src="@/assets/img/gasModule/device_count.webp"
+              src="@/assets/img/device_count.webp"
               alt="监测设备"
             />
           </div>
@@ -29,7 +29,7 @@
 
         <div class="stat-card">
           <div class="stat-icon">
-            <img src="@/assets/img/gasModule/online_rate.webp" alt="在线率" />
+            <img src="@/assets/img/online_rate.webp" alt="在线率" />
           </div>
           <div class="stat-info">
             <div class="stat-label">在线率</div>
