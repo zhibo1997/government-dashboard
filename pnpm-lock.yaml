@@ -63,6 +63,9 @@ importers:
       '@typescript-eslint/parser':
         specifier: ^8.41.0
         version: 8.46.3(eslint@9.39.1)(typescript@5.9.3)
+      '@vicons/tabler':
+        specifier: ^0.13.0
+        version: 0.13.0
       '@vitejs/plugin-vue':
         specifier: ^6.0.1
         version: 6.0.1(vite@7.1.12(@types/node@24.10.0)(sass@1.93.3)(terser@5.44.0))(vue@3.5.22(typescript@5.9.3))
@@ -1241,6 +1244,9 @@ packages:
 
   '@vicons/ionicons5@0.12.0':
     resolution: {integrity: sha512-Iy1EUVRpX0WWxeu1VIReR1zsZLMc4fqpt223czR+Rpnrwu7pt46nbnC2ycO7ItI/uqDLJxnbcMC7FujKs9IfFA==}
+
+  '@vicons/tabler@0.13.0':
+    resolution: {integrity: sha512-AykuhiqjszkIoAL/7knIFm6RDOBS1ZmQdJfQ+RNLEah0fVsxykUFCfMBSNZh8lOzC85EtdD1k5g/sv5GYk0Ohg==}
 
   '@vitejs/plugin-vue@6.0.1':
     resolution: {integrity: sha512-+MaE752hU0wfPFJEUAIxqw18+20euHHdxVtMvbFcOEpjEyfqXH/5DCoTHiVJ0J29EhTJdoTkjEv5YBKU9dnoTw==}
@@ -4585,6 +4591,8 @@ snapshots:
       eslint-visitor-keys: 4.2.1
 
   '@vicons/ionicons5@0.12.0': {}
+
+  '@vicons/tabler@0.13.0': {}
 
   '@vitejs/plugin-vue@6.0.1(vite@7.1.12(@types/node@24.10.0)(sass@1.93.3)(terser@5.44.0))(vue@3.5.22(typescript@5.9.3))':
     dependencies:

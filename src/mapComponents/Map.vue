@@ -1,15 +1,21 @@
 <template>
   <div class="map-container">
-    <vc-viewer ref="cesiumViewer" :selectionIndicator="false" :camera="camera" :infoBox="false" :sceneMode="sceneMode" :requestRenderMode="true"
+    <vc-viewer ref="cesiumViewer" :selectionIndicator="false" :camera="camera" :infoBox="false" :sceneMode="sceneMode" :accessToken="defaultAccessToken" :requestRenderMode="true"
       :maximumRenderTimeChange="Infinity" @ready="onViewerReady">
-      <!-- 天地图底图 -->
+      <!-- 底图切换 (天地图 + Cesium Ion混合) -->
       <vc-layer-imagery ref="basemapLayer">
-        <vc-imagery-provider-tianditu 
-          :map-style="currentMapStyle" 
-          :token="tiandituToken" 
-          @readyPromise="onTiandituReady" 
-          @errorEvent="onTiandituError" 
+        <!-- 天地图底图 (影像/矢量) -->
+        <vc-imagery-provider-tianditu
+          :map-style="tiandituMapStyle"
+          :token="tiandituToken"
+          @readyPromise="onTiandituReady"
+          @errorEvent="onTiandituError"
         />
+        <!-- Cesium Ion底图 (地形) -->
+        <!-- <vc-imagery-provider-ion
+          :assetId="cesiumIonAssetId"
+          :accessToken="defaultAccessToken"
+        /> -->
       </vc-layer-imagery>
 
       <!-- 阳新县行政区域边界 -->
@@ -26,8 +32,35 @@
       <vc-primitive-tileset
         ref="defaultTileset"
         :url="default3DTilesUrl"
-        :show="false"
+        :show="defaultTilesetVisible"
         @ready="on3DTilesReady"
+      >
+      </vc-primitive-tileset>
+
+      <!-- 莲花湖大桥 -->
+      <vc-primitive-tileset
+        ref="lianhuahuBridge"
+        url="http://webres.cityfun.com.cn/CSSMX/model/LHQ/tileset.json"
+        :show="bridgeModelsVisible"
+        @readyPromise="onBridgeTilesetReady('莲花湖大桥')"
+      >
+      </vc-primitive-tileset>
+
+      <!-- 陵园大道立交桥 -->
+      <vc-primitive-tileset
+        ref="lingyuandadaoBridge"
+        url="http://webres.cityfun.com.cn/CSSMX/model/LYDDLJQ/tileset.json"
+        :show="bridgeModelsVisible"
+        @ready="onBridgeTilesetReady('陵园大道立交桥')"
+      >
+      </vc-primitive-tileset>
+
+      <!-- 明月湾大桥 -->
+      <vc-primitive-tileset
+        ref="mingyuewanBridge"
+        url="http://webres.cityfun.com.cn/CSSMX/model/MYWDQ/tileset.json"
+        :show="bridgeModelsVisible"
+        @ready="onBridgeTilesetReady('明月湾大桥')"
       >
       </vc-primitive-tileset>
 
@@ -40,8 +73,10 @@
     <ResponsiveWrapper>
       <MapToolbar ref="toolbarRef" :viewer-instance="viewerInstance" :scene-mode="sceneMode"
         :current-base-map="currentBaseMapType" :compass-rotation="compassRotation"
+        :bridge-models-visible="bridgeModelsVisible" :default-tileset-visible="defaultTilesetVisible"
         @update:scene-mode="handleSceneModeChange" @update:base-map="handleBaseMapChange" @reset-map="handleResetMap"
-        @toggle-measure="showMeasureTool = !showMeasureTool" />
+        @toggle-measure="showMeasureTool = !showMeasureTool"
+        @toggle-bridge-models="toggleBridgeModels" @toggle-default-tileset="toggleDefaultTileset" />
 
       <!-- 测量工具面板 -->
       <MeasureTool v-model:visible="showMeasureTool" @toggle-distance="toggleDistance" @toggle-area="toggleArea"
@@ -51,26 +86,23 @@
 
 </template>
 
+
 <script setup lang="ts">
 import { ref, onMounted, onBeforeUnmount, computed, watch } from 'vue'
 import { VcCamera ,VcColor} from 'vue-cesium/lib/utils/types.js'
-import cesiumUtils from '../hook/mapUtils'
-import { geoServerWFS } from '../services/wfsService'
 import mapConfig from '@/config/mapConfig'
 import MeasureTool from './MeasureTool.vue'
 import MapToolbar from './MapToolbar.vue'
-import { useMapHooks } from '@/hook/useMapHooks'
 
 import { inject } from 'vue'
 import ResponsiveWrapper from '@/components/ResponsiveWrapper.vue'
-
+const defaultAccessToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiI1Njk0MWFkNy00NjAzLTRhYTAtYWM4Yi04YjM4Njg4M2IyMzEiLCJpZCI6Mjg1NTg3LCJpYXQiOjE3NDIzNTA2NDR9.tZ0ZoIsk2bMtMFtzNrO0WrRhS0VPfBhr0_78mtSYpMo';
 // 定义组件名称以支持keep-alive
 defineOptions({
   name: 'CesiumMap'
 });
 
 // 使用地图hooks
-const { restrictCameraBoundsByGeoJSON, restrictCameraBounds } = useMapHooks()
 
 // 相机范围限制清理函数
 let cameraBoundsCleanup: (() => void) | null = null
@@ -99,14 +131,39 @@ const mainFabOpts = {
   modelValue: false
 }
 
-// 从环境变量获取天地图token
-const tiandituToken = import.meta.env ? import.meta.env.VITE_TIANDITU_KEY || '' : ''
+// 桥梁3D模型显示状态
+const bridgeModelsVisible = ref(true)
+
+// 默认3D Tiles显示状态
+const defaultTilesetVisible = ref(false)
 
 // 底图类型
 const currentBaseMapType = ref<'vec' | 'img' | 'ter'>('img')
 
+// 天地图 Token
+const tiandituToken = import.meta.env ? import.meta.env.VITE_TIANDITU_KEY || '' : ''
+
+// 天地图地图样式映射
+const tiandituMapStyleMap: Record<'img' | 'vec' | 'ter', 'img_c' | 'vec_c' | 'ter_c'> = {
+  'img': 'img_c',    // 影像地图
+  'vec': 'vec_c',     // 矢量地图
+  'ter': 'ter_c'     // 地形地图
+}
+
+// 当前天地图样式
+const tiandituMapStyle = computed((): 'img_c' | 'vec_c' | 'ter_c' => {
+  return tiandituMapStyleMap[currentBaseMapType.value as 'img' | 'vec']
+})
+const mapAssetId = {
+  'img': 2,
+  'vec': 4,
+  'ter': 1
+}
+const cesiumIonAssetId=computed(() => {
+  return mapAssetId[currentBaseMapType.value as 'vec' | 'img' | 'ter']
+})
 // 场景模式: 2=2D, 3=3D
-const sceneMode = ref(2)
+const sceneMode = ref<2 | 3>(3)
 
 // 指北针旋转角度
 const compassRotation = ref(0)
@@ -179,15 +236,7 @@ const handleMeasureDrawEvt = (e: any) => {
   }
 }
 
-// 计算天地图样式字符串
-const currentMapStyle = computed(() => {
-  const styleMap: Record<string, string> = {
-    'vec': 'vec_c',  // 矢量+中文标注
-    'img': 'img_c',  // 影像+中文标注
-    'ter': 'ter_c'   // 地形+中文标注
-  }
-  return styleMap[currentBaseMapType.value] as any
-})
+
 
 // 如果 ResponsiveWrapper 提供了 scale（推荐）
 const responsiveScale = inject('responsiveScale', ref(1))
@@ -223,6 +272,19 @@ function on3DTilesReady({ Cesium, cesiumObject }: any) {
   if (cesiumObject) {
     cesiumObject.maximumScreenSpaceError = 16
     console.log('3D Tiles配置已应用')
+  }
+}
+
+/**
+ * 桥梁3D Tiles加载完成回调
+ */
+function onBridgeTilesetReady(name: string) {
+  return ({ Cesium, cesiumObject }: any) => {
+    alert(`3D Tiles加载完成: ${name}`)
+    console.log(`✅ ${name}3D模型加载完成`)
+    if (cesiumObject) {
+      cesiumObject.maximumScreenSpaceError = 16
+    }
   }
 }
 
@@ -293,18 +355,19 @@ function handleFeatureClick(feature: any) {
 }
 
 /**
- * 天地图加载成功
+ * 切换桥梁3D模型显示状态
  */
-function onTiandituReady() {
-  console.log('✅ 天地图底图加载成功')
+const toggleBridgeModels = () => {
+  bridgeModelsVisible.value = !bridgeModelsVisible.value
+  console.log(`✅ 桥梁3D模型${bridgeModelsVisible.value ? '显示' : '隐藏'}`)
 }
 
 /**
- * 天地图加载失败
+ * 切换默认3D Tiles显示状态
  */
-function onTiandituError(error: any) {
-  console.error('❌ 天地图底图加载失败:', error)
-  console.error('请检查天地图Token是否配置正确')
+const toggleDefaultTileset = () => {
+  defaultTilesetVisible.value = !defaultTilesetVisible.value
+  console.log(`✅ 默认3D Tiles${defaultTilesetVisible.value ? '显示' : '隐藏'}`)
 }
 
 /**
@@ -329,7 +392,29 @@ const handleSceneModeChange = (mode: 2 | 3) => {
  */
 const handleBaseMapChange = (type: 'vec' | 'img' | 'ter') => {
   currentBaseMapType.value = type
-  console.log(`✅ 底图切换为: ${type}`)
+  const typeNames = {
+    'img': '影像',
+    'vec': '矢量',
+    'ter': '地形'
+  }
+  const providerInfo = type === 'ter' 
+    ? '(Cesium Ion - Asset ID: 3)'
+    : `(天地图 - ${type === 'img' ? '影像' : '矢量'})`
+  console.log(`✅ 底图切换为: ${typeNames[type]} ${providerInfo}`)
+}
+
+/**
+ * 天地图加载完成回调
+ */
+function onTiandituReady({ Cesium, cesiumObject }: any) {
+  console.log(`✅ 天地图底图(${tiandituMapStyle.value})加载完成`)
+}
+
+/**
+ * 天地图加载错误回调
+ */
+function onTiandituError(error: any) {
+  console.error(`❌ 天地图加载失败: ${error?.message || error}`)
 }
 
 /**
@@ -398,7 +483,11 @@ defineExpose({
   compassRotation,
   defaultTileset,
   yangxinBoundary,
+  bridgeModelsVisible,
+  defaultTilesetVisible,
   toggleMeasureTool: () => { showMeasureTool.value = !showMeasureTool.value },
+  toggleBridgeModels,
+  toggleDefaultTileset,
   toolbarRef,
 })
 </script>

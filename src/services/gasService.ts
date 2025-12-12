@@ -80,7 +80,7 @@ export async function getGasEnterprisePageList(params?: {
   qymc?: string;
 }) {
   const res = await gasApi.gspspDtransGas.pageList(params);
-  return res.data || [];
+  return res.data || {};
 }
 
 /**

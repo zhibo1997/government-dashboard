@@ -9,21 +9,6 @@
 
     <!-- 工具按钮组 (收缩时隐藏) -->
     <template v-if="!isCollapsed">
-      <!-- 图层树 -->
-      <div class="toolbar-item" :class="{ active: showLayerTreePanel }" title="图层树">
-        <div class="tool-icon" @click="toggleLayerTreePanel">
-          <img src="@/assets/map/map_tree.webp" alt="" />
-        </div>
-        <!-- 图层树面板 -->
-        <transition name="slide-left">
-          <div v-if="showLayerTreePanel" class="layer-tree-panel">
-            <OptimizedLayerTree ref="layerTreeRef" :viewer-instance="props.viewerInstance" @load-mvt="handleLoadMVT"
-              @load-3dtiles="handleLoad3DTiles" @layer-toggle="handleLayerToggle"
-              @layer-opacity-change="handleLayerOpacityChange" />
-          </div>
-        </transition>
-      </div>
-
       <!-- 底图切换 -->
       <div class="toolbar-item" :class="{ active: showBaseMapPanel }" @click.stop="toggleBaseMapPanel" title="底图切换">
         <div class="tool-icon">
@@ -43,6 +28,21 @@
           </div>
         </transition>
       </div>
+      <!-- 图层树 -->
+      <div class="toolbar-item" :class="{ active: showLayerTreePanel }" title="图层树">
+        <div class="tool-icon" @click="toggleLayerTreePanel">
+          <img src="@/assets/map/map_tree.webp" alt="" />
+        </div>
+        <!-- 图层树面板 -->
+        <transition name="slide-left">
+          <div v-if="showLayerTreePanel" class="layer-tree-panel">
+            <OptimizedLayerTree ref="layerTreeRef" :viewer-instance="props.viewerInstance" @load-mvt="handleLoadMVT"
+              @load-3dtiles="handleLoad3DTiles" @layer-toggle="handleLayerToggle"
+              @layer-opacity-change="handleLayerOpacityChange" />
+          </div>
+        </transition>
+      </div>
+
 
       <!-- 地图重置 -->
       <div class="toolbar-item" @click="resetMap" title="重置地图">
@@ -71,6 +71,26 @@
           <img src="@/assets/map/measure.webp" alt="" />
         </div>
       </div>
+
+      <!-- 桥梁3D模型 -->
+      <div class="toolbar-item" :class="{ active: props.bridgeModelsVisible }" @click="$emit('toggle-bridge-models')"
+        title="桥梁3D模型">
+        <div class="tool-icon">
+          <div class="icon-placeholder">
+            <BuildingBridge />
+          </div>
+        </div>
+      </div>
+
+      <!-- 默认3D Tiles -->
+      <div class="toolbar-item" :class="{ active: props.defaultTilesetVisible }"
+        @click="$emit('toggle-default-tileset')" title="默认3D Tiles">
+        <div class="tool-icon">
+          <div class="icon-placeholder">
+            <BuildingSkyscraper />
+          </div>
+        </div>
+      </div>
     </template>
   </div>
 </template>
@@ -79,6 +99,8 @@
 import { ref } from "vue";
 import OptimizedLayerTree from "./OptimizedLayerTree.vue";
 import { useMapHooks } from "@/hook/useMapHooks";
+import { BuildingBridge,BuildingSkyscraper } from "@vicons/tabler";
+
 const cesiumUtils = useMapHooks();
 
 // Props - 从父组件接收状态
@@ -87,6 +109,8 @@ interface Props {
   sceneMode: 2 | 3
   currentBaseMap: 'vec' | 'img' | 'ter'
   compassRotation: number
+  bridgeModelsVisible: boolean
+  defaultTilesetVisible: boolean
 }
 
 const props = defineProps<Props>()
@@ -97,6 +121,8 @@ const emit = defineEmits<{
   'update:base-map': [type: 'vec' | 'img' | 'ter']
   'reset-map': []
   'toggle-measure': []
+  'toggle-bridge-models': []
+  'toggle-default-tileset': []
 }>()
 
 // 本地UI状态管理
@@ -287,9 +313,14 @@ const handleLayerOpacityChange = (layerId: string, opacity: number) => {
 
 // 切换底图
 const switchBaseMap = (type: "vec" | "img" | "ter") => {
+  const typeNames: Record<'vec' | 'img' | 'ter', string> = {
+    'img': '影像',
+    'vec': '矢量',
+    'ter': '地形'
+  }
   emit('update:base-map', type)
   showBaseMapPanel.value = false
-  console.log(`✅ 请求切换底图: ${type}`)
+  console.log(`✅ 底图已切换为: ${typeNames[type]}`)
 }
 
 // 重置地图
@@ -392,8 +423,12 @@ defineExpose({
 
       .icon-placeholder {
         font-size: 32px;
-        color: #1677ff;
+        color: #ddd;
         text-shadow: 0 2px 8px rgba(22, 119, 255, 0.5);
+        svg {
+          width: 48px;
+          height: 48px;
+        }
       }
     }
   }

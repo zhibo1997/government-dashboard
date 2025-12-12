@@ -1,5 +1,5 @@
 <template>
-  <div class="station-list-panel" :class="{ collapsed: isCollapsed }">
+  <div class="station-list-panel">
     <!-- 头部工具栏 -->
     <div class="panel-header">
       <button class="search-icon-btn btn" @click="toggleSearch">
@@ -7,10 +7,10 @@
       </button>
       <button class="toggle-btn btn" @click="togglePanel">
         <img src="@/assets/img/gasModule/icon_menu.webp" class="icon" alt="" />
-        <span class="text">收起侧边栏</span>
+        <span class="text">{{ isCollapsed ? '展开侧边栏' : '收起侧边栏' }}</span>
       </button>
     </div>
-    <div class="panel-content">
+    <div class="panel-content" :class="{ hidden: isCollapsed }">
       <!-- 主标题 -->
       <div class="panel-title">
         <div class="title-container">
@@ -41,18 +41,18 @@
       </div>
     </div>
 
-    <div class="panel-content">
+    <div class="panel-content" :class="{ hidden: isCollapsed }">
 
       <!-- 主标题 -->
       <div class="panel-title">
         <div class="title-container">
-          <span class="title-text">共{{ filteredStations.length }}条记录</span>
+          <span class="title-text">共{{ total }}条记录</span>
         </div>
       </div>
       <!-- 企业列表 -->
       <div class="list-section">
         <div class="list-content">
-          <div class="station-item" v-for="station in currentPageStations" :key="station.lsh"
+          <div class="station-item" v-for="station in stations" :key="station.lsh"
             :class="{ active: station.lsh === activeStationId }" @click="handleStationClick(station)">
             <div class="station-badges">
               <span class="badge badge-type">{{ getStationType(station.rqlx) }}</span>
@@ -130,14 +130,15 @@ const getStationType = (rqlx) => {
 // 加载场站数据
 const loadStations = async () => {
   try {
-    const res = await getGasEnterprisePageList({
+    const response: any = await getGasEnterprisePageList({
       page: currentPage.value.toString(),
       rows: pageSize.value.toString(),
       rqlx: filters.value.type,
       qymc: searchKeyword.value
     });
-    if (res) {
-      stations.value = res;
+    if (response && response.rows) {
+      stations.value = response.rows || [];
+      total.value = response.records || 0;
     }
   } catch (error) {
     console.error("加载场站数据失败:", error);
@@ -153,24 +154,17 @@ const activeStationId = ref(null);
 
 // 分页
 const currentPage = ref(1);
-const pageSize = ref(7);
+const pageSize = ref(10);
+const total = ref(0);
 
 // 场站数据
 const stations = ref([]);
 
-// 过滤后的场站列表（前端过滤已移至API调用）
-const filteredStations = computed(() => stations.value);
 
-// 当前页显示的场站
-const currentPageStations = computed(() => {
-  const start = (currentPage.value - 1) * pageSize.value;
-  const end = start + pageSize.value;
-  return filteredStations.value.slice(start, end);
-});
 
 // 总页数
 const totalPages = computed(() => {
-  return Math.ceil(filteredStations.value.length / pageSize.value);
+  return Math.ceil(stations.value.length / pageSize.value);
 });
 
 // 可见页码
@@ -196,7 +190,7 @@ const toggleSearch = () => {
 // 处理场站点击
 const handleStationClick = async (station) => {
   activeStationId.value = station.lsh;
-  
+
   try {
     let detailData;
     // 根据燃气类型调用不同的详情接口
@@ -207,14 +201,14 @@ const handleStationClick = async (station) => {
       // 液化气
       detailData = await getBottleGasEnterpriseLedgerDetail(station.lsh);
     }
-    
+
     // 合并基础数据和详情数据
     const fullStationData = {
       ...station,
       ...detailData,
       gasType: station.rqlx // 保留燃气类型标识
     };
-    
+
     emit("station-click", fullStationData);
   } catch (error) {
     console.error("获取企业详情失败:", error);
@@ -240,6 +234,10 @@ const nextPage = () => {
 <style lang="scss" scoped>
 .panel-content {
   margin-bottom: 20px;
+
+  &.hidden {
+    display: none;
+  }
 }
 
 .station-list-panel {
@@ -253,6 +251,28 @@ const nextPage = () => {
   flex-direction: column;
   overflow: hidden;
   pointer-events: auto;
+
+  &.collapsed {
+    width: 120px;
+
+    .panel-header {
+      flex-direction: column;
+      align-items: center;
+
+      .toggle-btn {
+        width: 60px;
+        padding: 0;
+        justify-content: center;
+      }
+
+      .text {
+        writing-mode: vertical-lr;
+        text-orientation: mixed;
+        margin: 0;
+        font-size: 18px;
+      }
+    }
+  }
 
   .panel-header {
     padding: 12px 15px;
@@ -284,6 +304,8 @@ const nextPage = () => {
     .toggle-btn {
       width: 180px;
       background-image: url("@/assets/img/gasModule/icon_menu_bg.webp");
+
+      cursor: pointer;
 
       .text {
         font-family: SourceHanSansSC, SourceHanSansSC;

@@ -64,10 +64,18 @@
 <script setup lang="ts">
 import { nextTick, onMounted, ref } from "vue";
 import * as echarts from "echarts";
-import { getRiskStatusCount } from "@/services/waterSupplyService";
+import { getRiskStatusCount, getRiskLevelCount } from "@/services/waterSupplyService";
 import { getCachedDictionary } from "@/services/dictionaryService";
 
 // ==================== 数据状态 ====================
+// 风险等级映射
+const riskLevelMap = {
+  fxdj01: { name: "低风险", color: "#9bb8c7" },
+  fxdj02: { name: "一般风险", color: "#61E29D" },
+  fxdj03: { name: "较大风险", color: "#F4D982" },
+  fxdj04: { name: "重大风险", color: "#E88D6B" },
+};
+
 // 风险等级数据
 const riskLegend = ref([
   { name: "低风险", color: "#9bb8c7", value: 24 },
@@ -97,6 +105,33 @@ const zgztMap = {
 
 // ==================== 数据获取 ====================
 /**
+ * 获取风险等级数据
+ */
+const fetchRiskLevelData = async () => {
+  try {
+    // 调用 getRiskLevelCount 获取风险等级统计数据
+    const riskLevelData = await getRiskLevelCount({ Sszx: "csaqzx_gs" }) as any[];
+    
+    if (riskLevelData && riskLevelData.length > 0) {
+      // 转换数据格式：将 API 返回的数据转换为图表所需格式
+      const transformedData = riskLevelData.map(item => {
+        const riskInfo = riskLevelMap[item.riskType];
+        return {
+          name: riskInfo?.name || item.riskType,
+          color: riskInfo?.color || "#FFFFFF",
+          value: item.count || 0
+        };
+      });
+      
+      // 更新图表数据
+      riskLegend.value = transformedData;
+    }
+  } catch (error) {
+    console.error("获取风险等级数据失败:", error);
+  }
+};
+
+/**
  * 获取整改状态数据
  */
 const fetchRectificationData = async () => {
@@ -109,13 +144,13 @@ const fetchRectificationData = async () => {
     const glmblxs = rqzxGlmbzxDictionaries.map(item => item.f_ItemValue).join(',');
     
     // 获取整改状态统计数据
-    const statusCountData = await getRiskStatusCount({ Glmblx: glmblxs });
+    const statusCountData = await getRiskStatusCount({ Glmblx: glmblxs }) as any[];
     
     // 计算总数用于计算百分比
-    const totalCount = statusCountData.reduce((sum, item) => sum + item.count, 0);
+    const totalCount = (statusCountData as any[]).reduce((sum, item) => sum + item.count, 0);
     
     // 转换数据格式
-    rectificationData.value = statusCountData.map((item) => {
+    rectificationData.value = (statusCountData as any[]).map((item) => {
       const statusInfo = zgDictionaries.find(
         (dict) => dict.f_ItemValue === item.riskStatus
       );
@@ -194,7 +229,7 @@ const renderRiskLevelChart = () => {
         [30, 31],
       ];
       const lineLengthMap = [40, 50, 60, 70];
-      const maxValue = 82; // 环形图最大值
+      const maxValue = 10; // 环形图最大值
 
       return {
         name: risk.name,
@@ -293,10 +328,13 @@ const createProgressOption = (progress: number, status: string) => {
 
 // ==================== 生命周期 ====================
 onMounted(async () => {
+  // 获取风险等级数据
+  await fetchRiskLevelData();
+  
   // 获取整改状态数据
   await fetchRectificationData();
   
-  // 渲染风险等级图表(使用示例数据)
+  // 渲染风险等级图表
   renderRiskLevelChart();
 });
 </script>
