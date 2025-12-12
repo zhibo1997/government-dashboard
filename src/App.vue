@@ -136,7 +136,7 @@ import { NMessageProvider, NDialogProvider, NConfigProvider, zhCN, dateZhCN } fr
     flex: 1;
     position: relative;
     height: calc(100% - 180px);
-    z-index: 1;
+    z-index: 11;
     top: -56px;
   }
 

@@ -4,11 +4,20 @@
     v-model:visible="showBridgeList"
     @bridge-click="handleBridgeClick"
   />
+
+  <!-- 桥梁详情弹窗 -->
+  <BridgeDetailDialog
+    :visible="showBridgeDetail"
+    :bridge-data="selectedBridge"
+    @update:visible="showBridgeDetail = $event"
+  />
 </template>
 
 <script setup lang="ts">
 import { ref } from "vue";
 import BridgeListPanel from "./components/map/BridgeListPanel.vue";
+import BridgeDetailDialog from "./components/map/BridgeDetailDialog.vue";
+
 
 // 桥梁模块侧边栏组件
 defineOptions({
@@ -17,11 +26,13 @@ defineOptions({
 
 // 控制显示状态
 const showBridgeList = ref(true);
+const showBridgeDetail = ref(false);
 const selectedBridge = ref(null);
 
 // 处理桥梁点击
 const handleBridgeClick = (bridge) => {
   selectedBridge.value = bridge;
+  showBridgeDetail.value = true;
   // 可在此处触发其他操作，如显示详情弹窗、地图交互等
   console.log("选中桥梁:", bridge);
 };

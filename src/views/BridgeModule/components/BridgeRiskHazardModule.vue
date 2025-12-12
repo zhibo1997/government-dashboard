@@ -64,24 +64,27 @@
 <script setup lang="ts">
 import { nextTick, onMounted, ref } from "vue";
 import * as echarts from "echarts";
-import { getRiskStatusCount } from "@/services/waterSupplyService";
+import { getRiskStatusCount, getRiskLevelCount } from "@/services/waterSupplyService";
 import { getCachedDictionary } from "@/services/dictionaryService";
 
 // ==================== 数据状态 ====================
+// 风险等级映射
+const riskLevelMap = {
+  fxdj01: { name: "重大风险", color: "#E88D6B" },
+  fxdj02: { name: "较大风险", color: "#F4D982" },
+  fxdj03: { name: "一般风险", color: "#61E29D" },
+  fxdj04: { name: "低风险", color: "#9bb8c7" },
+};
+
 // 风险等级数据
-const riskLegend = ref([
-  { name: "低风险", color: "#9bb8c7", value: 24 },
-  { name: "一般风险", color: "#61E29D", value: 30 },
-  { name: "较大风险", color: "#F4D982", value: 1 },
-  { name: "重大风险", color: "#E88D6B", value: 27 },
-]);
+const riskLegend = ref();
 
 // 隐患统计数据
-const totalHazard = ref(28);
+const totalHazard = ref(0);
 const hazardTypes = ref([
-  { type: "major", label: "较大隐患", count: 11 },
-  { type: "significant", label: "重大隐患", count: 8 },
-  { type: "general", label: "一般隐患", count: 9 },
+  { type: "major", label: "较大隐患", count: 0 },
+  { type: "significant", label: "重大隐患", count: 0 },
+  { type: "general", label: "一般隐患", count: 0 },
 ]);
 
 // 整改状态数据
@@ -97,6 +100,37 @@ const zgztMap = {
 
 // ==================== 数据获取 ====================
 /**
+ * 获取风险等级数据
+ */
+const fetchRiskLevelData = async () => {
+  try {
+    // 调用 getRiskLevelCount 获取风险等级统计数据
+    const riskLevelData = await getRiskLevelCount({ Sszx: "csaqzx_ql" }) as any[];
+    
+    if (riskLevelData && riskLevelData.length > 0) {
+      // 转换数据格式：将 API 返回的数据转换为图表所需格式
+      const transformedData = riskLevelData.map(item => {
+        const riskInfo = riskLevelMap[item.riskType];
+        return {
+          name: riskInfo?.name || item.riskType,
+          color: riskInfo?.color || "#FFFFFF",
+          value: item.count || 0
+        };
+      });
+      
+      // 更新图表数据
+      riskLegend.value = transformedData;
+      
+      // 计算隐患总数
+      const totalCount = transformedData.reduce((sum, item) => sum + item.value, 0);
+      totalHazard.value = totalCount;
+    }
+  } catch (error) {
+    console.error("获取风险等级数据失败:", error);
+  }
+};
+
+/**
  * 获取整改状态数据
  */
 const fetchRectificationData = async () => {
@@ -104,9 +138,9 @@ const fetchRectificationData = async () => {
     // 获取整改状态字典
     const zgDictionaries = await getCachedDictionary("zgzt");
     
-    // 获取燃气专项综合关联目标类型
-    const rqzxGlmbzxDictionaries = await getCachedDictionary('glmb_ql');
-    const glmblxs = rqzxGlmbzxDictionaries.map(item => item.f_ItemValue).join(',');
+    // 获取桥梁专项综合关联目标类型
+    const qlzxGlmbzxDictionaries = await getCachedDictionary('glmb_ql');
+    const glmblxs = qlzxGlmbzxDictionaries.map(item => item.f_ItemValue).join(',');
     
     // 获取整改状态统计数据
     const statusCountData = await getRiskStatusCount({ Glmblx: glmblxs }) as any[];
@@ -194,7 +228,8 @@ const renderRiskLevelChart = () => {
         [30, 31],
       ];
       const lineLengthMap = [40, 50, 60, 70];
-      const maxValue = 82; // 环形图最大值
+      // 动态计算最大值，确保环形图能正确显示比例
+      const maxValue = Math.max(...riskLegend.value.map(item => item.value), 1)*1.5;
 
       return {
         name: risk.name,
@@ -293,10 +328,13 @@ const createProgressOption = (progress: number, status: string) => {
 
 // ==================== 生命周期 ====================
 onMounted(async () => {
+  // 获取风险等级数据
+  await fetchRiskLevelData();
+  
   // 获取整改状态数据
   await fetchRectificationData();
   
-  // 渲染风险等级图表(使用示例数据)
+  // 渲染风险等级图表
   renderRiskLevelChart();
 });
 </script>

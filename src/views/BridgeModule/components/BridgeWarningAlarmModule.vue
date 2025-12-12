@@ -135,9 +135,9 @@
 </template>
 
 <script setup lang="ts">
-import { RANQI_SSZX } from "@/types";
 import { ref, computed, onMounted } from "vue";
 import { getWarnStatistics } from "@/services/waterSupplyService";
+import { getBridgeWarningTypeList } from "@/services/bridgeService";
 
 // ==================== 数据状态 ====================
 // 当前激活的Tab
@@ -170,112 +170,10 @@ const alarmLevels = ref([
 ]);
 
 // 预警表格数据
-const warningTableData = ref([
-  {
-    key: 1,
-    type: "阳管网燃气泄漏预警",
-    level1: 4,
-    level2: 67,
-    level3: 34,
-    handled: 56,
-    handling: 23,
-    unhandled: 12,
-  },
-  {
-    key: 5,
-    type: "管网腐蚀预警",
-    level1: 9,
-    level2: 34,
-    level3: 88,
-    handled: 99,
-    handling: 34,
-    unhandled: 70,
-  },
-  {
-    key: 5,
-    type: "管网腐蚀预警",
-    level1: 9,
-    level2: 34,
-    level3: 88,
-    handled: 99,
-    handling: 34,
-    unhandled: 70,
-  },
-  {
-    key: 2,
-    type: "沼气聚集爆炸预警",
-    level1: 6,
-    level2: 443,
-    level3: 56,
-    handled: 78,
-    handling: 57,
-    unhandled: 34,
-  },
-  {
-    key: 3,
-    type: "场站泄漏预警",
-    level1: 8,
-    level2: 788,
-    level3: 7,
-    handled: 56,
-    handling: 90,
-    unhandled: 56,
-  },
-  {
-    key: 4,
-    type: "管网腐蚀预警",
-    level1: 9,
-    level2: 34,
-    level3: 88,
-    handled: 99,
-    handling: 34,
-    unhandled: 70,
-  },
-]);
+const warningTableData = ref([]);
 
 // 报警表格数据
-const alarmTableData = ref([
-  {
-    key: 1,
-    type: "阳管网燃气泄漏报警",
-    level1: 5,
-    level2: 78,
-    level3: 45,
-    handled: 67,
-    handling: 34,
-    unhandled: 23,
-  },
-  {
-    key: 2,
-    type: "沼气聚集爆炸报警",
-    level1: 7,
-    level2: 523,
-    level3: 67,
-    handled: 89,
-    handling: 68,
-    unhandled: 45,
-  },
-  {
-    key: 3,
-    type: "场站泄漏报警",
-    level1: 10,
-    level2: 898,
-    level3: 9,
-    handled: 67,
-    handling: 100,
-    unhandled: 67,
-  },
-  {
-    key: 4,
-    type: "管网腐蚀报警",
-    level1: 11,
-    level2: 45,
-    level3: 98,
-    handled: 110,
-    handling: 45,
-    unhandled: 80,
-  },
-]);
+const alarmTableData = ref([]);
 
 // ==================== 计算属性 ====================
 // 当前表格数据
@@ -309,23 +207,24 @@ const currentTableData = computed(() => {
  */
 const fetchWarningAndAlarmData = async () => {
   try {
-    const data = await getWarnStatistics('csaqzx_ql') as any;
+    const data: any = await getWarnStatistics('csaqzx_ql');
+    console.log("🚀 ~ fetchWarningAndAlarmData ~ data:", data)
     
     // 更新预警数据
-    warningTotal.value = data?.totalCount || 0;
+    warningTotal.value = data.totalCount || 0;
     warningStatus.value = [
-      { label: "已处置", count: data?.handledCount || 0 },
-      { label: "处置中", count: data?.handlingCount || 0 },
-      { label: "未处置", count: data?.unhandledCount || 0 },
+      { label: "已处置", count: data.handledCount || 0 },
+      { label: "处置中", count: data.handlingCount || 0 },
+      { label: "未处置", count: data.unhandledCount || 0 },
     ];
     warningLevels.value = [
-      { label: "一级预警", count: data?.yjyjCount || 0 },
-      { label: "二级预警", count: data?.ejyjCount || 0 },
-      { label: "三级预警", count: data?.sjyjCount || 0 },
+      { label: "一级预警", count: data.yjyjCount || 0 },
+      { label: "二级预警", count: data.ejyjCount || 0 },
+      { label: "三级预警", count: data.sjyjCount || 0 },
     ];
     
     // 更新报警数据
-    if (data?.alarmCount) {
+    if (data.alarmCount) {
       alarmTotal.value = data.alarmCount.totalCount || 0;
       alarmStatus.value = [
         { label: "已解除", count: data.alarmCount.yjc || 0 },
@@ -337,8 +236,49 @@ const fetchWarningAndAlarmData = async () => {
         { label: "三级报警", count: data.alarmCount.sjyjCount || 0 },
       ];
     }
+    
+    // 获取预警列表数据
+    await fetchWarningListData();
   } catch (error) {
     console.error("获取预警报警数据失败:", error);
+  }
+};
+
+/**
+ * 获取预警列表数据
+ * 接口返回数据结构:
+ * [
+ *   {
+ *     "yjlx": "管网燃气泄漏预警",
+ *     "yj": "0",
+ *     "ej": "0",
+ *     "sj": "0",
+ *     "ycz": "0",
+ *     "czz": "0",
+ *     "wcz": "0"
+ *   }
+ * ]
+ */
+const fetchWarningListData = async () => {
+  try {
+    const data: any = await getBridgeWarningTypeList();
+    console.log("🚀 ~ fetchWarningListData ~ data:", data);
+    
+    // 转换数据格式以匹配表格需求
+    if (Array.isArray(data)) {
+      warningTableData.value = data.map((item, index) => ({
+        key: index + 1,
+        type: item.yjlx || "未知类型",
+        level1: parseInt(item.yj) || 0,
+        level2: parseInt(item.ej) || 0,
+        level3: parseInt(item.sj) || 0,
+        handled: parseInt(item.ycz) || 0,
+        handling: parseInt(item.czz) || 0,
+        unhandled: parseInt(item.wcz) || 0,
+      }));
+    }
+  } catch (error) {
+    console.error("获取预警列表数据失败:", error);
   }
 };
 

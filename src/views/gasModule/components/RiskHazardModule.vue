@@ -70,19 +70,14 @@ import { getCachedDictionary } from "@/services/dictionaryService";
 // ==================== 数据状态 ====================
 // 风险等级映射
 const riskLevelMap = {
-  fxdj01: { name: "低风险", color: "#9bb8c7" },
-  fxdj02: { name: "一般风险", color: "#61E29D" },
-  fxdj03: { name: "较大风险", color: "#F4D982" },
-  fxdj04: { name: "重大风险", color: "#E88D6B" },
+  fxdj01: { name: "重大风险", color: "#E88D6B" },
+  fxdj02: { name: "较大风险", color: "#F4D982" },
+  fxdj03: { name: "一般风险", color: "#61E29D" },
+  fxdj04: { name: "低风险", color: "#9bb8c7" },
 };
 
 // 风险等级数据
-const riskLegend = ref([
-  { name: "低风险", color: "#9bb8c7", value: 24 },
-  { name: "一般风险", color: "#61E29D", value: 30 },
-  { name: "较大风险", color: "#F4D982", value: 1 },
-  { name: "重大风险", color: "#E88D6B", value: 27 },
-]);
+const riskLegend = ref();
 
 // 隐患统计数据
 const totalHazard = ref(28);
@@ -229,7 +224,8 @@ const renderRiskLevelChart = () => {
         [30, 31],
       ];
       const lineLengthMap = [40, 50, 60, 70];
-      const maxValue = 10; // 环形图最大值
+      // 动态计算最大值，确保环形图能正确显示比例
+      const maxValue = Math.max(...riskLegend.value.map(item => item.value), 1)*1.5;
 
       return {
         name: risk.name,

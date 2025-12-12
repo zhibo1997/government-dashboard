@@ -1,5 +1,5 @@
 <template>
-  <div class="bridge-list-panel" :class="{ collapsed: isCollapsed }">
+  <div class="bridge-list-panel" >
     <!-- 头部工具栏 -->
     <div class="panel-header">
       <button class="search-icon-btn btn" @click="toggleSearch">
@@ -7,10 +7,10 @@
       </button>
       <button class="toggle-btn btn" @click="togglePanel">
         <img src="@/assets/img/gasModule/icon_menu.webp" class="icon" alt="" />
-        <span class="text">收起侧边栏</span>
+        <span class="text">{{ isCollapsed ? '展开侧边栏' : '收起侧边栏' }}</span>
       </button>
     </div>
-    <div class="panel-content">
+    <div class="panel-content" :class="{ hidden: isCollapsed }">
       <!-- 主标题 -->
       <div class="panel-title">
         <div class="title-container">
@@ -31,14 +31,14 @@
         </div>
         <!-- 桥梁结构 -->
         <div class="filter-row">
-          <div class="filter-item">
+          <div class="filter-item" style="flex: 1;">
             <select v-model="filters.structure" class="filter-select">
               <option value="">结构</option>
               <option :value="value.value" v-for="value in qljgDict" :key="value.value">{{ value.text }}</option>
             </select>
           </div>
           <!-- 桥梁类型 -->
-          <div class="filter-item">
+          <div class="filter-item" style="flex: 1;">
             <select v-model="filters.type" class="filter-select">
               <option value="">类型</option>
               <option :value="value.value" v-for="value in qllxDict" :key="value.value">{{ value.text }}</option>
@@ -48,7 +48,7 @@
       </div>
     </div>
 
-    <div class="panel-content">
+    <div class="panel-content" :class="{ hidden: isCollapsed }">
       <!-- 主标题 -->
       <div class="panel-title">
         <div class="title-container">
@@ -92,12 +92,6 @@ import { getCachedDictionary } from "@/services/dictionaryService";
 const qljgDict = ref([]);
 const qllxDict = ref([]);
 
-onMounted(async () => {
-  const dict1 = await getCachedDictionary("qljg");
-  const dict2 = await getCachedDictionary("qllx");
-  qljgDict.value = dict1.map((item) => ({ value: item.f_ItemValue, text: item.f_ItemName }));
-  qllxDict.value = dict2.map((item) => ({ value: item.f_ItemValue, text: item.f_ItemName }));
-});
 const props = defineProps({
   visible: {
     type: Boolean,
@@ -182,12 +176,21 @@ const loadBridges = async () => {
   }
 };
 
-onMounted(() => {
+onMounted(async () => {
+  // 加载字典数据
+  const dict1 = await getCachedDictionary("qljg");
+  const dict2 = await getCachedDictionary("qllx");
+  qljgDict.value = dict1.map((item) => ({ value: item.f_ItemValue, text: item.f_ItemName }));
+  qllxDict.value = dict2.map((item) => ({ value: item.f_ItemValue, text: item.f_ItemName }));
+  
+  // 加载桥梁数据
   loadBridges();
 });
 
 // 当前激活的桥梁
 const activeBridgeId = ref(null);
+
+
 
 // 分页
 const currentPage = ref(1);
@@ -240,6 +243,7 @@ const handleBridgeClick = async (bridge) => {
     emit("bridge-click", bridge);
   } catch (error) {
     console.error("处理桥梁点击失败:", error);
+    // 如果处理失败，仍然发送桥梁数据
     emit("bridge-click", bridge);
   }
 };
@@ -261,6 +265,9 @@ const nextPage = () => {
 <style lang="scss" scoped>
 .panel-content {
   margin-bottom: 20px;
+  &.hidden {
+    display: none;
+  }
 }
 
 .bridge-list-panel {
