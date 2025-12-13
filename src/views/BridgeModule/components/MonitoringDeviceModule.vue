@@ -30,16 +30,17 @@
           </div>
         </div>
 
-        <!-- <div class="stat-card">
+        <div class="stat-card">
           <div class="stat-icon">
+            <img src="@/assets/img/bridgeModule/device_fault.webp" alt="">
           </div>
           <div class="stat-info">
             <div class="stat-label">故障数</div>
             <div class="stat-value">
-              <span class="value-fault gradient-text">{{ topStats.fault }}</span>
+              <span class="value-fault gradient-text">0</span>
             </div>
           </div>
-        </div> -->
+        </div>
       </div>
 
       <!-- 预警类型统计区域 -->

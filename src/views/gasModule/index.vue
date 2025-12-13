@@ -50,9 +50,10 @@ onBeforeMount(async () => {
       "jcsblx_rqzdyh", // MonitoringEquipmentModule
       "zgzt", // RiskHazardModule
     ]);
-    loading.value = false;
     console.log("字典数据预加载完成");
+    loading.value = false;
   } catch (error) {
+    loading.value = false;
     console.error("字典数据预加载失败:", error);
   }
 });

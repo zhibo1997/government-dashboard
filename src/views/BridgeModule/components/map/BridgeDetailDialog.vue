@@ -54,7 +54,7 @@ import { computed, watch, nextTick, onMounted, ref } from "vue";
 import { useVueCesium } from "vue-cesium";
 import { NButton, NIcon } from "naive-ui";
 import { Close } from "@vicons/ionicons5";
-import BridgeMarkerIcon from "@/assets/img/gasModule/gas_marker.webp";
+import BridgeMarkerIcon from "@/assets/img/bridgeModule/bridge_marker.webp";
 
 const viewer = ref<Cesium.Viewer | null>(null);
 const props = defineProps({
@@ -257,7 +257,7 @@ const handleClose = () => {
   position: absolute;
   top: 80px;
   left: 1320px;
-  width: 720px; /* 加宽弹窗 */
+  width: 680px; /* 加宽弹窗 */
   background: linear-gradient(
     270deg,
     rgba(8, 46, 77, 0.4) 0%,
