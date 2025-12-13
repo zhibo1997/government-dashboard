@@ -186,7 +186,7 @@ let clickQueryCleanup: (() => void) | null = null
 const yangxinGeoJSON = ref<any>(null)
 
 // 默认3D Tiles URL
-const default3DTilesUrl = 'http://webres.cityfun.com.cn/CSSMX/model/JC_JGZW_JZW_P/tileset.json'
+const default3DTilesUrl = 'https://webres.cityfun.com.cn/CSSMX/model/JC_JGZW_JZW_P/tileset.json'
 
 // 切换距离测量
 const toggleDistance = () => {
