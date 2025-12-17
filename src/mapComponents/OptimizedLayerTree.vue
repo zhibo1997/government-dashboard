@@ -69,6 +69,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from "vue";
+import { useRoute } from "vue-router";
 import { NTree, NSpin, NIcon, NInput } from "naive-ui";
 import { SearchOutline, StarOutline } from "@vicons/ionicons5";
 import { getLayerTree } from "@/services/commonService";
@@ -96,6 +97,24 @@ const checkedKeys = ref<string[]>([]);
 const rawLayerData = ref<any[]>([]);
 const searchKeyword = ref("");
 const mapStore = useMapStore();
+const route = useRoute();
+
+/**
+ * 根据当前路由获取对应的专项模块代码
+ * 返回后端API需要的 SszxCode 参数
+ */
+function getModuleCodeByRoute(): string {
+  const routeName = route.name as string;
+  const moduleCodeMap: Record<string, string> = {
+    gas: "燃气",           // 燃气专项
+    waterProject: "供水", // 供水专项
+    bridge: "桥梁",      // 桥梁专项
+  };
+  
+  const moduleCode = moduleCodeMap[routeName];
+  
+  return moduleCode;
+}
 
 // 图层状态映射
 const layerStates = ref<
@@ -116,9 +135,11 @@ const layerStates = ref<
 async function fetchLayerTree() {
   loading.value = true;
   try {
-    const response = await getLayerTree();
+    // 根据当前路由获取模块代码
+    const moduleCode = getModuleCodeByRoute();
+    
+    const response = await getLayerTree({ SszxCode: moduleCode });
 
-    console.log("🚀 ~ fetchLayerTree ~ response:", response)
     if (response) {
       rawLayerData.value = response;
       console.log("✅ 图层树数据加载成功:", rawLayerData.value);
@@ -437,6 +458,15 @@ function updateLayerState(
 onMounted(() => {
   fetchLayerTree();
 });
+
+// 监听路由变化，切换模块时重新加载图层数据
+watch(
+  () => route.name,
+  () => {
+    console.log(`📍 路由已变更，重新加载图层数据`);
+    fetchLayerTree();
+  }
+);
 
 // 暴露方法
 defineExpose({

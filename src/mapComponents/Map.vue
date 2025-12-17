@@ -40,7 +40,7 @@
       <!-- 莲花湖大桥 -->
       <vc-primitive-tileset
         ref="lianhuahuBridge"
-        url="http://webres.cityfun.com.cn/CSSMX/model/LHQ/tileset.json"
+        url="https://webres.cityfun.com.cn/CSSMX/model/LHQ/tileset.json"
         :show="bridgeModelsVisible"
         @readyPromise="onBridgeTilesetReady('莲花湖大桥')"
       >
@@ -49,7 +49,7 @@
       <!-- 陵园大道立交桥 -->
       <vc-primitive-tileset
         ref="lingyuandadaoBridge"
-        url="http://webres.cityfun.com.cn/CSSMX/model/LYDDLJQ/tileset.json"
+        url="https://webres.cityfun.com.cn/CSSMX/model/LYDDLJQ/tileset.json"
         :show="bridgeModelsVisible"
         @ready="onBridgeTilesetReady('陵园大道立交桥')"
       >
@@ -58,7 +58,7 @@
       <!-- 明月湾大桥 -->
       <vc-primitive-tileset
         ref="mingyuewanBridge"
-        url="http://webres.cityfun.com.cn/CSSMX/model/MYWDQ/tileset.json"
+        url="https://webres.cityfun.com.cn/CSSMX/model/MYWDQ/tileset.json"
         :show="bridgeModelsVisible"
         @ready="onBridgeTilesetReady('明月湾大桥')"
       >
