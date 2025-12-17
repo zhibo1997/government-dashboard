@@ -90,6 +90,24 @@ const emit = defineEmits<{
   "load-3dtiles": [url: string, layerId: string];
 }>();
 
+/**
+ * 根据环境转换URL协议
+ * 在生产环境中将HTTP转换为HTTPS
+ * @param url 原始URL
+ * @returns 转换后的URL
+ */
+function convertUrlProtocol(url: string): string {
+  // 检查是否为生产环境
+  const isProduction = import.meta.env.PROD || import.meta.env.MODE === 'production';
+  
+  // 只有在生产环境中才进行协议转换
+  if (isProduction && url && url.startsWith('http://')) {
+    return url.replace('http://', 'https://');
+  }
+  
+  return url;
+}
+
 // State
 const loading = ref(false);
 const expandedKeys = ref<string[]>([]);
@@ -348,7 +366,8 @@ function handleCheckedKeysChange(keys: string[]) {
  * 当后端返回的type不正确时，根据URL自动判断
  */
 function detectLayerType(layerData: any): string {
-  const url = layerData.url || '';
+  // 转换URL协议
+  const url = convertUrlProtocol(layerData.url || '');
   const type = layerData.type || '';
   
   // 如果URL包含tileset.json，一定是3D Tiles
@@ -395,10 +414,10 @@ function handleLayerVisibilityChange(layerId: string, visible: boolean) {
   if (visible) {
     switch (actualType) {
       case "mvt":
-        emit("load-mvt", layerData.url, layerId);
+        emit("load-mvt", convertUrlProtocol(layerData.url), layerId);
         break;
       case "3dTile":
-        emit("load-3dtiles", layerData.url, layerId);
+        emit("load-3dtiles", convertUrlProtocol(layerData.url), layerId);
         break;
       case "tile":
       case "wms":

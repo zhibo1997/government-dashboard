@@ -11,6 +11,12 @@ import { BusinessModule, getModuleParams, mergeParams, type CommonParams } from 
 const { message } = createDiscreteApi(['message'])
 
 /**
+ * Token 失效处理标志
+ * 用于确保当 token 失效时，只处理一次，阻止后续重复的提示和跳转
+ */
+let isHandlingTokenExpired = false
+
+/**
  * 获取认证 Token
  */
 const getAuthToken = (): string => {
@@ -152,9 +158,13 @@ export function createApiClient<TClient extends ApiClientBase>(
 
         // 未授权
         if (response.data.code === 401) {
-          localStorage.removeItem('token')
-          router.push('/login')
-          message.error('登录已过期，请重新登录')
+          // 只处理一次 token 失效
+          if (!isHandlingTokenExpired) {
+            isHandlingTokenExpired = true
+            localStorage.removeItem('token')
+            message.error('登录已过期，请重新登录')
+            router.push('/login')
+          }
           return Promise.reject(new Error('未授权'))
         }
 
@@ -180,6 +190,14 @@ export function createApiClient<TClient extends ApiClientBase>(
       // HTTP 状态码处理
       switch (status) {
         case 401:
+          // 只处理一次 token 失效
+          if (!isHandlingTokenExpired) {
+            isHandlingTokenExpired = true
+            localStorage.removeItem('token')
+            message.error('登录已过期，请重新登录')
+            router.push('/login')
+          }
+          break
         case 500:
           localStorage.removeItem('token')
           router.push('/login')
@@ -250,4 +268,12 @@ export function createBridgeApi(): BridgeApi<unknown> {
  */
 export function createCommonApi(): CommonApi<unknown> {
   return createApiClient(CommonApi, { autoInjectParams: false })
+}
+
+/**
+ * 重置 token 失效处理标志
+ * 在用户重新登录成功后调用，以便下次 token 失效时可以再次提示
+ */
+export function resetTokenExpiredFlag(): void {
+  isHandlingTokenExpired = false
 }

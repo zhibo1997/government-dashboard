@@ -2,12 +2,14 @@
   <div class="map-container">
     <vc-viewer ref="cesiumViewer" :selectionIndicator="false" :camera="camera" :infoBox="false" :sceneMode="sceneMode" :accessToken="defaultAccessToken" :requestRenderMode="true"
       :maximumRenderTimeChange="Infinity" @ready="onViewerReady">
-      <!-- 底图切换 (天地图 + Cesium Ion混合) -->
+      <!-- 底图切换 (天地图 + Cesium Ion混合 + ArcGIS) -->
+       
       <vc-layer-imagery ref="basemapLayer">
         <!-- 天地图底图 (影像/矢量) -->
         <vc-imagery-provider-tianditu
           :map-style="tiandituMapStyle"
           :token="tiandituToken"
+          :show="currentBaseMapType !== 'arcgis'"
           @readyPromise="onTiandituReady"
           @errorEvent="onTiandituError"
         />
@@ -16,6 +18,13 @@
           :assetId="cesiumIonAssetId"
           :accessToken="defaultAccessToken"
         /> -->
+        <!-- ArcGIS影像底图 -->
+        <vc-imagery-provider-arcgis
+          :show="currentBaseMapType === 'arcgis'"
+          url="http://map1.cityfun.com.cn/arcgis/rest/services/YXX/YXX_QXIMAGE_2025/MapServer"
+          @readyPromise="onArcGISReady"
+          @errorEvent="onArcGISError"
+        />
       </vc-layer-imagery>
 
       <!-- 阳新县行政区域边界 -->
@@ -23,44 +32,16 @@
         ref="yangxinBoundary"
         :data="yangxinGeoJSON"
         :show="true"
-        :fill="'rgba(255, 255, 255, 0.1)'"
+        :fill="'rgba(255, 255, 255, 0.05)'"
         :enableMouseEvent="false"
       >
       </vc-datasource-geojson>
-
       <!-- 默认3D Tiles图层 -->
       <vc-primitive-tileset
         ref="defaultTileset"
         :url="default3DTilesUrl"
         :show="defaultTilesetVisible"
         @ready="on3DTilesReady"
-      >
-      </vc-primitive-tileset>
-
-      <!-- 莲花湖大桥 -->
-      <vc-primitive-tileset
-        ref="lianhuahuBridge"
-        url="https://webres.cityfun.com.cn/CSSMX/model/LHQ/tileset.json"
-        :show="bridgeModelsVisible"
-        @readyPromise="onBridgeTilesetReady('莲花湖大桥')"
-      >
-      </vc-primitive-tileset>
-
-      <!-- 陵园大道立交桥 -->
-      <vc-primitive-tileset
-        ref="lingyuandadaoBridge"
-        url="https://webres.cityfun.com.cn/CSSMX/model/LYDDLJQ/tileset.json"
-        :show="bridgeModelsVisible"
-        @ready="onBridgeTilesetReady('陵园大道立交桥')"
-      >
-      </vc-primitive-tileset>
-
-      <!-- 明月湾大桥 -->
-      <vc-primitive-tileset
-        ref="mingyuewanBridge"
-        url="https://webres.cityfun.com.cn/CSSMX/model/MYWDQ/tileset.json"
-        :show="bridgeModelsVisible"
-        @ready="onBridgeTilesetReady('明月湾大桥')"
       >
       </vc-primitive-tileset>
 
@@ -73,10 +54,10 @@
     <ResponsiveWrapper>
       <MapToolbar ref="toolbarRef" :viewer-instance="viewerInstance" :scene-mode="sceneMode"
         :current-base-map="currentBaseMapType" :compass-rotation="compassRotation"
-        :bridge-models-visible="bridgeModelsVisible" :default-tileset-visible="defaultTilesetVisible"
+ :default-tileset-visible="defaultTilesetVisible"
         @update:scene-mode="handleSceneModeChange" @update:base-map="handleBaseMapChange" @reset-map="handleResetMap"
         @toggle-measure="showMeasureTool = !showMeasureTool"
-        @toggle-bridge-models="toggleBridgeModels" @toggle-default-tileset="toggleDefaultTileset" />
+        @toggle-default-tileset="toggleDefaultTileset" />
 
       <!-- 测量工具面板 -->
       <MeasureTool v-model:visible="showMeasureTool" @toggle-distance="toggleDistance" @toggle-area="toggleArea"
@@ -131,14 +112,13 @@ const mainFabOpts = {
   modelValue: false
 }
 
-// 桥梁3D模型显示状态
-const bridgeModelsVisible = ref(true)
+
 
 // 默认3D Tiles显示状态
 const defaultTilesetVisible = ref(false)
 
 // 底图类型
-const currentBaseMapType = ref<'vec' | 'img' | 'ter'>('img')
+const currentBaseMapType = ref<'vec' | 'img' | 'ter' | 'arcgis'>('arcgis')
 
 // 天地图 Token
 const tiandituToken = import.meta.env ? import.meta.env.VITE_TIANDITU_KEY || '' : ''
@@ -248,7 +228,7 @@ async function loadYangxinBoundary() {
     const baseUrl = import.meta.env.BASE_URL;
     const response = await fetch(baseUrl+'yangxin.json')
     yangxinGeoJSON.value = await response.json()
-    console.log('✅ 阳新县行政区域数据加载成功')
+    console.log('✅ 阳新县行政区域数据加载成功', yangxinGeoJSON.value)
   } catch (error) {
     console.error('❌ 加载阳新县边界数据失败:', error)
   }
@@ -258,6 +238,13 @@ async function loadYangxinBoundary() {
  * 行政区域边界加载完成回调
  */
 function onBoundaryReady({ Cesium, cesiumObject }: any) {
+  console.log('✅ 阳新县行政区域边界加载完成')
+}
+/**
+ * 行政区域边界加载错误回调
+ */
+function onBoundaryError(error: any) {
+  console.error('❌ 阳新县行政区域边界加载失败:', error)
 }
 
 /**
@@ -266,25 +253,21 @@ function onBoundaryReady({ Cesium, cesiumObject }: any) {
 function on3DTilesReady({ Cesium, cesiumObject }: any) {
   console.log('✅ 默认3D Tiles图层加载完成')
   console.log('3D Tiles URL:', default3DTilesUrl)
+  console.log('cesiumObject 属性:', cesiumObject)
   
-  // 可以在这里设置3D Tiles的样式或其他属性
-  // 例如：设置最大屏幕空间误差
   if (cesiumObject) {
     cesiumObject.maximumScreenSpaceError = 16
-    console.log('3D Tiles配置已应用')
-  }
-}
-
-/**
- * 桥梁3D Tiles加载完成回调
- */
-function onBridgeTilesetReady(name: string) {
-  return ({ Cesium, cesiumObject }: any) => {
-    alert(`3D Tiles加载完成: ${name}`)
-    console.log(`✅ ${name}3D模型加载完成`)
-    if (cesiumObject) {
-      cesiumObject.maximumScreenSpaceError = 16
+    
+    // 移除样式限制，使用模型原始纹理
+    cesiumObject.style = undefined
+    
+    // 或者尝试设置模型矩阵透明度
+    if (cesiumObject.color !== undefined) {
+      cesiumObject.color = Cesium.Color.WHITE.withAlpha(0.8)
     }
+    
+    console.log('✅ 3D Tiles样式已调整')
+    console.log('当前透明度设置完成，检查模型是否为灰色纹理')
   }
 }
 
@@ -354,13 +337,7 @@ function handleFeatureClick(feature: any) {
   // 可以在这里触发Vue事件，传递给父组件
 }
 
-/**
- * 切换桥梁3D模型显示状态
- */
-const toggleBridgeModels = () => {
-  bridgeModelsVisible.value = !bridgeModelsVisible.value
-  console.log(`✅ 桥梁3D模型${bridgeModelsVisible.value ? '显示' : '隐藏'}`)
-}
+
 
 /**
  * 切换默认3D Tiles显示状态
@@ -390,15 +367,18 @@ const handleSceneModeChange = (mode: 2 | 3) => {
 /**
  * 处理底图切换 (来自工具栏)
  */
-const handleBaseMapChange = (type: 'vec' | 'img' | 'ter') => {
+const handleBaseMapChange = (type: 'vec' | 'img' | 'ter' | 'arcgis') => {
   currentBaseMapType.value = type
   const typeNames = {
     'img': '影像',
     'vec': '矢量',
-    'ter': '地形'
+    'ter': '地形',
+    'arcgis': 'ArcGIS影像'
   }
   const providerInfo = type === 'ter' 
     ? '(Cesium Ion - Asset ID: 3)'
+    : type === 'arcgis'
+    ? '(ArcGIS影像服务)'
     : `(天地图 - ${type === 'img' ? '影像' : '矢量'})`
   console.log(`✅ 底图切换为: ${typeNames[type]} ${providerInfo}`)
 }
@@ -408,6 +388,20 @@ const handleBaseMapChange = (type: 'vec' | 'img' | 'ter') => {
  */
 function onTiandituReady({ Cesium, cesiumObject }: any) {
   console.log(`✅ 天地图底图(${tiandituMapStyle.value})加载完成`)
+}
+
+/**
+ * ArcGIS影像加载完成回调
+ */
+function onArcGISReady({ Cesium, cesiumObject }: any) {
+  console.log('✅ ArcGIS影像底图加载完成')
+}
+
+/**
+ * ArcGIS影像加载错误回调
+ */
+function onArcGISError(error: any) {
+  console.error(`❌ ArcGIS影像加载失败: ${error?.message || error}`)
 }
 
 /**
@@ -483,10 +477,10 @@ defineExpose({
   compassRotation,
   defaultTileset,
   yangxinBoundary,
-  bridgeModelsVisible,
+
   defaultTilesetVisible,
   toggleMeasureTool: () => { showMeasureTool.value = !showMeasureTool.value },
-  toggleBridgeModels,
+
   toggleDefaultTileset,
   toolbarRef,
 })

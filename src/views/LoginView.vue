@@ -36,6 +36,7 @@ import { PersonOutline, LockClosedOutline } from "@vicons/ionicons5";
 import { useRouter } from "vue-router";
 import { useAuthStore } from "../stores/auth";
 import { loginService } from "@/services/loginService";
+import { resetTokenExpiredFlag } from "@/api/apiFactory";
 import ResponsiveWrapper from "@/components/ResponsiveWrapper.vue";
 
 const { message } = createDiscreteApi(["message"]);
@@ -81,6 +82,9 @@ const handleLogin = async () => {
         token: result.token,
         ...result
       });
+
+      // 重置 token 失效处理标志，以便下次失效时能够再次提示
+      resetTokenExpiredFlag();
 
       message.success("登录成功！");
 

@@ -124,6 +124,10 @@ $breakpoint-xxl: 1600px;
   -webkit-text-fill-color: transparent !important;
   color: transparent !important; /* 标准属性回退 */
 }
+.vc-drawings-container{
+  display: none;
+}
+
 // 响应式混入
 @mixin respond-to($breakpoint) {
   @if $breakpoint == xs {

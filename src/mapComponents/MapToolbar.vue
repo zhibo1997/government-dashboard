@@ -72,15 +72,6 @@
         </div>
       </div>
 
-      <!-- 桥梁3D模型 -->
-      <div class="toolbar-item" :class="{ active: props.bridgeModelsVisible }" @click="$emit('toggle-bridge-models')"
-        title="桥梁3D模型">
-        <div class="tool-icon">
-          <div class="icon-placeholder">
-            <BuildingBridge />
-          </div>
-        </div>
-      </div>
 
       <!-- 默认3D Tiles -->
       <div class="toolbar-item" :class="{ active: props.defaultTilesetVisible }"
@@ -99,7 +90,7 @@
 import { ref } from "vue";
 import OptimizedLayerTree from "./OptimizedLayerTree.vue";
 import { useMapHooks } from "@/hook/useMapHooks";
-import { BuildingBridge,BuildingSkyscraper } from "@vicons/tabler";
+import { BuildingSkyscraper } from "@vicons/tabler";
 
 const cesiumUtils = useMapHooks();
 
@@ -107,9 +98,8 @@ const cesiumUtils = useMapHooks();
 interface Props {
   viewerInstance: any
   sceneMode: 2 | 3
-  currentBaseMap: 'vec' | 'img' | 'ter'
+  currentBaseMap: 'vec' | 'img' | 'ter' | 'arcgis'
   compassRotation: number
-  bridgeModelsVisible: boolean
   defaultTilesetVisible: boolean
 }
 
@@ -118,10 +108,9 @@ const props = defineProps<Props>()
 // Emits - 通知父组件
 const emit = defineEmits<{
   'update:scene-mode': [mode: 2 | 3]
-  'update:base-map': [type: 'vec' | 'img' | 'ter']
+  'update:base-map': [type: 'vec' | 'img' | 'ter' | 'arcgis']
   'reset-map': []
   'toggle-measure': []
-  'toggle-bridge-models': []
   'toggle-default-tileset': []
 }>()
 
@@ -139,6 +128,7 @@ const baseMapTypes = [
   { value: "img", label: "影像地图", icon: "🛰️" },
   { value: "vec", label: "矢量地图", icon: "🗺️" },
   { value: "ter", label: "地形地图", icon: "🏔️" },
+  { value: "arcgis", label: "ArcGIS影像", icon: "📡" },
 ] as const;
 
 // 切换收缩状态
@@ -312,11 +302,12 @@ const handleLayerOpacityChange = (layerId: string, opacity: number) => {
 };
 
 // 切换底图
-const switchBaseMap = (type: "vec" | "img" | "ter") => {
-  const typeNames: Record<'vec' | 'img' | 'ter', string> = {
+const switchBaseMap = (type: "vec" | "img" | "ter" | "arcgis") => {
+  const typeNames: Record<'vec' | 'img' | 'ter' | 'arcgis', string> = {
     'img': '影像',
     'vec': '矢量',
-    'ter': '地形'
+    'ter': '地形',
+    'arcgis': 'ArcGIS影像'
   }
   emit('update:base-map', type)
   showBaseMapPanel.value = false

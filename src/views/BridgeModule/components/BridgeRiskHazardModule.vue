@@ -220,7 +220,7 @@ const renderRiskLevelChart = () => {
     backgroundColor: "transparent",
     color: ["#9bb8c7", "#61E29D", "#F4D982", "#E88D6B"],
     legend: { show: false },
-    series: riskLegend.value.map((risk, index) => {
+    series: (riskLegend.value||[]).map((risk, index) => {
       const radiusMap = [
         [90, 91],
         [70, 71],
@@ -229,7 +229,7 @@ const renderRiskLevelChart = () => {
       ];
       const lineLengthMap = [40, 50, 60, 70];
       // 动态计算最大值，确保环形图能正确显示比例
-      const maxValue = Math.max(...riskLegend.value.map(item => item.value), 1)*1.5;
+      const maxValue = Math.max(...(riskLegend.value||[]).map(item => item.value), 1)*1.5;
 
       return {
         name: risk.name,

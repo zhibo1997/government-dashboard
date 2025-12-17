@@ -77,17 +77,9 @@ export const getColorConfig = (chartIndex: number, dataIndex: number): string =>
 /**
  * 根据图表索引和数据索引获取渐变色配置
  */
-export const getGradientColor = (
-  chartIndex: number,
-  dataIndex: number
-): echarts.graphic.LinearGradient => {
+export const getGradientColor = (chartIndex: number, dataIndex: number): echarts.graphic.LinearGradient => {
   const gradient = gradientConfigs[chartIndex] || gradientConfigs[0];
   const config = gradient[dataIndex % gradient.length];
-
-  console.log("🚀 ~ getGradientColor ~ ",  new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-    { offset: 0, color: config.start },
-    { offset: 1, color: config.end },
-  ]))
   return new echarts.graphic.LinearGradient(0, 0, 0, 1, [
     { offset: 0, color: config.start },
     { offset: 1, color: config.end },
@@ -111,11 +103,9 @@ export const createChartOption = (chart: any, chartIndex: number): echarts.EChar
   }));
 
   return {
-    backgroundColor: "transparent",
     tooltip: {
       trigger: "item",
       formatter: "{b}: {c}",
-      backgroundColor: "rgba(0, 0, 0, 0.7)",
       borderColor: "transparent",
       borderWidth: 1,
       textStyle: {
@@ -152,7 +142,7 @@ export const createChartOption = (chart: any, chartIndex: number): echarts.EChar
         name: chart.title.slice(0, 4)+'\n\n'+chart.title.slice(4),
 
         type: "pie",
-        radius: ["50%", "80%"],
+        radius: ["50%", "75%"],
         center: ["50%", "35%"],
         startAngle: 90,
         label: {
@@ -174,11 +164,8 @@ export const createChartOption = (chart: any, chartIndex: number): echarts.EChar
         labelLine: {
           show: false,
         },
-        itemStyle: {
-          borderRadius: 0,
-          borderWidth: 12,
-          borderColor: "#0D3A3A",
-        },
+    backgroundColor:"rgba(0, 0, 0, 0.3)",
+        padAngle: 5,
         emphasis: {
           itemStyle: {
             shadowBlur: 10,
