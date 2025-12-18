@@ -9,7 +9,7 @@
         <vc-imagery-provider-tianditu
           :map-style="tiandituMapStyle"
           :token="tiandituToken"
-          :show="currentBaseMapType !== 'arcgis'"
+          :maximum-level="17"
           @readyPromise="onTiandituReady"
           @errorEvent="onTiandituError"
         />
@@ -19,12 +19,12 @@
           :accessToken="defaultAccessToken"
         /> -->
         <!-- ArcGIS影像底图 -->
-        <vc-imagery-provider-arcgis
+        <!-- <vc-imagery-provider-arcgis
           :show="currentBaseMapType === 'arcgis'"
-          url="http://map1.cityfun.com.cn/arcgis/rest/services/YXX/YXX_QXIMAGE_2025/MapServer"
+          url="https://map1.cityfun.com.cn/arcgis/rest/services/YXX/YXX_QXIMAGE_2025/MapServer"
           @readyPromise="onArcGISReady"
           @errorEvent="onArcGISError"
-        />
+        /> -->
       </vc-layer-imagery>
 
       <!-- 阳新县行政区域边界 -->
@@ -118,7 +118,7 @@ const mainFabOpts = {
 const defaultTilesetVisible = ref(false)
 
 // 底图类型
-const currentBaseMapType = ref<'vec' | 'img' | 'ter' | 'arcgis'>('arcgis')
+const currentBaseMapType = ref<'vec' | 'img' | 'ter' | 'arcgis'>('img')
 
 // 天地图 Token
 const tiandituToken = import.meta.env ? import.meta.env.VITE_TIANDITU_KEY || '' : ''

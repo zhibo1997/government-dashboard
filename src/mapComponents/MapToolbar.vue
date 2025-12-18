@@ -128,7 +128,7 @@ const baseMapTypes = [
   { value: "img", label: "影像地图", icon: "🛰️" },
   { value: "vec", label: "矢量地图", icon: "🗺️" },
   { value: "ter", label: "地形地图", icon: "🏔️" },
-  { value: "arcgis", label: "ArcGIS影像", icon: "📡" },
+  // { value: "arcgis", label: "ArcGIS影像", icon: "📡" },
 ] as const;
 
 // 切换收缩状态
