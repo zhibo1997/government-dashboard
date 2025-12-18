@@ -44,7 +44,7 @@ import { NMessageProvider, NDialogProvider, NConfigProvider, zhCN, dateZhCN } fr
     z-index: 10;
     padding: 0 0 20px 20px;
     box-sizing: border-box;
-    background: linear-gradient(to right, rgba(0, 0, 0, 0.8), 60%, rgba(0, 0, 0, 0));
+    background: linear-gradient(to right, rgba(0, 0, 0, 0.8), 80%, rgba(0, 0, 0, 0));
   }
   
   // 右侧数据展示区域
@@ -57,7 +57,7 @@ import { NMessageProvider, NDialogProvider, NConfigProvider, zhCN, dateZhCN } fr
     z-index: 10;
     padding: 0 0 20px 20px;
     box-sizing: border-box;
-    background: linear-gradient(to left, rgba(0, 0, 0, 0.8), 60%, rgba(0, 0, 0, 0));
+    background: linear-gradient(to left, rgba(0, 0, 0, 0.8), 80%, rgba(0, 0, 0, 0));
   }
 
 }
@@ -106,7 +106,6 @@ import { NMessageProvider, NDialogProvider, NConfigProvider, zhCN, dateZhCN } fr
     border-radius: 8px;
   }
 }
-
 // 供水模块特有样式
 .map-toolbar {
   position: absolute;
@@ -135,7 +134,7 @@ import { NMessageProvider, NDialogProvider, NConfigProvider, zhCN, dateZhCN } fr
     justify-content: space-between;
     flex: 1;
     position: relative;
-    height: calc(100% - 180px);
+    height: calc(100% - 120px);
     z-index: 11;
     top: -56px;
   }

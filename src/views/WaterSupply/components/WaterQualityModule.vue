@@ -72,7 +72,7 @@ onMounted(async () => {
     acc[cur.f_ItemValue] = cur.f_ItemName;
     return acc;
   }, {});
-  const res = await getLatestWaterQuality();
+  const res = await getLatestWaterQuality({Sszx:'csaqzx_gs'});
   nextTick(() => {
     waterPlants.value = res.map((item) => {
       const jcz = parse(item.jcz);

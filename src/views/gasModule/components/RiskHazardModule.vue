@@ -77,7 +77,7 @@ const riskLevelMap = {
 };
 
 // 风险等级数据
-const riskLegend = ref();
+const riskLegend = ref([]);
 
 // 隐患统计数据
 const totalHazard = ref(28);
@@ -105,8 +105,7 @@ const zgztMap = {
 const fetchRiskLevelData = async () => {
   try {
     // 调用 getRiskLevelCount 获取风险等级统计数据
-    const riskLevelData = await getRiskLevelCount({ Sszx: "csaqzx_gs" }) as any[];
-    
+    const riskLevelData = await getRiskLevelCount() as any[];
     if (riskLevelData && riskLevelData.length > 0) {
       // 转换数据格式：将 API 返回的数据转换为图表所需格式
       const transformedData = riskLevelData.map(item => {
@@ -190,13 +189,9 @@ const renderRiskLevelChart = () => {
 
   // 数据环样式
   const createLabelStyle = (color: string, lineLength = 100) => ({
-    label: {
-      show: true,
-      position: "outside",
-      formatter: "{a}: {c}个",
-      color: "#D3EAF1",
-      fontSize: 14,
-    },
+        label: {
+          show: false,
+        },
     labelLine: {
       show: true,
       length: lineLength,

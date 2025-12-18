@@ -303,11 +303,12 @@ const initChart = () => {};
 
   .danger-scene {
     width: 100%;
-    height: 360px;
+    height: 300px;
     position: relative;
     display: flex;
     justify-content: center;
     align-items: center;
+    top: 30px;
   }
 
   // 隐患小球（随机位置，不重叠）

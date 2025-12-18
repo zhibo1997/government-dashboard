@@ -50,9 +50,9 @@ export async function getDeviceTypeStatusCount(param: {
  * 获取最新水质监测数据
  * @returns 水质监测数据
  */
-export async function getLatestWaterQuality() {
+export async function getLatestWaterQuality(param:{Sszx:string}) {
   const res =
-    await waterApi.gspspDtransPubmnteqpinfo.latestWaterQualityDataList();
+    await waterApi.gspspDtransPubmnteqpinfo.latestWaterQualityDataList(param);
   return res.data || [];
 }
 

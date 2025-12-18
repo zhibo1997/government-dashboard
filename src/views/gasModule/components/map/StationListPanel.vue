@@ -32,11 +32,12 @@
 
 
         <!-- 燃气类型 -->
-        <div class="filter-item">
-          <select v-model="filters.type" class="filter-select">
-            <option value="rqlx001">天然气</option>
-            <option value="rqlx002">液化气</option>
-          </select>
+        <div class="filter-item filter-item-select">
+          <n-select
+            v-model:value="filters.type"
+            :options="gasTypeOptions"
+            class="filter-select"
+          />
         </div>
       </div>
     </div>
@@ -81,6 +82,7 @@
 <script setup lang="ts">
 import { getGasEnterprisePageList, getGasEnterpriseLedgerDetail, getBottleGasEnterpriseLedgerDetail, getGasUserPageList, getGasStationPageList } from "@/services/gasService";
 import { ref, computed, onMounted, watch } from "vue";
+import { NSelect } from "naive-ui";
 
 const props = defineProps({
   visible: {
@@ -103,6 +105,20 @@ const filters = ref({
   company: "",
   type: "rqlx001",
 });
+
+// 燃气类型选项
+const gasTypeOptions = [
+  {
+    label: '天然气',
+    value: 'rqlx001',
+    class: 'type-option'
+  },
+  {
+    label: '液化气',
+    value: 'rqlx002',
+    class: 'type-option'
+  }
+];
 
 // 监听筛选条件变化
 watch([searchKeyword, () => filters.value.type], () => {
@@ -451,33 +467,17 @@ const nextPage = () => {
 
       .filter-select {
         width: 100%;
-        height: 100%;
-
-        font-size: 16px;
-        font-family: SourceHanSansSC, SourceHanSansSC;
-        font-weight: 400;
-        font-size: 24px;
-        line-height: 35px;
-        text-align: left;
-        font-style: normal;
-        color: #ffffff;
-        background-color: transparent;
-        outline: none;
-        border: none;
-
-        &:focus {
-          outline: none;
-          border-color: rgba(0, 255, 255, 0.6);
-          box-shadow: 0 0 8px rgba(0, 255, 255, 0.2);
-        }
-
-        option {
-          background: #001428;
-          color: #ffffff;
-
-          &:first-child {
-            color: rgba(255, 255, 255, 0.4);
-          }
+        :deep(.n-base-selection) {
+          --n-height: 60px !important;
+          --n-color:transparent !important;
+          --n-color-active: transparent !important;
+          --n-text-color: #E4F3FF !important;
+          --n-font-size: 24px !important;
+          --n-padding-single: 0px !important;
+          --n-border: none !important;
+          --n-border-active: none !important;
+          --n-border-focus: none !important;
+          --n-border-hover: none !important;
         }
       }
     }

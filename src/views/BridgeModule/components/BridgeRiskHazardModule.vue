@@ -195,11 +195,7 @@ const renderRiskLevelChart = () => {
   // 数据环样式
   const createLabelStyle = (color: string, lineLength = 100) => ({
     label: {
-      show: true,
-      position: "outside",
-      formatter: "{a}: {c}个",
-      color: "#D3EAF1",
-      fontSize: 14,
+      show: false,
     },
     labelLine: {
       show: true,
