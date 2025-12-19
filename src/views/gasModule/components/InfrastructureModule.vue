@@ -64,9 +64,9 @@ const naturalGasTableConfig = ref({
   columns: [
     { key: 'qymc', label: '企业名称' },
     { key: 'zgrs', label: '职工人数' },
-    { key: 'yyyjsl', label: '拥有窨井数量' },
-    { key: 'yyczsl', label: '拥有厂站数量' },
-    { key: 'yygxcd', label: '拥有管线长度(公里)' },
+    { key: 'yyyjsl', label: '窨井数量' },
+    { key: 'yyczsl', label: '厂站数量' },
+    { key: 'yygxcd', label: '管线长度' },
   ],
   data: []
 });
@@ -260,7 +260,7 @@ onMounted(async () => {
         height: 60px;
         font-family: SourceHanSansSC, SourceHanSansSC;
         font-weight: bold;
-        font-size: 20px;
+        font-size: 24px;
         color: #E4F3FF;
         font-style: normal;
         background: linear-gradient(90deg, rgba(30, 94, 88, 0.5) 0%, rgba(10, 14, 15, 0.5) 100%);
@@ -309,7 +309,7 @@ onMounted(async () => {
     .header-col {
       font-family: SourceHanSansSC, SourceHanSansSC;
       font-weight: bold;
-      font-size: 20px;
+      font-size: 28px;
       color: #E4F3FF;
       line-height: 29px;
       text-align: left;
@@ -354,7 +354,7 @@ onMounted(async () => {
         text-align: center;
         width: 200px;
         font-weight: 400;
-        font-size: 20px;
+        font-size: 30px;
         line-height: 58px;
         text-align: left;
         font-style: normal;

@@ -444,7 +444,7 @@ const nextPage = () => {
         font-size: 16px;
         font-family: SourceHanSansSC, SourceHanSansSC;
         font-weight: 400;
-        font-size: 24px;
+        font-size: 30px;
         line-height: 35px;
         text-align: left;
         font-style: normal;
@@ -454,7 +454,7 @@ const nextPage = () => {
         border: none;
 
         &::placeholder {
-          font-size: 24px;
+          font-size: 30px;
           color: #E4F3FF;
         }
 
@@ -472,7 +472,7 @@ const nextPage = () => {
           --n-color:transparent !important;
           --n-color-active: transparent !important;
           --n-text-color: #E4F3FF !important;
-          --n-font-size: 24px !important;
+          --n-font-size: 30px !important;
           --n-padding-single: 0px !important;
           --n-border: none !important;
           --n-border-active: none !important;

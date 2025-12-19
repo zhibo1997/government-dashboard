@@ -338,7 +338,7 @@ onMounted(async () => {
     display: flex;
     flex-direction: row;
     gap: 40px;
-    height: 100%;
+   height: 100%;
   }
 
   // 左侧多环形图区域

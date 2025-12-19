@@ -17,6 +17,34 @@ const { message } = createDiscreteApi(['message'])
 let isHandlingTokenExpired = false
 
 /**
+ * 消息防重复显示映射表
+ * 用于存储最近1秒内已显示的消息内容及时间戳
+ */
+const messageDedupMap = new Map<string, number>()
+
+/**
+ * 显示错误消息（带防重复机制）
+ * 在1秒内相同内容的消息只显示一次
+ * @param msg 消息内容
+ */
+function showMessageOnce(msg: string): void {
+  const now = Date.now()
+  const lastShownTime = messageDedupMap.get(msg)
+  
+  // 如果该消息在1秒内未显示过，则显示并记录时间
+  if (!lastShownTime || now - lastShownTime >= 1000) {
+    message.error(msg)
+    messageDedupMap.set(msg, now)
+  }
+  
+  // 清理1秒前的旧记录
+  messageDedupMap.forEach((time, key) => {
+    if (now - time >= 1000) {
+      messageDedupMap.delete(key)
+    }
+  })
+}
+/**
  * 获取认证 Token
  */
 const getAuthToken = (): string => {
@@ -63,6 +91,52 @@ interface ApiClientOptions {
   /** 自定义 axios 配置 */
   axiosConfig?: Partial<AxiosRequestConfig>
 }
+
+/**
+ * 请求队列管理类
+ * 控制并发请求数量，避免浏览器限制和服务器压力
+ */
+class RequestQueue {
+  private queue: Array<{
+    requestFn: () => Promise<any>;
+    resolve: (value: any) => void;
+    reject: (reason?: any) => void;
+  }> = [];
+  private running: number = 0;
+  private concurrency: number = 4; // 默认最大并发数
+
+  constructor(concurrency?: number) {
+    if (concurrency) {
+      this.concurrency = concurrency;
+    }
+  }
+
+  async add<T>(requestFn: () => Promise<T>): Promise<T> {
+    return new Promise<T>((resolve, reject) => {
+      this.queue.push({ requestFn, resolve, reject });
+      this.process();
+    });
+  }
+
+  private process() {
+    while (this.running < this.concurrency && this.queue.length > 0) {
+      const { requestFn, resolve, reject } = this.queue.shift()!;
+      this.running++;
+      console.log("🚀 ~ RequestQueue ~ process ~ this.running:", this.running)
+
+      requestFn()
+        .then(resolve)
+        .catch(reject)
+        .finally(() => {
+          this.running--;
+          this.process();
+        });
+    }
+  }
+}
+
+// 创建全局请求队列实例
+const requestQueue = new RequestQueue(4);
 
 /**
  * 泛型 API 客户端工厂函数
@@ -133,10 +207,18 @@ export function createApiClient<TClient extends ApiClientBase>(
     },
     (error) => {
       console.error('[Request Error]', error)
-      message.error('请求配置错误')
+      showMessageOnce('请求配置错误')
       return Promise.reject(error)
     }
-  )
+  );
+
+  // 保存原始的请求方法
+  const originalRequest = api.instance.request;
+
+  // 重写请求方法，加入队列管理
+  api.instance.request = function (config) {
+    return requestQueue.add(() => originalRequest.call(this, config));
+  };
 
   // 配置响应拦截器
   api.instance.interceptors.response.use(
@@ -162,7 +244,7 @@ export function createApiClient<TClient extends ApiClientBase>(
           if (!isHandlingTokenExpired) {
             isHandlingTokenExpired = true
             localStorage.removeItem('token')
-            message.error('登录已过期，请重新登录')
+            showMessageOnce('登录已过期，请重新登录')
             router.push('/login')
           }
           return Promise.reject(new Error('未授权'))
@@ -170,7 +252,7 @@ export function createApiClient<TClient extends ApiClientBase>(
 
         // 其他业务错误
         const errorMessage = response.data.info || response.data.message || '请求失败'
-        message.error(errorMessage)
+        showMessageOnce(errorMessage)
         return Promise.reject(new Error(errorMessage))
       }
 
@@ -181,7 +263,7 @@ export function createApiClient<TClient extends ApiClientBase>(
 
       // 网络错误
       if (!error.response) {
-        message.error('网络连接失败，请检查网络设置')
+        showMessageOnce('网络连接失败，请检查网络设置')
         return Promise.reject(error)
       }
 
@@ -194,29 +276,29 @@ export function createApiClient<TClient extends ApiClientBase>(
           if (!isHandlingTokenExpired) {
             isHandlingTokenExpired = true
             localStorage.removeItem('token')
-            message.error('登录已过期，请重新登录')
+            showMessageOnce('登录已过期，请重新登录')
             router.push('/login')
           }
           break
         case 500:
           localStorage.removeItem('token')
           router.push('/login')
-          message.error('登录已过期，请重新登录')
+          showMessageOnce('登录已过期，请重新登录')
           break
         case 403:
-          message.error('没有权限访问该资源')
+          showMessageOnce('没有权限访问该资源')
           break
         case 404:
-          message.error('请求的资源不存在')
+          showMessageOnce('请求的资源不存在')
           break
         case 502:
-          message.error('网关错误')
+          showMessageOnce('网关错误')
           break
         case 503:
-          message.error('服务暂时不可用')
+          showMessageOnce('服务暂时不可用')
           break
         default:
-          message.error(data?.message || `请求失败 (${status})`)
+          showMessageOnce(data?.message || `请求失败 (${status})`)
       }
 
       return Promise.reject(error)

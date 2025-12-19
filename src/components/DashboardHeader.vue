@@ -40,12 +40,12 @@
         </div>
       </div>
       <div class="control-box">
-        <a-button type="default" class="btn" @click="handleSystemAdmin">
+        <n-button type="default" class="btn" @click="handleSystemAdmin">
           <img src="@/assets/img/setting_icon.png" alt="" />
-        </a-button>
-        <a-button type="default" class="btn" @click="handleLogout">
+        </n-button>
+        <n-button type="default" class="btn" @click="handleLogout">
           <img src="@/assets/img/logout_icon.png" alt="" />
-        </a-button>
+        </n-button>
       </div>
     </div>
   </div>
@@ -54,6 +54,7 @@
 <script setup>
 import { onMounted, ref, watch } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
+import { NButton } from 'naive-ui';
 import TimeDisplay from "@/components/TimeDisplay.vue";
 
 // 初始化路由
