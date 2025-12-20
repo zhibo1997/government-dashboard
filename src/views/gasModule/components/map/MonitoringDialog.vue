@@ -362,8 +362,8 @@ const nextPage = () => {
 
     .dialog-title {
       font-family: SourceHanSansSC, SourceHanSansSC;
-      font-weight: bold;
-      font-size: 20px;
+      font-weight: var(--font-weight-bold);
+      font-size: var(--font-size-lg);
       color: #ffffff;
     }
 
@@ -374,7 +374,7 @@ const nextPage = () => {
       border: 1px solid rgba(255, 77, 79, 0.3);
       border-radius: 4px;
       color: #ff4d4f;
-      font-size: 24px;
+      font-size: var(--font-size-xl);
       cursor: pointer;
       display: flex;
       align-items: center;
@@ -497,8 +497,8 @@ const nextPage = () => {
         .th {
           padding: 12px 8px;
           font-family: SourceHanSansSC, SourceHanSansSC;
-          font-weight: bold;
-          font-size: 14px;
+          font-weight: var(--font-weight-bold);
+          font-size: var(--font-size-sm);
           color: #d3eaf1;
           text-align: center;
           display: flex;
@@ -541,7 +541,7 @@ const nextPage = () => {
 
           .td {
             padding: 10px 8px;
-            font-size: 13px;
+            font-size: var(--font-size-xs);
             color: #e4f3ff;
             text-align: center;
             display: flex;

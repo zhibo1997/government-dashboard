@@ -34,7 +34,6 @@ const routes: RouteRecordRaw[] = [
     component: WaterSupplyView,
     meta: {
       requiresAuth: false,
-      title: '供水专项'
     }
   },
   {
@@ -43,7 +42,6 @@ const routes: RouteRecordRaw[] = [
     component: GasModule,
     meta: {
       requiresAuth: false,
-      title: '燃气专项'
     }
   },
   {
@@ -52,7 +50,6 @@ const routes: RouteRecordRaw[] = [
     component: BridgeModule,
     meta: {
       requiresAuth: true,
-      title: 'bridgeProject'
     }
   },
   // {

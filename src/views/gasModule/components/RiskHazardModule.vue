@@ -373,8 +373,8 @@ onMounted(async () => {
 
         .legend-name {
           font-family: SourceHanSansSC, SourceHanSansSC;
-          font-weight: 400;
-          font-size: 18px;
+          font-weight: var(--font-weight-normal);
+          font-size: var(--font-size-sm);
           color: #d3eaf1;
           display: flex;
           align-items: center;
@@ -390,14 +390,14 @@ onMounted(async () => {
 
         .legend-value {
           font-family: YouSheBiaoTiHei;
-          font-size: 22px;
+          font-size: var(--font-size-lg);
           color: #ffffff;
           background: linear-gradient(90deg, #ffffff 0%, #10adc0 100%);
 
           .unit {
             font-family: SourceHanSansSC, SourceHanSansSC;
-            font-weight: 400;
-            font-size: 14px;
+            font-weight: var(--font-weight-normal);
+            font-size: var(--font-size-xs);
             color: #d3eaf1;
             margin-left: 5px;
             background: transparent !important;
@@ -433,10 +433,10 @@ onMounted(async () => {
 
       .total-label {
         font-family: SourceHanSansSC, SourceHanSansSC;
-        font-weight: 400;
-        font-size: 20px;
+        font-weight: var(--font-weight-normal);
+        font-size: var(--font-size-base);
         color: #d3eaf1;
-        line-height: 29px;
+        line-height: calc(var(--font-size-base) * var(--line-height-normal));
         letter-spacing: 1px;
         text-align: center;
         font-style: normal;
@@ -444,8 +444,8 @@ onMounted(async () => {
 
       .total-value {
         font-family: YouSheBiaoTiHei;
-        font-size: 40px;
-        line-height: 52px;
+        font-size: var(--font-size-4xl);
+        line-height: calc(var(--font-size-4xl) * 1.3);
         text-align: right;
         font-style: normal;
         background: linear-gradient(0deg, #3ffefd 0%, #fff407 100%);
@@ -473,15 +473,15 @@ onMounted(async () => {
         }
 
         .type-value {
-          font-size: 40px;
-          font-weight: bold;
+          font-size: var(--font-size-4xl);
+          font-weight: var(--font-weight-bold);
           font-family: YouSheBiaoTiHei;
           line-height: 1;
           margin-bottom: 8px;
         }
 
         .type-label {
-          font-size: 16px;
+          font-size: var(--font-size-sm);
           color: rgba(255, 255, 255, 0.85);
           font-family: SourceHanSansSC, SourceHanSansSC;
         }
@@ -536,15 +536,15 @@ onMounted(async () => {
 
         .rectification-item-title {
           font-family: SourceHanSansSC, SourceHanSansSC;
-          font-weight: 400;
-          font-size: 18px;
+          font-weight: var(--font-weight-normal);
+          font-size: var(--font-size-sm);
           color: #d3eaf1;
         }
 
         .rectification-item-value {
           .value {
             font-family: YouSheBiaoTiHei;
-            font-size: 36px;
+            font-size: var(--font-size-3xl);
             color: #ffffff;
             line-height: 1;
 
@@ -568,8 +568,8 @@ onMounted(async () => {
           .unit {
             margin-left: 5px;
             font-family: SourceHanSansSC, SourceHanSansSC;
-            font-weight: 400;
-            font-size: 14px;
+            font-weight: var(--font-weight-normal);
+            font-size: var(--font-size-xs);
             color: #d3eaf1;
             background: transparent !important;
           }

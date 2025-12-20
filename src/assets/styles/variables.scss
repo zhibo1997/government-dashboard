@@ -73,6 +73,21 @@ $font-size-md: 16px;
 $font-size-lg: 18px;
 $font-size-xl: 20px;
 $font-size-xxl: 24px;
+$font-size-2xl: 28px;
+$font-size-3xl: 30px;
+$font-size-4xl: 32px;
+
+// 字体粗细
+$font-weight-normal: 400;
+$font-weight-medium: 500;
+$font-weight-semibold: 600;
+$font-weight-bold: 700;
+
+// 行高
+$line-height-tight: 1.2;
+$line-height-normal: 1.5;
+$line-height-relaxed: 1.75;
+$line-height-loose: 2;
 
 // 圆角
 $border-radius-sm: 4px;
@@ -126,6 +141,50 @@ $breakpoint-xxl: 1600px;
 }
 .vc-drawings-container{
   display: none;
+}
+
+// 组合字体样式 mixin
+@mixin font-style($size, $weight: normal, $line-height: normal) {
+  font-size: $size;
+  font-weight: $weight;
+  line-height: $line-height;
+}
+
+// 预定义的文本样式
+@mixin text-heading-xl {
+  @include font-style($font-size-xxl, $font-weight-medium, $line-height-normal);
+}
+
+@mixin text-heading-lg {
+  @include font-style($font-size-xl, $font-weight-medium, $line-height-normal);
+}
+
+@mixin text-heading-md {
+  @include font-style($font-size-lg, $font-weight-medium, $line-height-normal);
+}
+
+@mixin text-heading-sm {
+  @include font-style($font-size-md, $font-weight-medium, $line-height-normal);
+}
+
+@mixin text-body-xl {
+  @include font-style($font-size-lg, $font-weight-normal, $line-height-normal);
+}
+
+@mixin text-body-lg {
+  @include font-style($font-size-md, $font-weight-normal, $line-height-normal);
+}
+
+@mixin text-body-md {
+  @include font-style($font-size-base, $font-weight-normal, $line-height-normal);
+}
+
+@mixin text-body-sm {
+  @include font-style($font-size-sm, $font-weight-normal, $line-height-normal);
+}
+
+@mixin text-caption {
+  @include font-style($font-size-xs, $font-weight-normal, $line-height-normal);
 }
 
 // 响应式混入

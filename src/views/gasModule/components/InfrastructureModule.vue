@@ -63,7 +63,6 @@ const liquefiedGasStats = ref([]);
 const naturalGasTableConfig = ref({
   columns: [
     { key: 'qymc', label: '企业名称' },
-    { key: 'zgrs', label: '职工人数' },
     { key: 'yyyjsl', label: '窨井数量' },
     { key: 'yyczsl', label: '厂站数量' },
     { key: 'yygxcd', label: '管线长度' },
@@ -74,7 +73,6 @@ const naturalGasTableConfig = ref({
 const liquefiedGasTableConfig = ref({
   columns: [
     { key: 'qymc', label: '企业名称' },
-    { key: 'zgrs', label: '职工人数' },
     { key: 'yhqpsl', label: '液化气瓶数量' },
     { key: 'khzs', label: '客户总数' },
     { key: 'ysclsl', label: '运输车辆数量' },
@@ -219,8 +217,8 @@ onMounted(async () => {
 
       .gradient-text {
         font-family: YouSheBiaoTiHei;
-        font-size: 36px;
-        line-height: 47px;
+        font-size: var(--font-size-3xl);
+        line-height: calc(var(--font-size-3xl) * 1.306);
         background: linear-gradient(90deg, #FFFFFF 18%, #10ADC0 100%);
       }
 
@@ -255,12 +253,12 @@ onMounted(async () => {
 
       .stat-label {
         text-align: center;
-        line-height: 60px;
+        line-height: calc(var(--font-size-xl) * 2.5);
         width: 100%;
         height: 60px;
         font-family: SourceHanSansSC, SourceHanSansSC;
-        font-weight: bold;
-        font-size: 24px;
+        font-weight: var(--font-weight-bold);
+        font-size: var(--font-size-xl);
         color: #E4F3FF;
         font-style: normal;
         background: linear-gradient(90deg, rgba(30, 94, 88, 0.5) 0%, rgba(10, 14, 15, 0.5) 100%);
@@ -275,9 +273,9 @@ onMounted(async () => {
 
         .number {
           font-family: YouSheBiaoTiHei;
-          font-size: 24px;
+          font-size: var(--font-size-xl);
           color: #FFFFFF;
-          line-height: 31px;
+          line-height: calc(var(--font-size-xl) * 1.292);
           text-align: center;
           font-style: normal;
           background: linear-gradient(90deg, #FFFFFF 0%, #10ADC0 100%);
@@ -285,7 +283,7 @@ onMounted(async () => {
 
         .unit {
           font-family: SourceHanSansSC, SourceHanSansSC;
-          font-size: 20px;
+          font-size: var(--font-size-base);
           color: #9ec3e8;
         }
       }
@@ -308,10 +306,10 @@ onMounted(async () => {
 
     .header-col {
       font-family: SourceHanSansSC, SourceHanSansSC;
-      font-weight: bold;
-      font-size: 28px;
+      font-weight: var(--font-weight-bold);
+      font-size: var(--font-size-2xl);
       color: #E4F3FF;
-      line-height: 29px;
+      line-height: calc(var(--font-size-2xl) * 1.036);
       text-align: left;
       font-style: normal;
       flex: 1;
@@ -349,13 +347,12 @@ onMounted(async () => {
 
       .row-col {
         font-family: SourceHanSansSC, SourceHanSansSC;
-        font-weight: 400;
+        font-weight: var(--font-weight-normal);
         color: #e4f3ff;
         text-align: center;
         width: 200px;
-        font-weight: 400;
-        font-size: 30px;
-        line-height: 58px;
+        font-size: var(--font-size-3xl);
+        line-height: calc(var(--font-size-3xl) * 1.933);
         text-align: left;
         font-style: normal;
         padding-left: 20px;

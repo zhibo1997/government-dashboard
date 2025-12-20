@@ -200,15 +200,15 @@ onMounted(() => {
       background-image: url("@/assets/img/gasModule/resource_left.webp");
 
       .stat-label {
-        font-weight: 400;
-        font-size: 16px;
+        font-weight: var(--font-weight-normal);
+        font-size: var(--font-size-base);
         color: #b8d8ff;
         white-space: nowrap;
       }
 
       .stat-value {
-        font-weight: 500;
-        font-size: 18px;
+        font-weight: var(--font-weight-medium);
+        font-size: var(--font-size-md);
         color: #ffffff;
         white-space: nowrap;
       }
@@ -271,10 +271,10 @@ onMounted(() => {
 
     .ring-text {
       font-family: SourceHanSansSC, SourceHanSansSC;
-      font-weight: 500;
-      font-size: 28px;
+      font-weight: var(--font-weight-medium);
+      font-size: var(--font-size-2xl);
       color: #effaff;
-      line-height: 37px;
+      line-height: calc(var(--font-size-2xl) * 1.321);
       text-align: center;
       font-style: normal;
     }

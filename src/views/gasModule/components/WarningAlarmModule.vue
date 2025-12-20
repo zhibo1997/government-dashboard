@@ -381,9 +381,9 @@ onMounted(() => {
 
       .ring-value {
         font-family: YouSheBiaoTiHei;
-        font-size: 34px;
+        font-size: var(--font-size-4xl);
         color: #ffffff;
-        line-height: 44px;
+        line-height: calc(var(--font-size-4xl) * 1.294);
         text-align: center;
         font-style: normal;
         background: linear-gradient(0deg, #f75e04 0%, #feac04 100%);
@@ -395,10 +395,10 @@ onMounted(() => {
     // 总数标签
     .total-label {
       font-family: SourceHanSansSC, SourceHanSansSC;
-      font-weight: bold;
-      font-size: 24px;
+      font-weight: var(--font-weight-bold);
+      font-size: var(--font-size-xl);
       color: #d3eaf1;
-      line-height: 35px;
+      line-height: calc(var(--font-size-xl) * 1.458);
       text-align: center;
       font-style: normal;
     }
@@ -430,9 +430,9 @@ onMounted(() => {
 
           .ring-num {
             font-family: YouSheBiaoTiHei;
-            font-size: 24px;
+            font-size: var(--font-size-xl);
             color: #ffffff;
-            line-height: 31px;
+            line-height: calc(var(--font-size-xl) * 1.292);
             text-align: center;
             font-style: normal;
             background: linear-gradient(90deg, #ffffff 0%, #10adc0 100%);
@@ -440,7 +440,7 @@ onMounted(() => {
         }
 
         .status-label {
-          font-size: 14px;
+          font-size: var(--font-size-xs);
           color: rgba(255, 255, 255, 0.75);
         }
       }
@@ -491,9 +491,9 @@ onMounted(() => {
           margin-bottom: 11px;
           > span {
             font-family: YouSheBiaoTiHei;
-            font-size: 24px;
+            font-size: var(--font-size-xl);
             color: #ffffff;
-            line-height: 31px;
+            line-height: calc(var(--font-size-xl) * 1.292);
             text-align: center;
             font-style: normal;
           }
@@ -501,10 +501,10 @@ onMounted(() => {
 
         .level-label {
           font-family: SourceHanSansSC, SourceHanSansSC;
-          font-weight: 400;
-          font-size: 16px;
+          font-weight: var(--font-weight-normal);
+          font-size: var(--font-size-sm);
           color: #d3eaf1;
-          line-height: 24px;
+          line-height: calc(var(--font-size-sm) * 1.5);
           text-align: center;
           font-style: normal;
         }
@@ -536,9 +536,9 @@ onMounted(() => {
       background-image: url("@/assets/img/gasModule/tab.webp");
       span {
         font-family: YouSheBiaoTiHei;
-        font-size: 36px;
+        font-size: var(--font-size-3xl);
         color: #e74040;
-        line-height: 47px;
+        line-height: calc(var(--font-size-3xl) * 1.306);
         text-align: left;
         font-style: normal;
         background: linear-gradient(90deg, #ffffff 18%, #10adc0 100%);
@@ -580,10 +580,10 @@ onMounted(() => {
       align-items: center;
       justify-content: center;
       font-family: SourceHanSansSC, SourceHanSansSC;
-      font-weight: bold;
-      font-size: 20px;
+      font-weight: var(--font-weight-bold);
+      font-size: var(--font-size-base);
       color: #e4f3ff;
-      line-height: 29px;
+      line-height: calc(var(--font-size-base) * 1.45);
       text-align: left;
       font-style: normal;
       padding: 0 10px;
@@ -651,8 +651,8 @@ onMounted(() => {
         align-items: center;
         justify-content: center;
         font-family: SourceHanSansSC, SourceHanSansSC;
-        font-weight: 400;
-        font-size: 20px;
+        font-weight: var(--font-weight-normal);
+        font-size: var(--font-size-base);
         color: #e4f3ff;
         padding: 8px 10px;
 
@@ -665,12 +665,12 @@ onMounted(() => {
 
         &.td-level {
           color: #faad14;
-          font-weight: 500;
+          font-weight: var(--font-weight-medium);
         }
 
         &.td-status {
           color: #10adc0;
-          font-weight: 500;
+          font-weight: var(--font-weight-medium);
         }
       }
     }

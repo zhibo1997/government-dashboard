@@ -267,10 +267,10 @@ const handleShowMonitoring = () => {
 
     .dialog-title {
       font-family: SourceHanSansSC, SourceHanSansSC;
-      font-weight: 500;
-      font-size: 28px;
+      font-weight: var(--font-weight-medium);
+      font-size: var(--font-size-2xl);
       color: #e4f3ff;
-      line-height: 41px;
+      line-height: calc(var(--font-size-2xl) * 1.464);
     }
   }
 
@@ -300,9 +300,9 @@ const handleShowMonitoring = () => {
           padding: 6px 16px;
           border-radius: 8px;
           font-family: SourceHanSansSC, SourceHanSansSC;
-          font-weight: 500;
-          font-size: 20px;
-          line-height: 29px;
+          font-weight: var(--font-weight-medium);
+          font-size: var(--font-size-lg);
+          line-height: calc(var(--font-size-lg) * 1.45);
 
           &.badge-type {
             background: #313d56;
@@ -345,12 +345,12 @@ const handleShowMonitoring = () => {
         display: flex;
         align-items: center;
         gap: 12px;
-        font-size: 18px;
-        line-height: 26px;
+        font-size: var(--font-size-md);
+        line-height: calc(var(--font-size-md) * 1.444);
 
         label {
           font-family: SourceHanSansSC, SourceHanSansSC;
-          font-weight: 400;
+          font-weight: var(--font-weight-normal);
           color: #a8d4e0;
           min-width: 140px;
           flex-shrink: 0;
@@ -358,7 +358,7 @@ const handleShowMonitoring = () => {
 
         .info-value {
           font-family: SourceHanSansSC, SourceHanSansSC;
-          font-weight: 400;
+          font-weight: var(--font-weight-normal);
           color: #e4f3ff;
           flex: 1;
           min-width: 0;
@@ -387,10 +387,10 @@ const handleShowMonitoring = () => {
           2 2;
 
         font-family: SourceHanSansSC, SourceHanSansSC;
-        font-weight: 500;
-        font-size: 30px;
+        font-weight: var(--font-weight-medium);
+        font-size: var(--font-size-3xl);
         color: #ffffff;
-        line-height: 44px;
+        line-height: calc(var(--font-size-3xl) * 1.467);
         text-align: left;
         font-style: normal;
         background: linear-gradient(90deg, #ffffff 18%, #10adc0 100%);

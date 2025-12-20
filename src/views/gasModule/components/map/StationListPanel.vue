@@ -325,8 +325,8 @@ const nextPage = () => {
 
       .text {
         font-family: SourceHanSansSC, SourceHanSansSC;
-        font-weight: 500;
-        font-size: 20px;
+        font-weight: var(--font-weight-medium);
+        font-size: var(--font-size-lg);
         color: #3fffff;
         letter-spacing: 1px;
         text-align: center;
@@ -359,10 +359,10 @@ const nextPage = () => {
 
       .title-text {
         font-family: SourceHanSansSC, SourceHanSansSC;
-        font-weight: 500;
-        font-size: 30px;
+        font-weight: var(--font-weight-medium);
+        font-size: var(--font-size-3xl);
         color: #FFFFFF;
-        line-height: 44px;
+        line-height: calc(var(--font-size-3xl) * 1.467);
         text-align: center;
         font-style: normal;
         margin-right: 18px;
@@ -407,10 +407,10 @@ const nextPage = () => {
           background: linear-gradient(180deg, #0D9191 0%, #017474 26%, #013D3D 66%, #079090 100%);
           border-radius: 8px;
           border: 2px solid #3FFFFF;
-          font-weight: 500;
-          font-size: 26px;
+          font-weight: var(--font-weight-medium);
+          font-size: var(--font-size-2xl);
           color: #FFFFFF;
-          line-height: 37px;
+          line-height: calc(var(--font-size-2xl) * 1.423);
           text-align: center;
           font-style: normal;
           cursor: pointer;
@@ -443,9 +443,9 @@ const nextPage = () => {
 
         font-size: 16px;
         font-family: SourceHanSansSC, SourceHanSansSC;
-        font-weight: 400;
-        font-size: 30px;
-        line-height: 35px;
+        font-weight: var(--font-weight-normal);
+        font-size: var(--font-size-3xl);
+        line-height: calc(var(--font-size-3xl) * 1.167);
         text-align: left;
         font-style: normal;
         color: #ffffff;
@@ -454,7 +454,7 @@ const nextPage = () => {
         border: none;
 
         &::placeholder {
-          font-size: 30px;
+          font-size: var(--font-size-3xl);
           color: #E4F3FF;
         }
 
@@ -472,7 +472,7 @@ const nextPage = () => {
           --n-color:transparent !important;
           --n-color-active: transparent !important;
           --n-text-color: #E4F3FF !important;
-          --n-font-size: 30px !important;
+          --n-font-size: var(--font-size-3xl) !important;
           --n-padding-single: 0px !important;
           --n-border: none !important;
           --n-border-active: none !important;
@@ -547,9 +547,9 @@ const nextPage = () => {
           padding: 6px 16px;
           border-radius: 8px;
           font-family: SourceHanSansSC, SourceHanSansSC;
-          font-weight: 500;
-          font-size: 20px;
-          line-height: 29px;
+          font-weight: var(--font-weight-medium);
+          font-size: var(--font-size-lg);
+          line-height: calc(var(--font-size-lg) * 1.45);
 
           &.badge-type {
             background: #313D56;
@@ -580,20 +580,20 @@ const nextPage = () => {
 
         .station-name {
           font-family: SourceHanSansCNVF, SourceHanSansCNVF;
-          font-weight: 500;
-          font-size: 30px;
+          font-weight: var(--font-weight-medium);
+          font-size: var(--font-size-3xl);
           color: #E4F3FF;
-          line-height: 44px;
+          line-height: calc(var(--font-size-3xl) * 1.467);
           text-align: left;
           font-style: normal;
         }
 
         .station-address {
           font-family: SourceHanSansCNVF, SourceHanSansCNVF;
-          font-weight: 400;
-          font-size: 18px;
+          font-weight: var(--font-weight-normal);
+          font-size: var(--font-size-md);
           color: #BFC5C0;
-          line-height: 26px;
+          line-height: calc(var(--font-size-md) * 1.444);
           text-align: left;
           font-style: normal;
 
@@ -647,10 +647,10 @@ const nextPage = () => {
       .page-info {
         margin-left: 8px;
         font-family: SourceHanSansSC, SourceHanSansSC;
-        font-weight: 400;
-        font-size: 20px;
+        font-weight: var(--font-weight-normal);
+        font-size: var(--font-size-lg);
         color: #FFFFFF;
-        line-height: 29px;
+        line-height: calc(var(--font-size-lg) * 1.45);
       }
     }
   }

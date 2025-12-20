@@ -242,10 +242,10 @@ const deviceCategories = ref<
 
         .stat-label {
           font-family: SourceHanSansSC, SourceHanSansSC;
-          font-weight: 500;
-          font-size: 32px;
+          font-weight: var(--font-weight-medium);
+          font-size: var(--font-size-4xl);
           color: #effaff;
-          line-height: 46px;
+          line-height: calc(var(--font-size-4xl) * 1.438);
           text-align: center;
           font-style: normal;
         }
@@ -257,9 +257,9 @@ const deviceCategories = ref<
 
           > span {
             font-family: YouSheBiaoTiHei;
-            font-size: 32px;
+            font-size: var(--font-size-4xl);
             color: #ffffff;
-            line-height: 42px;
+            line-height: calc(var(--font-size-4xl) * 1.313);
             text-align: center;
             font-style: normal;
           }
@@ -309,10 +309,10 @@ const deviceCategories = ref<
 
         .header-title {
           font-family: SourceHanSansSC, SourceHanSansSC;
-          font-weight: bold;
-          font-size: 24px;
+          font-weight: var(--font-weight-bold);
+          font-size: var(--font-size-xl);
           color: #effaff;
-          line-height: 35px;
+          line-height: calc(var(--font-size-xl) * 1.458);
           text-align: center;
           font-style: normal;
         }
@@ -329,10 +329,10 @@ const deviceCategories = ref<
 
           .device-name {
             font-family: SourceHanSansSC, SourceHanSansSC;
-            font-weight: 400;
-            font-size: 20px;
+            font-weight: var(--font-weight-normal);
+            font-size: var(--font-size-base);
             color: #effaff;
-            line-height: 29px;
+            line-height: calc(var(--font-size-base) * 1.813);
             text-align: left;
             font-style: normal;
           }
@@ -344,9 +344,9 @@ const deviceCategories = ref<
 
             > span {
               font-family: YouSheBiaoTiHei;
-              font-size: 20px;
+              font-size: var(--font-size-base);
               color: #ffffff;
-              line-height: 26px;
+              line-height: calc(var(--font-size-base) * 1.625);
               font-style: normal;
             }
 

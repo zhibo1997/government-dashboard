@@ -34,6 +34,32 @@
   --color-text: var(--vt-c-text-light-1);
 
   --section-gap: 160px;
+
+  /* 字体尺寸变量 */
+  --font-size-xs: 12px;
+  --font-size-sm: 14px;
+  --font-size-base: 16px;
+  --font-size-md: 18px;
+  --font-size-lg: 20px;
+  --font-size-xl: 24px;
+  --font-size-2xl: 28px;
+  --font-size-3xl: 30px;
+  --font-size-4xl: 32px;
+
+  /* 字体粗细 */
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+
+  /* 行高 */
+  --line-height-tight: 1.2;
+  --line-height-normal: 1.5;
+  --line-height-relaxed: 1.75;
+  --line-height-loose: 2;
+
+  /* 响应式字体倍数因子（用于rem计算） */
+  --font-scale: 1;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -47,6 +73,32 @@
 
     --color-heading: var(--vt-c-text-dark-1);
     --color-text: var(--vt-c-text-dark-2);
+
+    /* 字体尺寸变量 */
+    --font-size-xs: 12px;
+    --font-size-sm: 14px;
+    --font-size-base: 16px;
+    --font-size-md: 18px;
+    --font-size-lg: 20px;
+    --font-size-xl: 24px;
+    --font-size-2xl: 28px;
+    --font-size-3xl: 30px;
+    --font-size-4xl: 32px;
+
+    /* 字体粗细 */
+    --font-weight-normal: 400;
+    --font-weight-medium: 500;
+    --font-weight-semibold: 600;
+    --font-weight-bold: 700;
+
+    /* 行高 */
+    --line-height-tight: 1.2;
+    --line-height-normal: 1.5;
+    --line-height-relaxed: 1.75;
+    --line-height-loose: 2;
+
+    /* 响应式字体倍数因子（用于rem计算） */
+    --font-scale: 1;
   }
 }
 

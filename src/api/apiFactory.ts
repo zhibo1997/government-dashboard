@@ -12,9 +12,15 @@ const { message } = createDiscreteApi(['message'])
 
 /**
  * Token 失效处理标志
- * 用于确保当 token 失效时，只处理一次，阻止后续重复的提示和跳转
+ * 用于确保当 token 失效时，只显示一次提示和跳转
  */
 let isHandlingTokenExpired = false
+
+/**
+ * Token 是否已失效标志
+ * 用于在请求拦截器中阻止后续请求继续执行
+ */
+let tokenInvalid = false
 
 /**
  * 消息防重复显示映射表
@@ -118,11 +124,21 @@ class RequestQueue {
     });
   }
 
+  /**
+   * 取消所有队列中的待处理请求
+   * 用于 token 失效时清除待处理请求，防止继续发送
+   */
+  cancel(): void {
+    while (this.queue.length > 0) {
+      const { reject } = this.queue.shift()!;
+      reject(new Error('Token 已失效，请重新登录'));
+    }
+  }
+
   private process() {
     while (this.running < this.concurrency && this.queue.length > 0) {
       const { requestFn, resolve, reject } = this.queue.shift()!;
       this.running++;
-      console.log("🚀 ~ RequestQueue ~ process ~ this.running:", this.running)
 
       requestFn()
         .then(resolve)
@@ -179,6 +195,11 @@ export function createApiClient<TClient extends ApiClientBase>(
   // 配置请求拦截器
   api.instance.interceptors.request.use(
     (config) => {
+      // 如果 token 已失效，拒绝后续请求
+      if (tokenInvalid) {
+        return Promise.reject(new Error('Token 已失效，请重新登录'))
+      }
+
       // 添加认证 Token
       const token = getAuthToken()
       if (token && config.headers) {
@@ -240,7 +261,12 @@ export function createApiClient<TClient extends ApiClientBase>(
 
         // 未授权
         if (response.data.code === 401) {
-          // 只处理一次 token 失效
+          // 标记 token 已失效，阻止后续请求
+          tokenInvalid = true
+          // 清除请求队列中的待处理请求
+          requestQueue.cancel()
+          
+          // 只处理一次 token 失效提示和跳转
           if (!isHandlingTokenExpired) {
             isHandlingTokenExpired = true
             localStorage.removeItem('token')
@@ -272,7 +298,12 @@ export function createApiClient<TClient extends ApiClientBase>(
       // HTTP 状态码处理
       switch (status) {
         case 401:
-          // 只处理一次 token 失效
+          // 标记 token 已失效，阻止后续请求
+          tokenInvalid = true
+          // 清除请求队列中的待处理请求
+          requestQueue.cancel()
+          
+          // 只处理一次 token 失效提示和跳转
           if (!isHandlingTokenExpired) {
             isHandlingTokenExpired = true
             localStorage.removeItem('token')
@@ -354,8 +385,9 @@ export function createCommonApi(): CommonApi<unknown> {
 
 /**
  * 重置 token 失效处理标志
- * 在用户重新登录成功后调用，以便下次 token 失效时可以再次提示
+ * 在用户重新登录成功后调用，以便下次 token 失效时可以再次提示和阻止请求
  */
 export function resetTokenExpiredFlag(): void {
   isHandlingTokenExpired = false
+  tokenInvalid = false
 }
