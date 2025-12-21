@@ -65,7 +65,7 @@ const naturalGasTableConfig = ref({
     { key: 'qymc', label: '企业名称' },
     { key: 'yyyjsl', label: '窨井数量' },
     { key: 'yyczsl', label: '厂站数量' },
-    { key: 'yygxcd', label: '管线长度' },
+    { key: 'yygxcd', label: '管线长度(公里)' },
   ],
   data: []
 });
@@ -73,9 +73,9 @@ const naturalGasTableConfig = ref({
 const liquefiedGasTableConfig = ref({
   columns: [
     { key: 'qymc', label: '企业名称' },
-    { key: 'yhqpsl', label: '液化气瓶数量' },
-    { key: 'khzs', label: '客户总数' },
-    { key: 'ysclsl', label: '运输车辆数量' },
+    { key: 'yhqpsl', label: '液化气瓶' },
+    { key: 'khzs', label: '客户' },
+    { key: 'ysclsl', label: '运输车辆' },
   ],
   data: []
 });
@@ -210,15 +210,15 @@ onMounted(async () => {
       display: flex;
       align-items: center;
       justify-content: center;
-      font-weight: 500;
+      font-weight: var(--font-weight-medium);
       color: #9ec3e8;
       cursor: pointer;
       transition: all 0.3s ease;
 
       .gradient-text {
         font-family: YouSheBiaoTiHei;
-        font-size: var(--font-size-3xl);
-        line-height: calc(var(--font-size-3xl) * 1.306);
+        font-size: var(--font-size-4xl);
+        line-height: calc(var(--font-size-4xl) * 1.306);
         background: linear-gradient(90deg, #FFFFFF 18%, #10ADC0 100%);
       }
 
@@ -253,12 +253,12 @@ onMounted(async () => {
 
       .stat-label {
         text-align: center;
-        line-height: calc(var(--font-size-xl) * 2.5);
+        line-height: calc(var(--font-size-xl) * 3);
         width: 100%;
         height: 60px;
         font-family: SourceHanSansSC, SourceHanSansSC;
         font-weight: var(--font-weight-bold);
-        font-size: var(--font-size-xl);
+        font-size: var(--font-size-2xl);
         color: #E4F3FF;
         font-style: normal;
         background: linear-gradient(90deg, rgba(30, 94, 88, 0.5) 0%, rgba(10, 14, 15, 0.5) 100%);
@@ -273,7 +273,7 @@ onMounted(async () => {
 
         .number {
           font-family: YouSheBiaoTiHei;
-          font-size: var(--font-size-xl);
+          font-size: var(--font-size-3xl);
           color: #FFFFFF;
           line-height: calc(var(--font-size-xl) * 1.292);
           text-align: center;
@@ -283,7 +283,7 @@ onMounted(async () => {
 
         .unit {
           font-family: SourceHanSansSC, SourceHanSansSC;
-          font-size: var(--font-size-base);
+          font-size: var(--font-size-lg);
           color: #9ec3e8;
         }
       }
@@ -299,17 +299,18 @@ onMounted(async () => {
     display: flex;
     align-items: center;
     height: 60px;
-    background: linear-gradient(90deg, rgba(22, 119, 255, 0.2) 0%, rgba(22, 119, 255, 0.1) 100%);
-    border: 1px solid rgba(22, 119, 255, 0.3);
+    
+    background: #2A5768;
+    border: 2px solid #09739C;
     border-radius: 6px;
     margin-bottom: 12px;
 
     .header-col {
       font-family: SourceHanSansSC, SourceHanSansSC;
       font-weight: var(--font-weight-bold);
-      font-size: var(--font-size-2xl);
+      font-size: var(--font-size-3xl);
       color: #E4F3FF;
-      line-height: calc(var(--font-size-2xl) * 1.036);
+      line-height: calc(var(--font-size-lg) * 1.45);
       text-align: left;
       font-style: normal;
       flex: 1;
@@ -330,11 +331,13 @@ onMounted(async () => {
     gap: 8px;
     height: 232px;
     overflow-y: auto;
+    border: 2px solid #09739C;
+    border-top: none;
 
     .enterprise-row {
       display: flex;
       align-items: center;
-      height: 56px;
+      height: 58px;
       background: linear-gradient(90deg, rgba(0, 150, 255, 0.06) 0%, rgba(0, 100, 200, 0.03) 100%);
       border: 1px solid rgba(22, 119, 255, 0.15);
       border-radius: 4px;
@@ -351,8 +354,9 @@ onMounted(async () => {
         color: #e4f3ff;
         text-align: center;
         width: 200px;
+        font-weight: var(--font-weight-normal);
         font-size: var(--font-size-3xl);
-        line-height: calc(var(--font-size-3xl) * 1.933);
+        line-height: calc(var(--font-size-lg) * 2.9);
         text-align: left;
         font-style: normal;
         padding-left: 20px;

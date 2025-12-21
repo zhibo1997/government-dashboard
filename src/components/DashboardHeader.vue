@@ -20,7 +20,7 @@
       </div>
     </div>
     <div class="head-title" title="阳新县城市安全综合监测预警平台" @click="handleTitleClick">
-      <img src="@/assets/images/title.png" alt="头部标题" class="head-title-img" />
+      <img src="@/assets/img/title.png" alt="头部标题" class="head-title-img" />
     </div>
     <div class="right-tabs tabs">
       <div class="tabs-content">

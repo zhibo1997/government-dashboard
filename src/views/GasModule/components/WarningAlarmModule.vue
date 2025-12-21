@@ -15,11 +15,7 @@
           <div class="right-content">
             <!-- 状态统计 -->
             <div class="status-stats">
-              <div
-                class="status-item"
-                v-for="item in warningStatus"
-                :key="item.label"
-              >
+              <div class="status-item" v-for="item in warningStatus" :key="item.label">
                 <div class="status-ring">
                   <span class="ring-num gradient-text">{{ item.count }}</span>
                 </div>
@@ -28,11 +24,7 @@
             </div>
             <!-- 等级统计 -->
             <div class="level-stats">
-              <div
-                class="level-item"
-                v-for="item in warningLevels"
-                :key="item.label"
-              >
+              <div class="level-item" v-for="item in warningLevels" :key="item.label">
                 <div class="level-value">
                   <span class="gradient-text">{{ item.count }}</span>
                 </div>
@@ -51,11 +43,7 @@
           <div class="right-content">
             <!-- 状态统计 -->
             <div class="status-stats">
-              <div
-                class="status-item"
-                v-for="item in alarmStatus"
-                :key="item.label"
-              >
+              <div class="status-item" v-for="item in alarmStatus" :key="item.label">
                 <div class="status-ring">
                   <span class="ring-num gradient-text">{{ item.count }}</span>
                 </div>
@@ -64,11 +52,7 @@
             </div>
             <!-- 等级统计 -->
             <div class="level-stats">
-              <div
-                class="level-item"
-                v-for="item in alarmLevels"
-                :key="item.label"
-              >
+              <div class="level-item" v-for="item in alarmLevels" :key="item.label">
                 <div class="level-value">
                   <span class="gradient-text">{{ item.count }}</span>
                 </div>
@@ -83,11 +67,7 @@
       <div class="table-section">
         <!-- Tab切换 -->
         <div class="tab-buttons">
-          <div
-            class="tab-btn"
-            :class="{ active: activeTab === 'warning' }"
-            @click="activeTab = 'warning'"
-          >
+          <div class="tab-btn" :class="{ active: activeTab === 'warning' }" @click="activeTab = 'warning'">
             <span class="gradient-text">预警</span>
           </div>
           <!-- <div
@@ -114,11 +94,7 @@
 
           <!-- 表体 -->
           <div class="table-body">
-            <div
-              class="table-row"
-              v-for="item in currentTableData"
-              :key="item.key"
-            >
+            <div class="table-row" v-for="item in currentTableData" :key="item.key">
               <div class="td td-type">{{ item.type }}</div>
               <div class="td">{{ item.level1 }}</div>
               <div class="td">{{ item.level2 }}</div>
@@ -152,9 +128,9 @@ const warningStatus = ref([
   { label: "未处置", count: 0 },
 ]);
 const warningLevels = ref([
-  { label: "一级预警", count: 0 },
-  { label: "二级预警", count: 0 },
-  { label: "三级预警", count: 0 },
+  { label: "一级", count: 0 },
+  { label: "二级", count: 0 },
+  { label: "三级", count: 0 },
 ]);
 
 // 报警数据
@@ -165,9 +141,9 @@ const alarmStatus = ref([
   { label: "未处置", count: 0 },
 ]);
 const alarmLevels = ref([
-  { label: "一级报警", count: 0 },
-  { label: "二级报警", count: 0 },
-  { label: "三级报警", count: 0 },
+  { label: "一级", count: 0 },
+  { label: "二级", count: 0 },
+  { label: "三级", count: 0 },
 ]);
 
 // 预警表格数据
@@ -251,7 +227,7 @@ const fetchWarningAndAlarmData = async () => {
   try {
     const data: any = await getWarnStatistics(RANQI_SSZX);
     console.log("🚀 ~ fetchWarningAndAlarmData ~ data:", data)
-    
+
     // 更新预警数据
     warningTotal.value = data.totalCount || 0;
     warningStatus.value = [
@@ -260,11 +236,11 @@ const fetchWarningAndAlarmData = async () => {
       { label: "未处置", count: data.unhandledCount || 0 },
     ];
     warningLevels.value = [
-      { label: "一级预警", count: data.yjyjCount || 0 },
-      { label: "二级预警", count: data.ejyjCount || 0 },
-      { label: "三级预警", count: data.sjyjCount || 0 },
+      { label: "一级", count: data.yjyjCount || 0 },
+      { label: "二级", count: data.ejyjCount || 0 },
+      { label: "三级", count: data.sjyjCount || 0 },
     ];
-    
+
     // 更新报警数据
     if (data.alarmCount) {
       alarmTotal.value = data.alarmCount.totalCount || 0;
@@ -273,12 +249,12 @@ const fetchWarningAndAlarmData = async () => {
         { label: "未解除", count: data.alarmCount.wjc || 0 },
       ];
       alarmLevels.value = [
-        { label: "一级报警", count: data.alarmCount.yjyjCount || 0 },
-        { label: "二级报警", count: data.alarmCount.ejyjCount || 0 },
-        { label: "三级报警", count: data.alarmCount.sjyjCount || 0 },
+        { label: "一级", count: data.alarmCount.yjyjCount || 0 },
+        { label: "二级", count: data.alarmCount.ejyjCount || 0 },
+        { label: "三级", count: data.alarmCount.sjyjCount || 0 },
       ];
     }
-    
+
     // 获取预警列表数据
     await fetchWarningListData();
   } catch (error) {
@@ -304,8 +280,7 @@ const fetchWarningAndAlarmData = async () => {
 const fetchWarningListData = async () => {
   try {
     const data: any = await getGasWarningTypeList();
-    console.log("🚀 ~ fetchWarningListData ~ data:", data);
-    
+
     // 转换数据格式以匹配表格需求
     if (Array.isArray(data)) {
       warningTableData.value = data.map((item, index) => ({
@@ -349,7 +324,7 @@ onMounted(() => {
     display: grid;
     grid-template-columns: auto auto 1fr;
     grid-template-rows: auto auto;
-    gap: 15px 20px;
+    gap: 15px 0px;
     transition: all 0.3s ease;
 
     &:hover {
@@ -396,22 +371,26 @@ onMounted(() => {
     .total-label {
       font-family: SourceHanSansSC, SourceHanSansSC;
       font-weight: var(--font-weight-bold);
-      font-size: var(--font-size-xl);
+      font-size: var(--font-size-3xl);
       color: #d3eaf1;
       line-height: calc(var(--font-size-xl) * 1.458);
       text-align: center;
       font-style: normal;
     }
+
     .right-content {
+      margin-left: 12px;
       display: flex;
       flex-direction: column;
       justify-content: space-between;
     }
+
     // 状态统计
     .status-stats {
       display: flex;
-      gap: 15px;
+      gap: 10px;
       justify-content: space-between;
+      align-items: center;
 
       .status-item {
         display: flex;
@@ -440,7 +419,7 @@ onMounted(() => {
         }
 
         .status-label {
-          font-size: var(--font-size-xs);
+          font-size: var(--font-size-xl);
           color: rgba(255, 255, 255, 0.75);
         }
       }
@@ -458,27 +437,33 @@ onMounted(() => {
         flex-direction: column;
         align-items: center;
         gap: 5px;
+
         &:nth-child(1) {
           .level-value {
-            > span {
+            >span {
               background: linear-gradient(0deg, #ff1d1d 0%, #fd8837 100%);
             }
+
             background-image: url("@/assets/img/gasModule/level1.webp");
           }
         }
+
         &:nth-child(2) {
           .level-value {
-            > span {
+            >span {
               background: linear-gradient(0deg, #f75e04 0%, #feac04 100%);
             }
+
             background-image: url("@/assets/img/gasModule/level2.webp");
           }
         }
+
         &:nth-child(3) {
           .level-value {
-            > span {
+            >span {
               background: linear-gradient(90deg, #ffffff 0%, #10adc0 100%);
             }
+
             background-image: url("@/assets/img/gasModule/level3.webp");
           }
         }
@@ -489,9 +474,10 @@ onMounted(() => {
           text-align: center;
           line-height: 27.29px;
           margin-bottom: 11px;
-          > span {
+
+          >span {
             font-family: YouSheBiaoTiHei;
-            font-size: var(--font-size-xl);
+            font-size: var(--font-size-2xl);
             color: #ffffff;
             line-height: calc(var(--font-size-xl) * 1.292);
             text-align: center;
@@ -502,7 +488,7 @@ onMounted(() => {
         .level-label {
           font-family: SourceHanSansSC, SourceHanSansSC;
           font-weight: var(--font-weight-normal);
-          font-size: var(--font-size-sm);
+          font-size: var(--font-size-xl);
           color: #d3eaf1;
           line-height: calc(var(--font-size-sm) * 1.5);
           text-align: center;
@@ -517,8 +503,10 @@ onMounted(() => {
     flex: 1;
     display: flex;
     flex-direction: column;
-    gap: 15px;
     width: 100%;
+    border-top: 2px solid rgba(31, 199, 255, 0.24);
+    padding-top: 16px;
+    margin-top: 16px;
   }
 
   // Tab按钮
@@ -534,6 +522,7 @@ onMounted(() => {
       justify-content: center;
       cursor: pointer;
       background-image: url("@/assets/img/gasModule/tab.webp");
+
       span {
         font-family: YouSheBiaoTiHei;
         font-size: var(--font-size-3xl);
@@ -546,6 +535,7 @@ onMounted(() => {
 
       &.active {
         background-image: url("@/assets/img/gasModule/tab_active.webp");
+
         span {
           background: linear-gradient(0deg, #3ffefd 0%, #fff407 100%);
         }
@@ -565,14 +555,10 @@ onMounted(() => {
   // 表头
   .table-header {
     display: grid;
-    grid-template-columns: 2fr 1fr 1fr 1fr 1fr 1fr 1fr;
-    height: 50px;
-    background: linear-gradient(
-      90deg,
-      rgba(22, 119, 255, 0.15) 0%,
-      rgba(22, 119, 255, 0.08) 100%
-    );
-    border: 1px solid rgba(22, 119, 255, 0.25);
+    grid-template-columns: 1.8fr 1fr 1fr 1fr 1fr 1fr 1fr;
+    height: 58px;
+    background: #2A5768;
+    border: 2px solid #09739C;
     border-radius: 4px 4px 0 0;
 
     .th {
@@ -581,12 +567,11 @@ onMounted(() => {
       justify-content: center;
       font-family: SourceHanSansSC, SourceHanSansSC;
       font-weight: var(--font-weight-bold);
-      font-size: var(--font-size-base);
+      font-size: var(--font-size-2xl);
       color: #e4f3ff;
       line-height: calc(var(--font-size-base) * 1.45);
       text-align: left;
       font-style: normal;
-      padding: 0 10px;
 
       &.th-type {
         justify-content: flex-start;
@@ -598,7 +583,7 @@ onMounted(() => {
 
   // 表体
   .table-body {
-    border: 1px solid rgba(22, 119, 255, 0.15);
+    border: 2px solid #09739C;
     border-top: none;
     border-radius: 0 0 4px 4px;
     height: 232px;
@@ -626,20 +611,16 @@ onMounted(() => {
       display: grid;
       grid-template-columns: 2fr 1fr 1fr 1fr 1fr 1fr 1fr;
       min-height: 52px;
-      background: linear-gradient(
-        90deg,
-        rgba(0, 150, 255, 0.04) 0%,
-        rgba(0, 100, 200, 0.02) 100%
-      );
+      background: linear-gradient(90deg,
+          rgba(0, 150, 255, 0.04) 0%,
+          rgba(0, 100, 200, 0.02) 100%);
       border-bottom: 1px solid rgba(22, 119, 255, 0.1);
       transition: all 0.3s ease;
 
       &:hover {
-        background: linear-gradient(
-          90deg,
-          rgba(0, 150, 255, 0.1) 0%,
-          rgba(0, 100, 200, 0.05) 100%
-        );
+        background: linear-gradient(90deg,
+            rgba(0, 150, 255, 0.1) 0%,
+            rgba(0, 100, 200, 0.05) 100%);
       }
 
       &:last-child {
@@ -652,15 +633,19 @@ onMounted(() => {
         justify-content: center;
         font-family: SourceHanSansSC, SourceHanSansSC;
         font-weight: var(--font-weight-normal);
-        font-size: var(--font-size-base);
+        font-size: var(--font-size-3xl);
         color: #e4f3ff;
         padding: 8px 10px;
 
+
         &.td-type {
-          justify-content: flex-start;
-          padding-left: 20px;
+          text-align: left;
           color: #ffffff;
-        width: 220px;
+          white-space: nowrap;
+          overflow: hidden;
+          padding-left: 0px;
+          text-overflow: ellipsis;
+          width: 220px;
         }
 
         &.td-level {

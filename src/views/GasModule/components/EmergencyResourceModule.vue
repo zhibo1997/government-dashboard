@@ -5,18 +5,12 @@
       <div class="emergency-content">
         <!-- 资源统计 -->
         <div class="resource-stats">
-          <div
-            class="resource-stat-card"
-            v-for="(item, idx) in resourceStats"
-            :key="item.type"
-            :class="`resource-${item.type}  resource-${idx > 2 ? 'right' : 'left'}`"
-          >
-            <div class="stat-icon">
-              <img :src="item.icon" :alt="item.label" />
-            </div>
+          <div class="resource-stat-card" v-for="(item, idx) in resourceStats" :key="item.type"
+            :class="`resource-${item.type}  resource-${idx > 2 ? 'right' : 'left'}`">
+            <span class="stat-label">{{ item.label }}</span>
             <div class="stat-info">
-              <span class="stat-label">{{ item.label }}：</span>
-              <span class="stat-value">{{ item.count }}</span>
+              <img :src="item.icon" :alt="item.label" />
+              <span class="stat-value">{{ item.count }}{{ item.unit }}</span>
             </div>
           </div>
         </div>
@@ -28,12 +22,10 @@
 
         <!-- 底部车辆统计 -->
         <div class="resource-stat-card resource-vehicle">
-          <div class="stat-icon">
-            <img :src="rescueVehicleIcon" alt="救援车辆" />
-          </div>
+          <span class="stat-label">救援车辆：</span>
           <div class="stat-info">
-            <span class="stat-label">救援车辆：</span>
-            <span class="stat-value">{{ vehicleCount }}</span>
+            <img :src="rescueVehicleIcon" alt="救援车辆" />
+            <span class="stat-value">{{ vehicleCount }}辆</span>
           </div>
         </div>
       </div>
@@ -58,22 +50,24 @@ const vehicleCount = ref("0");
 // 资源统计（根据设计图布局：左侧3个，右侧3个）
 const resourceStats = ref([
   // 左侧
-  { type: "expert", label: "应急专家", count: "0", icon: expertIcon },
-  { type: "medical", label: "医疗队伍", count: "0", icon: medicalIcon },
-  { type: "shelter", label: "避难场所", count: "0", icon: shelterIcon },
+  { type: "expert", label: "应急专家", count: "0", icon: expertIcon, unit: "人" },
+  { type: "medical", label: "医疗队伍", count: "0", icon: medicalIcon, unit: "支" },
+  { type: "shelter", label: "避难场所", count: "0", icon: shelterIcon, unit: "处" },
   // 右侧
-  { type: "rescue-team", label: "救援队伍", count: "0", icon: rescueTeamIcon },
+  { type: "rescue-team", label: "救援队伍", count: "0", icon: rescueTeamIcon, unit: "支" },
   {
     type: "rescue-personnel",
     label: "救援人员",
     count: "0",
     icon: rescuePersonnelIcon,
+    unit: "人",
   },
   {
     type: "rescue-warehouse",
     label: "救援仓库",
     count: "0",
     icon: rescueWarehouseIcon,
+    unit: "个",
   },
 ]);
 
@@ -122,6 +116,9 @@ onMounted(() => {
 </script>
 
 <style lang="scss" scoped>
+.module-content{
+  padding: 0 30px 15px;
+}
 .emergency-resource-module {
   flex: 0.7;
   background-image: url("@/assets/img/gasModule/emergency_resource_bg.webp");
@@ -131,16 +128,14 @@ onMounted(() => {
     display: grid;
     grid-template-columns: 200px 1fr 200px;
     grid-template-rows: repeat(3, 1fr);
-    column-gap: 30px;
+    // column-gap: 30px;
     align-items: center;
     position: relative;
-    background: url("@/assets/img/gasModule/emergency_list.webp") no-repeat
-      center center;
+    background: url("@/assets/img/gasModule/emergency_list.webp") no-repeat center center;
     background-size: contain;
     background-position: center;
-    height: 220px;
-    padding: 10px 0;
-    width: 730px
+    height: 100%;
+    width: 100%;
   }
 
   // 资源统计卡片
@@ -151,7 +146,7 @@ onMounted(() => {
   .resource-stat-card {
     display: flex;
     align-items: center;
-    gap: 8px;
+    flex-direction: column;
     transition: all 0.3s ease;
 
     .stat-icon {
@@ -175,7 +170,6 @@ onMounted(() => {
     }
 
     &.resource-right {
-      flex-direction: row-reverse;
       justify-self: flex-end;
       padding-right: 10px;
 
@@ -185,13 +179,20 @@ onMounted(() => {
       }
     }
 
+    .stat-label {
+      font-weight: var(--font-weight-normal);
+      font-size: var(--font-size-3xl);
+      color: #E4F3FF;
+      white-space: nowrap;
+    }
+
     .stat-info {
       display: flex;
       flex-direction: row;
       align-items: center;
-      height: 32px;
-      min-width: 160px;
-      padding: 0 12px;
+      height: 42px;
+      min-width: 142px;
+      padding: 0 20px;
       justify-content: space-between;
       background-size: 100% 100%;
       background-repeat: no-repeat;
@@ -199,18 +200,13 @@ onMounted(() => {
       font-family: SourceHanSansSC, SourceHanSansSC;
       background-image: url("@/assets/img/gasModule/resource_left.webp");
 
-      .stat-label {
-        font-weight: var(--font-weight-normal);
-        font-size: var(--font-size-base);
-        color: #b8d8ff;
-        white-space: nowrap;
-      }
 
       .stat-value {
         font-weight: var(--font-weight-medium);
-        font-size: var(--font-size-md);
+        font-size: var(--font-size-3xl);
         color: #ffffff;
         white-space: nowrap;
+        
       }
     }
 
@@ -218,38 +214,38 @@ onMounted(() => {
     &.resource-expert {
       grid-column: 1;
       grid-row: 1;
-      margin-left: 25px;
+      margin-left: 69px;
     }
 
     &.resource-medical {
       grid-column: 1;
       grid-row: 2;
-      margin-left: 10px;
+      margin-left: 33px;
     }
 
     &.resource-shelter {
       grid-column: 1;
       grid-row: 3;
-      margin-left: 25px;
+      margin-left: 69px;
     }
 
     // 右侧3个卡片
     &.resource-rescue-team {
       grid-column: 3;
       grid-row: 1;
-      margin-right: 25px;
+      margin-right: 69px;
     }
 
     &.resource-rescue-personnel {
       grid-column: 3;
       grid-row: 2;
-      margin-right: 10px;
+      margin-right: 33px;
     }
 
     &.resource-rescue-warehouse {
       grid-column: 3;
       grid-row: 3;
-      margin-right: 25px;
+      margin-right: 69px;
     }
   }
 
@@ -260,18 +256,10 @@ onMounted(() => {
     justify-content: center;
     align-self: center;
     position: relative;
-    right: 11px;
-    top: 50px;
-    .center-ring {
-      position: relative;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
+    top: 60px;
     .ring-text {
       font-family: SourceHanSansSC, SourceHanSansSC;
-      font-weight: var(--font-weight-medium);
+      font-weight: var(--font-weight-bold);
       font-size: var(--font-size-2xl);
       color: #effaff;
       line-height: calc(var(--font-size-2xl) * 1.321);
@@ -283,13 +271,12 @@ onMounted(() => {
   // 底部车辆统计
   .resource-vehicle {
     position: absolute;
-    bottom: -40px;
+    bottom: 0px;
     justify-self: center;
-    align-self: flex-end;
     margin-bottom: 5px;
 
     .stat-info {
-      min-width: 180px;
+      min-width: 142px;
     }
   }
 }

@@ -714,6 +714,8 @@ export interface FullRequestParams extends Omit<AxiosRequestConfig, "data" | "pa
   format?: ResponseType;
   /** request body */
   body?: unknown;
+  /** skip authentication for this request (no token required) */
+  skipAuth?: boolean;
 }
 
 export type RequestParams = Omit<FullRequestParams, "body" | "method" | "query" | "path">;
@@ -795,6 +797,7 @@ export class HttpClient<SecurityDataType = unknown> {
     query,
     format,
     body,
+    skipAuth,
     ...params
   }: FullRequestParams): Promise<AxiosResponse<T>> => {
     const secureParams =
@@ -823,6 +826,7 @@ export class HttpClient<SecurityDataType = unknown> {
       responseType: responseFormat,
       data: body,
       url: path,
+      skipAuth,
     });
   };
 }
@@ -881,6 +885,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         body: data,
         type: ContentType.Json,
         format: "json",
+        skipAuth: true,
         ...params,
       }),
 
@@ -897,6 +902,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         path: `/login/publicKey`,
         method: "GET",
         format: "json",
+        skipAuth: true,
         ...params,
       }),
   };

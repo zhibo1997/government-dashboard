@@ -144,7 +144,7 @@ export class HttpClient<SecurityDataType = unknown> {
  * @version 1.0.0
  */
 export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDataType> {
-  
+
   overviewData = {
     /**
      * @description 1.市州编码 黄石市 420200 区划编码 阳新县 420222 2.专项 专项名称	专项编号 燃气	csaqzx_rq 桥梁	csaqzx_ql 供水	csaqzx_gs 排水	csaqzx_ps 燃气终端用户	csaqzx_rqzdyh 瓶装液化气	csaqzx_pzyhq 第三方施工	csaqzx_sfsg 3.基础设施底数统计类型 代码	专项	名称	单位 jcssdstj0101	燃气	天然气管网	公里 jcssdstj0102	天然气场站	个 jcssdstj0103	天然气运营企业	个 jcssdstj0201	燃气终端用户	燃气居民用户	户 jcssdstj0202	燃气工商业用户	户 jcssdstj0301	瓶装液化气	液化气瓶	个 jcssdstj0302	液化气运营企业	个 jcssdstj0303	供应站	个 jcssdstj0304	灌装站	个 jcssdstj0305	灌装秤	个 jcssdstj0306	运输车	辆 jcssdstj0401	排水	排水管网	公里 jcssdstj0402	雨水管网	公里 jcssdstj0403	污水管网	公里 jcssdstj0404	雨污合流管网	公里 jcssdstj0405	污水厂	个 jcssdstj0406	排水泵站	个 jcssdstj0407	易积水点	个 jcssdstj0408	河道	条 jcssdstj0409	河道测站	个 jcssdstj0410	雨量站	个 jcssdstj0501	供水	供水管网	公里 jcssdstj0502	市政消火栓	个 jcssdstj0503	水源地	个 jcssdstj0504	水厂	个 jcssdstj0505	供水泵站	个 jcssdstj0506	供水大用户	户 jcssdstj0601	桥梁	桥梁	座 jcssdstj0602	大桥及特大桥	座 jcssdstj0603	立交桥	座 jcssdstj0604	涵洞	个 4.返回字段说明 字段注释	字段名	字段类型	长度	约束	说明 流水号	lsh	字符型	256	M	市州编码+公司代码+原始库主键 市州编码	dsbm	字符型	6	M	见附录市州编码字典 区划编码	qhbm	字符型	6	C	根据2022年中华人民共和国县以上行政区划代码上传 所属专项	sszx	字符型	16	M	见附录专项类别表字典 基础设施类型	jcsslx	字符型	16	M	见附录基础设施底数统计字典 基础设施统计数量	jcsstjsl	浮点型	16	M 已监测基础设施统计数量	yjcjcsstjsl	浮点型	16	M 监测覆盖率	jcfgl	浮点型	16	M	100以内 统计时间	tjsj	日期型		M	格式：2022-01-01 00:00:00 原始库主键标志	yskzjbz	字符型	128	M 数据同步状态	sjtbzt	字符型	1	M	见附录数据状态字典 同步时间	tbsj	日期型		M	格式：2022-01-01 00:00:00 数据来源	sjly	字符型	8	M	公司代码 数据版本	sjbb	整数型	2	M	如1、2
@@ -327,6 +327,40 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
     /**
      * No description
      *
+     * @name RiskList
+     * @summary 获取当前模块隐患等级
+     * @request GET:/gspspDtransPubrisks/yhdj/riskTypeCount
+     */
+    riskLevelList: (
+      query?: {
+        /**
+         * 市州编码
+         * @example "420200"
+         */
+        Dsbm?: string;
+        /**
+         * 区划编码
+         * @example "420222"
+         */
+        Qhbm?: string;
+        /**
+         * 关联数据类型
+         * @example ""
+         */
+        Glmblx?: string;
+      },
+      params: RequestParams = {},
+    ) =>
+      this.request<object, any>({
+        path: `/gspspDtransPubrisks/yhdj/riskTypeCount`,
+        method: "GET",
+        query: query,
+        format: "json",
+        ...params,
+      }),
+    /**
+     * No description
+     *
      * @name RiskTypeCountList
      * @summary 按隐患类型统计隐患数量
      * @request GET:/gspspDtransPubrisks/riskTypeCount
@@ -424,6 +458,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
          * @example ""
          */
         Sjly?: string;
+        Glmblx?: string;
       },
       params: RequestParams = {},
     ) =>

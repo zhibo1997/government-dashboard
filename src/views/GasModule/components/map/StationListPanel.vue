@@ -15,7 +15,7 @@
       <div class="panel-title">
         <div class="title-container">
           <span class="title-text">燃气企业</span>
-          <img src="@/assets/img/gasModule/pull_down.webp" class="pull-down-icon" alt="" />
+          <!-- <img src="@/assets/img/gasModule/pull_down.webp" class="pull-down-icon" alt="" /> -->
         </div>
         <img src="@/assets/img/gasModule/icon_close.webp" class="panel-close" alt="" />
       </div>
@@ -291,7 +291,7 @@ const nextPage = () => {
   }
 
   .panel-header {
-    padding: 12px 15px;
+    padding: 12px 0;
     display: flex;
     gap: 10px;
     border-bottom: 1px solid rgba(0, 255, 255, 0.2);
@@ -318,7 +318,7 @@ const nextPage = () => {
     }
 
     .toggle-btn {
-      width: 180px;
+      width: 226px;
       background-image: url("@/assets/img/gasModule/icon_menu_bg.webp");
 
       cursor: pointer;
@@ -326,12 +326,12 @@ const nextPage = () => {
       .text {
         font-family: SourceHanSansSC, SourceHanSansSC;
         font-weight: var(--font-weight-medium);
-        font-size: var(--font-size-lg);
+        font-size: var(--font-size-3xl);
         color: #3fffff;
         letter-spacing: 1px;
         text-align: center;
         font-style: normal;
-        margin-left: 8px;
+        margin-left: 4px;
         margin-bottom: 4px;
       }
     }
@@ -360,7 +360,7 @@ const nextPage = () => {
       .title-text {
         font-family: SourceHanSansSC, SourceHanSansSC;
         font-weight: var(--font-weight-medium);
-        font-size: var(--font-size-3xl);
+        font-size: var(--font-size-4xl);
         color: #FFFFFF;
         line-height: calc(var(--font-size-3xl) * 1.467);
         text-align: center;
@@ -445,7 +445,7 @@ const nextPage = () => {
         font-family: SourceHanSansSC, SourceHanSansSC;
         font-weight: var(--font-weight-normal);
         font-size: var(--font-size-3xl);
-        line-height: calc(var(--font-size-3xl) * 1.167);
+        line-height: calc(var(--font-size-xl) * 1.458);
         text-align: left;
         font-style: normal;
         color: #ffffff;
@@ -495,10 +495,10 @@ const nextPage = () => {
 
       .count-text {
         font-family: SourceHanSansSC, SourceHanSansSC;
-        font-weight: 400;
-        font-size: 20px;
+        font-weight: var(--font-weight-normal);
+        font-size: var(--font-size-lg);
         color: #FFFFFF;
-        line-height: 29px;
+        line-height: calc(var(--font-size-lg) * 1.45);
       }
     }
 
@@ -525,7 +525,7 @@ const nextPage = () => {
       }
 
       .station-item {
-        padding: 20px 19px 22px;
+        padding: 20px;
         border-bottom: 2px solid #09739C;
 
         background: rgba(0, 0, 0, 0.2);
@@ -536,6 +536,11 @@ const nextPage = () => {
           border-bottom: none;
         }
 
+        &.active {
+          background: rgba(13, 165, 190, 0.2);
+          border-left: 4px solid #0da5be;
+          padding-left: 15px;
+        }
         .station-badges {
           display: flex;
           align-items: center;
@@ -544,7 +549,7 @@ const nextPage = () => {
         }
 
         .badge {
-          padding: 6px 16px;
+          padding: 4px 16px;
           border-radius: 8px;
           font-family: SourceHanSansSC, SourceHanSansSC;
           font-weight: var(--font-weight-medium);
@@ -557,7 +562,7 @@ const nextPage = () => {
             border: 2px solid #15779D;
 
             color: #E4F3FF;
-            line-height: 29px;
+            line-height: calc(var(--font-size-lg) * 1.45);
           }
 
           &.badge-status {
@@ -580,7 +585,7 @@ const nextPage = () => {
 
         .station-name {
           font-family: SourceHanSansCNVF, SourceHanSansCNVF;
-          font-weight: var(--font-weight-medium);
+          font-weight: var(--font-weight-semibold);
           font-size: var(--font-size-3xl);
           color: #E4F3FF;
           line-height: calc(var(--font-size-3xl) * 1.467);
@@ -591,11 +596,12 @@ const nextPage = () => {
         .station-address {
           font-family: SourceHanSansCNVF, SourceHanSansCNVF;
           font-weight: var(--font-weight-normal);
-          font-size: var(--font-size-md);
+          font-size: var(--font-size-2xl);
           color: #BFC5C0;
           line-height: calc(var(--font-size-md) * 1.444);
           text-align: left;
           font-style: normal;
+          margin-top: 8px;
 
         }
       }
@@ -616,8 +622,8 @@ const nextPage = () => {
         border: 2px solid #11A7E2;
         border-radius: 6px;
         font-family: SourceHanSansSC, SourceHanSansSC;
-        font-weight: 400;
-        font-size: 20px;
+        font-weight: var(--font-weight-normal);
+        font-size: var(--font-size-xl);
         color: #FFFFFF;
         cursor: pointer;
         transition: all 0.2s ease;
@@ -648,7 +654,7 @@ const nextPage = () => {
         margin-left: 8px;
         font-family: SourceHanSansSC, SourceHanSansSC;
         font-weight: var(--font-weight-normal);
-        font-size: var(--font-size-lg);
+        font-size: var(--font-size-xl);
         color: #FFFFFF;
         line-height: calc(var(--font-size-lg) * 1.45);
       }

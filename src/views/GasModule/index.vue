@@ -3,7 +3,7 @@
     <!-- 中间地图区域 -->
 
     <div class="center-map" data-interactive>
-      <CesiumMap />
+      <!-- <CesiumMap /> -->
     </div>
     <ResponsiveWrapper :base-width="4096" :base-height="1920" v-if="!loading">
       <!-- 头部区域 -->
@@ -43,12 +43,14 @@ onBeforeMount(async () => {
     loading.value = true;
     // 批量预加载所有需要的字典数据
     await getCachedDictionaries([
-      "rqzx_glmbzx",
+      "rqzx_glmbzx",// RiskHazardModule
       "gxdlb_rq", // OverviewModule
       "gwcz", // PipelineModule
       "jcsblx_rq", // PipelineModule
       "jcsblx_rqzdyh", // MonitoringEquipmentModule
       "zgzt", // RiskHazardModule
+      "fxdj", // RiskHazardModule
+      "yhdj", // RiskHazardModule
     ]);
     console.log("字典数据预加载完成");
     loading.value = false;

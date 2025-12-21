@@ -161,3 +161,17 @@ export async function getRiskLevelCount(param: {
   const res = await waterApi.gspspDtransPubrisks.inventoryRiskStatusCountList(queryParam);
   return res?.data || [];
 }
+/**
+ * 获取隐患等级数量
+ */
+export async function getHazardLevelCountList(param: {
+  Sszx: string;
+}) {
+  const queryParam = {
+    Dsbm: "420200",
+    Qhbm: "420222",
+    ...param
+  }
+  const res = await waterApi.gspspDtransPubrisks.riskLevelList(queryParam);
+  return res?.data || [];
+}

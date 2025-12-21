@@ -1,21 +1,12 @@
 <template>
-  <div
-    class="station-detail-dialog"
-    :class="{
-      'natural-gas-info': isNaturalGas,
-      'liquefied-gas-info': isLiquefiedGas,
-    }"
-    v-show="visible"
-  >
+  <div class="station-detail-dialog" :class="{
+    'natural-gas-info': isNaturalGas,
+    'liquefied-gas-info': isLiquefiedGas,
+  }" v-show="visible">
     <div class="dialog-header">
       <div class="dialog-title">{{ stationData?.qymc || "企业详情" }}</div>
       <n-button text class="close-btn" @click="handleClose">
-        <n-icon
-          size="40"
-          color="rgb(17,167,226)"
-          :component="Close"
-          class="action-icon favorite-icon"
-        />
+        <n-icon size="40" color="rgb(17,167,226)" :component="Close" class="action-icon favorite-icon" />
       </n-button>
     </div>
 
@@ -23,11 +14,7 @@
       <!-- 天然气企业信息 -->
       <div class="info-section" v-if="isNaturalGas">
         <div class="info-grid">
-          <div
-            class="info-row"
-            v-for="field in naturalGasFields"
-            :key="field.key"
-          >
+          <div class="info-row" v-for="field in naturalGasFields" :key="field.key">
             <label>{{ field.label }}：</label>
             <span class="info-value">{{ stationData[field.key] || "—" }}</span>
           </div>
@@ -35,10 +22,7 @@
 
         <div class="status-badge-row">
           <button class="badge-btn badge-type">天然气企业</button>
-          <button
-            class="badge-btn badge-normal"
-            v-if="stationData?.sjtbzt === 'I'"
-          >
+          <button class="badge-btn badge-normal" v-if="stationData?.sjtbzt === 'I'">
             正常
           </button>
           <button class="badge-btn badge-error" v-else>异常</button>
@@ -48,25 +32,23 @@
       <!-- 液化气企业信息 -->
       <div class="info-section" v-else-if="isLiquefiedGas">
         <div class="info-grid">
-          <div
-            class="info-row"
-            v-for="field in liquefiedGasFields"
-            :key="field.key"
-          >
+          <div class="info-row">
+            <label>企业编码：</label>
+            <span class="info-value">{{ stationData.qybm || "—" }}</span>
+
+
+            <div class="status-badge-row">
+              <button class="badge-btn badge-type">液化气企业</button>
+              <button class="badge-btn badge-normal" v-if="stationData?.sjtbzt === 'I'">
+                正常
+              </button>
+              <button class="badge-btn badge-error" v-else>异常</button>
+            </div>
+          </div>
+          <div class="info-row" v-for="field in liquefiedGasFields" :key="field.key">
             <label>{{ field.label }}：</label>
             <span class="info-value">{{ stationData[field.key] || "—" }}</span>
           </div>
-        </div>
-
-        <div class="status-badge-row">
-          <button class="badge-btn badge-type">液化气企业</button>
-          <button
-            class="badge-btn badge-normal"
-            v-if="stationData?.sjtbzt === 'I'"
-          >
-            正常
-          </button>
-          <button class="badge-btn badge-error" v-else>异常</button>
         </div>
       </div>
 
@@ -239,19 +221,18 @@ const handleShowMonitoring = () => {
 <style lang="scss" scoped>
 .station-detail-dialog {
   position: absolute;
-    top: 80px;
-    left: 1320px;
-  width: 516px;
-  background: linear-gradient(
-    270deg,
-    rgba(8, 46, 77, 0.4) 0%,
-    rgba(0, 0, 0, 0.4) 100%
-  );
+  top: 80px;
+  left: 1320px;
+  width: 773px;
+  background: linear-gradient(270deg,
+      rgba(8, 46, 77, 0.4) 0%,
+      rgba(0, 0, 0, 0.4) 100%);
 
   border: 3px solid #226d76;
   z-index: 200;
   overflow: hidden;
   pointer-events: auto;
+
   &.liquefied-gas-info {
     width: 620px;
   }
@@ -283,8 +264,8 @@ const handleShowMonitoring = () => {
       flex-direction: column;
       gap: 10px;
       margin-bottom: 12px;
-      &.liquefied-gas-info {
-      }
+
+      &.liquefied-gas-info {}
 
       .info-grid {
         display: grid;
@@ -302,7 +283,7 @@ const handleShowMonitoring = () => {
           font-family: SourceHanSansSC, SourceHanSansSC;
           font-weight: var(--font-weight-medium);
           font-size: var(--font-size-lg);
-          line-height: calc(var(--font-size-lg) * 1.45);
+          line-height: calc(var(--font-size-lg) * var(--line-height-normal));
 
           &.badge-type {
             background: #313d56;
@@ -310,33 +291,26 @@ const handleShowMonitoring = () => {
             border: 2px solid #15779d;
 
             color: #e4f3ff;
-            line-height: 29px;
+            line-height: calc(var(--font-size-lg) * var(--line-height-normal));
           }
 
           &.badge-normal {
-            background: linear-gradient(
-              90deg,
-              rgba(4, 247, 103, 0.6) 0%,
-              rgba(4, 199, 254, 0.6) 99%
-            );
+            background: linear-gradient(90deg,
+                rgba(4, 247, 103, 0.6) 0%,
+                rgba(4, 199, 254, 0.6) 99%);
             border: 2px solid #04c7fe;
             color: #fff;
           }
 
           &.badge-error {
             color: #fff;
-            background: linear-gradient(
-              90deg,
-              rgba(247, 94, 4, 0.6) 0%,
-              rgba(254, 172, 4, 0.6) 100%
-            );
+            background: linear-gradient(90deg,
+                rgba(247, 94, 4, 0.6) 0%,
+                rgba(254, 172, 4, 0.6) 100%);
             border: 2px solid #f76204;
-            border-image: linear-gradient(
-                180deg,
+            border-image: linear-gradient(180deg,
                 rgba(252, 155, 10, 1),
-                rgba(247, 98, 4, 1)
-              )
-              2 2;
+                rgba(247, 98, 4, 1)) 2 2;
           }
         }
       }
@@ -344,14 +318,14 @@ const handleShowMonitoring = () => {
       .info-row {
         display: flex;
         align-items: center;
-        gap: 12px;
-        font-size: var(--font-size-md);
-        line-height: calc(var(--font-size-md) * 1.444);
+        gap: 16px;
+        font-size: var(--font-size-3xl);
+        line-height: calc(var(--font-size-md) * var(--line-height-normal));
+        color: #e4f3ff;
 
         label {
           font-family: SourceHanSansSC, SourceHanSansSC;
           font-weight: var(--font-weight-normal);
-          color: #a8d4e0;
           min-width: 140px;
           flex-shrink: 0;
         }
@@ -359,7 +333,6 @@ const handleShowMonitoring = () => {
         .info-value {
           font-family: SourceHanSansSC, SourceHanSansSC;
           font-weight: var(--font-weight-normal);
-          color: #e4f3ff;
           flex: 1;
           min-width: 0;
         }
@@ -378,19 +351,16 @@ const handleShowMonitoring = () => {
         height: 60px;
         background: linear-gradient(180deg, #083957 0%, #091827 100%);
         border: 2px solid;
-        border-image: linear-gradient(
-            153deg,
+        border-image: linear-gradient(153deg,
             rgba(25, 163, 203, 1),
             rgba(62, 109, 123, 1),
-            rgba(17, 171, 233, 1)
-          )
-          2 2;
+            rgba(17, 171, 233, 1)) 2 2;
 
         font-family: SourceHanSansSC, SourceHanSansSC;
         font-weight: var(--font-weight-medium);
         font-size: var(--font-size-3xl);
         color: #ffffff;
-        line-height: calc(var(--font-size-3xl) * 1.467);
+        line-height: calc(var(--font-size-3xl) * var(--line-height-normal));
         text-align: left;
         font-style: normal;
         background: linear-gradient(90deg, #ffffff 18%, #10adc0 100%);

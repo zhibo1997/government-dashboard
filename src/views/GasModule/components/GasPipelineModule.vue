@@ -296,7 +296,7 @@ function get3DPieOption(pieData) {
       borderWidth: 1,
       textStyle: {
         color: "#ffffff",
-        fontSize: 18,
+        fontSize: 28,
       },
     },
     xAxis3D: {
@@ -482,7 +482,7 @@ onBeforeUnmount(() => {
       .stat-label {
         font-family: SourceHanSansSC, SourceHanSansSC;
         font-weight: var(--font-weight-bold);
-        font-size: var(--font-size-2xl);
+        font-size: var(--font-size-3xl);
         color: #effaff;
         line-height: calc(var(--font-size-2xl) * 1.423);
         text-align: center;
@@ -542,7 +542,7 @@ onBeforeUnmount(() => {
       .total-label {
         font-family: SourceHanSansSC, SourceHanSansSC;
         font-weight: var(--font-weight-bold);
-        font-size: var(--font-size-2xl);
+        font-size: var(--font-size-3xl);
         color: #effaff;
         line-height: calc(var(--font-size-2xl) * 1.423);
         text-align: center;

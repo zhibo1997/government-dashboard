@@ -195,15 +195,20 @@ export function createApiClient<TClient extends ApiClientBase>(
   // 配置请求拦截器
   api.instance.interceptors.request.use(
     (config) => {
-      // 如果 token 已失效，拒绝后续请求
-      if (tokenInvalid) {
+      // 检查是否为无需认证的接口（skipAuth 标记）
+      const skipAuth = (config as any).skipAuth === true
+      
+      // 如果不是无需认证的接口且 token 已失效，拒绝后续请求
+      if (!skipAuth && tokenInvalid) {
         return Promise.reject(new Error('Token 已失效，请重新登录'))
       }
 
-      // 添加认证 Token
-      const token = getAuthToken()
-      if (token && config.headers) {
-        config.headers['Authorization'] = token
+      // 为需要认证的接口添加认证 Token
+      if (!skipAuth) {
+        const token = getAuthToken()
+        if (token && config.headers) {
+          config.headers['Authorization'] = token
+        }
       }
 
       // 自动注入公共参数
@@ -221,8 +226,12 @@ export function createApiClient<TClient extends ApiClientBase>(
           url: config.url,
           params: config.params,
           data: config.data,
+          skipAuth,
         })
       }
+
+      // 清除自定义属性，避免被发送到服务器
+      delete (config as any).skipAuth
 
       return config
     },
@@ -244,12 +253,16 @@ export function createApiClient<TClient extends ApiClientBase>(
   // 配置响应拦截器
   api.instance.interceptors.response.use(
     (response) => {
+      // 检查是否为无需认证的接口
+      const skipAuth = (response.config as any).skipAuth === true
+      
       // 开发环境日志
       if ((import.meta as any).env?.DEV) {
         console.log('[API Response]', {
           url: response.config.url,
           status: response.status,
           data: response.data,
+          skipAuth,
         })
       }
 
@@ -259,19 +272,21 @@ export function createApiClient<TClient extends ApiClientBase>(
           return response.data
         }
 
-        // 未授权
+        // 未授权 - 仅对需要认证的接口处理 token 失效
         if (response.data.code === 401) {
-          // 标记 token 已失效，阻止后续请求
-          tokenInvalid = true
-          // 清除请求队列中的待处理请求
-          requestQueue.cancel()
-          
-          // 只处理一次 token 失效提示和跳转
-          if (!isHandlingTokenExpired) {
-            isHandlingTokenExpired = true
-            localStorage.removeItem('token')
-            showMessageOnce('登录已过期，请重新登录')
-            router.push('/login')
+          if (!skipAuth) {
+            // 标记 token 已失效，阻止后续请求
+            tokenInvalid = true
+            // 清除请求队列中的待处理请求
+            requestQueue.cancel()
+            
+            // 只处理一次 token 失效提示和跳转
+            if (!isHandlingTokenExpired) {
+              isHandlingTokenExpired = true
+              localStorage.removeItem('token')
+              showMessageOnce('登录已过期，请重新登录')
+              router.push('/login')
+            }
           }
           return Promise.reject(new Error('未授权'))
         }
@@ -293,22 +308,27 @@ export function createApiClient<TClient extends ApiClientBase>(
         return Promise.reject(error)
       }
 
-      const { status, data } = error.response
+      const { status, data, config } = error.response
+      // 检查是否为无需认证的接口
+      const skipAuth = (config as any)?.skipAuth === true
 
       // HTTP 状态码处理
       switch (status) {
         case 401:
-          // 标记 token 已失效，阻止后续请求
-          tokenInvalid = true
-          // 清除请求队列中的待处理请求
-          requestQueue.cancel()
-          
-          // 只处理一次 token 失效提示和跳转
-          if (!isHandlingTokenExpired) {
-            isHandlingTokenExpired = true
-            localStorage.removeItem('token')
-            showMessageOnce('登录已过期，请重新登录')
-            router.push('/login')
+          // 仅对需要认证的接口处理 token 失效
+          if (!skipAuth) {
+            // 标记 token 已失效，阻止后续请求
+            tokenInvalid = true
+            // 清除请求队列中的待处理请求
+            requestQueue.cancel()
+            
+            // 只处理一次 token 失效提示和跳转
+            if (!isHandlingTokenExpired) {
+              isHandlingTokenExpired = true
+              localStorage.removeItem('token')
+              showMessageOnce('登录已过期，请重新登录')
+              router.push('/login')
+            }
           }
           break
         case 500:
