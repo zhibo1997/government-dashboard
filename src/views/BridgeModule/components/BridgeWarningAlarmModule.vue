@@ -307,7 +307,7 @@ onMounted(() => {
     display: grid;
     grid-template-columns: auto auto 1fr;
     grid-template-rows: auto auto;
-    gap: 15px 20px;
+    gap: 15px 0px;
     transition: all 0.3s ease;
 
     &:hover {
@@ -339,9 +339,9 @@ onMounted(() => {
 
       .ring-value {
         font-family: YouSheBiaoTiHei;
-        font-size: 34px;
+        font-size: var(--font-size-4xl);
         color: #ffffff;
-        line-height: 44px;
+        line-height: calc(var(--font-size-4xl) * 1.294);
         text-align: center;
         font-style: normal;
         background: linear-gradient(0deg, #f75e04 0%, #feac04 100%);
@@ -353,23 +353,27 @@ onMounted(() => {
     // 总数标签
     .total-label {
       font-family: SourceHanSansSC, SourceHanSansSC;
-      font-weight: bold;
-      font-size: 24px;
+      font-weight: var(--font-weight-bold);
+      font-size: var(--font-size-3xl);
       color: #d3eaf1;
-      line-height: 35px;
+      line-height: calc(var(--font-size-xl) * 1.458);
       text-align: center;
       font-style: normal;
     }
+
     .right-content {
+      margin-left: 12px;
       display: flex;
       flex-direction: column;
       justify-content: space-between;
     }
+
     // 状态统计
     .status-stats {
       display: flex;
-      gap: 15px;
+      gap: 10px;
       justify-content: space-between;
+      align-items: center;
 
       .status-item {
         display: flex;
@@ -388,9 +392,9 @@ onMounted(() => {
 
           .ring-num {
             font-family: YouSheBiaoTiHei;
-            font-size: 24px;
+            font-size: var(--font-size-xl);
             color: #ffffff;
-            line-height: 31px;
+            line-height: calc(var(--font-size-xl) * 1.292);
             text-align: center;
             font-style: normal;
             background: linear-gradient(90deg, #ffffff 0%, #10adc0 100%);
@@ -398,7 +402,7 @@ onMounted(() => {
         }
 
         .status-label {
-          font-size: 14px;
+          font-size: var(--font-size-xl);
           color: rgba(255, 255, 255, 0.75);
         }
       }
@@ -416,27 +420,33 @@ onMounted(() => {
         flex-direction: column;
         align-items: center;
         gap: 5px;
+
         &:nth-child(1) {
           .level-value {
-            > span {
+            >span {
               background: linear-gradient(0deg, #ff1d1d 0%, #fd8837 100%);
             }
+
             background-image: url("@/assets/img/gasModule/level1.webp");
           }
         }
+
         &:nth-child(2) {
           .level-value {
-            > span {
+            >span {
               background: linear-gradient(0deg, #f75e04 0%, #feac04 100%);
             }
+
             background-image: url("@/assets/img/gasModule/level2.webp");
           }
         }
+
         &:nth-child(3) {
           .level-value {
-            > span {
+            >span {
               background: linear-gradient(90deg, #ffffff 0%, #10adc0 100%);
             }
+
             background-image: url("@/assets/img/gasModule/level3.webp");
           }
         }
@@ -447,11 +457,12 @@ onMounted(() => {
           text-align: center;
           line-height: 27.29px;
           margin-bottom: 11px;
-          > span {
+
+          >span {
             font-family: YouSheBiaoTiHei;
-            font-size: 24px;
+            font-size: var(--font-size-2xl);
             color: #ffffff;
-            line-height: 31px;
+            line-height: calc(var(--font-size-xl) * 1.292);
             text-align: center;
             font-style: normal;
           }
@@ -459,10 +470,10 @@ onMounted(() => {
 
         .level-label {
           font-family: SourceHanSansSC, SourceHanSansSC;
-          font-weight: 400;
-          font-size: 16px;
+          font-weight: var(--font-weight-normal);
+          font-size: var(--font-size-xl);
           color: #d3eaf1;
-          line-height: 24px;
+          line-height: calc(var(--font-size-sm) * 1.5);
           text-align: center;
           font-style: normal;
         }
@@ -475,8 +486,10 @@ onMounted(() => {
     flex: 1;
     display: flex;
     flex-direction: column;
-    gap: 15px;
     width: 100%;
+    border-top: 2px solid rgba(31, 199, 255, 0.24);
+    padding-top: 16px;
+    margin-top: 16px;
   }
 
   // Tab按钮
@@ -492,11 +505,12 @@ onMounted(() => {
       justify-content: center;
       cursor: pointer;
       background-image: url("@/assets/img/gasModule/tab.webp");
+
       span {
         font-family: YouSheBiaoTiHei;
-        font-size: 36px;
+        font-size: var(--font-size-3xl);
         color: #e74040;
-        line-height: 47px;
+        line-height: calc(var(--font-size-3xl) * 1.306);
         text-align: left;
         font-style: normal;
         background: linear-gradient(90deg, #ffffff 18%, #10adc0 100%);
@@ -504,6 +518,7 @@ onMounted(() => {
 
       &.active {
         background-image: url("@/assets/img/gasModule/tab_active.webp");
+
         span {
           background: linear-gradient(0deg, #3ffefd 0%, #fff407 100%);
         }
@@ -523,14 +538,10 @@ onMounted(() => {
   // 表头
   .table-header {
     display: grid;
-    grid-template-columns: 2fr 1fr 1fr 1fr 1fr 1fr 1fr;
-    height: 50px;
-    background: linear-gradient(
-      90deg,
-      rgba(22, 119, 255, 0.15) 0%,
-      rgba(22, 119, 255, 0.08) 100%
-    );
-    border: 1px solid rgba(22, 119, 255, 0.25);
+    grid-template-columns: 1.8fr 1fr 1fr 1fr 1fr 1fr 1fr;
+    height: 58px;
+    background: #2A5768;
+    border: 2px solid #09739C;
     border-radius: 4px 4px 0 0;
 
     .th {
@@ -538,13 +549,12 @@ onMounted(() => {
       align-items: center;
       justify-content: center;
       font-family: SourceHanSansSC, SourceHanSansSC;
-      font-weight: bold;
-      font-size: 20px;
+      font-weight: var(--font-weight-bold);
+      font-size: var(--font-size-2xl);
       color: #e4f3ff;
-      line-height: 29px;
+      line-height: calc(var(--font-size-base) * 1.45);
       text-align: left;
       font-style: normal;
-      padding: 0 10px;
 
       &.th-type {
         justify-content: flex-start;
@@ -556,7 +566,7 @@ onMounted(() => {
 
   // 表体
   .table-body {
-    border: 1px solid rgba(22, 119, 255, 0.15);
+    border: 2px solid #09739C;
     border-top: none;
     border-radius: 0 0 4px 4px;
     height: 232px;
@@ -584,20 +594,16 @@ onMounted(() => {
       display: grid;
       grid-template-columns: 2fr 1fr 1fr 1fr 1fr 1fr 1fr;
       min-height: 52px;
-      background: linear-gradient(
-        90deg,
-        rgba(0, 150, 255, 0.04) 0%,
-        rgba(0, 100, 200, 0.02) 100%
-      );
+      background: linear-gradient(90deg,
+          rgba(0, 150, 255, 0.04) 0%,
+          rgba(0, 100, 200, 0.02) 100%);
       border-bottom: 1px solid rgba(22, 119, 255, 0.1);
       transition: all 0.3s ease;
 
       &:hover {
-        background: linear-gradient(
-          90deg,
-          rgba(0, 150, 255, 0.1) 0%,
-          rgba(0, 100, 200, 0.05) 100%
-        );
+        background: linear-gradient(90deg,
+            rgba(0, 150, 255, 0.1) 0%,
+            rgba(0, 100, 200, 0.05) 100%);
       }
 
       &:last-child {
@@ -609,26 +615,30 @@ onMounted(() => {
         align-items: center;
         justify-content: center;
         font-family: SourceHanSansSC, SourceHanSansSC;
-        font-weight: 400;
-        font-size: 20px;
+        font-weight: var(--font-weight-normal);
+        font-size: var(--font-size-3xl);
         color: #e4f3ff;
         padding: 8px 10px;
 
+
         &.td-type {
-          justify-content: flex-start;
-          padding-left: 20px;
+          text-align: left;
           color: #ffffff;
-        width: 220px;
+          white-space: nowrap;
+          overflow: hidden;
+          padding-left: 0px;
+          text-overflow: ellipsis;
+          width: 220px;
         }
 
         &.td-level {
           color: #faad14;
-          font-weight: 500;
+          font-weight: var(--font-weight-medium);
         }
 
         &.td-status {
           color: #10adc0;
-          font-weight: 500;
+          font-weight: var(--font-weight-medium);
         }
       }
     }

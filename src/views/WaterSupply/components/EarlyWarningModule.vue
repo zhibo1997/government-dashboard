@@ -2,16 +2,6 @@
   <div class="data-module early-warning-module">
     <div class="module-header">
       <div class="module-title">预警处置</div>
-      <!-- <n-date-picker
-        v-model:value="warningDate"
-        type="year"
-        clearable
-        :to="false"
-        class="custom-date-picker"
-        :format="'yyyy年'"
-        :actions="null"
-        @update:value="onChangeWarningDate"
-      /> -->
     </div>
     <div class="module-content warning-content">
       <div class="warning-list">
@@ -277,13 +267,13 @@ watch(monthlyData, (newData) => {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 0 17px 0 13px;
+    padding: 0 6px;
     margin-bottom: 20px;
 
     .title {
       font-family: SourceHanSansSC, SourceHanSansSC;
       font-weight: 400;
-      font-size: 18px;
+      font-size: var(--font-size-xl);
       color: #bcd4d4;
       line-height: 26px;
       text-align: left;
@@ -292,7 +282,7 @@ watch(monthlyData, (newData) => {
 
     .value {
       font-family: YouSheBiaoTiHei;
-      font-size: 30px;
+      font-size: var(--font-size-3xl);
       color: #ffffff;
       line-height: 39px;
       text-align: left;
@@ -300,9 +290,6 @@ watch(monthlyData, (newData) => {
     }
 
     &.item-handled {
-      .title {
-        color: #bcd4d4;
-      }
 
       .value {
         background: linear-gradient(90deg, #10adc0 0%, #ffffff 100%);
@@ -310,9 +297,6 @@ watch(monthlyData, (newData) => {
     }
 
     &.item-unhandled {
-      .title {
-        color: #f75e04;
-      }
 
       .value {
         background: linear-gradient(0deg, #f75e04 0%, #feac04 100%);
@@ -320,10 +304,6 @@ watch(monthlyData, (newData) => {
     }
 
     &.item-completionRate {
-      .title {
-        color: #fff407;
-      }
-
       .value {
         background: linear-gradient(0deg, #3ffefd 0%, #fff407 100%);
       }
@@ -387,7 +367,7 @@ watch(monthlyData, (newData) => {
     .value {
       font-family: SourceHanSansSC, SourceHanSansSC;
       font-weight: 400;
-      font-size: 14px;
+      font-size: var(--font-size-2xl);
       line-height: 20px;
       text-align: left;
       font-style: normal;
@@ -401,11 +381,15 @@ watch(monthlyData, (newData) => {
     width: 140px;
     font-family: SourceHanSansSC, SourceHanSansSC;
     font-weight: 400;
-    font-size: 16px;
+    font-size: var(--font-size-xl);
     color: #d3eaf1;
     line-height: 24px;
     text-align: left;
     font-style: normal;
+    //省略号
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 
     &::before {
       content: "";

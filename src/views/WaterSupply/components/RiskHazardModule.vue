@@ -40,10 +40,50 @@
 
 <script setup lang="ts">
 import { nextTick, onMounted, ref } from "vue";
-import * as echarts from "echarts";
 import { getRiskStatusCount, getRiskLevelCount } from "@/services/waterSupplyService";
 import { getCachedDictionary } from "@/services/dictionaryService";
+import {
+  riskColorMap,
+  createRiskLevelChartOption,
+  createProgressOption,
+  initChart,
+} from "../chartOption";
 
+// ==================== 数据状态 ====================
+
+// 共同参数：目标类型字符串（所有接口共用）
+let glmblxs = "";
+
+// ==================== 风险等级数据模块 ====================
+const riskLegend = ref<any[]>([]);
+const isRiskLevelLoading = ref(false);
+const riskLevelError = ref<string | null>(null);
+
+/**
+ * 获取默认的风险等级数据
+ * 当没有实际数据时，展示空状态
+ */
+const getDefaultRiskLevels = () => [
+  { name: "重大风险", color: riskColorMap["重大风险"], value: 0 },
+  { name: "较大风险", color: riskColorMap["较大风险"], value: 0 },
+  { name: "一般风险", color: riskColorMap["一般风险"], value: 0 },
+  { name: "低风险", color: riskColorMap["低风险"], value: 0 },
+];
+
+// ==================== 整改状态数据模块 ====================
+const rectificationData = ref([
+  { title: "已整改", count: 0, status: "rectified", progress: 0 },
+  { title: "未整改", count: 0, status: "notRectified", progress: 0 },
+  { title: "整改中", count: 0, status: "inRectification", progress: 0 },
+  { title: "持续跟进", count: 0, status: "continuousImprovement", progress: 0 },
+]);
+const isRectificationLoading = ref(false);
+const rectificationError = ref<string | null>(null);
+
+// ==================== 字典映射 ====================
+/**
+ * 整改状态映射
+ */
 const zgztMap = {
   已整改: "rectified",
   未整改: "notRectified",
@@ -51,144 +91,219 @@ const zgztMap = {
   持续跟进: "continuousImprovement",
 };
 
-// ==================== 数据状态 ====================
-// 风险等级映射
-const riskLevelMap = {
-  fxdj01: { name: "重大风险", color: "#E88D6B" },
-  fxdj02: { name: "较大风险", color: "#F4D982" },
-  fxdj03: { name: "一般风险", color: "#61E29D" },
-  fxdj04: { name: "低风险", color: "#9bb8c7" },
+// ==================== 初始化共同参数 ====================
+/**
+ * 初始化 Glmblx 参数（所有数据接口共用）
+ * 通过获取 rqzx_glmbzx 字典，将其 f_ItemValue 拼接成逗号分隔字符串
+ * 此参数标准化确保两个数据接口参数一致
+ */
+const initializeGlmblxs = async (): Promise<boolean> => {
+  try {
+    const rqzxGlmbzxDictionaries = await getCachedDictionary("glmbzx_gs");
+    if (!rqzxGlmbzxDictionaries || rqzxGlmbzxDictionaries.length === 0) {
+      console.warn("rqzx_glmbzx 字典为空");
+      return false;
+    }
+    glmblxs = rqzxGlmbzxDictionaries
+      .map((item: any) => item.f_ItemValue)
+      .join(",");
+    return true;
+  } catch (error) {
+    console.error("初始化 Glmblx 参数失败:", error);
+    return false;
+  }
 };
 
-// 风险等级数据
-const riskLegend = ref([]);
+// ==================== 风险等级数据获取（模块1） ====================
+/**
+ * 获取风险等级字典映射
+ * 字典类型: fxdj
+ */
+const fetchRiskLevelDictionary = async (): Promise<{ [key: string]: { name: string; color: string } } | null> => {
+  try {
+    const dictionaries = await getCachedDictionary("fxdj");
+    if (!dictionaries || dictionaries.length === 0) {
+      console.warn("风险等级字典 (fxdj) 为空");
+      return null;
+    }
+    
+    const map: { [key: string]: { name: string; color: string } } = {};
+    dictionaries.forEach((item: any) => {
+      map[item.f_ItemValue] = {
+        name: item.f_ItemName,
+        color: riskColorMap[item.f_ItemName] || "#9bb8c7",
+      };
+    });
+    return map;
+  } catch (error) {
+    riskLevelError.value = `获取风险等级字典失败: ${error}`;
+    console.error(riskLevelError.value);
+    return null;
+  }
+};
 
-// 整改状态数据
-const rectificationData = ref([]);
-
-// ==================== 数据获取 ====================
 /**
  * 获取风险等级数据
+ * 使用标准化的 Glmblx 参数
+ * 无数据时展示默认空状态
  */
-const fetchRiskLevelData = async () => {
-  try {
-    const riskLevelData = await getRiskLevelCount() as any[];
-    if (riskLevelData && riskLevelData.length > 0) {
-      const transformedData = riskLevelData.map(item => {
-        const riskInfo = riskLevelMap[item.riskType];
-        return {
-          name: riskInfo?.name || item.riskType,
-          color: riskInfo?.color || "#FFFFFF",
-          value: item.count || 0
-        };
-      });
-      
-      riskLegend.value = transformedData;
-    }
-  } catch (error) {
-    console.error("获取风险等级数据失败:", error);
+const fetchRiskLevelData = async (): Promise<void> => {
+  if (!glmblxs) {
+    console.warn("Glmblx 参数未初始化，跳过风险等级数据获取");
+    riskLegend.value = getDefaultRiskLevels();
+    return;
   }
+
+  isRiskLevelLoading.value = true;
+  riskLevelError.value = null;
+
+  try {
+    const riskLevelMap = await fetchRiskLevelDictionary();
+    if (!riskLevelMap) {
+      riskLegend.value = getDefaultRiskLevels();
+      return;
+    }
+
+    const data = (await getRiskLevelCount({ Glmblx: glmblxs })) as any[];
+    if (!data || data.length === 0) {
+      console.info("风险等级数据为空");
+      riskLegend.value = getDefaultRiskLevels();
+      return;
+    }
+
+    // 转换数据格式
+    riskLegend.value = data.map((item) => ({
+      name: riskLevelMap[item.riskType]?.name || item.riskType,
+      color: riskLevelMap[item.riskType]?.color || "#FFFFFF",
+      value: item.count || 0,
+    }));
+  } catch (error) {
+    riskLevelError.value = `获取风险等级数据失败: ${error}`;
+    console.error(riskLevelError.value);
+    riskLegend.value = getDefaultRiskLevels();
+  } finally {
+    isRiskLevelLoading.value = false;
+  }
+};
+
+// ==================== 整改状态数据获取（模块2） ====================
+/**
+ * 获取整改状态字典映射
+ * 字典类型: zgzt
+ */
+const fetchRectificationDictionary = async (): Promise<{ [key: string]: string } | null> => {
+  try {
+    const dictionaries = await getCachedDictionary("zgzt");
+    if (!dictionaries || dictionaries.length === 0) {
+      console.warn("整改状态字典 (zgzt) 为空");
+      return null;
+    }
+    
+    const map: { [key: string]: string } = {};
+    dictionaries.forEach((item: any) => {
+      map[item.f_ItemValue] = item.f_ItemName;
+    });
+    return map;
+  } catch (error) {
+    rectificationError.value = `获取整改状态字典失败: ${error}`;
+    console.error(rectificationError.value);
+    return null;
+  }
+};
+
+/**
+ * 整改状态映射（f_ItemName -> status key）
+ */
+const zgztStatusMap: { [key: string]: string } = {
+  "已整改": "rectified",
+  "未整改": "notRectified",
+  "整改中": "inRectification",
+  "持续跟进": "continuousImprovement",
 };
 
 /**
  * 获取整改状态数据
+ * 使用标准化的 Glmblx 参数
  */
-const fetchRectificationData = async () => {
+const fetchRectificationData = async (): Promise<void> => {
+  if (!glmblxs) {
+    console.warn("Glmblx 参数未初始化，跳过整改状态数据获取");
+    rectificationData.value = getDefaultRectificationStates();
+    return;
+  }
+
+  isRectificationLoading.value = true;
+  rectificationError.value = null;
+
   try {
-    const dictionaries = await getCachedDictionary("zgzt");
-    const res = await getRiskStatusCount({ Glmblx: "glmblx_gs" });
-    
-    const zgCount = res.reduce((sum, item) => sum + item.count, 0);
-    rectificationData.value = res.map((item) => {
-      const status = dictionaries.find(
-        (statusItem) => statusItem.f_ItemValue === item.riskStatus
-      );
+    const rectificationMap = await fetchRectificationDictionary();
+    if (!rectificationMap) {
+      rectificationData.value = getDefaultRectificationStates();
+      return;
+    }
+
+    const data = (await getRiskStatusCount({ Glmblx: glmblxs })) as any[];
+    if (!data || data.length === 0) {
+      console.info("整改状态数据为空");
+      rectificationData.value = getDefaultRectificationStates();
+      return;
+    }
+
+    // 计算总数
+    const totalCount = data.reduce((sum, item) => sum + (item.count || 0), 0);
+
+    // 转换数据格式
+    const transformedData = data.map((item) => {
+      const statusName = rectificationMap[item.riskStatus] || item.riskStatus;
+      const statusKey = zgztStatusMap[statusName] || "unknown";
       return {
-        title: status?.f_ItemName || "未知状态",
-        count: item.count,
-        status: status ? zgztMap[status.f_ItemName] : "unknown",
-        progress: zgCount > 0 ? item.count / zgCount : 0,
+        title: statusName,
+        count: item.count || 0,
+        status: statusKey,
+        progress: totalCount > 0 ? (item.count || 0) / totalCount : 0,
       };
     });
-    
-    await nextTick();
-    renderRectificationCharts();
+
+    // 合并 API 数据与默认数据，确保始终有 4 项显示
+    const defaultStates = getDefaultRectificationStates();
+    transformedData.forEach((item) => {
+      const defaultIndex = defaultStates.findIndex(
+        (r) => r.status === item.status
+      );
+      if (defaultIndex >= 0) {
+        defaultStates[defaultIndex] = item;
+      }
+    });
+    rectificationData.value = defaultStates;
   } catch (error) {
-    console.error("获取整改状态数据失败:", error);
+    rectificationError.value = `获取整改状态数据失败: ${error}`;
+    console.error(rectificationError.value);
+    rectificationData.value = getDefaultRectificationStates();
+  } finally {
+    isRectificationLoading.value = false;
   }
 };
+
+/**
+ * 获取默认的整改状态数据
+ */
+const getDefaultRectificationStates = () => [
+  { title: "已整改", count: 0, status: "rectified", progress: 0 },
+  { title: "未整改", count: 0, status: "notRectified", progress: 0 },
+  { title: "整改中", count: 0, status: "inRectification", progress: 0 },
+  { title: "持续跟进", count: 0, status: "continuousImprovement", progress: 0 },
+];
 
 // ==================== 图表渲染 ====================
 /**
  * 渲染风险等级多环形图
  */
 const renderRiskLevelChart = () => {
-  const chartDom = document.getElementById("risk-chart");
-  if (!chartDom) return;
+  const myChart = initChart("risk-chart");
+  if (!myChart) return;
 
-  const myChart = echarts.init(chartDom);
-
-  // 占位样式(背景环)
-  const placeHolderStyle = {
-    label: { show: false },
-    labelLine: { show: false },
-    itemStyle: {
-      color: "rgba(29, 57, 64, 0.5)",
-      borderColor: "rgba(29, 57, 64, 0.8)",
-      borderWidth: 8,
-    },
-    emphasis: { disabled: true },
-  };
-
-  // 数据环样式
-  const createLabelStyle = (color: string, lineLength = 100) => ({
-    label: {
-      show: false,
-    },
-    labelLine: {
-      show: true,
-      length: lineLength,
-      smooth: 0.5,
-      lineStyle: { color: "rgba(211, 234, 241, 0.3)" },
-    },
-    itemStyle: {
-      borderWidth: 8,
-      shadowBlur: 20,
-      borderColor: color,
-      shadowColor: color,
-    },
-  });
-
-  // 图表配置
-  myChart.setOption({
-    backgroundColor: "transparent",
-    color: ["#9bb8c7", "#61E29D", "#F4D982", "#E88D6B"],
-    legend: { show: false },
-    series: riskLegend.value.map((risk, index) => {
-      const radiusMap = [
-        [90, 91],
-        [70, 71],
-        [50, 51],
-        [30, 31],
-      ];
-      const lineLengthMap = [40, 50, 60, 70];
-      // 动态计算最大值，确保环形图能正确显示比例
-      const maxValue = Math.max(...riskLegend.value.map(item => item.value), 1) * 1.5;
-
-      return {
-        name: risk.name,
-        type: "pie",
-        clockWise: true,
-        hoverAnimation: true,
-        radius: radiusMap[index],
-        ...createLabelStyle(risk.color, lineLengthMap[index]),
-        data: [
-          { value: risk.value, name: risk.name },
-          { value: maxValue - risk.value, name: "", ...placeHolderStyle },
-        ],
-      };
-    }),
-  });
+  const option = createRiskLevelChartOption(riskLegend.value);
+  myChart.setOption(option);
 };
 
 /**
@@ -196,90 +311,53 @@ const renderRiskLevelChart = () => {
  */
 const renderRectificationCharts = () => {
   rectificationData.value.forEach((item) => {
-    const chartDom = document.getElementById(`status-chart-${item.status}`);
-    if (!chartDom) return;
+    const chart = initChart(`status-chart-${item.status}`);
+    if (!chart) return;
 
-    const chart = echarts.init(chartDom);
-    chart.setOption(createProgressOption(item.progress, item.status));
+    try {
+      const option = createProgressOption(item.progress, item.status);
+      chart.setOption(option);
+    } catch (error) {
+      console.warn(`渲染整改状态图表失败 - ${item.status}:`, error);
+    }
   });
 };
 
-/**
- * 创建环形进度图配置
- */
-const createProgressOption = (progress: number, status: string) => {
-  const colorMap = {
-    continuousImprovement: ["#10ADC0", "#FFFFFF"],
-    rectified: ["#FFF407", "#3FFEFD"],
-    inRectification: ["#CDAB06", "#FFFEED"],
-    notRectified: ["#FEAC04", "#F75E04"],
-  };
-
-  const colors = colorMap[status] || ["#10ADC0", "#FFFFFF"];
-  const percentage = Math.round(progress * 100);
-
-  return {
-    series: [
-      {
-        type: "pie",
-        radius: ["70%", "90%"],
-        center: ["50%", "50%"],
-        startAngle: 90,
-        silent: true,
-        label: {
-          show: true,
-          position: "center",
-          formatter: `{a|${percentage}%}`,
-          rich: {
-            a: {
-              fontSize: 20,
-              fontWeight: "bold",
-              fontFamily: "YouSheBiaoTiHei",
-              color: "#FFFFFF",
-              lineHeight: 26,
-            },
-          },
-        },
-        labelLine: { show: false },
-        data: [
-          {
-            value: progress,
-            itemStyle: {
-              color: new echarts.graphic.LinearGradient(0, 0, 1, 1, [
-                { offset: 0, color: colors[0] },
-                { offset: 1, color: colors[1] },
-              ]),
-              borderRadius: 10,
-            },
-          },
-          {
-            value: 1 - progress,
-            itemStyle: {
-              color: "rgba(255, 255, 255, 0.1)",
-              borderColor: "rgba(255, 255, 255, 0.2)",
-              borderWidth: 1,
-            },
-            emphasis: {
-              itemStyle: { color: "rgba(255, 255, 255, 0.1)" },
-            },
-          },
-        ],
-        emphasis: { scale: false },
-      },
-    ],
-  };
-};
-
 // ==================== 生命周期 ====================
+/**
+ * 组件挂载时执行的初始化逻辑
+ * 1. 初始化 Glmblx 参数（所有接口共用）
+ * 2. 并行获取两个独立数据源：风险等级、整改状态
+ * 3. 渲染图表
+ */
 onMounted(async () => {
-  // 获取风险等级数据
-  await fetchRiskLevelData();
-  
-  // 获取整改状态数据
-  await fetchRectificationData();
-  
-  // 渲染风险等级图表
-  renderRiskLevelChart();
+  try {
+    // 步骤1: 初始化共同参数（必须首先执行）
+    const initSuccess = await initializeGlmblxs();
+    if (!initSuccess) {
+      console.error("初始化 Glmblx 参数失败，跳过数据获取");
+      // 仍然展示默认状态
+      riskLegend.value = getDefaultRiskLevels();
+      rectificationData.value = getDefaultRectificationStates();
+      await nextTick();
+      renderRiskLevelChart();
+      renderRectificationCharts();
+      return;
+    }
+
+    // 步骤2: 并行获取两个数据源（彼此独立）
+    await Promise.allSettled([
+      fetchRiskLevelData(),      // 模块1: 风险等级数据
+      fetchRectificationData(),  // 模块2: 整改状态数据
+    ]);
+
+    // 步骤3: 等待 DOM 更新后渲染图表
+    await nextTick();
+    renderRiskLevelChart();
+    renderRectificationCharts();
+  } catch (error) {
+    console.error("组件初始化失败:", error);
+  }
 });
 
 </script>
@@ -287,12 +365,13 @@ onMounted(async () => {
 <style lang="scss" scoped>
 .module-content{
   flex-direction: row;
+  padding: 10px 30px;
 }
 .risk-content {
   display: flex;
   flex-direction: column;
   height: 100%;
-  width: 50%;
+  width: 38%;
 
   .risk-echart {
     width: 239px;
@@ -302,7 +381,7 @@ onMounted(async () => {
     .risk-legend {
       display: flex;
       flex-direction: column;
-      gap: 10px;
+      gap: 6px;
 
       .legend-item {
         padding: 2px 10px;
@@ -320,7 +399,7 @@ onMounted(async () => {
         .legend-name {
           font-family: SourceHanSansSC, SourceHanSansSC;
           font-weight: 400;
-          font-size: 18px;
+          font-size: var(--font-size-2xl);
           color: #d3eaf1;
           display: flex;
           align-items: center;
@@ -336,7 +415,7 @@ onMounted(async () => {
 
         .legend-value {
           font-family: YouSheBiaoTiHei;
-          font-size: 22px;
+          font-size: var(--font-size-3xl);
           color: #ffffff;
           background: linear-gradient(90deg, #ffffff 0%, #10adc0 100%);
 
@@ -354,14 +433,14 @@ onMounted(async () => {
 }
 
 .rectification-section {
-  width: 50%;
+  width: 62%;
+  margin-left: 60px;
 
   .right-chart {
-    flex: 1;
+    width: 146px;
     display: flex;
     align-items: center;
     justify-content: center;
-    padding-right: 20px;
 
     .status-chart {
       width: 80px;
@@ -370,7 +449,7 @@ onMounted(async () => {
   }
 
   .rectification-item {
-    width: 388px;
+    width: 100%;
     height: 92px;
     background-size: 100% 100%;
     background-image: url("@/assets/img/waterSupply/rectification_bg.png");
@@ -381,6 +460,7 @@ onMounted(async () => {
   }
 
   .left-nums {
+    flex: 1;
     display: flex;
     flex-direction: row;
     align-items: center;
@@ -392,7 +472,7 @@ onMounted(async () => {
   .rectification-item-title {
     font-family: SourceHanSansSC, SourceHanSansSC;
     font-weight: 400;
-    font-size: 20px;
+    font-size: var(--font-size-3xl);
     color: #d3eaf1;
     line-height: 29px;
     letter-spacing: 1px;

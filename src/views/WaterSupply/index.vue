@@ -54,11 +54,13 @@ onBeforeMount(async () => {
       'jcsblx_gs',      // MonitoringEquipmentModule
       'zgzt',           // RiskHazardModule
       'yjlx_gs',        // EarlyWarningModule
-      'gs_szjcsb'       // WaterQualityModule
+      'gs_szjcsb',       // WaterQualityModule
+      'glmbzx_gs',      // WaterQualityModule
     ]);
     loading.value = false;
     console.log('字典数据预加载完成');
   } catch (error) {
+    loading.value = false;
     console.error('字典数据预加载失败:', error);
   }
 });

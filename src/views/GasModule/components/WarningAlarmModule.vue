@@ -150,48 +150,7 @@ const alarmLevels = ref([
 const warningTableData = ref([]);
 
 // 报警表格数据
-const alarmTableData = ref([
-  {
-    key: 1,
-    type: "阳管网燃气泄漏报警",
-    level1: 5,
-    level2: 78,
-    level3: 45,
-    handled: 67,
-    handling: 34,
-    unhandled: 23,
-  },
-  {
-    key: 2,
-    type: "沼气聚集爆炸报警",
-    level1: 7,
-    level2: 523,
-    level3: 67,
-    handled: 89,
-    handling: 68,
-    unhandled: 45,
-  },
-  {
-    key: 3,
-    type: "场站泄漏报警",
-    level1: 10,
-    level2: 898,
-    level3: 9,
-    handled: 67,
-    handling: 100,
-    unhandled: 67,
-  },
-  {
-    key: 4,
-    type: "管网腐蚀报警",
-    level1: 11,
-    level2: 45,
-    level3: 98,
-    handled: 110,
-    handling: 45,
-    unhandled: 80,
-  },
-]);
+const alarmTableData = ref([]);
 
 // ==================== 计算属性 ====================
 // 当前表格数据

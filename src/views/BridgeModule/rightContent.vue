@@ -14,7 +14,7 @@
 <script setup>
 import BridgeRiskHazardModule from './components/BridgeRiskHazardModule.vue';
 import BridgeWarningAlarmModule from './components/BridgeWarningAlarmModule.vue';
-import BridgeEmergencyResourceModule from './components/BridgeEmergencyResourceModule.vue';
+import BridgeEmergencyResourceModule from '../GasModule/components/EmergencyResourceModule.vue';
 </script>
 
 <style lang="scss" scoped>

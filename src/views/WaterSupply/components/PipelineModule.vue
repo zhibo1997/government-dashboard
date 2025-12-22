@@ -89,6 +89,28 @@ const pipelineLegend = ref();
 
 const colors = ["#00bfff", "#ff4500", "#ffff00", "#66cc66"];
 
+/**
+ * 生成渐变色配置
+ */
+const getGradientColor = (baseColor: string): echarts.graphic.LinearGradient => {
+  // 将十六进制颜色转换为rgba格式
+  const hexToRgba = (hex: string, startAlpha: number, endAlpha: number) => {
+    const r = parseInt(hex.slice(1, 3), 16);
+    const g = parseInt(hex.slice(3, 5), 16);
+    const b = parseInt(hex.slice(5, 7), 16);
+    return {
+      start: `rgba(${r}, ${g}, ${b}, ${startAlpha})`,
+      end: `rgba(${r}, ${g}, ${b}, ${endAlpha})`,
+    };
+  };
+
+  const rgba = hexToRgba(baseColor, 0, 1);
+  return new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+    { offset: 0, color: rgba.start },
+    { offset: 1, color: rgba.end },
+  ]);
+};
+
 const gwczMap = ref({});
 const initMaterialList = async () => {
   const dictionaries = await getCachedDictionary("gwcz");
@@ -109,7 +131,7 @@ const initMaterialList = async () => {
     officialWebsiteOption.series[0].data = gwczData.map((gwcz, idx) => ({
       ...gwcz,
       itemStyle: {
-        color: gwcz.color,
+        color: getGradientColor(gwcz.color),
       },
     }));
     const chartDom = document.getElementById("pipeline-chart");
@@ -358,8 +380,6 @@ const initChart = () => {};
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    position: relative;
-    top: -40px;
 
     .danger-count {
       font-family: YouSheBiaoTiHei;

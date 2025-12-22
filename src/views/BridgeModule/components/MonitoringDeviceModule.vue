@@ -179,7 +179,7 @@ const initWarningStatistics = async () => {
         .stat-label {
           font-family: SourceHanSansSC, SourceHanSansSC;
           font-weight: 500;
-          font-size: 30px;
+          font-size: var(--font-size-32);
           color: #EFFAFF;
           line-height: 44px;
           text-align: left;
@@ -219,26 +219,26 @@ const initWarningStatistics = async () => {
     width: 100%;
 
     .warning-table {
-      background: rgba(2, 48, 71, 0.5);
-      border: 1px solid rgba(79, 184, 211, 0.3);
       border-radius: 4px;
       overflow: hidden;
 
       .table-header {
-        display: flex;
-        background: linear-gradient(90deg, rgba(2, 48, 71, 0.6) 0%, rgba(2, 48, 71, 0.3) 100%);
-        border-bottom: 1px solid rgba(79, 184, 211, 0.3);
+        display: grid;
+        grid-template-columns: 2fr 1fr 1fr 1fr;
+        background: #2A5768;
+        border: 2px solid #09739C;
 
         .header-cell {
           flex: 1;
           padding: 16px 12px;
           font-family: SourceHanSansSC, SourceHanSansSC;
           font-weight: bold;
-          font-size: 20px;
+          font-size: var(--font-size-2xl);
           color: #e4f3ff;
           line-height: 29px;
           text-align: center;
           font-style: normal;
+
 
           &:first-child {
             text-align: left;
@@ -250,11 +250,14 @@ const initWarningStatistics = async () => {
       .table-body {
         max-height: 260px;
         overflow-y: auto;
+        background: rgba(49, 49, 49, 0.3);
+        border: 2px solid #09739C;
 
         .table-row {
-          display: flex;
           border-bottom: 1px solid rgba(79, 184, 211, 0.15);
           transition: background-color 0.3s ease;
+        display: grid;
+        grid-template-columns: 2fr 1fr 1fr 1fr;
 
           &:hover {
             background: rgba(79, 184, 211, 0.1);
@@ -269,7 +272,7 @@ const initWarningStatistics = async () => {
             padding: 14px 12px;
             font-family: SourceHanSansSC, SourceHanSansSC;
             font-weight: 400;
-            font-size: 20px;
+            font-size: var(--font-size-3xl);
             color: #effaff;
             line-height: 29px;
             text-align: center;

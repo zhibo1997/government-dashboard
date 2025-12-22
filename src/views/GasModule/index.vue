@@ -3,7 +3,7 @@
     <!-- 中间地图区域 -->
 
     <div class="center-map" data-interactive>
-      <!-- <CesiumMap /> -->
+      <CesiumMap />
     </div>
     <ResponsiveWrapper :base-width="4096" :base-height="1920" v-if="!loading">
       <!-- 头部区域 -->

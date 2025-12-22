@@ -427,7 +427,7 @@ defineOptions({
     background: linear-gradient(90deg, rgba(12, 59, 58, 0) 0%, #0C3B3A 53%, rgba(12, 59, 58, 0) 100%);
     font-family: SourceHanSansSC, SourceHanSansSC;
     font-weight: 400;
-    font-size: 24px;
+    font-size: var(--font-size-3xl);
     color: #EFFAFF;
     line-height: 26px;
     font-style: normal;

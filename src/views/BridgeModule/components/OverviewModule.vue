@@ -258,7 +258,7 @@ onMounted(async () => {
       top: 20px;
       font-family: SourceHanSansSC, SourceHanSansSC;
       font-weight: 500;
-      font-size: 24px;
+      font-size: var(--font-size-3xl);
       color: #EFFAFF;
       line-height: 35px;
       text-align: center;
@@ -281,7 +281,8 @@ onMounted(async () => {
         line-height: 26px;
       }
       .card-label {
-        font-size: 32px;
+        font-size: var(--font-size-40);
+        font-weight: var(--font-weight-bold);
         line-height: 42px;
         background: linear-gradient(90deg, #FFFFFF 0%, #10ADC0 100%);
       }

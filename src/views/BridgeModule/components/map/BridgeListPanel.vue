@@ -32,17 +32,21 @@
         <!-- 桥梁结构 -->
         <div class="filter-row">
           <div class="filter-item" style="flex: 1;">
-            <select v-model="filters.structure" class="filter-select">
-              <option value="">结构</option>
-              <option :value="value.value" v-for="value in qljgDict" :key="value.value">{{ value.text }}</option>
-            </select>
+            <n-select
+              v-model:value="filters.structure"
+              :options="qljgOptions"
+              :consistent-menu-width="false"
+              class="filter-select"
+            />
           </div>
           <!-- 桥梁类型 -->
           <div class="filter-item" style="flex: 1;">
-            <select v-model="filters.type" class="filter-select">
-              <option value="">类型</option>
-              <option :value="value.value" v-for="value in qllxDict" :key="value.value">{{ value.text }}</option>
-            </select>
+            <n-select
+              v-model:value="filters.type"
+              :options="qllxOptions"
+              :consistent-menu-width="false"
+              class="filter-select"
+            />
           </div>
         </div>
       </div>
@@ -88,9 +92,25 @@
 import { getBridgePageList } from "@/services/bridgeService";
 import { ref, computed, onMounted, watch } from "vue";
 import { getCachedDictionary } from "@/services/dictionaryService";
+import { NSelect } from "naive-ui";
 
 const qljgDict = ref([]);
 const qllxDict = ref([]);
+
+// NSelect选项
+const qljgOptions = computed(() => {
+  return [
+    { label: '结构', value: '' },
+    ...qljgDict.value.map((item) => ({ label: item.text, value: item.value }))
+  ];
+});
+
+const qllxOptions = computed(() => {
+  return [
+    { label: '类型', value: '' },
+    ...qllxDict.value.map((item) => ({ label: item.text, value: item.value }))
+  ];
+});
 
 const props = defineProps({
   visible: {
@@ -265,6 +285,7 @@ const nextPage = () => {
 <style lang="scss" scoped>
 .panel-content {
   margin-bottom: 20px;
+
   &.hidden {
     display: none;
   }
@@ -282,8 +303,30 @@ const nextPage = () => {
   overflow: hidden;
   pointer-events: auto;
 
+  &.collapsed {
+    width: 120px;
+
+    .panel-header {
+      flex-direction: column;
+      align-items: center;
+
+      .toggle-btn {
+        width: 60px;
+        padding: 0;
+        justify-content: center;
+      }
+
+      .text {
+        writing-mode: vertical-lr;
+        text-orientation: mixed;
+        margin: 0;
+        font-size: 18px;
+      }
+    }
+  }
+
   .panel-header {
-    padding: 12px 15px;
+    padding: 12px 0;
     display: flex;
     gap: 10px;
     border-bottom: 1px solid rgba(0, 255, 255, 0.2);
@@ -310,18 +353,20 @@ const nextPage = () => {
     }
 
     .toggle-btn {
-      width: 180px;
+      width: 226px;
       background-image: url("@/assets/img/gasModule/icon_menu_bg.webp");
+
+      cursor: pointer;
 
       .text {
         font-family: SourceHanSansSC, SourceHanSansSC;
-        font-weight: 500;
-        font-size: 20px;
+        font-weight: var(--font-weight-medium);
+        font-size: var(--font-size-3xl);
         color: #3fffff;
         letter-spacing: 1px;
         text-align: center;
         font-style: normal;
-        margin-left: 8px;
+        margin-left: 4px;
         margin-bottom: 4px;
       }
     }
@@ -349,10 +394,10 @@ const nextPage = () => {
 
       .title-text {
         font-family: SourceHanSansSC, SourceHanSansSC;
-        font-weight: 500;
-        font-size: 30px;
+        font-weight: var(--font-weight-medium);
+        font-size: var(--font-size-4xl);
         color: #FFFFFF;
-        line-height: 44px;
+        line-height: calc(var(--font-size-3xl) * 1.467);
         text-align: center;
         font-style: normal;
         margin-right: 18px;
@@ -397,10 +442,10 @@ const nextPage = () => {
           background: linear-gradient(180deg, #0D9191 0%, #017474 26%, #013D3D 66%, #079090 100%);
           border-radius: 8px;
           border: 2px solid #3FFFFF;
-          font-weight: 500;
-          font-size: 26px;
+          font-weight: var(--font-weight-medium);
+          font-size: var(--font-size-2xl);
           color: #FFFFFF;
-          line-height: 37px;
+          line-height: calc(var(--font-size-2xl) * 1.423);
           text-align: center;
           font-style: normal;
           cursor: pointer;
@@ -433,9 +478,9 @@ const nextPage = () => {
 
         font-size: 16px;
         font-family: SourceHanSansSC, SourceHanSansSC;
-        font-weight: 400;
-        font-size: 24px;
-        line-height: 35px;
+        font-weight: var(--font-weight-normal);
+        font-size: var(--font-size-3xl);
+        line-height: calc(var(--font-size-xl) * 1.458);
         text-align: left;
         font-style: normal;
         color: #ffffff;
@@ -444,7 +489,7 @@ const nextPage = () => {
         border: none;
 
         &::placeholder {
-          font-size: 24px;
+          font-size: var(--font-size-3xl);
           color: #E4F3FF;
         }
 
@@ -457,33 +502,17 @@ const nextPage = () => {
 
       .filter-select {
         width: 100%;
-        height: 100%;
-
-        font-size: 16px;
-        font-family: SourceHanSansSC, SourceHanSansSC;
-        font-weight: 400;
-        font-size: 24px;
-        line-height: 35px;
-        text-align: left;
-        font-style: normal;
-        color: #ffffff;
-        background-color: transparent;
-        outline: none;
-        border: none;
-
-        &:focus {
-          outline: none;
-          border-color: rgba(0, 255, 255, 0.6);
-          box-shadow: 0 0 8px rgba(0, 255, 255, 0.2);
-        }
-
-        option {
-          background: #001428;
-          color: #ffffff;
-
-          &:first-child {
-            color: rgba(255, 255, 255, 0.4);
-          }
+        :deep(.n-base-selection) {
+          --n-height: 60px !important;
+          --n-color:transparent !important;
+          --n-color-active: transparent !important;
+          --n-text-color: #E4F3FF !important;
+          --n-font-size: var(--font-size-3xl) !important;
+          --n-padding-single: 0px !important;
+          --n-border: none !important;
+          --n-border-active: none !important;
+          --n-border-focus: none !important;
+          --n-border-hover: none !important;
         }
       }
     }
@@ -501,10 +530,10 @@ const nextPage = () => {
 
       .count-text {
         font-family: SourceHanSansSC, SourceHanSansSC;
-        font-weight: 400;
-        font-size: 20px;
+        font-weight: var(--font-weight-normal);
+        font-size: var(--font-size-lg);
         color: #FFFFFF;
-        line-height: 29px;
+        line-height: calc(var(--font-size-lg) * 1.45);
       }
     }
 
@@ -531,7 +560,7 @@ const nextPage = () => {
       }
 
       .bridge-item {
-        padding: 20px 19px 22px;
+        padding: 20px;
         border-bottom: 2px solid #09739C;
 
         background: rgba(0, 0, 0, 0.2);
@@ -547,7 +576,6 @@ const nextPage = () => {
           border-left: 4px solid #0da5be;
           padding-left: 15px;
         }
-
         .bridge-badges {
           display: flex;
           align-items: center;
@@ -556,12 +584,12 @@ const nextPage = () => {
         }
 
         .badge {
-          padding: 6px 16px;
+          padding: 4px 16px;
           border-radius: 8px;
           font-family: SourceHanSansSC, SourceHanSansSC;
-          font-weight: 500;
-          font-size: 20px;
-          line-height: 29px;
+          font-weight: var(--font-weight-medium);
+          font-size: var(--font-size-lg);
+          line-height: calc(var(--font-size-lg) * 1.45);
 
           &.badge-type {
             background: #313D56;
@@ -569,28 +597,47 @@ const nextPage = () => {
             border: 2px solid #15779D;
 
             color: #E4F3FF;
-            line-height: 29px;
+            line-height: calc(var(--font-size-lg) * 1.45);
+          }
+
+          &.badge-status {
+            border-radius: 8px;
+
+            &.badge-normal {
+              background: linear-gradient(90deg, rgba(4, 247, 103, 0.6) 0%, rgba(4, 199, 254, 0.6) 99%);
+              border: 2px solid #04C7FE;
+              color: #fff;
+            }
+
+            &.badge-error {
+              color: #fff;
+              background: linear-gradient(90deg, rgba(247, 94, 4, 0.6) 0%, rgba(254, 172, 4, 0.6) 100%);
+              border: 2px solid #F76204;
+              border-image: linear-gradient(180deg, rgba(252, 155, 10, 1), rgba(247, 98, 4, 1)) 2 2;
+            }
           }
         }
 
         .bridge-name {
           font-family: SourceHanSansCNVF, SourceHanSansCNVF;
-          font-weight: 500;
-          font-size: 30px;
+          font-weight: var(--font-weight-semibold);
+          font-size: var(--font-size-3xl);
           color: #E4F3FF;
-          line-height: 44px;
+          line-height: calc(var(--font-size-3xl) * 1.467);
           text-align: left;
           font-style: normal;
         }
 
         .bridge-info {
           font-family: SourceHanSansCNVF, SourceHanSansCNVF;
-          font-weight: 400;
-          font-size: 18px;
+          font-weight: var(--font-weight-normal);
+          font-size: var(--font-size-2xl);
           color: #BFC5C0;
-          line-height: 26px;
+          line-height: calc(var(--font-size-md) * 1.444);
           text-align: left;
           font-style: normal;
+          margin-top: 8px;
+
         }
       }
     }
@@ -610,8 +657,8 @@ const nextPage = () => {
         border: 2px solid #11A7E2;
         border-radius: 6px;
         font-family: SourceHanSansSC, SourceHanSansSC;
-        font-weight: 400;
-        font-size: 20px;
+        font-weight: var(--font-weight-normal);
+        font-size: var(--font-size-xl);
         color: #FFFFFF;
         cursor: pointer;
         transition: all 0.2s ease;
@@ -641,10 +688,10 @@ const nextPage = () => {
       .page-info {
         margin-left: 8px;
         font-family: SourceHanSansSC, SourceHanSansSC;
-        font-weight: 400;
-        font-size: 20px;
+        font-weight: var(--font-weight-normal);
+        font-size: var(--font-size-xl);
         color: #FFFFFF;
-        line-height: 29px;
+        line-height: calc(var(--font-size-lg) * 1.45);
       }
     }
   }

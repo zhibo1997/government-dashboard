@@ -6,6 +6,16 @@ export const officialWebsiteOption: echarts.EChartsOption = {
     trigger: "item",
     formatter: "{a} <br/>{b}: {c} ({d}%)",
   },
+  title: {
+    text: "管网\n材质",
+    left: "center",
+    top: "32%",
+    textStyle: {
+      color: "#e4f3ff",
+      fontSize: 24,
+      lineHeight: 39,
+    },
+  },
   legend: {
     show: false,
   },
@@ -226,14 +236,14 @@ export const handledOption = {
       type: "shadow",
     },
   },
-  // legend: {
-  //   data: ["未处置", "已处置", "处置率"],
-  //   textStyle: {
-  //     color: "#fff",
-  //     fontSize: 14,
-  //   },
-  //   right: "10%",
-  // },
+  legend: {
+    data: ["未处置", "已处置", "处置率"],
+    textStyle: {
+      color: "#fff",
+      fontSize: 18,
+    },
+    top: "0%",
+  },
   grid: {
     left: 2,
     right: 2,
@@ -245,7 +255,7 @@ export const handledOption = {
     data: [],
     axisLabel: {
       color: "#fff",
-      fontSize: 12,
+      fontSize: 18,
     },
     axisLine: {
       lineStyle: {
@@ -265,7 +275,7 @@ export const handledOption = {
       interval: 10,
       axisLabel: {
         color: "#fff",
-        fontSize: 12,
+        fontSize: 18,
       },
       axisLine: {
         lineStyle: {
@@ -287,7 +297,7 @@ export const handledOption = {
       interval: 20,
       axisLabel: {
         color: "#fff",
-        fontSize: 12,
+        fontSize: 18,
       },
       axisLine: {
         lineStyle: {

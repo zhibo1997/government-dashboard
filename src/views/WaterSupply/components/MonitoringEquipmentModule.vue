@@ -161,7 +161,7 @@ onMounted(() => {
       .rate-name {
         font-family: SourceHanSansSC, SourceHanSansSC;
         font-weight: 400;
-        font-size: 24px;
+        font-size: var(--font-size-2xl);
         color: #e4f3ff;
         line-height: 35px;
         text-align: center;
@@ -232,7 +232,7 @@ onMounted(() => {
       .device-name {
         font-family: SourceHanSansSC, SourceHanSansSC;
         font-weight: 400;
-        font-size: 24px;
+        font-size: var(--font-size-2xl);
         color: #e4f3ff;
         line-height: 35px;
         text-align: center;

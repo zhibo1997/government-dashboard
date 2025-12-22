@@ -392,7 +392,7 @@ const handleClose = () => {
         display: flex;
         align-items: center;
         gap: 12px;
-        font-size: 18px;
+        font-size: var(--font-size-2xl);
         line-height: 26px;
 
         label {

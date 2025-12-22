@@ -4,7 +4,7 @@
     <div class="center-map" data-interactive>
       <CesiumMap />
     </div>
-    <ResponsiveWrapper :base-width="4096" :base-height="1920">
+    <ResponsiveWrapper :base-width="4096" :base-height="1920" v-if="!loading">
       <!-- 头部区域 -->
       <DashboardHeader />
 
@@ -29,17 +29,30 @@ import DashboardHeader from "@/components/DashboardHeader.vue";
 import SidebarModule from "./sidebarModule.vue";
 import CesiumMap from "@/mapComponents/Map.vue";
 import { onBeforeMount, ref } from "vue";
+import { getCachedDictionaries } from "@/services/dictionaryService";
 
 // 定义组件名称以支持keep-alive
 defineOptions({
   name: "BridgeModule",
 });
+const loading = ref(false);
 
 // 在页面初始化时预加载所有字典数据
 onBeforeMount(async () => {
   try {
+    loading.value = true;
+    // 批量预加载所有需要的字典数据
+    await getCachedDictionaries([
+      "jcssdstjlx_ql", 
+      "glmb_ql",
+      "fxdj",
+      "zgzt",
+      "csaqzx_ql"
+    ]);
     console.log("桥梁模块初始化完成");
+    loading.value = false;
   } catch (error) {
+    loading.value = false;
     console.error("桥梁模块初始化失败:", error);
   }
 });
