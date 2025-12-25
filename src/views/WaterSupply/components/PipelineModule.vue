@@ -58,7 +58,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, nextTick } from "vue";
+import { ref, onMounted, nextTick, inject } from "vue";
 import { officialWebsiteOption } from "./ehcartsOptions";
 import * as echarts from "echarts";
 import {
@@ -70,6 +70,14 @@ import {
 import baseDangerImage from "@/assets/img/waterSupply/base_danger.png";
 import seriousDangerImage from "@/assets/img/waterSupply/serious_danger.png";
 import { getCachedDictionary } from "@/services/dictionaryService";
+// 从根组件接收模块配置
+const moduleConfig = inject('MODULE_CONFIG', {
+  sszx: 'csaqzx_gs',
+  imagePath: 'waterSupply',
+  dictKey: {
+    yhlx: 'yhlx_gs'
+  }
+});
 
 // 配置项:严重隐患阈值
 const SERIOUS_DANGER_THRESHOLD = 3;
@@ -118,9 +126,10 @@ const initMaterialList = async () => {
     acc[cur.f_ItemValue] = cur.f_ItemName;
     return acc;
   }, {});
-  const res = await getWaterSupplyMaterialRatio();
+  const res = await getWaterSupplyMaterialRatio({ Sszx: moduleConfig.sszx });
+  const data = Array.isArray(res) ? res : (res?.data || []);
   nextTick(() => {
-    const gwczData = res.map((item, idx) => ({
+    const gwczData = (data as any[]).map((item, idx) => ({
       name: gwczMap.value[item.materialType],
       id: item.materialType,
       value: item.count,
@@ -199,7 +208,8 @@ const generateRandomPosition = (existingPositions, ballSize) => {
 };
 
 const initHiddenDangerTypes = async () => {
-  const res = await getCachedDictionary("yhlx_gs");
+  const yhlx = moduleConfig.dictKey?.yhlx || "";
+  const res = await getCachedDictionary(yhlx);
   // 创建隐患类型映射
   const dangerTypeMap = {};
   res.forEach((item) => {
@@ -208,12 +218,13 @@ const initHiddenDangerTypes = async () => {
 
   // 获取隐患数据
   const riskRes = await getWaterSupplyRiskCount();
+  const riskData = Array.isArray(riskRes) ? riskRes : (riskRes?.data || []);
 
   // 计算隐患总数
-  dangerCount.value = riskRes.reduce((total, item) => total + item.count, 0);
+  dangerCount.value = (riskData as any[]).reduce((total, item) => total + item.count, 0);
 
   // 按count排序，严重隐患优先排列
-  const sortedRiskRes = [...riskRes].sort((a, b) => b.count - a.count);
+  const sortedRiskRes = [...(riskData as any[])].sort((a, b) => b.count - a.count);
 
   // 生成隐患小球数据
   const existingPositions = [];

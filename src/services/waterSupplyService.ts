@@ -114,44 +114,56 @@ export async function getWarnStatistics(Sszx:string) {
 
 /**
  * 获取月度预警统计
- * @param year 年份（可选）
+ * @param params 查询参数
  * @returns 月度预警统计数据
  */
-export async function getMonthlyWarnStatistics(year?: string) {
-  const currentYear = year || new Date().getFullYear().toString();
+export async function getMonthlyWarnStatistics(params?: {
+  Sszx: string;
+  Year?: string;
+}) {
+  const currentYear = params?.Year || new Date().getFullYear().toString();
   const res = await waterApi.gspspDtransPubmnteawarn.monthlyWarnStatisticsList({
     Year: currentYear,
+    Sszx: params?.Sszx
   });
   return res.data || [];
 }
 
 /**
  * 获取排查结果统计
- * @param year 年份（可选）
+ * @param params 查询参数
  * @returns 排查结果统计数据
  */
-export async function getCheckResultStatistics(year?: string) {
-  const currentYear = year || new Date().getFullYear().toString();
+export async function getCheckResultStatistics(params?: {
+  Sszx: string;
+  Year?: string;
+}) {
+  const currentYear = params?.Year || new Date().getFullYear().toString();
   const res = await waterApi.gspspDtransPubmnteawarn.checkResultStatisticsList({
     Year: currentYear,
+    Sszx: params?.Sszx
   });
   return res?.data || [];
 }
 
 /**
  * 获取供水管线材质占比
+ * @param params 查询参数
  * @returns 管线材质占比数据
  */
-export async function getWaterSupplyMaterialRatio() {
+export async function getWaterSupplyMaterialRatio(params?: {
+  Sszx: string;
+}) {
   const res =
-    await waterApi.gspspDtransPubunderpipeline.waterSupplyMaterialRatioList();
+    await waterApi.gspspDtransPubunderpipeline.waterSupplyMaterialRatioList(params);
   return res?.data || [];
 }
 /**
- * 获取风险等级数量
+ * 获取風险等级数量
+ * @param param 查询參数
  */
 export async function getRiskLevelCount(param: {
-  Sszx: string;
+  Glmblx: string;
 }) {
   const queryParam = {
     Dsbm: "420200",
@@ -163,9 +175,11 @@ export async function getRiskLevelCount(param: {
 }
 /**
  * 获取隐患等级数量
+ * @param param 查询参数
  */
 export async function getHazardLevelCountList(param: {
   Sszx: string;
+  Sjly?: string;
 }) {
   const queryParam = {
     Dsbm: "420200",

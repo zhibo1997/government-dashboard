@@ -43,20 +43,29 @@ import {
   getDeviceStatusRate,
   getDeviceTypeStatusCount,
 } from "@/services/waterSupplyService";
-import { nextTick, onMounted, ref } from "vue";
+import { nextTick, onMounted, ref, inject } from "vue";
+
+// 从根组件接收模块配置
+const moduleConfig = inject('MODULE_CONFIG', {
+  sszx: 'csaqzx_gs',
+  dictKey: {
+    jcsblx: 'jcsblx_gs'
+  }
+});
 
 const csblxMap = ref({});
 const devicesData = ref([]);
 const monitoringData = ref([]);
 // 初始化监控设备数据
 const initMonitoringData = async () => {
-  const dictionaries = await getCachedDictionary("jcsblx_gs");
+  const jcsblx = moduleConfig.dictKey?.jcsblx || "jcsblx_gs";
+  const dictionaries = await getCachedDictionary(jcsblx);
   csblxMap.value = dictionaries.reduce((acc, cur) => {
     acc[cur.f_ItemValue] = cur.f_ItemName;
     return acc;
   }, {});
 
-  const res = await getDeviceTypeStatusCount({ Sszx: "csaqzx_gs" });
+  const res = await getDeviceTypeStatusCount({ Sszx: moduleConfig.sszx });
   nextTick(() => {
     monitoringData.value = res.map((item) => {
       return {
@@ -83,7 +92,7 @@ const rateMap = {
 const monitoringRate = ref([]);
 // 获取设备运行状态
 const getDeviceTypeRate = async () => {
-  const res = await getDeviceStatusRate({ Sszx: "csaqzx_gs" });
+  const res = await getDeviceStatusRate({ Sszx: moduleConfig.sszx });
   res.forEach((item) => {
     item["type"] = rateMap[item.name];
   });

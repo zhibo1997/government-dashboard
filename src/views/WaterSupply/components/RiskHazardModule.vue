@@ -39,7 +39,7 @@
 </template>
 
 <script setup lang="ts">
-import { nextTick, onMounted, ref } from "vue";
+import { nextTick, onMounted, ref, inject } from "vue";
 import { getRiskStatusCount, getRiskLevelCount } from "@/services/waterSupplyService";
 import { getCachedDictionary } from "@/services/dictionaryService";
 import {
@@ -48,6 +48,14 @@ import {
   createProgressOption,
   initChart,
 } from "../chartOption";
+
+// 从根组件接收模块配置
+const moduleConfig = inject('MODULE_CONFIG', {
+  sszx: 'csaqzx_gs',
+  dictKey: {
+    glmbzx: 'glmbzx_gs'
+  }
+});
 
 // ==================== 数据状态 ====================
 
@@ -99,7 +107,8 @@ const zgztMap = {
  */
 const initializeGlmblxs = async (): Promise<boolean> => {
   try {
-    const rqzxGlmbzxDictionaries = await getCachedDictionary("glmbzx_gs");
+    const glmbzx = moduleConfig.dictKey?.glmbzx || "glmbzx_gs";
+    const rqzxGlmbzxDictionaries = await getCachedDictionary(glmbzx);
     if (!rqzxGlmbzxDictionaries || rqzxGlmbzxDictionaries.length === 0) {
       console.warn("rqzx_glmbzx 字典为空");
       return false;

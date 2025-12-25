@@ -72,7 +72,7 @@
 </template>
 
 <script setup lang="ts">
-import { nextTick, onMounted, ref, watch } from "vue";
+import { nextTick, onMounted, ref, watch, inject } from "vue";
 import * as echarts from "echarts";
 import { handledOption } from "./ehcartsOptions";
 import {
@@ -81,6 +81,14 @@ import {
   getCheckResultStatistics,
 } from "@/services/waterSupplyService";
 import { getCachedDictionary } from "@/services/dictionaryService";
+
+// 从根组件接收模块配置
+const moduleConfig = inject('MODULE_CONFIG', {
+  sszx: 'csaqzx_gs',
+  dictKey: {
+    yjlx: 'yjlx_gs'
+  }
+});
 
 // 预警处置时间
 const warningDate = ref('2025');
@@ -120,26 +128,29 @@ const fetchAllData = async (year) => {
   try {
     // 获取预警统计数据
     const [checkResultData, warnStatisticsData, monthlyWarnData] = await Promise.all([
-      getCheckResultStatistics(year),
-      getWarnStatistics('csaqzx_gs'),
-      getMonthlyWarnStatistics(year)
+      getCheckResultStatistics({ Sszx: moduleConfig.sszx, Year: year }),
+      getWarnStatistics(moduleConfig.sszx),
+      getMonthlyWarnStatistics({ Sszx: moduleConfig.sszx, Year: year })
     ]);
     
     // 处理预警统计数据
-    warningData.value = checkResultData.map((item) => ({
+    const resultData = Array.isArray(checkResultData) ? checkResultData : (checkResultData?.data || []);
+    warningData.value = (resultData as any[]).map((item) => ({
       name: yjlxMap.value[item.checkResult],
       count: item.count,
     }));
     
     // 处理处置率数据
-    const summary = { ...warnStatisticsData };
-    summary.disposalRate = warnStatisticsData.totalCount > 0 
-      ? Math.round((warnStatisticsData.handledCount / warnStatisticsData.totalCount) * 100) + "%" 
+    const warnData = warnStatisticsData as any;
+    const summary = { ...warnData };
+    summary.disposalRate = warnData?.totalCount > 0 
+      ? Math.round((warnData?.handledCount / warnData?.totalCount) * 100) + "%" 
       : "0%";
     handledSummaryData.value = summary;
     
     // 处理月度统计数据
-    monthlyData.value = monthlyWarnData;
+    const monthlyDataArray = Array.isArray(monthlyWarnData) ? monthlyWarnData : (monthlyWarnData?.data || []);
+    monthlyData.value = monthlyDataArray;
     updateChart(monthlyWarnData);
   } catch (error) {
     console.error("获取预警处置数据失败:", error);
@@ -156,7 +167,8 @@ const onChangeWarningDate = (value) => {
 // 初始化字典数据
 const initDictionary = async () => {
   try {
-    const dictionaries = await getCachedDictionary("yjlx_gs");
+    const yjlx = moduleConfig.dictKey?.yjlx || "yjlx_gs";
+    const dictionaries = await getCachedDictionary(yjlx);
     yjlxMap.value = dictionaries.reduce((acc, cur) => {
       acc[cur.f_ItemValue] = cur.f_ItemName;
       return acc;

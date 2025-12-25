@@ -30,7 +30,7 @@
 </template>
 
 <script setup lang="ts">
-import { onBeforeMount, provide, ref } from 'vue';
+import { onBeforeMount, ref, provide } from 'vue';
 import ResponsiveWrapper from "@/components/ResponsiveWrapper.vue";
 import MapComponent from "@/mapComponents/Map.vue";
 // 引入左侧导航组件
@@ -42,17 +42,18 @@ import DashboardHeader from "@/components/DashboardHeader.vue";
 import { getCachedDictionaries } from "@/services/dictionaryService";
 
 const loading = ref(false);
-// 定义供水模块配置对象
+
+// 定义排水模块配置对象
 const moduleConfig = {
-  moduleType: 'waterSupply',
-  sszx: 'csaqzx_gs',
-  dictPrefix: 'gs',
-  imagePath: 'waterSupply',
+  moduleType: 'drainage',
+  sszx: 'csaqzx_ps',
+  dictPrefix: 'ps',
+  imagePath: 'drainage',
   dictKey: {
-    jcssdstjlx: 'jcssdstjlx_gs',
-    yhlx: 'yhlx_gs',
-    glmbzx: 'glmbzx_gs',
-    jcsblx: 'jcsblx_gs'
+    jcssdstjlx: 'jcssdstjlx_ps',
+    yhlx: 'yhlx_ps',
+    glmbzx: 'glmbzx_ps',
+    jcsblx: 'jcsblx_ps'
   }
 };
 
@@ -65,14 +66,14 @@ onBeforeMount(async () => {
     loading.value = true;
     // 批量预加载所有需要的字典数据
     await getCachedDictionaries([
-      'jcssdstjlx_gs',  // OverviewModule
+      'jcssdstjlx_ps',  // OverviewModule
       'gwcz',           // PipelineModule
-      'yhlx_gs',        // PipelineModule
-      'jcsblx_gs',      // MonitoringEquipmentModule
+      'yhlx_ps',        // PipelineModule
+      'jcsblx_ps',      // MonitoringEquipmentModule
       'zgzt',           // RiskHazardModule
-      'yjlx_gs',        // EarlyWarningModule
-      'gs_szjcsb',       // WaterQualityModule
-      'glmbzx_gs',      // WaterQualityModule
+      'yjlx_ps',        // EarlyWarningModule
+      'ps_szjcsb',       // WaterQualityModule
+      'glmbzx_ps',      // WaterQualityModule
     ]);
     loading.value = false;
     console.log('字典数据预加载完成');
@@ -84,7 +85,7 @@ onBeforeMount(async () => {
 
 // 定义组件名称以支持keep-alive
 defineOptions({
-  name: 'WaterSupplyView'
+  name: 'DrainageModule'
 });
 </script>
 

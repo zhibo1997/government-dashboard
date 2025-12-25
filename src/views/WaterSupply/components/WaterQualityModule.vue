@@ -57,22 +57,33 @@
 
 <script setup lang="ts">
 import { getLatestWaterQuality } from "@/services/waterSupplyService";
-import { onMounted, ref } from "vue";
+import { inject, onMounted, ref } from "vue";
 import { parse } from "lossless-json";
 import { nextTick } from "vue";
 import { getCachedDictionary } from "@/services/dictionaryService";
 
 const waterQualityDate = ref(Date.now());
 
+// 从根组件接收模块配置
+const moduleConfig = inject('MODULE_CONFIG', {
+  sszx: 'csaqzx_gs',
+  dictKey: {
+    szjcsb: 'gs_szjcsb'
+  }
+});
+
 const szMap = ref({});
 onMounted(async () => {
   // 获取最新供水水质字典（使用带缓存的优化函数）
-  const dictionaries = await getCachedDictionary("gs_szjcsb");
+  const szjcsb = moduleConfig.dictKey?.szjcsb || "";
+  const dictionaries = await getCachedDictionary(szjcsb);
   szMap.value = dictionaries.reduce((acc, cur) => {
     acc[cur.f_ItemValue] = cur.f_ItemName;
     return acc;
   }, {});
-  const res = await getLatestWaterQuality({Sszx:'csaqzx_gs'});
+
+  const Sszx = moduleConfig.sszx || "";
+  const res = await getLatestWaterQuality({Sszx});
   nextTick(() => {
     waterPlants.value = res.map((item) => {
       const jcz = parse(item.jcz);

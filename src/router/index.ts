@@ -5,6 +5,7 @@ import WaterSupplyView from '../views/WaterSupply/index.vue'
 import MapView from '@/views/MapView.vue'
 import GasModule from '../views/GasModule/index.vue'
 import BridgeModule from '../views/BridgeModule/index.vue'
+import DrainageModule from '../views/DrainageModule/index.vue'
 
 const routes: RouteRecordRaw[] = [
   {
@@ -52,15 +53,15 @@ const routes: RouteRecordRaw[] = [
       requiresAuth: true,
     }
   },
-  // {
-  //   path: '/drainage',
-  //   name: 'drainage',
-  //   component: NewDashboardView,
-  //   meta: {
-  //     requiresAuth: true,
-  //     title: '排水专项'
-  //   }
-  // },
+  {
+    path: '/drainage',
+    name: 'drainage',
+    component: DrainageModule,
+    meta: {
+      requiresAuth: true,
+      title: '排水专项'
+    }
+  },
   {
     path: '/:pathMatch(.*)*',
     name: 'NotFound',

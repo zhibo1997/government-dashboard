@@ -23,10 +23,16 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from "vue";
+import { ref, onMounted, inject } from "vue";
 import { getWaterOverview } from "@/services/waterSupplyService";
 import { getCachedDictionary } from "@/services/dictionaryService";
-
+// 从根组件接收模块配置
+const moduleConfig = inject('MODULE_CONFIG', {
+  sszx: 'csaqzx_gs',
+  dictKey: {
+    jcssdstjlx: 'jcssdstjlx_gs'
+  }
+});
 // 响应式数据
 const overviewData = ref([]);
 
@@ -39,11 +45,11 @@ const iconMapping = {
   jcssdstj0506: "major_customer",   // 供水大户
   jcssdstj0501: "pipeline",         // 供水管网
 };
-
 // 初始化基础配置数据(从字典获取)
 const initGSItems = async () => {
   try {
-    const res = await getCachedDictionary("jcssdstjlx_gs");
+    const dictKey = moduleConfig.dictKey?.jcssdstjlx || ""
+    const res = await getCachedDictionary(dictKey);
     
     if (res && res.length > 0) {
       overviewData.value = res.map(item => ({
@@ -70,7 +76,8 @@ const getIconUrl = (iconName) => {
 // 初始化统计数据(获取 value)
 const initOverviewData = async () => {
   try {
-    const data = await getWaterOverview({ Sszx: "csaqzx_gs" });
+    const Sszx = moduleConfig.sszx || ""
+    const data = await getWaterOverview({ Sszx  });
 
     if (data && data.length > 0) {
       // 更新 overviewData 中的 value 值
