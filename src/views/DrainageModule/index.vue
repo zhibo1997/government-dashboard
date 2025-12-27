@@ -34,8 +34,8 @@ import { onBeforeMount, ref, provide } from 'vue';
 import ResponsiveWrapper from "@/components/ResponsiveWrapper.vue";
 import MapComponent from "@/mapComponents/Map.vue";
 // 引入左侧导航组件
-import LeftNav from "./leftContent.vue";
-import RightNav from "./rightContent.vue";
+import LeftNav from "../WaterSupply/leftContent.vue";
+import RightNav from "../WaterSupply/RightContent.vue";
 // 引入头部组件
 import DashboardHeader from "@/components/DashboardHeader.vue";
 // 引入字典缓存服务

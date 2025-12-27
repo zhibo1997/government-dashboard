@@ -42,6 +42,10 @@ onBeforeMount(async () => {
     // 批量预加载所有需要的字典数据
     await getCachedDictionaries([
       "jcsstjlx", // OverviewModule
+      "fxdj", // RiskHazardModule
+      "yhdj", // RiskHazardModule
+      "bjjb", // MonitoringAlarmModule
+      "yjzt", // MonitoringEarlyWarningModule
     ]);
     console.log("字典数据预加载完成");
     loading.value = false;

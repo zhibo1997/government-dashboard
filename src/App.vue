@@ -14,7 +14,7 @@ import { NMessageProvider, NDialogProvider, NConfigProvider, zhCN, dateZhCN } fr
     <n-dialog-provider>
       <n-message-provider>
         <RouterView v-slot="{ Component }">
-          <keep-alive :include="['WaterSupplyView', 'GasModule','BridgeModule']">
+          <keep-alive :include="['WaterSupplyView', 'GasModule', 'BridgeModule', 'HomeModule', 'DrainageModule']">
             <component :is="Component" />
           </keep-alive>
         </RouterView>
@@ -34,7 +34,7 @@ import { NMessageProvider, NDialogProvider, NConfigProvider, zhCN, dateZhCN } fr
 <!-- 全局通用样式 - 供所有子组件使用 -->
 <style lang="scss">
 // 左侧数据展示区域
-.container{
+.container {
   >.left-content {
     width: 820px;
     height: 100%;
@@ -46,7 +46,7 @@ import { NMessageProvider, NDialogProvider, NConfigProvider, zhCN, dateZhCN } fr
     box-sizing: border-box;
     background: linear-gradient(to right, rgba(0, 0, 0, 0.8), 80%, rgba(0, 0, 0, 0));
   }
-  
+
   // 右侧数据展示区域
   >.right-content {
     width: 820px;
@@ -106,6 +106,7 @@ import { NMessageProvider, NDialogProvider, NConfigProvider, zhCN, dateZhCN } fr
     border-radius: 8px;
   }
 }
+
 // 供水模块特有样式
 .map-toolbar {
   position: absolute;

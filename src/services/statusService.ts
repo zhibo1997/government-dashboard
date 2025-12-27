@@ -31,7 +31,7 @@ export async function getHazardLevelCountList() {
  */
 export async function getMonitoringAlarmCountList() {
   const res = await comprehensiveStatusApi.zzts.jcbjCountList();
-  return res.data || {};
+  return res.data || [];
 }
 
 /**
@@ -40,7 +40,7 @@ export async function getMonitoringAlarmCountList() {
  */
 export async function getEarlyWarningDisposalCountList() {
   const res = await comprehensiveStatusApi.zzts.yjczCountList();
-  return res.data || {};
+  return res.data || [];
 }
 
 /**
