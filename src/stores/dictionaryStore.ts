@@ -15,6 +15,7 @@ export interface DictionaryItem {
   f_ItemValue: string
   f_ItemName: string
   f_SimpleSpelling?: string
+  f_Description?: string
   [key: string]: any
 }
 
@@ -73,7 +74,8 @@ export const useDictionaryStore = defineStore('dictionary', () => {
           const items: DictionaryItem[] = dict.itemDetailEntityList.map((item: any) => ({
             f_ItemValue: item.f_ItemValue,
             f_ItemName: item.f_ItemName,
-            f_SimpleSpelling: item.f_SimpleSpelling
+            f_SimpleSpelling: item.f_SimpleSpelling,
+            f_Description: item.f_Description   
           }))
           
           // 缓存数据
@@ -168,7 +170,8 @@ export const useDictionaryStore = defineStore('dictionary', () => {
               const items: DictionaryItem[] = dict.itemDetailEntityList.map((item: any) => ({
                 f_ItemValue: item.f_ItemValue,
                 f_ItemName: item.f_ItemName,
-                f_SimpleSpelling: item.f_SimpleSpelling
+                f_SimpleSpelling: item.f_SimpleSpelling,
+                f_Description: item.f_Description
               }))
               
               // 缓存数据

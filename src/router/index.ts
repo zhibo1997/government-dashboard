@@ -5,6 +5,7 @@ import WaterSupplyView from '../views/WaterSupply/index.vue'
 import MapView from '@/views/MapView.vue'
 import GasModule from '../views/GasModule/index.vue'
 import BridgeModule from '../views/BridgeModule/index.vue'
+import HomeModule from '../views/HomeModule/index.vue'
 import DrainageModule from '../views/DrainageModule/index.vue'
 
 const routes: RouteRecordRaw[] = [
@@ -22,11 +23,20 @@ const routes: RouteRecordRaw[] = [
     }
   },
   {
+    path: '/home',
+    name: 'home',
+    component: HomeModule,
+    meta: {
+      requiresAuth: true,
+      title: '综合态势'
+    }
+  },
+  {
     path: '/mapView',
     name: 'mapView',
     component: MapView,
     meta: {
-      requiresAuth: false,
+      requiresAuth: true,
     }
   },
   {
@@ -34,7 +44,8 @@ const routes: RouteRecordRaw[] = [
     name: 'waterProject',
     component: WaterSupplyView,
     meta: {
-      requiresAuth: false,
+      requiresAuth: true,
+      title: '供水专项'
     }
   },
   {
@@ -42,8 +53,9 @@ const routes: RouteRecordRaw[] = [
     name: 'gas',
     component: GasModule,
     meta: {
-      requiresAuth: false,
-    }
+      requiresAuth: true,
+      title: '燃气专项'
+      }
   },
   {
     path: '/bridge',
@@ -51,6 +63,7 @@ const routes: RouteRecordRaw[] = [
     component: BridgeModule,
     meta: {
       requiresAuth: true,
+      title: '桥梁专项'
     }
   },
   {
@@ -76,11 +89,11 @@ const router = createRouter({
 
 router.beforeEach(async (to, from, next) => {
   const authStore = useAuthStore()
-  
+
   if (to.meta.title) {
     document.title = to.meta.title as string
   }
-  
+
   // 初始化认证（仅首次）
   if (from.name === undefined) {
     authStore.initAuth()

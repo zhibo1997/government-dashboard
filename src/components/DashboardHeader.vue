@@ -90,8 +90,8 @@ const handleSystemAdmin = () => {
 
 // 标题点击事件 - 返回主页
 const handleTitleClick = () => {
-  if (route.name !== 'mapView') {
-    router.push('/mapView');
+  if (route.name !== 'home') {
+    router.push('/home');
   }
 };
 

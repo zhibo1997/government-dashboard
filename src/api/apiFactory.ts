@@ -365,6 +365,7 @@ import { Api as WaterSupplyApi } from './waterSupplyAndDrainage'
 import { Api as CommonApi } from './common'
 import { Api as GasApi } from './gas'
 import { Api as BridgeApi } from './bridge'
+import { Api as ComprehensiveStatusApi } from './comprehensiveStatus'
 import router from '@/router'
 
 /**
@@ -393,6 +394,13 @@ export function createGasApi(): GasApi<unknown> {
  */
 export function createBridgeApi(): BridgeApi<unknown> {
   return createApiClient(BridgeApi, { module: BusinessModule.BRIDGE })
+}
+
+/**
+ * 创建综合态势模块 API 实例
+ */
+export function createComprehensiveStatusApi(): ComprehensiveStatusApi<unknown> {
+  return createApiClient(ComprehensiveStatusApi, { autoInjectParams: false })
 }
 
 /**
