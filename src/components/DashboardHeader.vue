@@ -39,13 +39,14 @@
           <span>排水专项</span>
         </div>
       </div>
+      <WeatherComponent />
       <div class="control-box">
-        <n-button type="default" class="btn" @click="handleSystemAdmin">
+        <a class="btn" @click="handleSystemAdmin">
           <img src="@/assets/img/setting_icon.png" alt="" />
-        </n-button>
-        <n-button type="default" class="btn" @click="handleLogout">
+        </a>
+        <a class="btn" @click="handleLogout">
           <img src="@/assets/img/logout_icon.png" alt="" />
-        </n-button>
+        </a>
       </div>
     </div>
   </div>
@@ -56,6 +57,7 @@ import { onMounted, ref, watch } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import { NButton } from 'naive-ui';
 import TimeDisplay from "@/components/TimeDisplay.vue";
+import WeatherComponent from "@/components/WeatherComponent.vue";
 
 // 初始化路由
 const router = useRouter();
@@ -211,7 +213,7 @@ const handleLogout = () => {
 
   .control-box {
     display: flex;
-    padding-top: 22px;
+    padding-top: 30px;
     padding-right: 60px;
 
     .btn {

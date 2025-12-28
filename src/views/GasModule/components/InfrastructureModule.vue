@@ -362,16 +362,6 @@ onMounted(async () => {
         padding-left: 20px;
         flex: 1;
 
-        &.col-name {
-          flex: 3;
-          text-align: left;
-          color: #ffffff;
-          white-space: nowrap;
-          overflow: hidden;
-          padding-left: 0px;
-          text-overflow: ellipsis;
-        }
-
       }
     }
   }

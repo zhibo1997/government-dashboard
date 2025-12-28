@@ -4,33 +4,44 @@
       <div class="module-title">监测预警</div>
     </div>
     <div class="module-content">
-      <!-- 上方区域：预警处置统计信息 -->
-      <div class="status-section">
-        <!-- 左侧预警总数 -->
-        <div class="total-warnings">
-          <div class="total-value">
-            <span class="gradient-text">{{ totalWarnings }}</span>
-          </div>
-          <div class="total-label">预警总数</div>
-        </div>
-
-        <!-- 中间环形图占位 -->
-        <div class="donut-chart-placeholder"></div>
-
-        <!-- 右侧处置状态统计 -->
-        <div class="status-stats">
-          <div class="status-item" v-for="status in statusStats" :key="status.label">
-            <div class="status-label">{{ status.label }}</div>
-            <div class="status-value" :style="{ color: status.color }">
-              <span class="gradient-text">{{ status.value }}</span>
+      <div class="status-counts">
+        <!-- 上方区域：预警处置统计信息 -->
+        <div class="status-section">
+          <!-- 左侧预警总数 -->
+          <div class="total-warnings">
+            <div class="total-value">
+              <span class="gradient-text">{{ totalWarnings }}</span>
             </div>
+            <div class="total-label">预警总数</div>
           </div>
+
+          <!-- 中间环形图占位 -->
+          <div class="donut-chart-placeholder"></div>
+
+        </div>
+        <!-- 底部图表区域 -->
+        <div class="chart-section">
+          <div id="monitoring-early-warning-chart" class="echart"></div>
         </div>
       </div>
+      <!-- 预警处置表格 -->
+      <div class="table">
+        <div class="content-header">
+          <span class="table-title gradient-text">预警处置</span>
+        </div>
+        <!-- 企业列表表头 -->
+        <div class="disposal-header">
+          <div class="header-col" v-for="column in currentTable.columns" :key="column.key">
+            {{ column.label }}</div>
+        </div>
 
-      <!-- 底部图表区域 -->
-      <div class="chart-section">
-        <div id="monitoring-early-warning-chart" class="echart"></div>
+        <!-- 企业列表 -->
+        <div class="disposal-list">
+          <div class="disposal-row" v-for="enterprise in currentTable.data" :key="enterprise.id">
+            <div class="row-col" v-for="column in currentTable.columns" :key="column.key">
+              {{ enterprise[column.key as keyof EnterpriseData] }}</div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -60,18 +71,18 @@ const sszxMapping: Record<string, { name: string; order: number }> = {
 
 // 处置状态颜色映射（根据设计图配置渐变色）
 const statusColorMapping: Record<string, { start: string; end: string; display: string }> = {
-  "未处置": { 
-    start: "#FF2C20", 
+  "未处置": {
+    start: "#FF2C20",
     end: "rgba(254,172,4,0)",
     display: "#FF2C20"
   },
-  "处置中": { 
-    start: "#FD9F04", 
+  "处置中": {
+    start: "#FD9F04",
     end: "rgba(254,172,4,0)",
     display: "#FD9F04"
   },
-  "已处置": { 
-    start: "#1279B9", 
+  "已处置": {
+    start: "#1279B9",
     end: "rgba(21,127,146,0)",
     display: "#1279B9"
   },
@@ -83,39 +94,120 @@ const earlyWarningData = ref<EarlyWarningDataItem[]>([]);
 // 状态映射
 const statusMapping = ref<LevelMapping>({});
 
+// 企业列表表格数据
+interface EnterpriseData {
+  id: string;
+  序号: number;
+  反馈时间: string;
+  预警等级: string;
+  关联目标: string;
+  处置状态: string;
+}
+
+const currentTable = ref<{ columns: Array<{ key: string; label: string }>; data: EnterpriseData[] }>({
+  columns: [
+    { key: '序号', label: '序号' },
+    { key: '反馈时间', label: '反馈时间' },
+    { key: '预警等级', label: '预警等级' },
+    { key: '关联目标', label: '关联目标' },
+    { key: '处置状态', label: '处置状态' },
+  ],
+  data: [
+    {
+      id: '1',
+      序号: 1,
+      反馈时间: '2025/10/12',
+      预警等级: '一级',
+      关联目标: '燃气场站1',
+      处置状态: '已处置',
+    },
+    {
+      id: '2',
+      序号: 2,
+      反馈时间: '2025/10/10',
+      预警等级: '二级',
+      关联目标: '燃气场站2',
+      处置状态: '处置中',
+    },
+    {
+      id: '3',
+      序号: 3,
+      反馈时间: '2025/09/12',
+      预警等级: '三级',
+      关联目标: '燃气场站4',
+      处置状态: '处置中',
+    },
+    {
+      id: '4',
+      序号: 4,
+      反馈时间: '2025/09/08',
+      预警等级: '三级',
+      关联目标: '燃气场站1',
+      处置状态: '处置中',
+    },
+    {
+      id: '5',
+      序号: 5,
+      反馈时间: '2025/08/22',
+      预警等级: '三级',
+      关联目标: '燃气场站3',
+      处置状态: '处置中',
+    },
+    {
+      id: '6',
+      序号: 6,
+      反馈时间: '2025/08/22',
+      预警等级: '三级',
+      关联目标: '燃气场站3',
+      处置状态: '处置中',
+    },
+  ],
+});
+
 // 预警总数
 const totalWarnings = computed(() => {
   return earlyWarningData.value.reduce((sum, item) => sum + (item.number || 0), 0);
 });
 
-// 处置状态统计（右侧显示）
+// 处置状态统计（右侧显示）- 按实际数据顺序展示，不按字典顺序
 const statusStats = computed(() => {
-  const stats: Record<string, number> = {};
+  // 用于记录状态及其首次出现的顺序和总数
+  const statusMap: Record<string, { name: string; key: string; value: number; order: number }> = {};
+  let order = 0;
 
+  // 遍历实际数据，按照首次出现的顺序累计数值
   earlyWarningData.value.forEach((item) => {
-    const statusName = statusMapping.value[item.czzt]?.name || item.czzt;
-    if (!stats[statusName]) {
-      stats[statusName] = 0;
+    const status = statusMapping.value[item.czzt];
+    if (status) {
+      const statusName = status.name;
+      if (!statusMap[statusName]) {
+        statusMap[statusName] = {
+          name: statusName,
+          key: status.key,
+          value: 0,
+          order: order++,
+        };
+      }
+      statusMap[statusName].value += item.number || 0;
     }
-    stats[statusName] += item.number || 0;
   });
 
-  return Object.keys(statusMapping.value)
-    .sort((a, b) => statusMapping.value[a].order - statusMapping.value[b].order)
-    .map((key) => {
-      const status = statusMapping.value[key];
+  // 按首次出现的顺序返回结果
+  return Object.values(statusMap)
+    .sort((a, b) => a.order - b.order)
+    .map((status) => {
       const colorConfig = statusColorMapping[status.name];
       return {
         label: status.name,
         key: status.key,
-        value: stats[status.name] || 0,
+        value: status.value,
         color: colorConfig ? colorConfig.display : "#3C7CF8",
       };
     });
 });
 
 /**
- * 构建图表系列数据
+ * 构建图表系列数据 - 按实际数据顺序
  */
 const buildChartSeries = (
   data: EarlyWarningDataItem[],
@@ -123,6 +215,9 @@ const buildChartSeries = (
 ) => {
   // 按 sszx 分组数据
   const groupedData: Record<string, Record<string, number>> = {};
+  // 记录处置状态的首次出现顺序
+  const statusOrder: Map<string, number> = new Map();
+  let statusIndex = 0;
 
   data.forEach((item) => {
     if (!groupedData[item.sszx]) {
@@ -130,6 +225,10 @@ const buildChartSeries = (
     }
     if (item.czzt) {
       groupedData[item.sszx][item.czzt] = item.number;
+      // 记录状态首次出现的顺序
+      if (!statusOrder.has(item.czzt)) {
+        statusOrder.set(item.czzt, statusIndex++);
+      }
     }
   });
 
@@ -138,10 +237,9 @@ const buildChartSeries = (
     .sort((a, b) => sszxMapping[a].order - sszxMapping[b].order)
     .map((key) => sszxMapping[key].name);
 
-  // 构建系列数据
-  const statusKeys = Object.keys(statusMapping).sort(
-    (a, b) => statusMapping[a].order - statusMapping[b].order
-  );
+  // 构建系列数据 - 按实际数据中出现的顺序
+  const statusKeys = Array.from(statusOrder.keys())
+    .sort((a, b) => (statusOrder.get(a) ?? 0) - (statusOrder.get(b) ?? 0));
 
   const seriesData = Object.keys(sszxMapping)
     .sort((a, b) => sszxMapping[a].order - sszxMapping[b].order)
@@ -170,18 +268,16 @@ const buildChartSeries = (
 const initChart = async () => {
   try {
     // 1. 获取字典数据
-    const dictData = await getCachedDictionary("yjzt");
+    const dictData = await getCachedDictionary("yjczzt");
     const dictMap: LevelMapping = {};
 
     if (dictData && dictData.length > 0) {
       dictData.forEach((item, index) => {
-        if (item.f_ItemValue !== "yjzt000") {
-          dictMap[item.f_ItemValue] = {
-            name: item.f_ItemName,
-            key: item.f_ItemValue,
-            order: index,
-          };
-        }
+        dictMap[item.f_ItemValue] = {
+          name: item.f_ItemName,
+          key: item.f_ItemValue,
+          order: index,
+        };
       });
     }
     statusMapping.value = dictMap;
@@ -196,7 +292,7 @@ const initChart = async () => {
     if (chartDom) {
       const chart = echarts.init(chartDom);
       const { xAxisData, series, statusKeys } = buildChartSeries(earlyWarningData.value, statusMapping.value);
-      
+
       // 为每个系列添加渐变色
       const seriesWithGradient = series.map((s, index) => {
         const statusKey = statusKeys[index];
@@ -209,7 +305,7 @@ const initChart = async () => {
           },
         };
       });
-      
+
       const option = getMonitoringEarlyWarningChartOption(xAxisData, statusMapping.value, seriesWithGradient);
       chart.setOption(option);
 
@@ -232,6 +328,11 @@ onMounted(() => {
   overflow: hidden;
   display: flex;
   flex-direction: column;
+  background-image: url('@/assets/img/homeModule/module_double_bg.webp');
+
+  .status-counts {
+    height: 50%;
+  }
 
   // 上方处置状态区域
   .status-section {
@@ -341,10 +442,112 @@ onMounted(() => {
   .chart-section {
     flex: 1;
     min-height: 0;
+    display: flex;
+    flex-direction: column;
 
     .echart {
       width: 100%;
       height: 100%;
+    }
+  }
+
+  // 表格区域
+  .table {
+    height: 50%;
+    padding: 20px;
+    border-top: 1px solid rgba(22, 119, 255, 0.2);
+    flex-direction: column;
+    display: flex;
+
+    // 表头
+    .disposal-header {
+      display: flex;
+      align-items: center;
+      height: 60px;
+
+      background: #2A5768;
+      border: 2px solid #09739C;
+      border-radius: 6px;
+      margin-bottom: 12px;
+
+      .header-col {
+        font-family: SourceHanSansSC, SourceHanSansSC;
+        font-weight: var(--font-weight-bold);
+        font-size: var(--font-size-3xl);
+        color: #E4F3FF;
+        line-height: calc(var(--font-size-lg) * 1.45);
+        text-align: left;
+        font-style: normal;
+        flex: 1;
+
+        &.col-name {
+          grid-column: span 1;
+        }
+      }
+    }
+
+    // 企业列表
+    .disposal-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      height: 232px;
+      overflow-y: auto;
+      border: 2px solid #09739C;
+      border-top: none;
+      flex: 1;
+
+      .disposal-row {
+        display: flex;
+        align-items: center;
+        height: 58px;
+        background: linear-gradient(90deg, rgba(0, 150, 255, 0.06) 0%, rgba(0, 100, 200, 0.03) 100%);
+        border: 1px solid rgba(22, 119, 255, 0.15);
+        border-radius: 4px;
+        transition: all 0.3s ease;
+
+        &:hover {
+          background: linear-gradient(90deg, rgba(0, 150, 255, 0.12) 0%, rgba(0, 100, 200, 0.08) 100%);
+          border-color: rgba(22, 119, 255, 0.3);
+        }
+
+        .row-col {
+          font-family: SourceHanSansSC, SourceHanSansSC;
+          font-weight: var(--font-weight-normal);
+          color: #e4f3ff;
+          text-align: center;
+          width: 200px;
+          font-weight: var(--font-weight-normal);
+          font-size: var(--font-size-3xl);
+          line-height: calc(var(--font-size-lg) * 2.9);
+          text-align: left;
+          font-style: normal;
+          padding-left: 20px;
+          flex: 1;
+
+        }
+      }
+    }
+  }
+
+  .content-header {
+    width: 100%;
+    height: 70px;
+    background-image: url("@/assets/img/homeModule/risk_hazard_head_bg.webp");
+    background-size: 100% 100%;
+    display: flex;
+    align-items: center;
+    padding: 0 16px;
+    margin-bottom: 16px;
+
+    .table-title {
+      font-family: YouSheBiaoTiHei;
+      font-size: 36px;
+      color: #FFFFFF;
+      line-height: 47px;
+      text-align: left;
+      font-style: normal;
+      background: linear-gradient(90deg, #FFFFFF 0%, #10ADC0 100%);
     }
   }
 }

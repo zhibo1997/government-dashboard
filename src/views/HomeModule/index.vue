@@ -45,7 +45,7 @@ onBeforeMount(async () => {
       "fxdj", // RiskHazardModule
       "yhdj", // RiskHazardModule
       "bjjb", // MonitoringAlarmModule
-      "yjzt", // MonitoringEarlyWarningModule
+      "yjczzt", // MonitoringEarlyWarningModule
     ]);
     console.log("字典数据预加载完成");
     loading.value = false;

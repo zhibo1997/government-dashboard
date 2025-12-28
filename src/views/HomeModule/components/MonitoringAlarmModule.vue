@@ -18,10 +18,10 @@
         <!-- 右侧等级统计 -->
         <div class="level-stats">
           <div class="level-item" v-for="level in levelStats" :key="level.label">
-            <div class="level-label">{{ level.label }}</div>
             <div class="level-value" :class="level.key">
               <span class="gradient-text">{{ level.value }}</span>
             </div>
+            <div class="level-label">{{ level.label }}</div>
           </div>
         </div>
       </div>
@@ -293,14 +293,17 @@ onMounted(() => {
     // 右侧等级统计
     .level-stats {
       display: flex;
-      flex-direction: column;
+      flex-direction: row;
+      flex: 1;
       gap: 8px;
       min-width: 200px;
 
       .level-item {
         display: flex;
+        flex-direction: column;
         align-items: center;
         justify-content: space-between;
+        flex: 1;
         gap: 24px;
 
         .level-label {
@@ -315,16 +318,16 @@ onMounted(() => {
         }
 
         .level-value {
-          width: 95.66px;
-          height: 40.44px;
+          width: 116.21px;
+          height: 79.13px;
           background-size: 100% 100%;
           text-align: center;
-
+          
           >span {
+            line-height: 79.13px;
             font-family: YouSheBiaoTiHei;
-            font-size: 30px;
+            font-size: 43px;
             color: #FFFFFF;
-            line-height: 39px;
             text-align: center;
             font-style: normal;
           }
