@@ -11,7 +11,7 @@ import DrainageModule from '../views/DrainageModule/index.vue'
 const routes: RouteRecordRaw[] = [
   {
     path: '/',
-    redirect: '/gas' // 或 '/bridge'，按需选择
+    redirect: '/home' // 或 '/bridge'，按需选择
   },
   {
     path: '/login',
@@ -19,7 +19,7 @@ const routes: RouteRecordRaw[] = [
     component: LoginView,
     meta: {
       requiresAuth: false,
-      title: '登录 - 安全综合检测预警平台'
+      desc: '登录 - 安全综合检测预警平台'
     }
   },
   {
@@ -28,7 +28,7 @@ const routes: RouteRecordRaw[] = [
     component: HomeModule,
     meta: {
       requiresAuth: true,
-      title: '综合态势'
+      desc: '综合态势'
     }
   },
   {
@@ -45,7 +45,7 @@ const routes: RouteRecordRaw[] = [
     component: WaterSupplyView,
     meta: {
       requiresAuth: true,
-      title: '供水专项'
+      desc: '供水专项'
     }
   },
   {
@@ -54,7 +54,7 @@ const routes: RouteRecordRaw[] = [
     component: GasModule,
     meta: {
       requiresAuth: true,
-      title: '燃气专项'
+      desc: '燃气专项'
       }
   },
   {
@@ -63,7 +63,7 @@ const routes: RouteRecordRaw[] = [
     component: BridgeModule,
     meta: {
       requiresAuth: true,
-      title: '桥梁专项'
+      desc: '桥梁专项'
     }
   },
   {
@@ -72,7 +72,7 @@ const routes: RouteRecordRaw[] = [
     component: DrainageModule,
     meta: {
       requiresAuth: true,
-      title: '排水专项'
+      desc: '排水专项'
     }
   },
   {
