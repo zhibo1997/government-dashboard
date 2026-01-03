@@ -53,7 +53,7 @@ import {
 const moduleConfig = inject('MODULE_CONFIG', {
   sszx: 'csaqzx_gs',
   dictKey: {
-    glmbzx: 'glmbzx_gs'
+    glmblx: 'glmblx_gs'
   }
 });
 
@@ -102,18 +102,18 @@ const zgztMap = {
 // ==================== 初始化共同参数 ====================
 /**
  * 初始化 Glmblx 参数（所有数据接口共用）
- * 通过获取 rqzx_glmbzx 字典，将其 f_ItemValue 拼接成逗号分隔字符串
+ * 通过获取 rqzx_glmblx 字典，将其 f_ItemValue 拼接成逗号分隔字符串
  * 此参数标准化确保两个数据接口参数一致
  */
 const initializeGlmblxs = async (): Promise<boolean> => {
   try {
-    const glmbzx = moduleConfig.dictKey?.glmbzx || "glmbzx_gs";
-    const rqzxGlmbzxDictionaries = await getCachedDictionary(glmbzx);
-    if (!rqzxGlmbzxDictionaries || rqzxGlmbzxDictionaries.length === 0) {
-      console.warn("rqzx_glmbzx 字典为空");
+    const glmblx = moduleConfig.dictKey?.glmblx || "glmblx_gs";
+    const rqzxglmblxDictionaries = await getCachedDictionary(glmblx);
+    if (!rqzxglmblxDictionaries || rqzxglmblxDictionaries.length === 0) {
+      console.warn("rqzx_glmblx 字典为空");
       return false;
     }
-    glmblxs = rqzxGlmbzxDictionaries
+    glmblxs = rqzxglmblxDictionaries
       .map((item: any) => item.f_ItemValue)
       .join(",");
     return true;
@@ -173,7 +173,8 @@ const fetchRiskLevelData = async (): Promise<void> => {
       return;
     }
 
-    const data = (await getRiskLevelCount({ Glmblx: glmblxs })) as any[];
+    const data = (await getRiskLevelCount({ Sszx: moduleConfig.sszx })) as any[];
+    console.log("🚀 ~ fetchRiskLevelData ~ data:", data)
     if (!data || data.length === 0) {
       console.info("风险等级数据为空");
       riskLegend.value = getDefaultRiskLevels();
@@ -379,8 +380,9 @@ onMounted(async () => {
 .risk-content {
   display: flex;
   flex-direction: column;
-  height: 100%;
+  flex: 1;
   width: 38%;
+  justify-content: space-between;
 
   .risk-echart {
     width: 239px;

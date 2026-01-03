@@ -4,34 +4,38 @@ import * as echarts from "echarts";
 export const officialWebsiteOption: echarts.EChartsOption = {
   tooltip: {
     trigger: "item",
-    formatter: "{a} <br/>{b}: {c} ({d}%)",
+    formatter: "{b}: {c}km ({d}%)",
+    backgroundColor: "rgba(0, 0, 0, 0.8)",
+    borderColor: "#00bfff",
+    borderWidth: 1,
+    textStyle: {
+      color: "#fff",
+      fontSize: 14,
+    },
   },
   title: {
     text: "管网\n材质",
     left: "center",
-    top: "32%",
+    top: "35%",
     textStyle: {
       color: "#e4f3ff",
-      fontSize: 24,
-      lineHeight: 39,
+      fontSize: 28,
+      lineHeight: 42,
+      fontWeight: 500,
+      fontFamily: "SourceHanSansSC",
     },
   },
   legend: {
     show: false,
   },
-  // grid: {
-  //   top: 5,
-  //   right: 5,
-  //   bottom: 5,
-  //   left: 5
-  // },
   series: [
     {
       name: "管网材质",
       type: "pie",
-      radius: ["75%", "95%"], // 内半径 50%，外半径 70%，形成环形
+      radius: ["70%", "90%"], // 内半径 70%，外半径 90%，形成环形
       center: ["50%", "50%"], // 圆心位置
-      startAngle: 90, // 起始角度，可调整方向
+      startAngle: 90, // 起始角度
+      padAngle: 3, // 项之间的间隔角度
       label: {
         show: false, // 不显示标签在图上
       },
@@ -39,15 +43,18 @@ export const officialWebsiteOption: echarts.EChartsOption = {
         show: false, // 不显示引导线
       },
       itemStyle: {
-        borderRadius: 0, // 圆角，让扇形更柔和
+        borderRadius: 0, // 无圆角
+        borderColor: "rgba(0, 0, 0, 0.1)",
+        borderWidth: 0,
       },
-      data: [
-      ],
+      data: [],
       emphasis: {
+        scale: true,
+        scaleSize: 5,
         itemStyle: {
-          shadowBlur: 10,
+          shadowBlur: 15,
           shadowOffsetX: 0,
-          shadowColor: "rgba(0, 0, 0, 0.5)",
+          shadowColor: "rgba(0, 191, 255, 0.6)",
         },
       },
     },

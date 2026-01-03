@@ -6,17 +6,9 @@
     <div class="module-content warning-content">
       <div class="warning-list">
         <div class="warning-data">
-          <img
-            class="pyramid"
-            src="@/assets/img/waterSupply/pyramid.png"
-            alt=""
-          />
+          <img class="pyramid" src="@/assets/img/waterSupply/pyramid.png" alt="" />
           <div class="warning-data-content">
-            <div
-              class="warning-item"
-              v-for="(item, idx) in warningData.slice(0, 3)"
-              :key="idx"
-            >
+            <div class="warning-item" v-for="(item, idx) in warningData.slice(0, 3)" :key="idx">
               <div class="warning-item-value">
                 <span class="value">{{ item.count }}处</span>
               </div>
@@ -25,17 +17,9 @@
           </div>
         </div>
         <div class="warning-data">
-          <img
-            class="pyramid"
-            src="@/assets/img/waterSupply/pyramid.png"
-            alt=""
-          />
+          <img class="pyramid" src="@/assets/img/waterSupply/pyramid.png" alt="" />
           <div class="warning-data-content">
-            <div
-              class="warning-item"
-              v-for="(item, idx) in warningData.slice(3)"
-              :key="idx"
-            >
+            <div class="warning-item" v-for="(item, idx) in warningData.slice(3)" :key="idx">
               <div class="warning-item-value">
                 <span class="value">{{ item.count }}处</span>
               </div>
@@ -53,13 +37,13 @@
             }}</span>
           </div>
           <div class="handled-item item-unhandled">
-            <span class="title">未处置</span>
+            <span class="title gradient-text">未处置</span>
             <span class="value gradient-text">{{
               handledSummaryData?.totalCount
             }}</span>
           </div>
           <div class="handled-item item-completionRate">
-            <span class="title">处置率</span>
+            <span class="title gradient-text">处置率</span>
             <span class="value gradient-text">{{
               handledSummaryData?.disposalRate
             }}</span>
@@ -112,14 +96,14 @@ const initChart = () => {
 // 更新图表数据
 const updateChart = (data) => {
   if (!handledEchart || !data) return;
-  
+
   handledOption.xAxis.data = data.map((item) => item.month);
   handledOption.series[0].data = data.map((d) => d.unhandledCount);
   handledOption.series[1].data = data.map((d) => d.handledCount);
   handledOption.series[2].data = data.map((d) =>
     ((d.handledCount / (d.unhandledCount + d.handledCount)) * 100).toFixed(2)
   );
-  
+
   handledEchart.setOption(handledOption, true);
 };
 
@@ -132,22 +116,22 @@ const fetchAllData = async (year) => {
       getWarnStatistics(moduleConfig.sszx),
       getMonthlyWarnStatistics({ Sszx: moduleConfig.sszx, Year: year })
     ]);
-    
+
     // 处理预警统计数据
     const resultData = Array.isArray(checkResultData) ? checkResultData : (checkResultData?.data || []);
     warningData.value = (resultData as any[]).map((item) => ({
       name: yjlxMap.value[item.checkResult],
       count: item.count,
     }));
-    
+
     // 处理处置率数据
     const warnData = warnStatisticsData as any;
     const summary = { ...warnData };
-    summary.disposalRate = warnData?.totalCount > 0 
-      ? Math.round((warnData?.handledCount / warnData?.totalCount) * 100) + "%" 
+    summary.disposalRate = warnData?.totalCount > 0
+      ? Math.round((warnData?.handledCount / warnData?.totalCount) * 100) + "%"
       : "0%";
     handledSummaryData.value = summary;
-    
+
     // 处理月度统计数据
     const monthlyDataArray = Array.isArray(monthlyWarnData) ? monthlyWarnData : (monthlyWarnData?.data || []);
     monthlyData.value = monthlyDataArray;
@@ -201,8 +185,10 @@ watch(monthlyData, (newData) => {
   align-items: center;
   justify-content: space-between;
 }
+
 :deep(.custom-date-picker) {
   margin-right: 30px;
+
   .n-input {
     width: 220px;
     background-color: #094358;
@@ -254,9 +240,11 @@ watch(monthlyData, (newData) => {
     }
   }
 }
+
 .warning-list {
   display: flex;
   flex-direction: row;
+  margin: 20px 0 40px;
 }
 
 .warning-content {
@@ -267,10 +255,14 @@ watch(monthlyData, (newData) => {
 .handled-content {
   display: flex;
   flex-direction: row;
+  justify-content: space-between;
+  width: 100%;
+
   .handled-chart {
     width: 531px;
     height: 100%;
   }
+
   .handled-item {
     background-size: 100% 100%;
     width: 164px;
@@ -278,16 +270,16 @@ watch(monthlyData, (newData) => {
     background-image: url("@/assets/img/waterSupply/handled-bg.png");
     display: flex;
     align-items: center;
-    justify-content: space-between;
+    gap: 12px;
     padding: 0 6px;
     margin-bottom: 20px;
 
     .title {
       font-family: SourceHanSansSC, SourceHanSansSC;
       font-weight: 400;
-      font-size: var(--font-size-xl);
-      color: #bcd4d4;
-      line-height: 26px;
+      font-size: 24px;
+      color: #BCD4D4;
+      line-height: 35px;
       text-align: left;
       font-style: normal;
     }
@@ -302,20 +294,27 @@ watch(monthlyData, (newData) => {
     }
 
     &.item-handled {
-
+      .title{
+        color: #BCD4D4;
+      }
       .value {
         background: linear-gradient(90deg, #10adc0 0%, #ffffff 100%);
       }
     }
 
     &.item-unhandled {
-
+      .title{
+        background: linear-gradient(0deg, #F75E04 0%, #FEAC04 100%);
+      }
       .value {
         background: linear-gradient(0deg, #f75e04 0%, #feac04 100%);
       }
     }
 
     &.item-completionRate {
+      .title{
+        background: linear-gradient(0deg, #3FFEFD 0%, #FFF407 100%);
+      }
       .value {
         background: linear-gradient(0deg, #3ffefd 0%, #fff407 100%);
       }

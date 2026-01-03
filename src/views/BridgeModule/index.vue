@@ -44,7 +44,7 @@ onBeforeMount(async () => {
     // 批量预加载所有需要的字典数据
     await getCachedDictionaries([
       "jcssdstjlx_ql", 
-      "glmb_ql",
+      "glmblx_ql",
       "fxdj",
       "zgzt",
       "csaqzx_ql"

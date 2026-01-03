@@ -20,10 +20,10 @@
       <!-- 主体容器 -->
       <div class="container">
         <!-- 左侧数据展示区 -->
-        <LeftNav />
+        <LeftNav :key="moduleConfig.sszx" />
         
         <!-- 右侧数据展示区 -->
-        <RightNav />
+        <RightNav :key="moduleConfig.sszx" />
       </div>
     </ResponsiveWrapper>
   </div>
@@ -49,10 +49,11 @@ const moduleConfig = {
   sszx: 'csaqzx_ps',
   dictPrefix: 'ps',
   imagePath: 'drainage',
+  moduleName: '排水',
   dictKey: {
     jcssdstjlx: 'jcssdstjlx_ps',
     yhlx: 'yhlx_ps',
-    glmbzx: 'glmbzx_ps',
+    glmblx: 'glmblx_ps',
     jcsblx: 'jcsblx_ps'
   }
 };
@@ -73,7 +74,7 @@ onBeforeMount(async () => {
       'zgzt',           // RiskHazardModule
       'yjlx_ps',        // EarlyWarningModule
       'ps_szjcsb',       // WaterQualityModule
-      'glmbzx_ps',      // WaterQualityModule
+      'glmblx_ps',      // WaterQualityModule
     ]);
     loading.value = false;
     console.log('字典数据预加载完成');

@@ -202,7 +202,7 @@ const fetchRiskLevelData = async (): Promise<void> => {
       return;
     }
 
-    const data = (await getRiskLevelCount({ Glmblx: glmblxs })) as any[];
+    const data = (await getRiskLevelCount({ Sszx: "csaqzx_ql" })) as any[];
     if (!data || data.length === 0) {
       console.info("风险等级数据为空");
       riskLegend.value = getDefaultRiskLevels();
@@ -442,26 +442,25 @@ onMounted(async () => {
   .risk-container {
     display: flex;
     flex-direction: row;
-    gap: 40px;
+    gap: 28px;
     height: 100%;
   }
 
   // 左侧多环形图区域
   .left-chart {
-    width: 50%;
+    width: 38%;
     display: flex;
     flex-direction: column;
 
     .risk-echart {
       width: 100%;
-      height: 300px;
-      margin-bottom: 20px;
+      height: 50%;
     }
 
     .risk-legend {
       display: flex;
       flex-direction: column;
-      gap: 10px;
+      gap: 6px;
 
       .legend-item {
         padding: 2px 10px;
@@ -514,7 +513,7 @@ onMounted(async () => {
 
   // 右侧统计区域
   .right-stats {
-    width: 50%;
+    flex: 1;
     display: flex;
     flex-direction: column;
     gap: 20px;
@@ -625,6 +624,7 @@ onMounted(async () => {
         display: flex;
         justify-content: space-between;
         flex-direction: column;
+        align-items: center;
         transition: all 0.3s ease;
 
         &:hover {

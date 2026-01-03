@@ -20,10 +20,10 @@
       <!-- 主体容器 -->
       <div class="container">
         <!-- 左侧数据展示区 -->
-        <LeftNav />
+        <LeftContent :key="moduleConfig.sszx" />
         
         <!-- 右侧数据展示区 -->
-        <RightNav />
+        <RightContent :key="moduleConfig.sszx" />
       </div>
     </ResponsiveWrapper>
   </div>
@@ -34,8 +34,8 @@ import { onBeforeMount, provide, ref } from 'vue';
 import ResponsiveWrapper from "@/components/ResponsiveWrapper.vue";
 import MapComponent from "@/mapComponents/Map.vue";
 // 引入左侧导航组件
-import LeftNav from "./leftContent.vue";
-import RightNav from "./rightContent.vue";
+import LeftContent from "./leftContent.vue";
+import RightContent from "./rightContent.vue";
 // 引入头部组件
 import DashboardHeader from "@/components/DashboardHeader.vue";
 // 引入字典缓存服务
@@ -48,10 +48,11 @@ const moduleConfig = {
   sszx: 'csaqzx_gs',
   dictPrefix: 'gs',
   imagePath: 'waterSupply',
+  moduleName: '供水',
   dictKey: {
     jcssdstjlx: 'jcssdstjlx_gs',
     yhlx: 'yhlx_gs',
-    glmbzx: 'glmbzx_gs',
+    glmblx: 'glmblx_gs',
     jcsblx: 'jcsblx_gs'
   }
 };
@@ -72,7 +73,7 @@ onBeforeMount(async () => {
       'zgzt',           // RiskHazardModule
       'yjlx_gs',        // EarlyWarningModule
       'gs_szjcsb',       // WaterQualityModule
-      'glmbzx_gs',      // WaterQualityModule
+      'glmblx_gs',      // WaterQualityModule
     ]);
     loading.value = false;
     console.log('字典数据预加载完成');

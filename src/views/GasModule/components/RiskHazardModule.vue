@@ -128,17 +128,17 @@ const zgztMap = {
 // ==================== 初始化共同参数 ====================
 /**
  * 初始化 Glmblx 参数（所有数据接口共用）
- * 通过获取 rqzx_glmbzx 字典，将其 f_ItemValue 拼接成逗号分隔字符串
+ * 通过获取 rqzx_glmblx 字典，将其 f_ItemValue 拼接成逗号分隔字符串
  * 此参数标准化确保三个数据接口参数一致
  */
 const initializeGlmblxs = async (): Promise<boolean> => {
   try {
-    const rqzxGlmbzxDictionaries = await getCachedDictionary("rqzx_glmbzx");
-    if (!rqzxGlmbzxDictionaries || rqzxGlmbzxDictionaries.length === 0) {
-      console.warn("rqzx_glmbzx 字典为空");
+    const rqzxglmblxDictionaries = await getCachedDictionary("rqzx_glmblx");
+    if (!rqzxglmblxDictionaries || rqzxglmblxDictionaries.length === 0) {
+      console.warn("rqzx_glmblx 字典为空");
       return false;
     }
-    glmblxs = rqzxGlmbzxDictionaries
+    glmblxs = rqzxglmblxDictionaries
       .map((item: any) => item.f_ItemValue)
       .join(",");
     return true;

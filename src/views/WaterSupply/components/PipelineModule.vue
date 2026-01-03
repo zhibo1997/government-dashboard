@@ -1,25 +1,20 @@
 <template>
   <div class="data-module pipeline-module">
     <div class="module-header">
-      <div class="module-title">供水管网</div>
+      <div class="module-title">{{ moduleConfig.moduleName }}管网</div>
     </div>
     <div class="module-content pipeline-module-content">
       <div class="material-content">
         <div id="pipeline-chart" class="pipeline-chart"></div>
         <div class="material-legend">
-          <div
-            class="legend-item"
-            v-for="item in pipelineLegend"
-            :key="item.name"
-          >
+          <div class="legend-item" v-for="item in pipelineLegend" :key="item.name">
             <div class="legend-item-content">
-              <div
-                class="legend-color"
-                :style="{ backgroundColor: item.color }"
-              ></div>
+              <div class="legend-color" :style="{ backgroundColor: item.color }"></div>
               <div class="legend-name">{{ item.name }}</div>
             </div>
-            <div class="legend-value">{{ item.value }}</div>
+            <div class="legend-value">
+              <span class="value-percent">{{ item.radio }}%</span>
+            </div>
           </div>
         </div>
       </div>
@@ -27,30 +22,21 @@
         <!-- 隐患小球展示区 -->
         <div class="danger-scene">
           <!-- 隐患小球 -->
-          <div
-            v-for="ball in dangerBalls"
-            :key="ball.riskType"
-            class="danger-ball"
-            :class="{ primary: ball.count >= 3, 'small-ball': ball.count < 3 }"
-            :style="{
+          <div v-for="ball in dangerBalls" :key="ball.riskType" class="danger-ball"
+            :class="{ primary: ball.count >= 3, 'small-ball': ball.count < 3 }" :style="{
               '--angle': ball.angle + 'deg',
               '--radius': ball.radius + 'px',
               '--size': ball.size + 'px',
               '--font-size': ball.fontSize + 'px',
-            }"
-          >
-            <img
-              :src="ball.count < 3 ? baseDangerImage : seriousDangerImage"
-              :alt="ball.type"
-              class="danger-image"
-            />
+            }">
+            <img :src="ball.count < 3 ? baseDangerImage : seriousDangerImage" :alt="ball.type" class="danger-image" />
             <span class="ball-type">{{ ball.type }}</span>
           </div>
         </div>
 
         <div class="base-img">
           <span class="danger-count gradient-text">{{ dangerCount }}</span>
-          <span class="danger-text">供水管网隐患</span>
+          <span class="danger-text">{{ moduleConfig.moduleName }}管网隐患</span>
         </div>
       </div>
     </div>
@@ -62,6 +48,8 @@ import { ref, onMounted, nextTick, inject } from "vue";
 import { officialWebsiteOption } from "./ehcartsOptions";
 import * as echarts from "echarts";
 import {
+  getDrainageMaterialRatio,
+  getDrainageRiskCount,
   getWaterSupplyMaterialRatio,
   getWaterSupplyRiskCount,
 } from "@/services/waterSupplyService";
@@ -74,6 +62,8 @@ import { getCachedDictionary } from "@/services/dictionaryService";
 const moduleConfig = inject('MODULE_CONFIG', {
   sszx: 'csaqzx_gs',
   imagePath: 'waterSupply',
+  moduleName: '供水',
+
   dictKey: {
     yhlx: 'yhlx_gs'
   }
@@ -126,7 +116,12 @@ const initMaterialList = async () => {
     acc[cur.f_ItemValue] = cur.f_ItemName;
     return acc;
   }, {});
-  const res = await getWaterSupplyMaterialRatio({ Sszx: moduleConfig.sszx });
+  let res;
+  if (moduleConfig.sszx == "csaqzx_gs") {
+    res = await getWaterSupplyMaterialRatio({ Sszx: moduleConfig.sszx });
+  } else if (moduleConfig.sszx == "csaqzx_ps") {
+    res = await getDrainageMaterialRatio({ Sszx: moduleConfig.sszx });
+  }
   const data = Array.isArray(res) ? res : (res?.data || []);
   nextTick(() => {
     const gwczData = (data as any[]).map((item, idx) => ({
@@ -215,9 +210,14 @@ const initHiddenDangerTypes = async () => {
   res.forEach((item) => {
     dangerTypeMap[item.f_ItemValue] = item.f_ItemName;
   });
-
+  let riskRes;
   // 获取隐患数据
-  const riskRes = await getWaterSupplyRiskCount();
+  if (moduleConfig.sszx == "csaqzx_gs") {
+    riskRes = await getWaterSupplyRiskCount({ Sszx: moduleConfig.sszx });
+  }
+  else if (moduleConfig.sszx == "csaqzx_ps") {
+    riskRes = await getDrainageRiskCount({ Sszx: moduleConfig.sszx });
+  }
   const riskData = Array.isArray(riskRes) ? riskRes : (riskRes?.data || []);
 
   // 计算隐患总数
@@ -261,7 +261,7 @@ onMounted(async () => {
   initMaterialList();
 });
 
-const initChart = () => {};
+const initChart = () => { };
 </script>
 
 <style lang="scss" scoped>
@@ -275,60 +275,92 @@ const initChart = () => {};
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: flex-start;
+  padding-top: 20px;
 
   .pipeline-chart {
-    width: 217px;
-    height: 217px;
+    width: 260px;
+    height: 260px;
+    margin-bottom: 30px;
   }
 
   .material-legend {
     width: 100%;
     display: flex;
     flex-direction: column;
+    gap: 12px;
 
     .legend-item {
       display: flex;
       align-items: center;
-      margin-bottom: 6px;
       justify-content: space-between;
-      padding: 0 26px;
+      padding: 0 30px;
+      transition: all 0.3s ease;
+
+      &:hover {
+        transform: translateX(5px);
+
+        .legend-name,
+        .legend-value {
+          color: #00bfff;
+        }
+      }
 
       .legend-item-content {
         display: flex;
         align-items: center;
+        gap: 10px;
       }
 
       .legend-color {
-        width: 20px;
-        height: 20px;
-        margin-right: 13px;
+        width: 24px;
+        height: 24px;
+        border-radius: 4px;
+        box-shadow: 0 0 8px rgba(0, 191, 255, 0.3);
+        transition: all 0.3s ease;
+      }
+
+      &:hover .legend-color {
+        box-shadow: 0 0 12px rgba(0, 191, 255, 0.6);
       }
 
       .legend-name {
         font-family: SourceHanSansSC, SourceHanSansSC;
         font-weight: 400;
-        font-size: 30px;
+        font-size: 28px;
         color: #e4f3ff;
-        line-height: 44px;
+        line-height: 42px;
         text-align: left;
         font-style: normal;
+        transition: color 0.3s ease;
       }
     }
 
     .legend-value {
       font-family: SourceHanSansSC, SourceHanSansSC;
-      font-weight: 400;
-      font-size: 30px;
-      color: #e4f3ff;
-      line-height: 44px;
-      text-align: left;
+      font-weight: 500;
+      font-size: 28px;
+      line-height: 42px;
+      text-align: right;
       font-style: normal;
+      transition: color 0.3s ease;
+      display: flex;
+      align-items: baseline;
+      gap: 4px;
+
+      .value-percent {
+        font-size: 30px;
+        color: #E4F3FF;
+        line-height: 44px;
+        text-align: left;
+        font-style: normal;
+      }
     }
   }
 }
 
 .hidden-danger {
-  width:50%;
+  width: 50%;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -355,8 +387,7 @@ const initChart = () => {};
     top: 50%;
     margin-left: calc(var(--size) / -2);
     margin-top: calc(var(--size) / -2);
-    transform: rotate(var(--angle)) translateX(var(--radius))
-      rotate(calc(var(--angle) * -1));
+    transform: rotate(var(--angle)) translateX(var(--radius)) rotate(calc(var(--angle) * -1));
 
     display: flex;
     flex-direction: column;
@@ -425,5 +456,4 @@ const initChart = () => {};
 // // 一般隐患样式
 // .danger-ball.small-ball {
 //   filter: drop-shadow(0 0 4px rgba(0, 100, 255, 0.6));
-// }
-</style>
+// }</style>

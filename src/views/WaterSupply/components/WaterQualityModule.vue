@@ -1,7 +1,7 @@
 <template>
   <div class="data-module water-quality-module">
     <div class="module-header">
-      <div class="module-title">供水水质</div>
+      <div class="module-title">{{moduleConfig.moduleName}}水质</div>
       <!-- <n-date-picker
         v-model:value="waterQualityDate"
         type="month"
@@ -11,7 +11,7 @@
       /> -->
     </div>
     <div class="module-content">
-      <div class="quality-content">
+      <div v-if="waterPlants && waterPlants.length > 0" class="quality-content">
         <div
           class="quality-item"
           v-for="plant in waterPlants"
@@ -51,6 +51,9 @@
           </div>
         </div>
       </div>
+      <div v-else class="empty-state">
+        <div class="empty-text">暂无数据</div>
+      </div>
     </div>
   </div>
 </template>
@@ -67,12 +70,13 @@ const waterQualityDate = ref(Date.now());
 // 从根组件接收模块配置
 const moduleConfig = inject('MODULE_CONFIG', {
   sszx: 'csaqzx_gs',
+  moduleName: '供水',
   dictKey: {
     szjcsb: 'gs_szjcsb'
   }
 });
 
-const szMap = ref({});
+const szMap = ref<Record<string, string>>({});
 onMounted(async () => {
   // 获取最新供水水质字典（使用带缓存的优化函数）
   const szjcsb = moduleConfig.dictKey?.szjcsb || "";
@@ -83,10 +87,10 @@ onMounted(async () => {
   }, {});
 
   const Sszx = moduleConfig.sszx || "";
-  const res = await getLatestWaterQuality({Sszx});
+  const res = await getLatestWaterQuality({Sszx}) as any[];
   nextTick(() => {
-    waterPlants.value = res.map((item) => {
-      const jcz = parse(item.jcz);
+    waterPlants.value = res.map((item: any) => {
+      const jcz = parse(item.jcz) as Record<string, any>;
       const parameters = [];
       for (let key in jcz) {
         parameters.push({
@@ -105,7 +109,7 @@ onMounted(async () => {
   });
 });
 
-const waterPlants = ref();
+const waterPlants = ref([]);
 </script>
 
 <style lang="scss" scoped>
@@ -166,6 +170,21 @@ const waterPlants = ref();
         color: #ff4d4f;
       }
     }
+  }
+}
+
+.empty-state {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  width: 100%;
+
+  .empty-text {
+    font-family: SourceHanSansSC, SourceHanSansSC;
+    font-size: 32px;
+    color: rgba(255, 255, 255, 0.4);
+    text-align: center;
   }
 }
 

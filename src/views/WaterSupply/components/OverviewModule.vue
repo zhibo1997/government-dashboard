@@ -7,7 +7,7 @@
       <div class="overview-content">
         <div class="overview-item" v-for="item in overviewData" :key="item.id">
           <div class="item-icon">
-            <img :src="getIconUrl(item.icon)" :alt="item.name" />
+            <img v-if="item.icon" :src="getIconUrl(item.icon)" :alt="item.name" />
           </div>
           <div class="item-info">
             <div class="item-title">{{ item.name }}</div>
@@ -44,6 +44,11 @@ const iconMapping = {
   jcssdstj0505: "pump_station",     // 供水泵站
   jcssdstj0506: "major_customer",   // 供水大户
   jcssdstj0501: "pipeline",         // 供水管网
+  jcssdstj0401: "pipeline",         // 供水管网
+  jcssdstj0402: "pipeline",         // 供水管网
+  jcssdstj0403: "pipeline",         // 供水管网
+  jcssdstj0404: "pipeline",         // 供水管网
+  jcssdstj0406: "pump_station",         // 供水管网
 };
 // 初始化基础配置数据(从字典获取)
 const initGSItems = async () => {
@@ -109,6 +114,7 @@ onMounted(async () => {
     justify-content: space-between;
     gap: 15px;
     padding: 0 10px;
+    overflow-y: auto;
   }
 
   .overview-item {

@@ -94,8 +94,21 @@ export async function getRiskStatusCount(param: {
  * 获取供水管网隐患统计
  * @returns 供水管网隐患数据
  */
-export async function getWaterSupplyRiskCount() {
-  const res = await waterApi.gspspDtransPubrisks.waterSupplyRiskCountList();
+export async function getWaterSupplyRiskCount(param: { Sszx: string }) {
+  const res = await waterApi.gspspDtransPubrisks.waterSupplyRiskCountList(param);
+  return res.data || [];
+}
+
+/**
+ * 获取排水管网隐患统计
+ * @param param 查询参数
+ * @returns 排水管网隐患数据
+ */
+export async function getDrainageRiskCount(param: { 
+  Sszx: string;
+  Sjly?: string;
+}) {
+  const res = await waterApi.gspspDtransPubrisks.drainageRiskCountList(param);
   return res.data || [];
 }
 
@@ -158,12 +171,26 @@ export async function getWaterSupplyMaterialRatio(params?: {
     await waterApi.gspspDtransPubunderpipeline.waterSupplyMaterialRatioList(params);
   return res?.data || [];
 }
+
+/**
+ * 获取排水管线材质占比
+ * @param params 查询参数
+ * @returns 管线材质占比数据
+ */
+export async function getDrainageMaterialRatio(params?: {
+  Sszx: string;
+}) {
+  const res =
+    await waterApi.gspspDtransPubunderpipeline.drainageMaterialRatioList(params);
+  return res?.data || [];
+}
 /**
  * 获取風险等级数量
  * @param param 查询參数
  */
 export async function getRiskLevelCount(param: {
-  Glmblx: string;
+  Glmblx?: string;
+  Sszx?: string;
 }) {
   const queryParam = {
     Dsbm: "420200",
