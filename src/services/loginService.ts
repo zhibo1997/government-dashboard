@@ -1,6 +1,18 @@
-import {getPublicKey,login} from './commonService';
-import type { LoginRequest, UserInfo, ApiResponse } from '@/types'
+import { getPublicKey, login } from './commonService'
 import JSEncrypt from 'jsencrypt'
+
+// ========== 类型定义 ==========
+
+export interface LoginRequest {
+  username: string
+  password: string
+}
+
+export interface UserInfo {
+  token?: string
+  expiresAt?: string
+  user?: any
+}
 
 /**
  * 登录服务类

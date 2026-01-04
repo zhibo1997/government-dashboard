@@ -36,7 +36,7 @@ import { PersonOutline, LockClosedOutline } from "@vicons/ionicons5";
 import { useRouter } from "vue-router";
 import { useAuthStore } from "../stores/auth";
 import { loginService } from "@/services/loginService";
-import { resetTokenExpiredFlag } from "@/api/apiFactory";
+import { resetTokenExpiredFlag } from "@/services/httpClient";
 import ResponsiveWrapper from "@/components/ResponsiveWrapper.vue";
 
 const { message } = createDiscreteApi(["message"]);

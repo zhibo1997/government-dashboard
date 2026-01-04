@@ -8,7 +8,6 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import { getDataItemDetailsByCodes } from '@/services/commonService'
-import type { LearunIapplicationDataItemDetailEntity } from '@/api/common'
 
 // 字典项类型定义
 export interface DictionaryItem {
@@ -158,8 +157,9 @@ export const useDictionaryStore = defineStore('dictionary', () => {
       // 标记为正在加载
       needRequestCodes.forEach(code => loadingCodes.value.add(code))
       
+      const codesParam = needRequestCodes.join(',')
+      
       try {
-        const codesParam = needRequestCodes.join(',')
         const response = await getDataItemDetailsByCodes(codesParam)
         
         // 处理返回的数据
