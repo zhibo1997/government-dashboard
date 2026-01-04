@@ -2,46 +2,34 @@
  * @Author: zhibo1997 1174985654@qq.com
  * @Date: 2025-11-17 19:13:37
  * @LastEditors: 王志博
- * @LastEditTime: 2025-11-22 19:01:09
- * @FilePath: \government-dashboard\src\views\WaterSupply\index.vue
- * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
+ * @LastEditTime: 2026-01-04
+ * @Description: 排水模块 - 子路由组件（地图、头部由 PersistentLayout 统一管理）
 -->
 <template>
-  <div class="water-supply-special-container module-container">
-    <!-- 中间地图区域 -->
-    <div class="center-map" data-interactive>
-      <MapComponent />
-    </div>
-
-    <ResponsiveWrapper :base-width="4096" :base-height="1920" v-if="!loading">
-      <!-- 头部区域 -->
-      <DashboardHeader />
-
-      <!-- 主体容器 -->
-      <div class="container">
-        <!-- 左侧数据展示区 -->
-        <LeftNav :key="moduleConfig.sszx" />
-        
-        <!-- 右侧数据展示区 -->
-        <RightNav :key="moduleConfig.sszx" />
-      </div>
-    </ResponsiveWrapper>
+  <!-- 排水模块内容区域 -->
+  <template v-if="!loading">
+    <!-- 左侧数据展示区 -->
+    <LeftNav />
+    
+    <!-- 右侧数据展示区 -->
+    <RightNav />
+  </template>
+  
+  <!-- 加载状态 -->
+  <div v-else class="loading-placeholder">
+    <span>数据加载中...</span>
   </div>
 </template>
 
 <script setup lang="ts">
-import { onBeforeMount, ref, provide } from 'vue';
-import ResponsiveWrapper from "@/components/ResponsiveWrapper.vue";
-import MapComponent from "@/mapComponents/Map.vue";
-// 引入左侧导航组件
-import LeftNav from "../WaterSupply/leftContent.vue";
-import RightNav from "../WaterSupply/RightContent.vue";
-// 引入头部组件
-import DashboardHeader from "@/components/DashboardHeader.vue";
+import { onBeforeMount, ref, provide } from 'vue'
+// 引入左右内容组件（复用供水模块组件）
+import LeftNav from '../WaterSupply/leftContent.vue'
+import RightNav from '../WaterSupply/RightContent.vue'
 // 引入字典缓存服务
-import { getCachedDictionaries } from "@/services/dictionaryService";
+import { getCachedDictionaries } from '@/services/dictionaryService'
 
-const loading = ref(false);
+const loading = ref(false)
 
 // 定义排水模块配置对象
 const moduleConfig = {
@@ -56,15 +44,15 @@ const moduleConfig = {
     glmblx: 'glmblx_ps',
     jcsblx: 'jcsblx_ps'
   }
-};
+}
 
 // 通过 provide 传递给子组件
-provide('MODULE_CONFIG', moduleConfig);
+provide('MODULE_CONFIG', moduleConfig)
 
 // 在页面初始化时预加载所有字典数据
 onBeforeMount(async () => {
   try {
-    loading.value = true;
+    loading.value = true
     // 批量预加载所有需要的字典数据
     await getCachedDictionaries([
       'jcssdstjlx_ps',  // OverviewModule
@@ -73,32 +61,38 @@ onBeforeMount(async () => {
       'jcsblx_ps',      // MonitoringEquipmentModule
       'zgzt',           // RiskHazardModule
       'yjlx_ps',        // EarlyWarningModule
-      'ps_szjcsb',       // WaterQualityModule
+      'ps_szjcsb',      // WaterQualityModule
       'glmblx_ps',      // WaterQualityModule
-    ]);
-    loading.value = false;
-    console.log('字典数据预加载完成');
+    ])
+    loading.value = false
+    console.log('排水模块字典数据预加载完成')
   } catch (error) {
-    loading.value = false;
-    console.error('字典数据预加载失败:', error);
+    loading.value = false
+    console.error('字典数据预加载失败:', error)
   }
-});
+})
 
-// 定义组件名称以支持keep-alive
+// 定义组件名称
 defineOptions({
   name: 'DrainageModule'
-});
+})
 </script>
 
 <style lang="scss" scoped>
-.water-supply-special-container {
-
-}
-
-// 供水模块的 module-content 特殊布局
+// 排水模块的 module-content 特殊布局
 :deep(.data-module .module-content) {
   height: calc(100% - 60px);
   align-items: center;
   justify-content: center;
+}
+
+.loading-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 16px;
 }
 </style>

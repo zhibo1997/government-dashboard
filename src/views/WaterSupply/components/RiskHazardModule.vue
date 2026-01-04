@@ -5,19 +5,10 @@
     </div>
     <div class="module-content">
       <div class="risk-content">
-        <div id="risk-chart" class="risk-echart"></div>
-          <div class="risk-legend">
-            <div class="legend-item" v-for="item in riskLegend" :key="item.name">
-              <div class="legend-name">
-                <span class="legend-color" :style="{ backgroundColor: item.color }"></span>
-                {{ item.name }}
-              </div>
-              <div class="legend-value gradient-text">
-                {{ item.value }}
-                <span class="unit">个</span>
-              </div>
-            </div>
-          </div>
+        <RiskLevelChart
+          :chart-id="riskChartId"
+          :sszx="moduleConfig.sszx"
+        />
       </div>
       <!-- 整改状态 -->
       <div class="rectification-section">
@@ -40,14 +31,13 @@
 
 <script setup lang="ts">
 import { nextTick, onMounted, ref, inject } from "vue";
-import { getRiskStatusCount, getRiskLevelCount } from "@/services/waterSupplyService";
+import { getRiskStatusCount } from "@/services/waterSupplyService";
 import { getCachedDictionary } from "@/services/dictionaryService";
 import {
-  riskColorMap,
-  createRiskLevelChartOption,
   createProgressOption,
   initChart,
 } from "../chartOption";
+import RiskLevelChart from "@/components/RiskLevelChart.vue";
 
 // 从根组件接收模块配置
 const moduleConfig = inject('MODULE_CONFIG', {
@@ -59,24 +49,11 @@ const moduleConfig = inject('MODULE_CONFIG', {
 
 // ==================== 数据状态 ====================
 
+// 风险图表唯一ID
+const riskChartId = 'risk-chart-watersupply';
+
 // 共同参数：目标类型字符串（所有接口共用）
 let glmblxs = "";
-
-// ==================== 风险等级数据模块 ====================
-const riskLegend = ref<any[]>([]);
-const isRiskLevelLoading = ref(false);
-const riskLevelError = ref<string | null>(null);
-
-/**
- * 获取默认的风险等级数据
- * 当没有实际数据时，展示空状态
- */
-const getDefaultRiskLevels = () => [
-  { name: "重大风险", color: riskColorMap["重大风险"], value: 0 },
-  { name: "较大风险", color: riskColorMap["较大风险"], value: 0 },
-  { name: "一般风险", color: riskColorMap["一般风险"], value: 0 },
-  { name: "低风险", color: riskColorMap["低风险"], value: 0 },
-];
 
 // ==================== 整改状态数据模块 ====================
 const rectificationData = ref([
@@ -120,79 +97,6 @@ const initializeGlmblxs = async (): Promise<boolean> => {
   } catch (error) {
     console.error("初始化 Glmblx 参数失败:", error);
     return false;
-  }
-};
-
-// ==================== 风险等级数据获取（模块1） ====================
-/**
- * 获取风险等级字典映射
- * 字典类型: fxdj
- */
-const fetchRiskLevelDictionary = async (): Promise<{ [key: string]: { name: string; color: string } } | null> => {
-  try {
-    const dictionaries = await getCachedDictionary("fxdj");
-    if (!dictionaries || dictionaries.length === 0) {
-      console.warn("风险等级字典 (fxdj) 为空");
-      return null;
-    }
-    
-    const map: { [key: string]: { name: string; color: string } } = {};
-    dictionaries.forEach((item: any) => {
-      map[item.f_ItemValue] = {
-        name: item.f_ItemName,
-        color: riskColorMap[item.f_ItemName] || "#9bb8c7",
-      };
-    });
-    return map;
-  } catch (error) {
-    riskLevelError.value = `获取风险等级字典失败: ${error}`;
-    console.error(riskLevelError.value);
-    return null;
-  }
-};
-
-/**
- * 获取风险等级数据
- * 使用标准化的 Glmblx 参数
- * 无数据时展示默认空状态
- */
-const fetchRiskLevelData = async (): Promise<void> => {
-  if (!glmblxs) {
-    console.warn("Glmblx 参数未初始化，跳过风险等级数据获取");
-    riskLegend.value = getDefaultRiskLevels();
-    return;
-  }
-
-  isRiskLevelLoading.value = true;
-  riskLevelError.value = null;
-
-  try {
-    const riskLevelMap = await fetchRiskLevelDictionary();
-    if (!riskLevelMap) {
-      riskLegend.value = getDefaultRiskLevels();
-      return;
-    }
-
-    const data = (await getRiskLevelCount({ Sszx: moduleConfig.sszx })) as any[];
-    console.log("🚀 ~ fetchRiskLevelData ~ data:", data)
-    if (!data || data.length === 0) {
-      console.info("风险等级数据为空");
-      riskLegend.value = getDefaultRiskLevels();
-      return;
-    }
-
-    // 转换数据格式
-    riskLegend.value = data.map((item) => ({
-      name: riskLevelMap[item.riskType]?.name || item.riskType,
-      color: riskLevelMap[item.riskType]?.color || "#FFFFFF",
-      value: item.count || 0,
-    }));
-  } catch (error) {
-    riskLevelError.value = `获取风险等级数据失败: ${error}`;
-    console.error(riskLevelError.value);
-    riskLegend.value = getDefaultRiskLevels();
-  } finally {
-    isRiskLevelLoading.value = false;
   }
 };
 
@@ -306,17 +210,6 @@ const getDefaultRectificationStates = () => [
 
 // ==================== 图表渲染 ====================
 /**
- * 渲染风险等级多环形图
- */
-const renderRiskLevelChart = () => {
-  const myChart = initChart("risk-chart");
-  if (!myChart) return;
-
-  const option = createRiskLevelChartOption(riskLegend.value);
-  myChart.setOption(option);
-};
-
-/**
  * 渲染整改状态环形进度图
  */
 const renderRectificationCharts = () => {
@@ -336,34 +229,27 @@ const renderRectificationCharts = () => {
 // ==================== 生命周期 ====================
 /**
  * 组件挂载时执行的初始化逻辑
- * 1. 初始化 Glmblx 参数（所有接口共用）
- * 2. 并行获取两个独立数据源：风险等级、整改状态
- * 3. 渲染图表
+ * 1. 初始化 Glmblx 参数（整改状态接口使用）
+ * 2. 获取整改状态数据
+ * 3. 渲染图表（风险等级图表由子组件处理）
  */
 onMounted(async () => {
   try {
-    // 步骤1: 初始化共同参数（必须首先执行）
+    // 步骤1: 初始化共同参数（整改状态接口使用）
     const initSuccess = await initializeGlmblxs();
     if (!initSuccess) {
-      console.error("初始化 Glmblx 参数失败，跳过数据获取");
-      // 仍然展示默认状态
-      riskLegend.value = getDefaultRiskLevels();
+      console.error("初始化 Glmblx 参数失败，跳过整改状态数据获取");
       rectificationData.value = getDefaultRectificationStates();
       await nextTick();
-      renderRiskLevelChart();
       renderRectificationCharts();
       return;
     }
 
-    // 步骤2: 并行获取两个数据源（彼此独立）
-    await Promise.allSettled([
-      fetchRiskLevelData(),      // 模块1: 风险等级数据
-      fetchRectificationData(),  // 模块2: 整改状态数据
-    ]);
+    // 步骤2: 获取整改状态数据
+    await fetchRectificationData();
 
-    // 步骤3: 等待 DOM 更新后渲染图表
+    // 步骤3: 等待 DOM 更新后渲染整改状态图表
     await nextTick();
-    renderRiskLevelChart();
     renderRectificationCharts();
   } catch (error) {
     console.error("组件初始化失败:", error);

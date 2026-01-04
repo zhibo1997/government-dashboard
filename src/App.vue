@@ -2,8 +2,8 @@
  * @Author: Do not edit
  * @Date: 2025-10-30 20:50:05
  * @LastEditors: 王志博
- * @LastEditTime: 2025-11-22 19:53:32
- * @Description: 
+ * @LastEditTime: 2026-01-04
+ * @Description: 应用根组件 - 使用嵌套路由实现持久化布局
 -->
 <script setup lang="ts">
 import { NMessageProvider, NDialogProvider, NConfigProvider, zhCN, dateZhCN } from 'naive-ui'
@@ -13,11 +13,8 @@ import { NMessageProvider, NDialogProvider, NConfigProvider, zhCN, dateZhCN } fr
   <n-config-provider :locale="zhCN" :date-locale="dateZhCN">
     <n-dialog-provider>
       <n-message-provider>
-        <RouterView v-slot="{ Component }">
-          <keep-alive :include="['WaterSupplyView', 'GasModule', 'BridgeModule', 'HomeModule', 'DrainageModule']">
-            <component :is="Component" />
-          </keep-alive>
-        </RouterView>
+        <!-- 路由出口：布局逻辑由嵌套路由管理，无需 keep-alive -->
+        <router-view />
       </n-message-provider>
     </n-dialog-provider>
   </n-config-provider>
