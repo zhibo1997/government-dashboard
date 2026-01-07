@@ -126,7 +126,6 @@ onUnmounted(() => {
 
   .weather-icon {
     width: 80px;
-    height: 62px;
   }
 }
 </style>

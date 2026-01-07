@@ -5,6 +5,29 @@
 
 import { get, post } from './httpClient'
 
+// ========== 类型定义 ==========
+
+/**
+ * 监测数据项（jcz）结构
+ */
+export interface MonitoringDataItem {
+  jcz: string | number // 监测值
+  jcdw: string // 监测单位
+}
+
+/**
+ * 监测点位最新监测数据
+ */
+export interface MonitoringPointData {
+  jdxx: number // 经度
+  wdxx: number // 纬度
+  sszx: string // 所属专项
+  jcsj: number // 监测时间
+  jcz: string // 监测值（JSON字符串，包含多个指标数据）
+  sbbh: string // 设备编号
+  sblx: string // 设备类型
+}
+
 // ========== 登录相关接口 ==========
 
 export interface LoginInputDto {
@@ -77,6 +100,17 @@ export async function getDataItems(code: string): Promise<any[]> {
 export async function getLayerTree({ SszxCode }: { SszxCode: string }) {
   const res = await get<any>('/layer/tree', { SszxCode })
   return res.data
+}
+
+// ========== 监测设备接口 ==========
+
+/**
+ * 地图-获取监测点位最新监测数据
+ */
+export async function getMonitoringPointLatestData(sszx?: string): Promise<MonitoringPointData[]> {
+  const params = sszx ? { sszx } : undefined
+  const res = await get<any>('/gspspDtransPubmnteqpinfo/new/pubmntdata', params)
+  return (res.data || []) as MonitoringPointData[]
 }
 
 // ========== 密码加密工具 ==========

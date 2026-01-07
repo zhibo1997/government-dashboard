@@ -63,6 +63,25 @@
       <MeasureTool v-model:visible="showMeasureTool" @toggle-distance="toggleDistance" @toggle-area="toggleArea"
         @clear="clearMeasurements" ref="measureToolRef" />
     </ResponsiveWrapper>
+
+    <!-- 多弹窗容器（智能碰撞检测） -->
+    <MultiPopupContainer
+      ref="multiPopupRef"
+      :viewer="viewerInstance"
+      :points="monitoringPoints.enhancedData.value"
+      :config="popupCollisionConfig"
+      @visibility-change="handlePopupVisibilityChange"
+    />
+
+    <!-- 单个点击弹窗（保留用于点击交互） -->
+    <MonitoringPointPopup
+      :visible="monitoringPoints.showPopup.value"
+      :point-data="monitoringPoints.selectedPoint.value"
+      :position="monitoringPoints.popupPosition.value"
+      @close="monitoringPoints.closePopup"
+      @fly-to="handleFlyToMonitoringPoint"
+      @view-detail="handleViewMonitoringDetail"
+    />
   </div>
 
 </template>
@@ -74,10 +93,18 @@ import { VcCamera ,VcColor} from 'vue-cesium/lib/utils/types.js'
 import mapConfig from '@/config/mapConfig'
 import MeasureTool from './MeasureTool.vue'
 import MapToolbar from './MapToolbar.vue'
+import MonitoringPointPopup from './MonitoringPointPopup.vue'
+import MultiPopupContainer from './MultiPopupContainer.vue'
 
 import { inject } from 'vue'
 import ResponsiveWrapper from '@/components/ResponsiveWrapper.vue'
+import { useMonitoringPoints, type EnhancedMonitoringPoint } from '@/hook/useMonitoringPoints'
+import type { CollisionConfig } from '@/hook/useMultiPopupManager'
 const defaultAccessToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiI1Njk0MWFkNy00NjAzLTRhYTAtYWM4Yi04YjM4Njg4M2IyMzEiLCJpZCI6Mjg1NTg3LCJpYXQiOjE3NDIzNTA2NDR9.tZ0ZoIsk2bMtMFtzNrO0WrRhS0VPfBhr0_78mtSYpMo';
+
+// 使用监测点位 Hook
+const monitoringPoints = useMonitoringPoints()
+
 // 定义组件名称以支持keep-alive
 defineOptions({
   name: 'CesiumMap'
@@ -101,6 +128,18 @@ const basemapLayer = ref(null)
 
 // 工具栏引用
 const toolbarRef = ref<any>(null)
+
+// 多弹窗容器引用
+const multiPopupRef = ref<any>(null)
+
+// 弹窗碰撞检测配置
+const popupCollisionConfig = ref<Partial<CollisionConfig>>({
+  lengthTolerance: -150,   // 水平容忍度（正数=要求间距，负数=允许重叠）
+  widthTolerance: -50,     // 垂直容忍度（正数=要求间距，负数=允许重叠）
+  popupWidth: 180,         // 弹窗宽度
+  popupHeight: 80,         // 弹窗高度
+  popupOffsetY: 0          // 弹窗垂直偏移
+})
 
 // 测量工具引用
 const measurementsRef = ref<any>(null)
@@ -286,6 +325,8 @@ async function onViewerReady({ Cesium, viewer }: any) {
     compassRotation.value = Cesium.Math.toDegrees(viewer.camera.heading)
   })
 
+  // 初始化监测点位功能
+  await initMonitoringPoints(viewer)
 
   // 方式2：等待GeoJSON加载后基于实际边界限制（可选）
   console.log("🚀 ~ onViewerReady ~ yangxinGeoJSON.value:", yangxinGeoJSON.value)
@@ -298,6 +339,29 @@ async function onViewerReady({ Cesium, viewer }: any) {
   //     maxHeight
   //   })
   // }
+}
+
+/**
+ * 初始化监测点位功能
+ */
+async function initMonitoringPoints(viewer: any) {
+  try {
+    // 初始化数据源
+    await monitoringPoints.initDataSource(viewer)
+    
+    // 加载监测点位数据
+    await monitoringPoints.loadData()
+    
+    // 更新地图点位
+    await monitoringPoints.updateMapPoints()
+    
+    // 设置点击事件监听
+    monitoringPoints.setupClickHandler()
+    
+    console.log('✅ 监测点位功能初始化完成')
+  } catch (error) {
+    console.error('❌ 监测点位功能初始化失败:', error)
+  }
 }
 /**
  * 优化Cesium性能
@@ -335,6 +399,28 @@ function handleFeatureClick(feature: any) {
 
   // TODO: 显示信息窗口或弹窗
   // 可以在这里触发Vue事件，传递给父组件
+}
+
+/**
+ * 飞行到监测点位
+ */
+function handleFlyToMonitoringPoint(point: EnhancedMonitoringPoint) {
+  monitoringPoints.flyToPoint(point)
+}
+
+/**
+ * 查看监测点位详情
+ */
+function handleViewMonitoringDetail(point: EnhancedMonitoringPoint) {
+  console.log('📝 查看监测点位详情:', point)
+  // TODO: 可以在这里打开详细信息弹窗或跳转到详情页面
+}
+
+/**
+ * 处理弹窗可见性变化事件
+ */
+function handlePopupVisibilityChange(stats: { totalPoints: number; visiblePopups: number; hiddenPopups: number }) {
+  console.log(`📊 弹窗统计: 总数 ${stats.totalPoints}, 可见 ${stats.visiblePopups}, 隐藏 ${stats.hiddenPopups}`)
 }
 
 
@@ -463,6 +549,9 @@ onBeforeUnmount(() => {
     cameraBoundsCleanup()
     cameraBoundsCleanup = null
   }
+
+  // 清理监测点位资源
+  monitoringPoints.cleanup()
 })
 
 // 导出方法供父组件调用
@@ -483,6 +572,19 @@ defineExpose({
 
   toggleDefaultTileset,
   toolbarRef,
+
+  // 监测点位相关
+  monitoringPoints,
+  refreshMonitoringPoints: (sszx?: string) => monitoringPoints.refresh(sszx),
+  setMonitoringPointsVisible: (visible: boolean) => monitoringPoints.setVisible(visible),
+
+  // 多弹窗管理相关
+  multiPopupRef,
+  popupCollisionConfig,
+  updatePopupConfig: (config: Partial<CollisionConfig>) => {
+    popupCollisionConfig.value = { ...popupCollisionConfig.value, ...config }
+  },
+  forceRecalculatePopups: () => multiPopupRef.value?.forceRecalculate(),
 })
 </script>
 
