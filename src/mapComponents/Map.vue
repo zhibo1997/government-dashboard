@@ -65,23 +65,23 @@
     </ResponsiveWrapper>
 
     <!-- 多弹窗容器（智能碰撞检测） -->
-    <MultiPopupContainer
+    <!-- <MultiPopupContainer
       ref="multiPopupRef"
       :viewer="viewerInstance"
       :points="monitoringPoints.enhancedData.value"
       :config="popupCollisionConfig"
       @visibility-change="handlePopupVisibilityChange"
-    />
+    /> -->
 
     <!-- 单个点击弹窗（保留用于点击交互） -->
-    <MonitoringPointPopup
+    <!-- <MonitoringPointPopup
       :visible="monitoringPoints.showPopup.value"
       :point-data="monitoringPoints.selectedPoint.value"
       :position="monitoringPoints.popupPosition.value"
       @close="monitoringPoints.closePopup"
       @fly-to="handleFlyToMonitoringPoint"
       @view-detail="handleViewMonitoringDetail"
-    />
+    /> -->
   </div>
 
 </template>

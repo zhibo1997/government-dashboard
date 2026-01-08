@@ -1,5 +1,5 @@
 /**
- * 监测点位管理 Hook（简化版）
+ * 监测点位管理 Hook
  * @description 提供监测点位数据加载和地图展示功能
  */
 
@@ -11,8 +11,15 @@ import {
   getDeviceTypeName,
   getSszxName,
   getIndicatorName,
-  ICON_SIZE
+  ICON_SIZE,
+  DEVICE_ICON_MAP
 } from '@/config/monitoringIconConfig'
+import {
+  createBillboardCanvasWithArrow,
+  filterOverlappingBillboards,
+  worldToScreen,
+  getCameraHeight
+} from './billboardManager'
 
 /**
  * 解析后的监测数据项
@@ -52,21 +59,22 @@ export function useMonitoringPoints() {
   // 错误信息
   const error: Ref<string | null> = ref(null)
   
-  // 当前选中的点位（只显示第一个）
-  const selectedPoint: Ref<EnhancedMonitoringPoint | null> = ref(null)
-  
-  // 弹窗显示状态
-  const showPopup = ref(false)
-  
-  // 弹窗位置（屏幕坐标）
-  const popupPosition = ref({ x: 0, y: 0 })
-  
   // Cesium 相关引用
   const dataSource: ShallowRef<any> = shallowRef(null)
   const viewer: ShallowRef<any> = shallowRef(null)
+  const billboardCollection: ShallowRef<any> = shallowRef(null)
   
-  // 点击事件处理器引用（用于清理）
-  let clickHandler: any = null
+  // 相机高度监听
+  let cameraHeightListener: any = null
+  let lastCameraHeight = Infinity
+  
+  // 相机高度阈值（米）
+  const CAMERA_HEIGHT_THRESHOLD = 5000 // 5km
+  
+  // 缓存防重叠计算结果（用于避免重复计算）
+  let cachedFilteredItems: any[] = []
+  let cachedAllItems: any[] = []
+  let isCacheInitialized = false  // 标记缓存是否已初始化
 
   /**
    * 解析监测值 JSON 字符串
@@ -138,7 +146,7 @@ export function useMonitoringPoints() {
   }
 
   /**
-   * 初始化 Cesium DataSource
+   * 初始化 Cesium DataSource 和 BillboardCollection
    */
   async function initDataSource(cesiumViewer: any): Promise<void> {
     if (!cesiumViewer) {
@@ -157,19 +165,69 @@ export function useMonitoringPoints() {
     // 清理已有的数据源
     await clearDataSource()
 
-    // 创建简单的数据源（不使用聚合）
+    // 创建点位数据源（用于Entity点位和图标）
     const customDataSource = new Cesium.CustomDataSource('monitoringPoints')
     customDataSource.clustering.enabled = false
-
-    // 添加到 viewer
     await cesiumViewer.dataSources.add(customDataSource)
     dataSource.value = customDataSource
 
-    console.log('✅ 监测点位数据源初始化完成')
+    // 创建BillboardCollection（用于Canvas信息面板）
+    // 注意：primitives按添加顺序渲染，后添加的会遮挡先添加的
+    // 为了让Billboard遮挡点位，需要在DataSource之后添加
+    const collection = new Cesium.BillboardCollection()
+    cesiumViewer.scene.primitives.add(collection)
+    billboardCollection.value = collection
+
+    // 设置相机高度监听
+    setupCameraHeightListener()
+
+    console.log('✅ 监测点位数据源和BillboardCollection初始化完成')
   }
 
   /**
-   * 更新地图上的监测点位（显示所有点位）
+   * 设置相机高度监听（用于智能重渲染Billboard）
+   */
+  function setupCameraHeightListener(): void {
+    if (!viewer.value) return
+
+    const Cesium = (window as any).Cesium
+    if (!Cesium) return
+
+    // 移除旧的监听器
+    if (cameraHeightListener) {
+      cameraHeightListener()
+    }
+
+    // 监听相机移动结束事件
+    const removeListener = viewer.value.camera.moveEnd.addEventListener(() => {
+      const currentHeight = getCameraHeight(viewer.value)
+      
+      // 检查是否跨越阈值
+      const wasAboveThreshold = lastCameraHeight >= CAMERA_HEIGHT_THRESHOLD
+      const isAboveThreshold = currentHeight >= CAMERA_HEIGHT_THRESHOLD
+      
+      // 相机高度变化逻辑：
+      // 1. 高度降低：重新计算防重叠（距离30）
+      // 2. 高度升高：使用缓存的防重叠结果
+      if (wasAboveThreshold && !isAboveThreshold) {
+        console.log(`📏 相机高度降低到 ${(currentHeight / 1000).toFixed(1)}km，重新计算防重叠`)
+        updateBillboards(true)  // 重新计算
+      } else if (!wasAboveThreshold && isAboveThreshold) {
+        console.log(`📏 相机高度升高到 ${(currentHeight / 1000).toFixed(1)}km，使用缓存的防重叠结果`)
+        renderBillboardsFromCache(true)  // 使用缓存
+      }
+      
+      lastCameraHeight = currentHeight
+    })
+
+    cameraHeightListener = removeListener
+    lastCameraHeight = getCameraHeight(viewer.value)
+    
+    console.log('✅ 相机高度监听已设置（高度变化智能调整）')
+  }
+
+  /**
+   * 更新地图上的监测点位（点位+图标Entity）
    */
   async function updateMapPoints(): Promise<void> {
     if (!dataSource.value || !viewer.value) {
@@ -180,11 +238,11 @@ export function useMonitoringPoints() {
     const Cesium = (window as any).Cesium
     if (!Cesium) return
 
-    // 清空现有实体
+    // 清空现有Entity
     dataSource.value.entities.removeAll()
-
-    // 批量添加实体
     dataSource.value.entities.suspendEvents()
+
+    const baseUrl = import.meta.env.VITE_BASE_URL
 
     for (const point of enhancedData.value) {
       // 验证坐标有效性
@@ -192,32 +250,175 @@ export function useMonitoringPoints() {
         continue
       }
 
-      // 统一显示纯点
+      const iconName = DEVICE_ICON_MAP[point.sblx] || '0510-裂缝计.svg'
+      const deviceIconUrl = `${baseUrl}/equipmentIcons/${iconName}`
+      const position = Cesium.Cartesian3.fromDegrees(point.jdxx, point.wdxx)
+
+      // 添加点位Entity（纯点/图标自适应）
       dataSource.value.entities.add({
-        id: point.id,
+        id: `${point.id}_point`,
         name: point.sbbh,
-        position: Cesium.Cartesian3.fromDegrees(point.jdxx, point.wdxx),
+        position: position,
+        // 纯点样式（高海拔显示）
         point: {
-          pixelSize: 4,
+          pixelSize: 6,
           color: Cesium.Color.fromCssColorString('#1890ff'),
           outlineColor: Cesium.Color.WHITE,
-          outlineWidth: 0.5,
-          disableDepthTestDistance: Number.POSITIVE_INFINITY
+          outlineWidth: 1,
+          distanceDisplayCondition: new Cesium.DistanceDisplayCondition(
+            CAMERA_HEIGHT_THRESHOLD,
+            Number.POSITIVE_INFINITY
+          )
         },
-        properties: {
-          data: point
+        // 图标样式（低海拔显示）
+        billboard: {
+          image: deviceIconUrl,
+          scale: 0.2,
+          horizontalOrigin: Cesium.HorizontalOrigin.CENTER,
+          verticalOrigin: Cesium.VerticalOrigin.BOTTOM,
+          pixelOffset: new Cesium.Cartesian2(0, 20),
+          distanceDisplayCondition: new Cesium.DistanceDisplayCondition(
+            0,
+            CAMERA_HEIGHT_THRESHOLD
+          ),
+          scaleByDistance: new Cesium.NearFarScalar(1000, 1.0, 20000, 0.5)
         }
       })
     }
 
     dataSource.value.entities.resumeEvents()
     
-    // 默认显示第一个点位的弹窗
-    if (enhancedData.value.length > 0) {
-      showDefaultPopup(enhancedData.value[0])
+    console.log(`✅ 地图点位更新完成，共 ${enhancedData.value.length} 个点位`)
+    console.log(`📏 相机高度阈值: ${CAMERA_HEIGHT_THRESHOLD}m`)
+    
+    // 立即渲染Billboard（初始化时默认应用防重叠）
+    updateBillboards(true)
+  }
+
+  /**
+   * 更新Billboard显示（使用BillboardCollection和防重叠算法）
+   * @param applyAntiOverlap 是否应用防重叠算法：true=应用，false=显示全部
+   */
+  function updateBillboards(applyAntiOverlap: boolean = true): void {
+    if (!billboardCollection.value || !viewer.value) {
+      console.warn('⚠️ BillboardCollection或Viewer未初始化')
+      return
+    }
+
+    const Cesium = (window as any).Cesium
+    if (!Cesium) return
+
+    // 清空现有Billboard
+    billboardCollection.value.removeAll()
+
+    // 收集所有点位的屏幕位置
+    const billboardItems: any[] = []
+
+    for (const point of enhancedData.value) {
+      if (!isValidCoordinate(point.jdxx, point.wdxx)) {
+        continue
+      }
+
+      const screenPosition = worldToScreen(viewer.value, point.jdxx, point.wdxx)
+      if (!screenPosition) continue
+
+      billboardItems.push({
+        point,
+        screenPosition,
+        billboard: null
+      })
+    }
+
+    // 根据参数决定是否应用防重叠算法
+    let filteredItems = billboardItems
+    if (applyAntiOverlap) {
+      filteredItems = filterOverlappingBillboards(billboardItems, {
+        minDistance: 30,
+        enabled: true
+      })
     }
     
-    console.log(`✅ 地图点位更新完成，共 ${enhancedData.value.length} 个点位`)
+    // 只在第一次渲染时保存到缓存（初始化时）
+    if (!isCacheInitialized) {
+      cachedAllItems = billboardItems
+      cachedFilteredItems = filteredItems
+      isCacheInitialized = true
+      console.log(`💾 初始化缓存: 全部 ${cachedAllItems.length} 个, 防重叠 ${cachedFilteredItems.length} 个`)
+    }
+
+    // 添加Billboard到Collection
+    for (const item of filteredItems) {
+      const canvas = createBillboardCanvasWithArrow(item.point)
+      const position = Cesium.Cartesian3.fromDegrees(item.point.jdxx, item.point.wdxx)
+      
+      // 计算Y轴偏移（让三角箭头指向点位）
+      const canvasHeight = canvas.height
+      const yOffset = -canvasHeight / 2
+      
+      billboardCollection.value.add({
+        position: position,
+        image: canvas,
+        verticalOrigin: Cesium.VerticalOrigin.BOTTOM,
+        horizontalOrigin: Cesium.HorizontalOrigin.CENTER,
+        pixelOffset: new Cesium.Cartesian2(0, 0),
+        disableDepthTestDistance: Number.POSITIVE_INFINITY,
+        scaleByDistance: new Cesium.NearFarScalar(1000, 1.0, 50000, 0.5)
+        // 移除了translucencyByDistance，保持透明度恒定
+      })
+    }
+
+    const statusText = applyAntiOverlap ? '应用防重叠' : '显示全部'
+    console.log(`✅ Billboard更新完成（${statusText}），显示 ${filteredItems.length} 个（总共 ${billboardItems.length} 个）`)
+  }
+  
+  /**
+   * 从缓存渲染Billboard（用于相机高度变化时，避免重复计算）
+   * @param useFiltered 是否使用防重叠结果：true=使用防重叠，false=显示全部
+   */
+  function renderBillboardsFromCache(useFiltered: boolean): void {
+    if (!billboardCollection.value || !viewer.value) {
+      console.warn('⚠️ BillboardCollection或Viewer未初始化')
+      return
+    }
+    
+    // 检查缓存是否存在
+    if (cachedAllItems.length === 0) {
+      console.warn('⚠️ 缓存为空，无法从缓存渲染')
+      return
+    }
+
+    const Cesium = (window as any).Cesium
+    if (!Cesium) return
+
+    // 清空现有Billboard
+    billboardCollection.value.removeAll()
+    
+    // 选择使用的数据源
+    const itemsToRender = useFiltered ? cachedFilteredItems : cachedAllItems
+
+    // 添加Billboard到Collection
+    for (const item of itemsToRender) {
+      const canvas = createBillboardCanvasWithArrow(item.point)
+      const position = Cesium.Cartesian3.fromDegrees(item.point.jdxx, item.point.wdxx)
+      
+      // 计算Y轴偏移（让三角箭头指向点位）
+      const canvasHeight = canvas.height
+      const yOffset = -canvasHeight / 2
+      
+      billboardCollection.value.add({
+        position: position,
+        image: canvas,
+        verticalOrigin: Cesium.VerticalOrigin.BOTTOM,
+        horizontalOrigin: Cesium.HorizontalOrigin.CENTER,
+        pixelOffset: new Cesium.Cartesian2(0, 0),
+        disableDepthTestDistance: Number.POSITIVE_INFINITY,
+        scaleByDistance: new Cesium.NearFarScalar(1000, 1.0, 50000, 0.5)
+        // 移除了translucencyByDistance，保持透明度恒定
+      })
+    }
+
+    const statusText = useFiltered ? '防重叠' : '全部'
+    console.log(`✅ 从缓存渲染Billboard（${statusText}），显示 ${itemsToRender.length} 个`)
   }
 
   /**
@@ -234,141 +435,6 @@ export function useMonitoringPoints() {
       lat >= -90 &&
       lat <= 90
     )
-  }
-
-  /**
-   * 默认显示点位弹窗
-   */
-  function showDefaultPopup(point: EnhancedMonitoringPoint): void {
-    if (!viewer.value) return
-    
-    const Cesium = (window as any).Cesium
-    if (!Cesium) return
-    
-    // 将点位坐标转换为屏幕坐标
-    const position = Cesium.Cartesian3.fromDegrees(point.jdxx, point.wdxx)
-    const screenPosition = Cesium.SceneTransforms.wgs84ToWindowCoordinates(
-      viewer.value.scene,
-      position
-    )
-    
-    if (screenPosition) {
-      selectedPoint.value = point
-      popupPosition.value = {
-        x: screenPosition.x,
-        y: screenPosition.y
-      }
-      showPopup.value = true
-      
-      // 监听相机变化更新弹窗位置
-      setupPopupListener()
-      
-      console.log('📍 默认显示弹窗:', point.sbbh)
-    }
-  }
-
-  /**
-   * 设置弹窗位置更新监听
-   */
-  function setupPopupListener(): void {
-    if (!viewer.value) return
-    
-    const Cesium = (window as any).Cesium
-    if (!Cesium) return
-    
-    viewer.value.scene.preRender.addEventListener(updatePopupPosition)
-  }
-
-  /**
-   * 更新弹窗位置（跟随相机移动）
-   */
-  function updatePopupPosition(): void {
-    if (!showPopup.value || !selectedPoint.value || !viewer.value) return
-    
-    const Cesium = (window as any).Cesium
-    if (!Cesium) return
-    
-    const position = Cesium.Cartesian3.fromDegrees(
-      selectedPoint.value.jdxx,
-      selectedPoint.value.wdxx
-    )
-    const screenPosition = Cesium.SceneTransforms.wgs84ToWindowCoordinates(
-      viewer.value.scene,
-      position
-    )
-    
-    if (screenPosition) {
-      popupPosition.value = {
-        x: screenPosition.x,
-        y: screenPosition.y
-      }
-    }
-  }
-
-  /**
-   * 设置点击事件监听
-   */
-  function setupClickHandler(): void {
-    if (!viewer.value) return
-
-    const Cesium = (window as any).Cesium
-    if (!Cesium) return
-
-    // 移除已有的点击处理器
-    if (clickHandler) {
-      clickHandler.destroy()
-    }
-
-    // 创建新的点击处理器
-    clickHandler = new Cesium.ScreenSpaceEventHandler(viewer.value.scene.canvas)
-    
-    clickHandler.setInputAction((movement: any) => {
-      const pickedObject = viewer.value.scene.pick(movement.position)
-      
-      if (Cesium.defined(pickedObject)) {
-        let entity = null
-        
-        if (pickedObject.id) {
-          entity = pickedObject.id
-        } else if (pickedObject.primitive && pickedObject.primitive.id) {
-          entity = pickedObject.primitive.id
-        }
-        
-        if (entity && entity.properties && entity.properties.data) {
-          const pointData = entity.properties.data.getValue()
-          if (pointData) {
-            handlePointClick(pointData, movement.position)
-            return
-          }
-        }
-      }
-      
-      // 点击空白处不再关闭弹窗
-    }, Cesium.ScreenSpaceEventType.LEFT_CLICK)
-    
-    console.log('✅ 点击事件监听已设置')
-  }
-
-  /**
-   * 处理点位点击
-   */
-  function handlePointClick(point: EnhancedMonitoringPoint, screenPosition: { x: number; y: number }): void {
-    selectedPoint.value = point
-    popupPosition.value = {
-      x: screenPosition.x,
-      y: screenPosition.y
-    }
-    showPopup.value = true
-    
-    console.log('📍 选中监测点:', point.sbbh)
-  }
-
-  /**
-   * 关闭弹窗
-   */
-  function closePopup(): void {
-    showPopup.value = false
-    selectedPoint.value = null
   }
 
   /**
@@ -409,16 +475,16 @@ export function useMonitoringPoints() {
    * 清理所有资源
    */
   function cleanup(): void {
-    closePopup()
-    
-    if (clickHandler) {
-      clickHandler.destroy()
-      clickHandler = null
+    // 移除相机高度监听
+    if (cameraHeightListener) {
+      cameraHeightListener()
+      cameraHeightListener = null
     }
     
-    // 移除弹窗位置监听
-    if (viewer.value) {
-      viewer.value.scene.preRender.removeEventListener(updatePopupPosition)
+    // 清理BillboardCollection
+    if (billboardCollection.value && viewer.value) {
+      viewer.value.scene.primitives.remove(billboardCollection.value)
+      billboardCollection.value = null
     }
 
     clearDataSource()
@@ -481,18 +547,12 @@ export function useMonitoringPoints() {
     enhancedData,
     isLoading,
     error,
-    selectedPoint,
-    showPopup,
-    popupPosition,
     stats,
     
     // 方法
     loadData,
     initDataSource,
     updateMapPoints,
-    setupClickHandler,
-    handlePointClick,
-    closePopup,
     flyToPoint,
     refresh,
     setVisible,
