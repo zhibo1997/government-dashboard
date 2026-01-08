@@ -146,43 +146,37 @@ export function createBillboardCanvasWithArrow(
   ctx.stroke();
 
   // 绘制时间文字
-  ctx.fillStyle = "#333";
-  ctx.font = '12px "Microsoft YaHei", Arial, sans-serif';
-  ctx.textBaseline = "middle";
-  ctx.fillText(`🕐 ${point.formattedTime}`, padding, headerHeight / 2 + 4);
-
-  let yOffset = headerHeight + padding + lineHeight / 2;
-
-  // 绘制设备类型名称
-  ctx.fillStyle = "#444";
-  ctx.font = '12px "Microsoft YaHei", Arial, sans-serif';
-  ctx.textAlign = "left";
-  ctx.fillText(point.deviceTypeName, padding, yOffset);
-
-  yOffset += lineHeight;
-
+  ctx.fillStyle = '#333'  // 加深颜色
+  ctx.font = '10px Arial, sans-serif'
+  ctx.textBaseline = 'middle'
+  ctx.fillText(`🕐 ${point.formattedTime}`, padding, headerHeight / 2)
+  
   // 绘制监测数据
   point.parsedJcz.forEach((item) => {
-    // 绘制指标名称 (使用解析后的 name)
-    ctx.fillStyle = "#444";
-    ctx.font = '12px "Microsoft YaHei", Arial, sans-serif';
-    ctx.textAlign = "left";
-    ctx.fillText(
-      `${item.name}${item.unit ? `(${item.unit})` : ""}：`,
-      padding,
-      yOffset
-    );
-
+    // 绘制指标名称
+    ctx.fillStyle = '#444'  // 加深颜色
+    ctx.font = '10px Arial, sans-serif'
+    ctx.textAlign = 'left'
+    ctx.fillText(`${item.name}：`, padding, yOffset)
+    
     // 绘制指标值
-    ctx.fillStyle = "#0066cc";
-    ctx.font = 'bold 13px "Microsoft YaHei", Arial, sans-serif';
-    // const labelWidth = ctx.measureText(`${item.name}：`).width
-    ctx.fillText(String(item.value), padding + 120, yOffset);
-
-    yOffset += lineHeight;
-  });
-
-  return canvas;
+    ctx.fillStyle = '#0066cc'  // 加深蓝色
+    ctx.font = 'bold 12px Arial, sans-serif'
+    const labelWidth = ctx.measureText(`${item.name}：`).width
+    ctx.fillText(String(item.value), padding + labelWidth, yOffset)
+    
+    // 绘制单位
+    if (item.unit) {
+      ctx.fillStyle = '#666'  // 加深颜色
+      ctx.font = '10px Arial, sans-serif'
+      const valueWidth = ctx.measureText(String(item.value)).width
+      ctx.fillText(item.unit, padding + labelWidth + valueWidth + 2, yOffset)
+    }
+    
+    yOffset += lineHeight
+  })
+  
+  return canvas
 }
 
 /**
