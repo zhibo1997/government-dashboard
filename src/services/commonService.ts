@@ -21,6 +21,7 @@ export interface MonitoringDataItem {
 export interface MonitoringPointData {
   jdxx: number // 经度
   wdxx: number // 纬度
+  sbmc: string // 设备名称
   sszx: string // 所属专项
   jcsj: number // 监测时间
   jcz: string // 监测值（JSON字符串，包含多个指标数据）

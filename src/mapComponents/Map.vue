@@ -93,13 +93,10 @@ import { VcCamera ,VcColor} from 'vue-cesium/lib/utils/types.js'
 import mapConfig from '@/config/mapConfig'
 import MeasureTool from './MeasureTool.vue'
 import MapToolbar from './MapToolbar.vue'
-import MonitoringPointPopup from './MonitoringPointPopup.vue'
-import MultiPopupContainer from './MultiPopupContainer.vue'
 
 import { inject } from 'vue'
 import ResponsiveWrapper from '@/components/ResponsiveWrapper.vue'
 import { useMonitoringPoints, type EnhancedMonitoringPoint } from '@/hook/useMonitoringPoints'
-import type { CollisionConfig } from '@/hook/useMultiPopupManager'
 const defaultAccessToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiI1Njk0MWFkNy00NjAzLTRhYTAtYWM4Yi04YjM4Njg4M2IyMzEiLCJpZCI6Mjg1NTg3LCJpYXQiOjE3NDIzNTA2NDR9.tZ0ZoIsk2bMtMFtzNrO0WrRhS0VPfBhr0_78mtSYpMo';
 
 // 使用监测点位 Hook

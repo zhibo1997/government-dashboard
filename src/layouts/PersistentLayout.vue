@@ -32,7 +32,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, provide } from 'vue'
+import { ref, provide, computed } from 'vue'
 import ResponsiveWrapper from '@/components/ResponsiveWrapper.vue'
 import CesiumMap from '@/mapComponents/Map.vue'
 import DashboardHeader from '@/components/DashboardHeader.vue'
@@ -42,6 +42,9 @@ const mapRef = ref<InstanceType<typeof CesiumMap> | null>(null)
 
 // 向子组件提供地图实例引用
 provide('MAP_INSTANCE', mapRef)
+
+// 向子组件提供监测点位管理 Hook（通过 computed 确保响应式）
+provide('monitoringPointsHook', computed(() => mapRef.value?.monitoringPoints))
 </script>
 
 <style lang="scss" scoped>

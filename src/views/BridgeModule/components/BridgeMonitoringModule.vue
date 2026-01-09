@@ -171,7 +171,7 @@ const bridgeCarouselList: BridgeItem[] = [
  */
 const baseUrl = import.meta.env.VITE_BASE_URL;
 const getImagePath = (filename: string) => {
-  return `${baseUrl}/bridgeImages/${filename}`;
+  return `${baseUrl}/images/bridgeImages/${filename}`;
 };
 
 // ==================== 轮播引用和状态 ====================

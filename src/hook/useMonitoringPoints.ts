@@ -6,6 +6,7 @@
 import { ref, computed, shallowRef, onBeforeUnmount } from 'vue'
 import type { Ref, ShallowRef } from 'vue'
 import { getMonitoringPointLatestData, type MonitoringPointData, type MonitoringDataItem } from '@/services/commonService'
+import { getCachedDictionaries } from '@/services/dictionaryService'
 import {
   getDeviceIconUrl,
   getDeviceTypeName,
@@ -59,6 +60,9 @@ export function useMonitoringPoints() {
   // 错误信息
   const error: Ref<string | null> = ref(null)
   
+  // 当前激活的专项列表（支持多个专项同时显示）
+  const activeSszxList: Ref<Set<string>> = ref(new Set(['csaqzx_ql']))
+  
   // Cesium 相关引用
   const dataSource: ShallowRef<any> = shallowRef(null)
   const viewer: ShallowRef<any> = shallowRef(null)
@@ -79,15 +83,18 @@ export function useMonitoringPoints() {
   /**
    * 解析监测值 JSON 字符串
    */
-  function parseJcz(jczString: string): ParsedMonitoringData[] {
+  function parseJcz(jczString: string, indicatorDict: any[] = []): ParsedMonitoringData[] {
     try {
       const jczObj = JSON.parse(jczString) as Record<string, MonitoringDataItem>
-      return Object.entries(jczObj).map(([code, data]) => ({
-        code,
-        name: code,
-        value: data.jcz,
-        unit: data.jcdw || ''
-      }))
+      return Object.entries(jczObj).map(([code, data]) => {
+        const dictItem = indicatorDict.find(i => i.f_ItemValue === code)
+        return {
+          code,
+          name: dictItem ? dictItem.f_ItemName : getIndicatorName(code),
+          value: data.jcz,
+          unit: data.jcdw || ''
+        }
+      })
     } catch (e) {
       console.warn('解析监测值失败:', jczString, e)
       return []
@@ -113,30 +120,55 @@ export function useMonitoringPoints() {
   /**
    * 转换原始数据为增强数据
    */
-  function transformData(data: MonitoringPointData[]): EnhancedMonitoringPoint[] {
-    return data.map((item, index) => ({
-      ...item,
-      id: `mp_${item.sbbh}_${index}`,
-      deviceTypeName: getDeviceTypeName(item.sblx),
-      sszxName: getSszxName(item.sszx),
-      iconUrl: getDeviceIconUrl(item.sblx),
-      parsedJcz: parseJcz(item.jcz),
-      formattedTime: formatTimestamp(item.jcsj)
-    }))
+  function transformData(data: MonitoringPointData[], dictionaries: any = {}): EnhancedMonitoringPoint[] {
+    const deviceTypeDict = dictionaries.jcsblx || []
+    const indicatorDict = dictionaries.jczbzd || []
+
+    return data.map((item, index) => {
+      const dictItem = deviceTypeDict.find((i: any) => i.f_ItemValue === item.sblx)
+      
+      return {
+        ...item,
+        id: `mp_${item.sbbh}_${index}`,
+        deviceTypeName: dictItem ? dictItem.f_ItemName : getDeviceTypeName(item.sblx),
+        sszxName: getSszxName(item.sszx),
+        iconUrl: getDeviceIconUrl(item.sblx),
+        parsedJcz: parseJcz(item.jcz, indicatorDict),
+        formattedTime: formatTimestamp(item.jcsj)
+      }
+    })
   }
 
   /**
-   * 加载监测点位数据
+   * 加载监测点位数据（支持多个专项）
    */
   async function loadData(sszx?: string): Promise<void> {
     isLoading.value = true
     error.value = null
     
     try {
-      const data = await getMonitoringPointLatestData('csaqzx_rq')
-      rawData.value = data
-      enhancedData.value = transformData(data)
-      console.log(`✅ 监测点位数据加载成功，共 ${data.length} 条`)
+      // 如果指定了专项，只加载该专项；否则加载所有激活的专项
+      const sszxList = sszx ? [sszx] : Array.from(activeSszxList.value)
+      
+      // 加载所有激活专项的数据
+      const dataPromises = sszxList.map(s => getMonitoringPointLatestData(s))
+      const [dictionaries, ...dataArrays] = await Promise.all([
+        getCachedDictionaries(['jcsblx', 'jczbzd']),
+        ...dataPromises
+      ])
+      
+      // 合并所有专项的数据
+      const allData = dataArrays.flat()
+      
+      rawData.value = allData
+      enhancedData.value = transformData(allData, dictionaries)
+      
+      // 重置缓存标记，强制重新计算
+      isCacheInitialized = false
+      cachedAllItems = []
+      cachedFilteredItems = []
+      
+      console.log(`✅ 监测点位数据加载成功（${sszxList.map(s => getSszxName(s)).join('、')}），共 ${allData.length} 条`)
     } catch (e: any) {
       error.value = e.message || '加载监测点位数据失败'
       console.error('❌ 加载监测点位数据失败:', e)
@@ -251,7 +283,7 @@ export function useMonitoringPoints() {
       }
 
       const iconName = DEVICE_ICON_MAP[point.sblx] || '0510-裂缝计.svg'
-      const deviceIconUrl = `${baseUrl}/equipmentIcons/${iconName}`
+      const deviceIconUrl = `${baseUrl}/images/equipmentIcons/${iconName}`
       const position = Cesium.Cartesian3.fromDegrees(point.jdxx, point.wdxx)
 
       // 添加点位Entity（纯点/图标自适应）
@@ -277,6 +309,23 @@ export function useMonitoringPoints() {
           horizontalOrigin: Cesium.HorizontalOrigin.CENTER,
           verticalOrigin: Cesium.VerticalOrigin.BOTTOM,
           pixelOffset: new Cesium.Cartesian2(0, 20),
+          distanceDisplayCondition: new Cesium.DistanceDisplayCondition(
+            0,
+            CAMERA_HEIGHT_THRESHOLD
+          ),
+          scaleByDistance: new Cesium.NearFarScalar(1000, 1.0, 20000, 0.5)
+        },
+        // 标签样式（低海拔显示，格式为：设备类型名称-设备编号）
+        label: {
+          text: `${point.sbmc}`,
+          font: '14px Microsoft YaHei, sans-serif',
+          style: Cesium.LabelStyle.FILL_AND_OUTLINE,
+          fillColor: Cesium.Color.WHITE,
+          outlineColor: Cesium.Color.BLACK,
+          outlineWidth: 2,
+          horizontalOrigin: Cesium.HorizontalOrigin.CENTER,
+          verticalOrigin: Cesium.VerticalOrigin.TOP,
+          pixelOffset: new Cesium.Cartesian2(0, 25), // 位于图标下方
           distanceDisplayCondition: new Cesium.DistanceDisplayCondition(
             0,
             CAMERA_HEIGHT_THRESHOLD
@@ -497,6 +546,25 @@ export function useMonitoringPoints() {
   }
 
   /**
+   * 切换专项显示状态
+   */
+  async function toggleSszx(sszx: string, visible: boolean): Promise<void> {
+    console.log(`🔄 切换专项显示: ${getSszxName(sszx)} - ${visible ? '显示' : '隐藏'}`)
+    
+    if (visible) {
+      // 添加到激活列表
+      activeSszxList.value.add(sszx)
+    } else {
+      // 从激活列表移除
+      activeSszxList.value.delete(sszx)
+    }
+    
+    // 重新加载数据并更新地图
+    await loadData()
+    await updateMapPoints()
+  }
+  
+  /**
    * 刷新数据
    */
   async function refresh(sszx?: string): Promise<void> {
@@ -548,6 +616,7 @@ export function useMonitoringPoints() {
     isLoading,
     error,
     stats,
+    activeSszxList,
     
     // 方法
     loadData,
@@ -557,6 +626,7 @@ export function useMonitoringPoints() {
     refresh,
     setVisible,
     cleanup,
+    toggleSszx,
     
     // 工具函数
     parseJcz,

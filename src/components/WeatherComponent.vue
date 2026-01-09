@@ -15,7 +15,7 @@ import dayjs from 'dayjs'
 const baseUrl = import.meta.env.VITE_BASE_URL
 
 const getWeatherImagePath = (code: string): string => {
-  return `${baseUrl}/weatherIcons/${code}@2x.png`
+  return `${baseUrl}/images/weatherIcons/${code}@2x.png`
 }
 
 interface WeatherNow {
