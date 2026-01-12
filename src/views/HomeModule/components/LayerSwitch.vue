@@ -39,12 +39,19 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive } from 'vue'
+import { ref, reactive, watch } from 'vue'
+
+// 接收外部状态
+interface Props {
+  activeLayers?: string[]
+}
+
+const props = defineProps<Props>();
 
 // 定义专项选项
 const layerOptions = reactive([
-  { value: 'csaqzx_ql', label: '桥梁监测', icon: '🌉', visible: true },
-  { value: 'csaqzx_rq', label: '燃气监测', icon: '🔥', visible: false }
+  { value: 'csaqzx_rq', label: '燃气监测', icon: '🔥', visible: true },
+  { value: 'csaqzx_ql', label: '桥梁监测', icon: '🌉', visible: false },
 ])
 
 // 加载状态
@@ -54,6 +61,15 @@ const loading = ref(false)
 const emit = defineEmits<{
   'layer-toggle': [payload: { sszx: string; visible: boolean }]
 }>()
+
+// 监听外部状态变化，同步内部状态
+// watch(() => props.activeLayers, (newActiveLayers) => {
+//   if (newActiveLayers) {
+//     layerOptions.forEach(option => {
+//       option.visible = newActiveLayers.includes(option.value);
+//     });
+//   }
+// }, { immediate: true });
 
 // 切换图层显示/隐藏
 const handleToggle = async (sszx: string, event: Event) => {

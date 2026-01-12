@@ -42,17 +42,17 @@ export function createBillboardCanvasWithArrow(
   const ctx = canvas.getContext("2d")!;
 
   // Canvas尺寸设置
-  const width = 180;
+  const width = 150;
   const padding = 8;
-  const lineHeight = 18;
-  const headerHeight = 22;
+  const lineHeight = 16;
+  const headerHeight = 26;
   const arrowHeight = 10; // 三角箭头高度
 
   // 计算需要的高度
   const dataRows = point.parsedJcz.length;
   // 增加一行用于显示设备类型
   const contentHeight =
-    headerHeight + (dataRows + 1) * lineHeight + padding * 2;
+    headerHeight + dataRows * lineHeight + padding * 2;
   const height = contentHeight + arrowHeight;
 
   canvas.width = width;
@@ -100,10 +100,10 @@ export function createBillboardCanvasWithArrow(
 
   // 绘制渐变背景（加深透明度）
   const gradient = ctx.createLinearGradient(0, 0, width, contentHeight);
-  gradient.addColorStop(0, "rgba(255, 255, 255, 0.9)");
-  gradient.addColorStop(0.25, "rgba(249, 255, 252, 0.9)");
-  gradient.addColorStop(0.5, "rgba(227, 255, 240, 0.9)");
-  gradient.addColorStop(1, "rgba(179, 253, 214, 0.9)");
+  gradient.addColorStop(0, "rgba(255, 255, 255, 0.95)");
+  gradient.addColorStop(0.25, "rgba(249, 255, 252, 0.95)");
+  gradient.addColorStop(0.5, "rgba(227, 255, 240, 0.95)");
+  gradient.addColorStop(1, "rgba(179, 253, 214, 0.95)");
   ctx.fillStyle = gradient;
   ctx.fillRect(0, 0, width, height);
 
@@ -137,41 +137,35 @@ export function createBillboardCanvasWithArrow(
   ctx.fillStyle = "rgba(245, 245, 245, 0.9)";
   ctx.fillRect(0, 0, width, headerHeight);
 
-  // 绘制时间栏分隔线
-  ctx.strokeStyle = "rgba(239, 239, 239, 0.9)";
+  // 绘制下边框线
+  ctx.strokeStyle = "#FFFFFF";
   ctx.lineWidth = 1;
   ctx.beginPath();
-  ctx.moveTo(0, headerHeight);
-  ctx.lineTo(width, headerHeight);
+  ctx.moveTo(0, height - arrowHeight);
+  ctx.lineTo(width, height - arrowHeight);
   ctx.stroke();
 
   // 绘制时间文字
-  ctx.fillStyle = '#333'  // 加深颜色
-  ctx.font = '10px Arial, sans-serif'
+  ctx.fillStyle = '#000'  // 加深颜色
+  ctx.font = '12px Arial, sans-serif'
   ctx.textBaseline = 'middle'
-  ctx.fillText(`🕐 ${point.formattedTime}`, padding, headerHeight / 2)
-  
+  ctx.fillText(`🕐  ${point.formattedTime}`, padding, headerHeight / 2+2)
+    
   // 绘制监测数据
+  let yOffset = headerHeight + padding + lineHeight / 2
   point.parsedJcz.forEach((item) => {
     // 绘制指标名称
-    ctx.fillStyle = '#444'  // 加深颜色
-    ctx.font = '10px Arial, sans-serif'
+    ctx.fillStyle = '#333'  // 加深颜色
+    ctx.font = '12px Arial, sans-serif'
     ctx.textAlign = 'left'
-    ctx.fillText(`${item.name}：`, padding, yOffset)
-    
+    const labelWidth=100;
+    ctx.fillText(`${item.name}${item.unit ? `(${item.unit})` : ""}：`, padding, yOffset)
+      
     // 绘制指标值
     ctx.fillStyle = '#0066cc'  // 加深蓝色
-    ctx.font = 'bold 12px Arial, sans-serif'
-    const labelWidth = ctx.measureText(`${item.name}：`).width
-    ctx.fillText(String(item.value), padding + labelWidth, yOffset)
+    ctx.font = 'bold 14px Arial, sans-serif'
+    ctx.fillText(String(item.value), labelWidth, yOffset)
     
-    // 绘制单位
-    if (item.unit) {
-      ctx.fillStyle = '#666'  // 加深颜色
-      ctx.font = '10px Arial, sans-serif'
-      const valueWidth = ctx.measureText(String(item.value)).width
-      ctx.fillText(item.unit, padding + labelWidth + valueWidth + 2, yOffset)
-    }
     
     yOffset += lineHeight
   })

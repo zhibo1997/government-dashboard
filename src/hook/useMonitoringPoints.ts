@@ -61,7 +61,7 @@ export function useMonitoringPoints() {
   const error: Ref<string | null> = ref(null)
   
   // 当前激活的专项列表（支持多个专项同时显示）
-  const activeSszxList: Ref<Set<string>> = ref(new Set(['csaqzx_ql']))
+  const activeSszxList: Ref<Set<string>> = ref(new Set(['csaqzx_rq']))
   
   // Cesium 相关引用
   const dataSource: ShallowRef<any> = shallowRef(null)
@@ -274,6 +274,14 @@ export function useMonitoringPoints() {
     dataSource.value.entities.removeAll()
     dataSource.value.entities.suspendEvents()
 
+    // 定义不同专项的颜色映射
+    const sszxColorMap: Record<string, string> = {
+      'csaqzx_ql': '#1890ff',  // 桥梁监测 - 蓝色
+      'csaqzx_rq': '#ff4d4f',  // 燃气监测 - 红色
+      'csaqzx_gs': '#52c41a',  // 供水监测 - 绿色
+      'csaqzx_ps': '#faad14',  // 排水监测 - 黄色
+    };
+
     const baseUrl = import.meta.env.VITE_BASE_URL
 
     for (const point of enhancedData.value) {
@@ -285,6 +293,9 @@ export function useMonitoringPoints() {
       const iconName = DEVICE_ICON_MAP[point.sblx] || '0510-裂缝计.svg'
       const deviceIconUrl = `${baseUrl}/images/equipmentIcons/${iconName}`
       const position = Cesium.Cartesian3.fromDegrees(point.jdxx, point.wdxx)
+      
+      // 根据专项类型获取对应颜色
+      const pointColor = sszxColorMap[point.sszx] || '#1890ff'; // 默认蓝色
 
       // 添加点位Entity（纯点/图标自适应）
       dataSource.value.entities.add({
@@ -294,7 +305,7 @@ export function useMonitoringPoints() {
         // 纯点样式（高海拔显示）
         point: {
           pixelSize: 6,
-          color: Cesium.Color.fromCssColorString('#1890ff'),
+          color: Cesium.Color.fromCssColorString(pointColor),
           outlineColor: Cesium.Color.WHITE,
           outlineWidth: 1,
           distanceDisplayCondition: new Cesium.DistanceDisplayCondition(
@@ -342,6 +353,11 @@ export function useMonitoringPoints() {
     
     // 立即渲染Billboard（初始化时默认应用防重叠）
     updateBillboards(true)
+    
+    // 强制地图立即更新渲染
+    if (viewer.value && viewer.value.scene) {
+      viewer.value.scene.requestRender();
+    }
   }
 
   /**
@@ -418,6 +434,12 @@ export function useMonitoringPoints() {
 
     const statusText = applyAntiOverlap ? '应用防重叠' : '显示全部'
     console.log(`✅ Billboard更新完成（${statusText}），显示 ${filteredItems.length} 个（总共 ${billboardItems.length} 个）`)
+    
+    // 强制地图立即更新渲染
+    if (viewer.value && viewer.value.scene) {
+      console.log('强制地图立即更新渲染')
+      viewer.value.scene.requestRender();
+    }
   }
   
   /**
@@ -468,6 +490,11 @@ export function useMonitoringPoints() {
 
     const statusText = useFiltered ? '防重叠' : '全部'
     console.log(`✅ 从缓存渲染Billboard（${statusText}），显示 ${itemsToRender.length} 个`)
+    
+    // 强制地图立即更新渲染
+    if (viewer.value && viewer.value.scene) {
+      viewer.value.scene.requestRender();
+    }
   }
 
   /**

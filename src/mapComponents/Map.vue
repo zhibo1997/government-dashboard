@@ -353,7 +353,7 @@ async function initMonitoringPoints(viewer: any) {
     await monitoringPoints.updateMapPoints()
     
     // 设置点击事件监听
-    monitoringPoints.setupClickHandler()
+    // monitoringPoints.setupClickHandler()
     
     console.log('✅ 监测点位功能初始化完成')
   } catch (error) {

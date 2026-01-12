@@ -47,7 +47,7 @@
           @update:expanded-keys="handleExpandedKeysChange"
           @update:checked-keys="handleCheckedKeysChange"
         >
-          <template #default="{ option }">
+          <template v-slot="{ option }">
             <div class="layer-item">
               <div class="layer-info">
                 <span class="layer-name">{{ option.title }}</span>
@@ -431,6 +431,11 @@ function handleLayerVisibilityChange(layerId: string, visible: boolean) {
     // 卸载图层
     emit("layer-toggle", layerId, false, layerData);
   }
+  
+  // 强制地图立即更新渲染
+  if (props.viewerInstance && props.viewerInstance.scene) {
+    props.viewerInstance.scene.requestRender();
+  }
 }
 
 /**
@@ -512,7 +517,7 @@ defineExpose({
   background: transparent;
 
   .header-title {
-    font-size: 16px;
+    font-size: 18px;
     font-weight: 500;
     color: #ffffff;
   }
@@ -540,9 +545,11 @@ defineExpose({
 
     .n-input__input-el {
       color: #ffffff !important;
+      font-size: 18px !important;
 
       &::placeholder {
         color: rgba(255, 255, 255, 0.45);
+        font-size: 18px !important;
       }
     }
 
@@ -557,13 +564,14 @@ defineExpose({
 .layer-count {
   flex-shrink: 0;
   padding: 12px 20px;
-  font-size: 14px;
+  font-size: 16px;
   color: rgba(255, 255, 255, 0.65);
 
   .count-number {
     color: #1890ff;
     font-weight: 500;
     margin-left: 4px;
+    font-size: 16px;
   }
 }
 
@@ -618,7 +626,7 @@ defineExpose({
 }
 
 .layer-name {
-  font-size: 14px;
+  font-size: 24px;
   color: #ffffff;
   white-space: nowrap;
   overflow: hidden;
@@ -658,7 +666,7 @@ defineExpose({
 :deep(.n-tree) {
   background: transparent;
   color: #ffffff;
-  font-size: 14px;
+  font-size: 16px;
 
   .n-tree-node {
     margin: 4px 0;
@@ -666,9 +674,10 @@ defineExpose({
 
   .n-tree-node-content {
     color: #ffffff;
-    padding: 4px 8px;
+    padding: 6px 10px;
     border-radius: 4px;
     transition: all 0.2s ease;
+    font-size: 16px;
 
     &:hover {
       background: rgba(255, 255, 255, 0.08);

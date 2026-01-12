@@ -10,7 +10,7 @@
     
     <!-- 图层开关控件（位于左侧内容区底部） -->
     <div class="layer-switch-wrapper">
-      <LayerSwitch @layer-toggle="handleLayerToggle" />
+      <LayerSwitch :active-layers="Array.from(monitoringPointsHook.value?.activeSszxList?.value || [])" @layer-toggle="handleLayerToggle" />
     </div>
 
     <!-- 右侧数据展示区 -->
@@ -104,8 +104,9 @@ const handleLayerToggle = async (payload: { sszx: string; visible: boolean }) =>
 
 .layer-switch-wrapper {
   position: absolute;
-  left: 20px;
+  left: 820px;
   bottom: 20px;
   z-index: 15;
+  pointer-events: auto;
 }
 </style>
