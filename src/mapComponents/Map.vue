@@ -346,9 +346,6 @@ async function initMonitoringPoints(viewer: any) {
     // 初始化数据源
     await monitoringPoints.initDataSource(viewer)
     
-    // 加载监测点位数据
-    await monitoringPoints.loadData()
-    
     // 更新地图点位
     await monitoringPoints.updateMapPoints()
     

@@ -88,6 +88,7 @@ const emit = defineEmits<{
   "layer-opacity-change": [layerId: string, opacity: number];
   "load-mvt": [url: string, layerId: string];
   "load-3dtiles": [url: string, layerId: string];
+  "toggle-device-type": [sblx: string, visible: boolean]; // specialLayer 切换，传递设备类型、显隐状态
 }>();
 
 /**
@@ -119,7 +120,7 @@ const route = useRoute();
 
 /**
  * 根据当前路由获取对应的专项模块代码
- * 返回后端API需要的 SszxCode 参数
+ * 返回后端API需要的 SszxCode 参数（中文名称）
  */
 function getModuleCodeByRoute(): string {
   const routeName = route.name as string;
@@ -132,6 +133,21 @@ function getModuleCodeByRoute(): string {
   const moduleCode = moduleCodeMap[routeName];
   
   return moduleCode;
+}
+
+/**
+ * 根据当前路由获取对应的专项编码（用于监测点位加载）
+ * 返回类似 'csaqzx_rq' 的编码
+ */
+function getSszxCodeByRoute(): string {
+  const routeName = route.name as string;
+  const sszxCodeMap: Record<string, string> = {
+    gas: 'csaqzx_rq',        // 燃气监测
+    waterProject: 'csaqzx_gs', // 供水监测
+    bridge: 'csaqzx_ql',      // 桥梁监测
+  };
+  
+  return sszxCodeMap[routeName] || '';
 }
 
 // 图层状态映射
@@ -167,6 +183,9 @@ async function fetchLayerTree() {
 
       // 初始化展开的节点
       initExpandedKeys();
+      
+      // 初始化默认显示的监测点（问题1解决）
+      initializeDefaultMonitoringPoints();
     } else {
       console.warn("⚠️ 图层树数据为空");
       rawLayerData.value = [];
@@ -336,16 +355,48 @@ function handleExpandedKeysChange(keys: string[]) {
 }
 
 /**
- * 处理图层勾选
+ * 处理图层勾选（支持父子节点联动）
  */
 function handleCheckedKeysChange(keys: string[]) {
-  checkedKeys.value = keys;
+  // 问题2解决：手动实现父子节点联动
+  const previousKeys = new Set(checkedKeys.value);
+  const newKeys = new Set(keys);
+  
+  // 找出新增的key和移除的key
+  const addedKeys = keys.filter(key => !previousKeys.has(key));
+  const removedKeys = checkedKeys.value.filter(key => !newKeys.has(key));
+  
+  let finalKeys = [...keys];
+  
+  // 处理新增的节点（勾选操作）
+  for (const addedKey of addedKeys) {
+    const node = findNodeByKey(treeData.value, addedKey);
+    if (node && node.children && node.children.length > 0) {
+      // 如果是父节点，联动勾选所有子节点
+      const childKeys = getAllChildKeys(node);
+      finalKeys = [...new Set([...finalKeys, ...childKeys])];
+      console.log(`✅ 勾选父节点 "${node.title}"，联动勾选 ${childKeys.length} 个子节点`);
+    }
+  }
+  
+  // 处理移除的节点（取消勾选操作）
+  for (const removedKey of removedKeys) {
+    const node = findNodeByKey(treeData.value, removedKey);
+    if (node && node.children && node.children.length > 0) {
+      // 如果是父节点，联动取消勾选所有子节点
+      const childKeys = getAllChildKeys(node);
+      finalKeys = finalKeys.filter(key => !childKeys.includes(key));
+      console.log(`✅ 取消勾选父节点 "${node.title}"，联动取消 ${childKeys.length} 个子节点`);
+    }
+  }
+  
+  checkedKeys.value = finalKeys;
 
   // 遍历所有图层,处理显隐状态变化
   const allLayerIds = Array.from(layerStates.value.keys());
 
   allLayerIds.forEach((layerId) => {
-    const isChecked = keys.includes(layerId);
+    const isChecked = finalKeys.includes(layerId);
     const currentState = layerStates.value.get(layerId);
 
     if (currentState && currentState.visible !== isChecked) {
@@ -362,13 +413,59 @@ function handleCheckedKeysChange(keys: string[]) {
 }
 
 /**
+ * 在树形数据中根据key查找节点
+ */
+function findNodeByKey(nodes: any[], key: string): any | null {
+  for (const node of nodes) {
+    if (node.key === key) {
+      return node;
+    }
+    
+    if (node.children && node.children.length > 0) {
+      const found = findNodeByKey(node.children, key);
+      if (found) return found;
+    }
+  }
+  
+  return null;
+}
+
+/**
+ * 递归获取节点的所有子节点key
+ */
+function getAllChildKeys(node: any): string[] {
+  const keys: string[] = [];
+  
+  if (node.children && node.children.length > 0) {
+    node.children.forEach((child: any) => {
+      // 只收集非分组节点（实际图层）的key
+      if (child.isLayer) {
+        keys.push(child.key);
+      }
+      // 递归处理子节点
+      if (child.children && child.children.length > 0) {
+        keys.push(...getAllChildKeys(child));
+      }
+    });
+  }
+  
+  return keys;
+}
+
+/**
  * 智能判断图层类型（容错机制）
  * 当后端返回的type不正确时，根据URL自动判断
  */
 function detectLayerType(layerData: any): string {
+  const type = layerData.type || '';
+  
+  // specialLayer 类型直接返回，不需要URL判断
+  if (type === 'specialLayer') {
+    return 'specialLayer';
+  }
+  
   // 转换URL协议
   const url = convertUrlProtocol(layerData.url || '');
-  const type = layerData.type || '';
   
   // 如果URL包含tileset.json，一定是3D Tiles
   if (url.includes('tileset.json')) {
@@ -413,6 +510,10 @@ function handleLayerVisibilityChange(layerId: string, visible: boolean) {
   // 根据图层类型触发不同的加载方法
   if (visible) {
     switch (actualType) {
+      case "specialLayer":
+        // specialLayer: 触发设备类型切换，url 即为 sblx 参数
+        emit("toggle-device-type", layerData.url, true);
+        break;
       case "mvt":
         emit("load-mvt", convertUrlProtocol(layerData.url), layerId);
         break;
@@ -429,7 +530,12 @@ function handleLayerVisibilityChange(layerId: string, visible: boolean) {
     }
   } else {
     // 卸载图层
-    emit("layer-toggle", layerId, false, layerData);
+    if (actualType === "specialLayer") {
+      // specialLayer 卸载
+      emit("toggle-device-type", layerData.url, false);
+    } else {
+      emit("layer-toggle", layerId, false, layerData);
+    }
   }
   
   // 强制地图立即更新渲染
@@ -454,6 +560,62 @@ function findLayerById(nodes: any[], id: string): any | null {
   }
 
   return null;
+}
+
+/**
+ * 初始化默认显示的监测点（问题1解决）
+ * 在图层树加载完成后，根据条件自动显示某些监测点
+ */
+function initializeDefaultMonitoringPoints() {
+  console.log('🔄 开始初始化默认显示的监测点...');
+  
+  const defaultVisibleLayers: string[] = [];
+  
+  // 递归遍历图层树，找到所有需要默认显示的 specialLayer
+  const traverseNodes = (nodes: any[]) => {
+    nodes.forEach(node => {
+      // 判断是否为 specialLayer 且 visible 为 true
+      if (node.type === 'specialLayer' && (node.visible === 'true' || node.visible === true)) {
+        defaultVisibleLayers.push(node.id);
+        console.log(`📍 发现默认显示的监测点图层: ${node.name} (${node.id})`);
+      }
+      
+      // 递归处理子节点
+      if (node.child && Array.isArray(node.child)) {
+        traverseNodes(node.child);
+      }
+    });
+  };
+  
+  traverseNodes(rawLayerData.value);
+  
+  // 如果有需要默认显示的图层，更新勾选状态
+  if (defaultVisibleLayers.length > 0) {
+    console.log(`✅ 找到 ${defaultVisibleLayers.length} 个默认显示的监测点图层，开始加载...`);
+    
+    // 更新勾选状态（这会触发 handleCheckedKeysChange）
+    checkedKeys.value = [...new Set([...checkedKeys.value, ...defaultVisibleLayers])];
+    
+    // 手动触发图层显示逻辑
+    defaultVisibleLayers.forEach(layerId => {
+      const layerData = findLayerById(rawLayerData.value, layerId);
+      if (layerData) {
+        // 更新图层状态
+        const currentState = layerStates.value.get(layerId);
+        if (currentState) {
+          layerStates.value.set(layerId, {
+            ...currentState,
+            visible: true
+          });
+        }
+        
+        // 触发图层加载
+        handleLayerVisibilityChange(layerId, true);
+      }
+    });
+  } else {
+    console.log('ℹ️ 没有找到需要默认显示的监测点图层');
+  }
 }
 
 /**

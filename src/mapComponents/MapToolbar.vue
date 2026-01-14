@@ -35,10 +35,10 @@
         </div>
         <!-- 图层树面板 -->
         <transition name="slide-left">
-          <div v-if="showLayerTreePanel" class="layer-tree-panel">
+          <div v-show="showLayerTreePanel" class="layer-tree-panel">
             <OptimizedLayerTree ref="layerTreeRef" :viewer-instance="props.viewerInstance" @load-mvt="handleLoadMVT"
               @load-3dtiles="handleLoad3DTiles" @layer-toggle="handleLayerToggle"
-              @layer-opacity-change="handleLayerOpacityChange" />
+              @layer-opacity-change="handleLayerOpacityChange" @toggle-device-type="handleToggleDeviceType" />
           </div>
         </transition>
       </div>
@@ -87,12 +87,15 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue";
+import { ref, inject } from "vue";
 import OptimizedLayerTree from "./OptimizedLayerTree.vue";
 import { useMapHooks } from "@/hook/useMapHooks";
 import { BuildingSkyscraper } from "@vicons/tabler";
 
 const cesiumUtils = useMapHooks();
+
+// 注入监测点位管理 Hook（从 PersistentLayout 传递）
+const monitoringPointsHook = inject<any>('monitoringPointsHook');
 
 // Props - 从父组件接收状态
 interface Props {
@@ -298,6 +301,26 @@ const handleLayerOpacityChange = (layerId: string, opacity: number) => {
       layer.instance.alpha = opacity;
       console.log(`✅ MVT图层透明度已设置: ${layerId} = ${opacity}`);
     }
+  }
+};
+
+// 处理 specialLayer 设备类型切换
+const handleToggleDeviceType = async (sblx: string, visible: boolean) => {
+  console.log("🚀 ~ handleToggleDeviceType ~ visible:", visible)
+  if (!monitoringPointsHook || !monitoringPointsHook.value) {
+    console.warn('⚠️ 监测点位管理 Hook 未注入');
+    return;
+  }
+
+  try {
+    console.log(`🔄 specialLayer 触发设备类型切换: ${sblx} - ${visible ? '显示' : '隐藏'}`);
+    
+    // 调用 Hook 的设备类型切换方法
+    await monitoringPointsHook.value.toggleDeviceType(sblx, visible);
+    
+    console.log('✅ specialLayer 设备类型切换成功');
+  } catch (error) {
+    console.error('❌ specialLayer 设备类型切换失败:', error);
   }
 };
 

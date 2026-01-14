@@ -7,11 +7,6 @@
   <template v-if="!loading">
     <!-- 左侧数据展示区 -->
     <LeftContent />
-    
-    <!-- 图层开关控件（位于左侧内容区底部） -->
-    <div class="layer-switch-wrapper">
-      <LayerSwitch :active-layers="Array.from(monitoringPointsHook.value?.activeSszxList?.value || [])" @layer-toggle="handleLayerToggle" />
-    </div>
 
     <!-- 右侧数据展示区 -->
     <RightContent />
@@ -26,8 +21,7 @@
 <script setup lang="ts">
 import LeftContent from './leftContent.vue'
 import RightContent from './rightContent.vue'
-import LayerSwitch from './components/LayerSwitch.vue'
-import { onBeforeMount, ref, inject } from 'vue'
+import { onBeforeMount, ref } from 'vue'
 import { getCachedDictionaries } from '@/services/dictionaryService'
 
 // 定义组件名称
@@ -36,9 +30,6 @@ defineOptions({
 })
 
 const loading = ref(false)
-
-// 注入监测点位管理 Hook（从 PersistentLayout 传递）
-const monitoringPointsHook = inject<any>('monitoringPointsHook')
 
 // 在页面初始化时预加载所有字典数据
 onBeforeMount(async () => {
@@ -59,26 +50,6 @@ onBeforeMount(async () => {
     console.error('字典数据预加载失败:', error)
   }
 })
-
-/**
- * 处理图层开关切换
- */
-const handleLayerToggle = async (payload: { sszx: string; visible: boolean }) => {
-  if (!monitoringPointsHook || !monitoringPointsHook.value) {
-    console.warn('⚠️ 监测点位管理 Hook 未注入')
-    return
-  }
-  
-  console.log(`🔄 首页触发图层切换: ${payload.sszx} - ${payload.visible ? '显示' : '隐藏'}`)
-  
-  try {
-    // 调用 Hook 的切换方法
-    await monitoringPointsHook.value.toggleSszx(payload.sszx, payload.visible)
-    console.log('✅ 图层切换成功')
-  } catch (error) {
-    console.error('❌ 图层切换失败:', error)
-  }
-}
 </script>
 
 <style lang="scss">
@@ -100,13 +71,5 @@ const handleLayerToggle = async (payload: { sszx: string; visible: boolean }) =>
   height: 100%;
   color: rgba(255, 255, 255, 0.6);
   font-size: 16px;
-}
-
-.layer-switch-wrapper {
-  position: absolute;
-  left: 820px;
-  bottom: 20px;
-  z-index: 15;
-  pointer-events: auto;
 }
 </style>

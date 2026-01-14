@@ -60,8 +60,8 @@ export function useMonitoringPoints() {
   // 错误信息
   const error: Ref<string | null> = ref(null)
   
-  // 当前激活的专项列表（支持多个专项同时显示）
-  const activeSszxList: Ref<Set<string>> = ref(new Set(['csaqzx_rq']))
+  // 当前已加载的设备类型集合（用于跟踪哪些设备类型的数据已被请求）
+  const loadedDeviceTypes: Ref<Set<string>> = ref(new Set())
   
   // Cesium 相关引用
   const dataSource: ShallowRef<any> = shallowRef(null)
@@ -140,40 +140,27 @@ export function useMonitoringPoints() {
   }
 
   /**
-   * 加载监测点位数据（支持多个专项）
+   * 加载指定设备类型的监测点位数据
+   * @param sblx 设备类型代码（必填）
+   * @param sszx 所属专项代码（可选）
    */
-  async function loadData(sszx?: string): Promise<void> {
-    isLoading.value = true
-    error.value = null
+  async function loadDeviceTypeData(sblx: string, sszx?: string): Promise<MonitoringPointData[]> {
+    if (!sblx) {
+      console.warn('⚠️ 加载数据时未提供设备类型代码')
+      return []
+    }
     
     try {
-      // 如果指定了专项，只加载该专项；否则加载所有激活的专项
-      const sszxList = sszx ? [sszx] : Array.from(activeSszxList.value)
+      console.log(`🔄 请求设备类型数据: ${sblx}${sszx ? ` (专项: ${getSszxName(sszx)})` : ''}`)
       
-      // 加载所有激活专项的数据
-      const dataPromises = sszxList.map(s => getMonitoringPointLatestData(s))
-      const [dictionaries, ...dataArrays] = await Promise.all([
-        getCachedDictionaries(['jcsblx', 'jczbzd']),
-        ...dataPromises
-      ])
+      // 请求指定设备类型的数据
+      const dataArray = await getMonitoringPointLatestData(sszx, sblx)
       
-      // 合并所有专项的数据
-      const allData = dataArrays.flat()
-      
-      rawData.value = allData
-      enhancedData.value = transformData(allData, dictionaries)
-      
-      // 重置缓存标记，强制重新计算
-      isCacheInitialized = false
-      cachedAllItems = []
-      cachedFilteredItems = []
-      
-      console.log(`✅ 监测点位数据加载成功（${sszxList.map(s => getSszxName(s)).join('、')}），共 ${allData.length} 条`)
+      console.log(`✅ 设备类型 ${sblx} 数据请求成功，共 ${dataArray.length} 条`)
+      return dataArray
     } catch (e: any) {
-      error.value = e.message || '加载监测点位数据失败'
-      console.error('❌ 加载监测点位数据失败:', e)
-    } finally {
-      isLoading.value = false
+      console.error(`❌ 请求设备类型 ${sblx} 数据失败:`, e)
+      throw e
     }
   }
 
@@ -567,36 +554,101 @@ export function useMonitoringPoints() {
     
     rawData.value = []
     enhancedData.value = []
+    loadedDeviceTypes.value.clear()
     viewer.value = null
     
     console.log('🗑️ 监测点位资源已清理')
   }
 
   /**
-   * 切换专项显示状态
+   * 切换设备类型显示状态（按需加载数据）
+   * @param sblx 设备类型代码
+   * @param visible 是否可见
+   * @param sszx 所属专项代码（可选）
    */
-  async function toggleSszx(sszx: string, visible: boolean): Promise<void> {
-    console.log(`🔄 切换专项显示: ${getSszxName(sszx)} - ${visible ? '显示' : '隐藏'}`)
+  async function toggleDeviceType(sblx: string, visible: boolean, sszx?: string): Promise<void> {
+    console.log(`🔄 切换设备类型: ${sblx} - ${visible ? '显示' : '隐藏'}`)
     
-    if (visible) {
-      // 添加到激活列表
-      activeSszxList.value.add(sszx)
-    } else {
-      // 从激活列表移除
-      activeSszxList.value.delete(sszx)
+    isLoading.value = true
+    error.value = null
+    
+    try {
+      if (visible) {
+        // 显示: 请求该设备类型的数据
+        const deviceData = await loadDeviceTypeData(sblx, sszx)
+        
+        // 获取字典数据
+        const dictionaries = await getCachedDictionaries(['jcsblx', 'jczbzd'])
+        
+        // 将新数据添加到现有数据中（去重）
+        const existingIds = new Set(rawData.value.map(item => item.sbbh))
+        const newData = deviceData.filter(item => !existingIds.has(item.sbbh))
+        
+        if (newData.length > 0) {
+          rawData.value = [...rawData.value, ...newData]
+          enhancedData.value = transformData(rawData.value, dictionaries)
+          console.log(`➕ 新增 ${newData.length} 条设备类型 ${sblx} 的数据`)
+        } else {
+          console.log(`ℹ️ 设备类型 ${sblx} 的数据已存在，无需重复加载`)
+        }
+        
+        // 记录已加载的设备类型
+        loadedDeviceTypes.value.add(sblx)
+      } else {
+        // 隐藏: 从数据中移除该设备类型的点位
+        const filteredRawData = rawData.value.filter(item => item.sblx !== sblx)
+        const filteredEnhancedData = enhancedData.value.filter(item => item.sblx !== sblx)
+        
+        const removedCount = rawData.value.length - filteredRawData.length
+        rawData.value = filteredRawData
+        enhancedData.value = filteredEnhancedData
+        
+        console.log(`➖ 移除 ${removedCount} 条设备类型 ${sblx} 的数据`)
+        
+        // 从已加载列表中移除
+        loadedDeviceTypes.value.delete(sblx)
+      }
+      
+      // 重置缓存标记，强制重新计算
+      isCacheInitialized = false
+      cachedAllItems = []
+      cachedFilteredItems = []
+      
+      // 更新地图显示
+      await updateMapPoints()
+      
+      console.log(`✅ 设备类型切换成功，当前已加载: ${Array.from(loadedDeviceTypes.value).join(', ') || '无'}，显示 ${enhancedData.value.length} 条数据`)
+    } catch (e: any) {
+      error.value = e.message || '切换设备类型失败'
+      console.error('❌ 切换设备类型失败:', e)
+    } finally {
+      isLoading.value = false
     }
-    
-    // 重新加载数据并更新地图
-    await loadData()
-    await updateMapPoints()
   }
   
   /**
-   * 刷新数据
+   * 刷新数据（重新加载所有已加载的设备类型）
    */
-  async function refresh(sszx?: string): Promise<void> {
-    await loadData(sszx)
-    await updateMapPoints()
+  async function refresh(): Promise<void> {
+    if (loadedDeviceTypes.value.size === 0) {
+      console.log('ℹ️ 没有已加载的设备类型，无需刷新')
+      return
+    }
+    
+    console.log(`🔄 刷新数据，重新加载 ${loadedDeviceTypes.value.size} 个设备类型`)
+    
+    // 保存当前已加载的设备类型列表
+    const typesToReload = Array.from(loadedDeviceTypes.value)
+    
+    // 清空数据
+    rawData.value = []
+    enhancedData.value = []
+    loadedDeviceTypes.value.clear()
+    
+    // 重新加载每个设备类型
+    for (const sblx of typesToReload) {
+      await toggleDeviceType(sblx, true)
+    }
   }
 
   /**
@@ -643,17 +695,16 @@ export function useMonitoringPoints() {
     isLoading,
     error,
     stats,
-    activeSszxList,
+    loadedDeviceTypes,
     
     // 方法
-    loadData,
     initDataSource,
     updateMapPoints,
     flyToPoint,
     refresh,
     setVisible,
     cleanup,
-    toggleSszx,
+    toggleDeviceType,
     
     // 工具函数
     parseJcz,
