@@ -4,6 +4,20 @@
  */
 
 import type { EnhancedMonitoringPoint } from "./useMonitoringPoints";
+import BillboardContentBg from "@/assets/img/homeModule/billboard_content.webp";
+import BillboardArrow from "@/assets/img/homeModule/billboard_header.webp";
+import TimeIcon from "@/assets/img/homeModule/time_icon.webp";
+
+// 预加载图片资源
+const resources = {
+  contentBg: new Image(),
+  headerBg: new Image(),
+  timeIcon: new Image(),
+};
+
+resources.contentBg.src = BillboardContentBg;
+resources.headerBg.src = BillboardArrow;
+resources.timeIcon.src = TimeIcon;
 
 /**
  * 屏幕坐标
@@ -42,18 +56,15 @@ export function createBillboardCanvasWithArrow(
   const ctx = canvas.getContext("2d")!;
 
   // Canvas尺寸设置
-  const width = 150;
-  const padding = 8;
-  const lineHeight = 16;
-  const headerHeight = 26;
-  const arrowHeight = 10; // 三角箭头高度
-
-  // 计算需要的高度
+  const width = 220; // 加宽以适应新样式
+  const padding = 10;
+  const lineHeight = 24; // 增加行高
+  const headerHeight = 36; // 增加头部高度
+  
+  // 计算内容高度
   const dataRows = point.parsedJcz.length;
-  // 增加一行用于显示设备类型
-  const contentHeight =
-    headerHeight + dataRows * lineHeight + padding * 2;
-  const height = contentHeight + arrowHeight;
+  const contentBodyHeight = dataRows * lineHeight + padding * 2;
+  const height = headerHeight + contentBodyHeight;
 
   canvas.width = width;
   canvas.height = height;
@@ -61,116 +72,81 @@ export function createBillboardCanvasWithArrow(
   // 清空画布
   ctx.clearRect(0, 0, width, height);
 
-  // 保存上下文状态
-  ctx.save();
+  // 1. 绘制头部背景
+  if (resources.headerBg.complete && resources.headerBg.naturalWidth > 0) {
+    ctx.drawImage(resources.headerBg, 0, 0, width, headerHeight);
+  } else {
+    // 降级渲染：头部背景
+    ctx.fillStyle = "rgba(0, 50, 100, 0.8)";
+    ctx.fillRect(0, 0, width, headerHeight);
+  }
 
-  // 创建圆角矩形路径（包含底部三角箭头）
-  const radius = 4;
-  const arrowWidth = 16;
-  const arrowCenterX = width / 2;
+  // 2. 绘制内容背景
+  if (resources.contentBg.complete && resources.contentBg.naturalWidth > 0) {
+    ctx.drawImage(resources.contentBg, 0, headerHeight, width, contentBodyHeight);
+  } else {
+    // 降级渲染：内容背景
+    ctx.fillStyle = "rgba(0, 20, 40, 0.8)";
+    ctx.fillRect(0, headerHeight, width, contentBodyHeight);
+  }
 
-  ctx.beginPath();
-  // 顶部左圆角
-  ctx.moveTo(radius, 0);
-  ctx.lineTo(width - radius, 0);
-  // 顶部右圆角
-  ctx.quadraticCurveTo(width, 0, width, radius);
-  ctx.lineTo(width, contentHeight - radius);
-  // 底部右圆角
-  ctx.quadraticCurveTo(width, contentHeight, width - radius, contentHeight);
+  // 3. 绘制时间图标
+  const iconSize = 16;
+  const iconY = (headerHeight - iconSize) / 2;
+  if (resources.timeIcon.complete && resources.timeIcon.naturalWidth > 0) {
+    ctx.drawImage(resources.timeIcon, padding, iconY, iconSize, iconSize);
+  }
 
-  // 底部右边到箭头右侧
-  ctx.lineTo(arrowCenterX + arrowWidth / 2, contentHeight);
-  // 箭头尖端
-  ctx.lineTo(arrowCenterX, contentHeight + arrowHeight);
-  // 箭头左侧
-  ctx.lineTo(arrowCenterX - arrowWidth / 2, contentHeight);
+  // 4. 绘制时间文字
+  ctx.fillStyle = '#00F6FF'; // 亮青色
+  ctx.font = '14px "Microsoft YaHei", Arial, sans-serif';
+  ctx.textBaseline = 'middle';
+  // 时间文字位置：图标右侧
+  const timeTextX = padding + iconSize + 8;
+  ctx.fillText(point.formattedTime, timeTextX, headerHeight / 2);
 
-  // 底部左边
-  ctx.lineTo(radius, contentHeight);
-  // 底部左圆角
-  ctx.quadraticCurveTo(0, contentHeight, 0, contentHeight - radius);
-  ctx.lineTo(0, radius);
-  // 顶部左圆角
-  ctx.quadraticCurveTo(0, 0, radius, 0);
-  ctx.closePath();
+  // 5. 绘制分割线 (可选，如果背景图自带分割线则不需要，这里为了保险加一个淡淡的线)
+  // ctx.strokeStyle = "rgba(0, 246, 255, 0.3)";
+  // ctx.beginPath();
+  // ctx.moveTo(0, headerHeight);
+  // ctx.lineTo(width, headerHeight);
+  // ctx.stroke();
 
-  // 裁剪区域
-  ctx.clip();
-
-  // 绘制渐变背景（加深透明度）
-  const gradient = ctx.createLinearGradient(0, 0, width, contentHeight);
-  gradient.addColorStop(0, "rgba(255, 255, 255, 0.95)");
-  gradient.addColorStop(0.25, "rgba(249, 255, 252, 0.95)");
-  gradient.addColorStop(0.5, "rgba(227, 255, 240, 0.95)");
-  gradient.addColorStop(1, "rgba(179, 253, 214, 0.95)");
-  ctx.fillStyle = gradient;
-  ctx.fillRect(0, 0, width, height);
-
-  // 恢复上下文（移除裁剪）
-  ctx.restore();
-
-  // 绘制边框
-  ctx.strokeStyle = "rgba(0, 0, 0, 0.3)";
-  ctx.lineWidth = 1.5;
-  ctx.beginPath();
-  ctx.moveTo(radius, 0.5);
-  ctx.lineTo(width - radius, 0.5);
-  ctx.quadraticCurveTo(width - 0.5, 0.5, width - 0.5, radius);
-  ctx.lineTo(width - 0.5, contentHeight - radius);
-  ctx.quadraticCurveTo(
-    width - 0.5,
-    contentHeight - 0.5,
-    width - radius,
-    contentHeight - 0.5
-  );
-  ctx.lineTo(arrowCenterX + arrowWidth / 2, contentHeight - 0.5);
-  ctx.lineTo(arrowCenterX, contentHeight + arrowHeight - 0.5);
-  ctx.lineTo(arrowCenterX - arrowWidth / 2, contentHeight - 0.5);
-  ctx.lineTo(radius, contentHeight - 0.5);
-  ctx.quadraticCurveTo(0.5, contentHeight - 0.5, 0.5, contentHeight - radius);
-  ctx.lineTo(0.5, radius);
-  ctx.quadraticCurveTo(0.5, 0.5, radius, 0.5);
-  ctx.stroke();
-
-  // 绘制顶部时间栏背景
-  ctx.fillStyle = "rgba(245, 245, 245, 0.9)";
-  ctx.fillRect(0, 0, width, headerHeight);
-
-  // 绘制下边框线
-  ctx.strokeStyle = "#FFFFFF";
-  ctx.lineWidth = 1;
-  ctx.beginPath();
-  ctx.moveTo(0, height - arrowHeight);
-  ctx.lineTo(width, height - arrowHeight);
-  ctx.stroke();
-
-  // 绘制时间文字
-  ctx.fillStyle = '#000'  // 加深颜色
-  ctx.font = '12px Arial, sans-serif'
-  ctx.textBaseline = 'middle'
-  ctx.fillText(`🕐  ${point.formattedTime}`, padding, headerHeight / 2+2)
-    
-  // 绘制监测数据
-  let yOffset = headerHeight + padding + lineHeight / 2
-  point.parsedJcz.forEach((item) => {
-    // 绘制指标名称
-    ctx.fillStyle = '#333'  // 加深颜色
-    ctx.font = '12px Arial, sans-serif'
-    ctx.textAlign = 'left'
-    const labelWidth=100;
-    ctx.fillText(`${item.name}${item.unit ? `(${item.unit})` : ""}：`, padding, yOffset)
-      
-    // 绘制指标值
-    ctx.fillStyle = '#0066cc'  // 加深蓝色
-    ctx.font = 'bold 14px Arial, sans-serif'
-    ctx.fillText(String(item.value), labelWidth, yOffset)
-    
-    
-    yOffset += lineHeight
-  })
+  // 6. 绘制监测数据
+  let yOffset = headerHeight + padding + lineHeight / 2;
   
-  return canvas
+  point.parsedJcz.forEach((item) => {
+    // 绘制指标名称 (白色)
+    ctx.fillStyle = '#FFFFFF';
+    ctx.font = '14px "Microsoft YaHei", Arial, sans-serif';
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'middle';
+    
+    // 名称 + 单位
+    const nameText = `${item.name}${item.unit ? `(${item.unit})` : ""}`;
+    ctx.fillText(nameText, padding + 10, yOffset);
+      
+    // 绘制指标值 (渐变色或高亮色)
+    const valueText = String(item.value);
+    
+    // 计算值的宽度以便右对齐
+    ctx.font = 'bold 16px "Microsoft YaHei", Arial, sans-serif'; // 值字体稍大
+    const valueWidth = ctx.measureText(valueText).width;
+    const valueX = width - padding - 10;
+    
+    // 创建值的渐变色
+    const gradient = ctx.createLinearGradient(valueX - valueWidth, yOffset - 10, valueX, yOffset + 10);
+    gradient.addColorStop(0, "#00F6FF"); // 青色
+    gradient.addColorStop(1, "#F9FF00"); // 黄色
+    ctx.fillStyle = gradient;
+    
+    ctx.textAlign = 'right';
+    ctx.fillText(valueText, valueX, yOffset);
+    
+    yOffset += lineHeight;
+  });
+  
+  return canvas;
 }
 
 /**

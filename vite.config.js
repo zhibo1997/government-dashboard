@@ -29,7 +29,7 @@ export default defineConfig(({ command, mode }) => {
     // 开发服务器配置
     server: {
       host: "0.0.0.0",
-      port: 5174,
+      port: 3000,
       open: false,
       cors: true,
       // 反向代理配置
