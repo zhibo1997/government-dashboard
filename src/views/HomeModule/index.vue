@@ -10,6 +10,9 @@
 
     <!-- 右侧数据展示区 -->
     <RightContent />
+    
+    <!-- 地图图例 -->
+    <MapLegend />
   </template>
   
   <!-- 加载状态 -->
@@ -21,6 +24,7 @@
 <script setup lang="ts">
 import LeftContent from './leftContent.vue'
 import RightContent from './rightContent.vue'
+import MapLegend from './components/MapLegend.vue'
 import { onBeforeMount, ref } from 'vue'
 import { getCachedDictionaries } from '@/services/dictionaryService'
 

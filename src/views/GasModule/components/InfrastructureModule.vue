@@ -29,16 +29,26 @@
       <div class="table">
         <!-- 企业列表表头 -->
         <div class="enterprise-header">
-          <div class="header-col" :class="column.key == 'qymc' ? 'col-name' : ''"
-            v-for="column in currentTable.columns">
-            {{ column.label }}</div>
+          <div
+            class="header-col"
+            :class="column.key == 'qymc' ? 'col-name' : ''"
+            v-for="column in currentTable.columns"
+          >
+            {{ column.label }}
+          </div>
         </div>
 
         <!-- 企业列表 -->
         <div class="enterprise-list">
           <div class="enterprise-row" v-for="enterprise in currentTable.data" :key="enterprise.id">
-            <div class="row-col" :class="column.key == 'qymc' ? 'col-name' : ''" v-for="column in currentTable.columns">
-              {{ enterprise[column.key] }}</div>
+            <div
+              class="row-col"
+              :class="column.key == 'qymc' ? 'col-name' : ''"
+              v-for="column in currentTable.columns"
+            >
+              <span v-if="column.key === 'qymc'" :title="enterprise[column.key]">{{ enterprise[column.key] }}</span>
+              <span v-else>{{ enterprise[column.key] }}</span>
+            </div>
           </div>
         </div>
       </div>
@@ -48,7 +58,12 @@
 
 <script setup>
 import { ref, computed, onMounted, watch } from "vue";
-import { getNaturalGasCountList, getLiquefiedGasCountList, getGasEnterpriseLedgerList, getBottleGasEnterpriseLedgerList } from "@/services/gasService";
+import {
+  getNaturalGasCountList,
+  getLiquefiedGasCountList,
+  getGasEnterpriseLedgerList,
+  getBottleGasEnterpriseLedgerList,
+} from "@/services/gasService";
 
 // 当前选中的气体类型
 const activeGasType = ref('natural'); // 默认天然气
@@ -353,7 +368,6 @@ onMounted(async () => {
         font-weight: var(--font-weight-normal);
         color: #e4f3ff;
         text-align: center;
-        width: 200px;
         font-weight: var(--font-weight-normal);
         font-size: var(--font-size-3xl);
         line-height: calc(var(--font-size-lg) * 2.9);
@@ -362,6 +376,13 @@ onMounted(async () => {
         padding-left: 20px;
         flex: 1;
 
+        &.col-name {
+          flex: 2.4;
+          padding-left: 10px;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
       }
     }
   }

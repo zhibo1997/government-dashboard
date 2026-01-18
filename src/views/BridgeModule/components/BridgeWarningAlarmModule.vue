@@ -151,9 +151,9 @@ const warningStatus = ref([
   { label: "未处置", count: 0 },
 ]);
 const warningLevels = ref([
-  { label: "一级预警", count: 0 },
-  { label: "二级预警", count: 0 },
-  { label: "三级预警", count: 0 },
+  { label: "一级", count: 0 },
+  { label: "二级", count: 0 },
+  { label: "三级", count: 0 },
 ]);
 
 // 报警数据
@@ -164,9 +164,9 @@ const alarmStatus = ref([
   { label: "未处置", count: 0 },
 ]);
 const alarmLevels = ref([
-  { label: "一级报警", count: 0 },
-  { label: "二级报警", count: 0 },
-  { label: "三级报警", count: 0 },
+  { label: "一级", count: 0 },
+  { label: "二级", count: 0 },
+  { label: "三级", count: 0 },
 ]);
 
 // 预警表格数据
@@ -299,7 +299,7 @@ onMounted(() => {
   .stats-section {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
-    gap: 30px;
+    gap: 16px;
   }
 
   // 预警/报警总数卡片（统一样式）

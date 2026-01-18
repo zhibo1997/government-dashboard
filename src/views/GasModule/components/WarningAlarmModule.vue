@@ -80,28 +80,30 @@
         </div>
 
         <!-- 数据表格 -->
-        <div class="custom-table">
+        <div class="table">
           <!-- 表头 -->
-          <div class="table-header">
-            <div class="th th-type">类型</div>
-            <div class="th">一级</div>
-            <div class="th">二级</div>
-            <div class="th">三级</div>
-            <div class="th">已处置</div>
-            <div class="th">处置中</div>
-            <div class="th">未处置</div>
+          <div class="enterprise-header">
+            <div class="header-col th-type">类型</div>
+            <div class="header-col">一级</div>
+            <div class="header-col">二级</div>
+            <div class="header-col">三级</div>
+            <div class="header-col">已处置</div>
+            <div class="header-col">处置中</div>
+            <div class="header-col">未处置</div>
           </div>
 
           <!-- 表体 -->
-          <div class="table-body">
-            <div class="table-row" v-for="item in currentTableData" :key="item.key">
-              <div class="td td-type">{{ item.type }}</div>
-              <div class="td">{{ item.level1 }}</div>
-              <div class="td">{{ item.level2 }}</div>
-              <div class="td">{{ item.level3 }}</div>
-              <div class="td">{{ item.handled }}</div>
-              <div class="td">{{ item.handling }}</div>
-              <div class="td">{{ item.unhandled }}</div>
+          <div class="enterprise-list">
+            <div class="enterprise-row" v-for="item in currentTableData" :key="item.key">
+              <div class="row-col td-type" :title="item.type">
+                {{ item.type }}
+              </div>
+              <div class="row-col">{{ item.level1 }}</div>
+              <div class="row-col">{{ item.level2 }}</div>
+              <div class="row-col">{{ item.level3 }}</div>
+              <div class="row-col">{{ item.handled }}</div>
+              <div class="row-col">{{ item.handling }}</div>
+              <div class="row-col">{{ item.unhandled }}</div>
             </div>
           </div>
         </div>
@@ -275,7 +277,7 @@ onMounted(() => {
   .stats-section {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
-    gap: 30px;
+    gap: 16px;
   }
 
   // 预警/报警总数卡片（统一样式）
@@ -503,50 +505,46 @@ onMounted(() => {
   }
 
   // 自定义表格
-  .custom-table {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
+  .table {
+    width: 100%;
     margin-top: 24px;
   }
 
-  // 表头
-  .table-header {
-    display: grid;
-    grid-template-columns: 1.8fr 1fr 1fr 1fr 1fr 1fr 1fr;
+  // 企业列表表头
+  .enterprise-header {
+    display: flex;
+    align-items: center;
     height: 58px;
     background: #2A5768;
     border: 2px solid #09739C;
     border-radius: 4px 4px 0 0;
 
-    .th {
-      display: flex;
-      align-items: center;
-      justify-content: center;
+    .header-col {
       font-family: SourceHanSansSC, SourceHanSansSC;
       font-weight: var(--font-weight-bold);
       font-size: var(--font-size-2xl);
-      color: #e4f3ff;
+      color: #E4F3FF;
       line-height: calc(var(--font-size-base) * 1.45);
-      text-align: left;
+      text-align: center;
       font-style: normal;
+      flex: 1;
 
       &.th-type {
-        justify-content: flex-start;
-        padding-left: 20px;
-        width: 220px;
+        flex: 2.5;
       }
     }
   }
 
-  // 表体
-  .table-body {
+  // 企业列表
+  .enterprise-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    height: 232px;
+    overflow-y: auto;
     border: 2px solid #09739C;
     border-top: none;
     border-radius: 0 0 4px 4px;
-    height: 232px;
-    overflow-y: auto;
 
     &::-webkit-scrollbar {
       width: 6px;
@@ -566,55 +564,36 @@ onMounted(() => {
       }
     }
 
-    .table-row {
-      display: grid;
-      grid-template-columns: 2fr 1fr 1fr 1fr 1fr 1fr 1fr;
+    .enterprise-row {
+      display: flex;
+      align-items: center;
       min-height: 52px;
-      background: linear-gradient(90deg,
-          rgba(0, 150, 255, 0.04) 0%,
-          rgba(0, 100, 200, 0.02) 100%);
-      border-bottom: 1px solid rgba(22, 119, 255, 0.1);
+      background: linear-gradient(90deg, rgba(0, 150, 255, 0.06) 0%, rgba(0, 100, 200, 0.03) 100%);
+      border: 1px solid rgba(22, 119, 255, 0.15);
+      border-radius: 4px;
       transition: all 0.3s ease;
 
       &:hover {
-        background: linear-gradient(90deg,
-            rgba(0, 150, 255, 0.1) 0%,
-            rgba(0, 100, 200, 0.05) 100%);
+        background: linear-gradient(90deg, rgba(0, 150, 255, 0.12) 0%, rgba(0, 100, 200, 0.08) 100%);
+        border-color: rgba(22, 119, 255, 0.3);
       }
 
-      &:last-child {
-        border-bottom: none;
-      }
-
-      .td {
-        display: flex;
-        align-items: center;
-        justify-content: center;
+      .row-col {
         font-family: SourceHanSansSC, SourceHanSansSC;
         font-weight: var(--font-weight-normal);
-        font-size: var(--font-size-3xl);
         color: #e4f3ff;
-        padding: 8px 10px;
-
+        text-align: center;
+        font-size: var(--font-size-3xl);
+        line-height: calc(var(--font-size-lg) * 1.5);
+        font-style: normal;
+        flex: 1;
+        padding: 0px 6px;
 
         &.td-type {
-          text-align: left;
-          color: #ffffff;
+          flex: 2.5;
           white-space: nowrap;
           overflow: hidden;
-          padding-left: 0px;
           text-overflow: ellipsis;
-          width: 220px;
-        }
-
-        &.td-level {
-          color: #faad14;
-          font-weight: var(--font-weight-medium);
-        }
-
-        &.td-status {
-          color: #10adc0;
-          font-weight: var(--font-weight-medium);
         }
       }
     }

@@ -56,7 +56,7 @@ export function createBillboardCanvasWithArrow(
   const ctx = canvas.getContext("2d")!;
 
   // Canvas尺寸设置
-  const width = 220; // 加宽以适应新样式
+  const width = 240; // 加宽以适应新样式
   const padding = 10;
   const lineHeight = 24; // 增加行高
   const headerHeight = 36; // 增加头部高度
@@ -75,23 +75,15 @@ export function createBillboardCanvasWithArrow(
   // 1. 绘制头部背景
   if (resources.headerBg.complete && resources.headerBg.naturalWidth > 0) {
     ctx.drawImage(resources.headerBg, 0, 0, width, headerHeight);
-  } else {
-    // 降级渲染：头部背景
-    ctx.fillStyle = "rgba(0, 50, 100, 0.8)";
-    ctx.fillRect(0, 0, width, headerHeight);
   }
 
   // 2. 绘制内容背景
   if (resources.contentBg.complete && resources.contentBg.naturalWidth > 0) {
     ctx.drawImage(resources.contentBg, 0, headerHeight, width, contentBodyHeight);
-  } else {
-    // 降级渲染：内容背景
-    ctx.fillStyle = "rgba(0, 20, 40, 0.8)";
-    ctx.fillRect(0, headerHeight, width, contentBodyHeight);
   }
 
   // 3. 绘制时间图标
-  const iconSize = 16;
+  const iconSize = 20;
   const iconY = (headerHeight - iconSize) / 2;
   if (resources.timeIcon.complete && resources.timeIcon.naturalWidth > 0) {
     ctx.drawImage(resources.timeIcon, padding, iconY, iconSize, iconSize);
@@ -99,7 +91,7 @@ export function createBillboardCanvasWithArrow(
 
   // 4. 绘制时间文字
   ctx.fillStyle = '#00F6FF'; // 亮青色
-  ctx.font = '14px "Microsoft YaHei", Arial, sans-serif';
+  ctx.font = '20px "Microsoft YaHei", Arial, sans-serif';
   ctx.textBaseline = 'middle';
   // 时间文字位置：图标右侧
   const timeTextX = padding + iconSize + 8;
@@ -114,23 +106,42 @@ export function createBillboardCanvasWithArrow(
 
   // 6. 绘制监测数据
   let yOffset = headerHeight + padding + lineHeight / 2;
+  const bulletRadius = 3;
+  const bulletOuterRadius = 4.5;
+  const bulletX = padding + 6;
+  const labelX = bulletX + bulletOuterRadius + 8;
   
   point.parsedJcz.forEach((item) => {
+    ctx.save();
+    ctx.shadowColor = "rgba(0, 246, 255, 0.9)";
+    ctx.shadowBlur = 6;
+    ctx.fillStyle = "#00F6FF";
+    ctx.beginPath();
+    ctx.arc(bulletX, yOffset, bulletRadius, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.65)";
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.arc(bulletX, yOffset, bulletOuterRadius, 0, Math.PI * 2);
+    ctx.stroke();
+
     // 绘制指标名称 (白色)
     ctx.fillStyle = '#FFFFFF';
-    ctx.font = '14px "Microsoft YaHei", Arial, sans-serif';
+    ctx.font = '18px "Microsoft YaHei", Arial, sans-serif';
     ctx.textAlign = 'left';
     ctx.textBaseline = 'middle';
     
     // 名称 + 单位
     const nameText = `${item.name}${item.unit ? `(${item.unit})` : ""}`;
-    ctx.fillText(nameText, padding + 10, yOffset);
+    ctx.fillText(nameText, labelX, yOffset);
       
     // 绘制指标值 (渐变色或高亮色)
     const valueText = String(item.value);
     
     // 计算值的宽度以便右对齐
-    ctx.font = 'bold 16px "Microsoft YaHei", Arial, sans-serif'; // 值字体稍大
+    ctx.font = 'bold 18px "Microsoft YaHei", Arial, sans-serif'; // 值字体稍大
     const valueWidth = ctx.measureText(valueText).width;
     const valueX = width - padding - 10;
     

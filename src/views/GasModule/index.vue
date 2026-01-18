@@ -41,7 +41,7 @@ onBeforeMount(async () => {
     loading.value = true
     // 批量预加载所有需要的字典数据
     await getCachedDictionaries([
-      'rqzx_glmblx',    // RiskHazardModule
+      'glmblx_rq',    // RiskHazardModule
       'gxdlb_rq',       // OverviewModule
       'gwcz',           // PipelineModule
       'jcsblx_rq',      // PipelineModule

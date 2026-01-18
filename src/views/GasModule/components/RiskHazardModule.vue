@@ -9,7 +9,7 @@
         <div class="left-chart">
           <RiskLevelChart
             :chart-id="riskChartId"
-            :glmblx="glmblxs"
+            :sszx="'csaqzx_rq'"
           />
         </div>
 
@@ -110,7 +110,8 @@ const zgztMap = {
  */
 const initializeGlmblxs = async (): Promise<boolean> => {
   try {
-    const rqzxglmblxDictionaries = await getCachedDictionary("rqzx_glmblx");
+    const rqzxglmblxDictionaries = await getCachedDictionary("glmblx_rq");
+    console.info("🚀 ~ initializeGlmblxs ~ rqzxglmblxDictionaries:", rqzxglmblxDictionaries)
     if (!rqzxglmblxDictionaries || rqzxglmblxDictionaries.length === 0) {
       console.warn("rqzx_glmblx 字典为空");
       return false;

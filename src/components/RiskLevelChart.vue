@@ -114,6 +114,7 @@ const fetchRiskLevelData = async (): Promise<void> => {
 
   try {
     const riskLevelMap = await fetchRiskLevelDictionary();
+    console.info("🚀 ~ fetchRiskLevelData ~ riskLevelMap:", riskLevelMap)
     if (!riskLevelMap) {
       riskLegend.value = getDefaultRiskLevels();
       emit("dataLoaded", riskLegend.value);

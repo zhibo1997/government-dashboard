@@ -54,10 +54,14 @@
 
       <!-- 操作按钮 -->
       <div class="action-section">
-        <button class="action-btn btn-monitoring" @click="handleShowMonitoring">
-          监测设备
+        <button class="action-btn btn-monitoring" @click="handleShowMonitoring" v-if="isNaturalGas">
+          查看场站
         </button>
-        <button class="action-btn btn-warning">查看监控</button>
+        <!-- 液化气企业暂无接口数据，暂时隐藏 -->
+        <!-- <button class="action-btn btn-monitoring" @click="handleShowMonitoring" v-if="isLiquefiedGas">
+          查看用户
+        </button> -->
+        <!-- <button class="action-btn btn-warning">查看监控</button> -->
       </div>
     </div>
   </div>

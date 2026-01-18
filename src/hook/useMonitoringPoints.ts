@@ -74,9 +74,12 @@ export function useMonitoringPoints() {
   
   // 相机高度阈值（米）
   const CAMERA_HEIGHT_THRESHOLD = 5000 // 5km
+  const ANTI_OVERLAP_MIN_DISTANCE_LOW = 150
+  const ANTI_OVERLAP_MIN_DISTANCE_HIGH = 50
   
   // 缓存防重叠计算结果（用于避免重复计算）
-  let cachedFilteredItems: any[] = []
+  let cachedFilteredItemsAbove: any[] = []
+  let cachedFilteredItemsBelow: any[] = []
   let cachedAllItems: any[] = []
   let isCacheInitialized = false  // 标记缓存是否已初始化
 
@@ -226,11 +229,11 @@ export function useMonitoringPoints() {
       const isAboveThreshold = currentHeight >= CAMERA_HEIGHT_THRESHOLD
       
       // 相机高度变化逻辑：
-      // 1. 高度降低：重新计算防重叠（距离30）
+      // 1. 高度降低：重新计算防重叠（距离120）
       // 2. 高度升高：使用缓存的防重叠结果
       if (wasAboveThreshold && !isAboveThreshold) {
         console.log(`📏 相机高度降低到 ${(currentHeight / 1000).toFixed(1)}km，重新计算防重叠`)
-        updateBillboards(true)  // 重新计算
+        updateBillboards(true, ANTI_OVERLAP_MIN_DISTANCE_LOW)
       } else if (!wasAboveThreshold && isAboveThreshold) {
         console.log(`📏 相机高度升高到 ${(currentHeight / 1000).toFixed(1)}km，使用缓存的防重叠结果`)
         renderBillboardsFromCache(true)  // 使用缓存
@@ -351,7 +354,7 @@ export function useMonitoringPoints() {
    * 更新Billboard显示（使用BillboardCollection和防重叠算法）
    * @param applyAntiOverlap 是否应用防重叠算法：true=应用，false=显示全部
    */
-  function updateBillboards(applyAntiOverlap: boolean = true): void {
+  function updateBillboards(applyAntiOverlap: boolean = true, minDistance?: number): void {
     if (!billboardCollection.value || !viewer.value) {
       console.warn('⚠️ BillboardCollection或Viewer未初始化')
       return
@@ -383,19 +386,34 @@ export function useMonitoringPoints() {
 
     // 根据参数决定是否应用防重叠算法
     let filteredItems = billboardItems
+    let cacheScope: 'above' | 'below' | null = null
     if (applyAntiOverlap) {
+      const currentHeight = getCameraHeight(viewer.value)
+      cacheScope = currentHeight < CAMERA_HEIGHT_THRESHOLD ? 'below' : 'above'
+      const computedMinDistance =
+        minDistance ??
+        (currentHeight < CAMERA_HEIGHT_THRESHOLD
+          ? ANTI_OVERLAP_MIN_DISTANCE_LOW
+          : ANTI_OVERLAP_MIN_DISTANCE_HIGH)
       filteredItems = filterOverlappingBillboards(billboardItems, {
-        minDistance: 30,
+        minDistance: computedMinDistance,
         enabled: true
       })
     }
     
-    // 只在第一次渲染时保存到缓存（初始化时）
-    if (!isCacheInitialized) {
+    if (applyAntiOverlap) {
       cachedAllItems = billboardItems
-      cachedFilteredItems = filteredItems
+      if (cacheScope === 'above') {
+        cachedFilteredItemsAbove = filteredItems
+      } else if (cacheScope === 'below') {
+        cachedFilteredItemsBelow = filteredItems
+      }
+      const actionText = isCacheInitialized ? '更新缓存' : '初始化缓存'
       isCacheInitialized = true
-      console.log(`💾 初始化缓存: 全部 ${cachedAllItems.length} 个, 防重叠 ${cachedFilteredItems.length} 个`)
+      const cacheScopeText = cacheScope === 'above' ? '高海拔' : cacheScope === 'below' ? '低海拔' : '未知'
+      console.log(
+        `💾 ${actionText}(${cacheScopeText}): 全部 ${cachedAllItems.length} 个, 防重叠 ${filteredItems.length} 个`
+      )
     }
 
     // 添加Billboard到Collection
@@ -452,7 +470,16 @@ export function useMonitoringPoints() {
     billboardCollection.value.removeAll()
     
     // 选择使用的数据源
-    const itemsToRender = useFiltered ? cachedFilteredItems : cachedAllItems
+    const currentHeight = getCameraHeight(viewer.value)
+    const isAboveThreshold = currentHeight >= CAMERA_HEIGHT_THRESHOLD
+    const desiredMinDistance = isAboveThreshold ? ANTI_OVERLAP_MIN_DISTANCE_HIGH : ANTI_OVERLAP_MIN_DISTANCE_LOW
+    const desiredFilteredItems = isAboveThreshold ? cachedFilteredItemsAbove : cachedFilteredItemsBelow
+    const itemsToRender = useFiltered ? desiredFilteredItems : cachedAllItems
+
+    if (useFiltered && itemsToRender.length === 0) {
+      updateBillboards(true, desiredMinDistance)
+      return
+    }
 
     // 添加Billboard到Collection
     for (const item of itemsToRender) {
@@ -612,7 +639,8 @@ export function useMonitoringPoints() {
       // 重置缓存标记，强制重新计算
       isCacheInitialized = false
       cachedAllItems = []
-      cachedFilteredItems = []
+      cachedFilteredItemsAbove = []
+      cachedFilteredItemsBelow = []
       
       // 更新地图显示
       await updateMapPoints()

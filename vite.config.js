@@ -19,7 +19,7 @@ export default defineConfig(({ command, mode }) => {
     // 设置静态资源基础路径
     base: env.VITE_BASE_URL || "/clmap/",
     plugins: [vue(), vueDevTools({
-      launchEditor: 'qoder',
+      launchEditor: 'trae',
     })],
     resolve: {
       alias: {
@@ -29,7 +29,6 @@ export default defineConfig(({ command, mode }) => {
     // 开发服务器配置
     server: {
       host: "0.0.0.0",
-      port: 3000,
       open: false,
       cors: true,
       // 反向代理配置

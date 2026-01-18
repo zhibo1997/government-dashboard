@@ -92,7 +92,7 @@ export async function getBottleGasEnterpriseLedgerDetail(lsh: string) {
 export async function getGasStationPageList(params?: {
   page?: string
   rows?: string
-  ssqy?: string
+  Ssqybm?: string
   czmc?: string
   Czlx?: string
   Yysfzc?: string
@@ -102,7 +102,7 @@ export async function getGasStationPageList(params?: {
         Object.entries(params).filter(([_, value]) => value !== undefined && value !== '')
       )
     : undefined
-  const res = await get<any>('/gspspDtransGas/gasfldstation/page', { ...defaultParams, ...filteredParams })
+  const res = await get<any>('/gspspDtransGas/gasfldstation/page', params)
   return res.data || []
 }
 

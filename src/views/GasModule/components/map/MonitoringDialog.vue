@@ -1,8 +1,10 @@
 <template>
   <div class="monitoring-dialog" v-show="visible">
     <div class="dialog-header">
-      <div class="dialog-title">监测设备</div>
-      <button class="close-btn" @click="handleClose">×</button>
+      <div class="dialog-title gradient-text">场站列表</div>
+      <n-button text class="close-btn" @click="handleClose">
+        <n-icon size="40" color="rgb(17,167,226)" :component="Close" class="action-icon favorite-icon" />
+      </n-button>
     </div>
 
     <div class="dialog-content">
@@ -12,8 +14,9 @@
           <input 
             type="text" 
             v-model="searchKeyword"
-            placeholder="输入设备名称"
+            placeholder="输入场站名称"
             class="search-input"
+            @keyup.enter="handleSearch"
           />
           <button class="search-btn" @click="handleSearch">
             <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -24,6 +27,8 @@
         </div>
 
         <div class="filter-group">
+          <!-- 筛选按钮暂时保留样式，功能待定或隐藏 -->
+          <!--
           <button 
             class="filter-btn" 
             :class="{ active: filters.area }" 
@@ -31,27 +36,7 @@
           >
             所属专区
           </button>
-          <button 
-            class="filter-btn" 
-            :class="{ active: filters.powerMethod }" 
-            @click="toggleFilter('powerMethod')"
-          >
-            供电方式
-          </button>
-          <button 
-            class="filter-btn" 
-            :class="{ active: filters.runStatus }" 
-            @click="toggleFilter('runStatus')"
-          >
-            运行状态
-          </button>
-          <button 
-            class="filter-btn" 
-            :class="{ active: filters.connectStatus }" 
-            @click="toggleFilter('connectStatus')"
-          >
-            连接状态
-          </button>
+          -->
         </div>
       </div>
 
@@ -59,43 +44,45 @@
       <div class="data-table">
         <div class="table-header">
           <div class="th th-index">序号</div>
-          <div class="th th-area">所属专区</div>
-          <div class="th th-id">设备编号</div>
-          <div class="th th-name">设备名称</div>
+          <div class="th th-area">所属专项</div>
+          <div class="th th-id">场站编号</div>
+          <div class="th th-name">场站名称</div>
           <div class="th th-position">安装位置</div>
-          <div class="th th-method">供电方式</div>
+          <div class="th th-type">场站类型</div>
           <div class="th th-run">运行状态</div>
-          <div class="th th-connect">连接状态</div>
+          <!-- <div class="th th-connect">运维状态</div>
           <div class="th th-predict">预警</div>
-          <div class="th th-alarm">报警</div>
+          <div class="th th-alarm">报警</div> -->
         </div>
 
-        <div class="table-body">
+        <div class="table-body" v-if="loading">
+            <div class="loading-text">加载中...</div>
+        </div>
+        <div class="table-body" v-else>
           <div 
             class="table-row"
             :class="{ 'row-even': index % 2 === 1 }"
-            v-for="(item, index) in currentPageData"
-            :key="item.id"
+            v-for="(item, index) in tableData"
+            :key="item.lsh || index"
           >
             <div class="td td-index">{{ (currentPage - 1) * pageSize + index + 1 }}</div>
-            <div class="td td-area">{{ item.area }}</div>
-            <div class="td td-id">{{ item.deviceId }}</div>
-            <div class="td td-name">{{ item.deviceName }}</div>
-            <div class="td td-position">{{ item.position }}</div>
-            <div class="td td-method">{{ item.powerMethod }}</div>
+            <div class="td td-area">燃气</div>
+            <div class="td td-id">{{ item.czbh }}</div>
+            <div class="td td-name" :title="item.czmc">{{ item.czmc }}</div>
+            <div class="td td-position" :title="item.xxdz">{{ item.xxdz }}</div>
+            <div class="td td-type">{{ item.czlx }}</div>
             <div class="td td-run">
-              <span class="status-text" :class="`status-${item.runStatus}`">
-                {{ item.runStatusText }}
+              <span class="status-text" :class="item.sjtbzt === 'I' ? 'status-online' : 'status-offline'">
+                {{ item.sjtbzt === 'I' ? '正常' : '异常' }}
               </span>
             </div>
-            <div class="td td-connect">
-              <span class="status-text" :class="`connect-${item.connectStatus}`">
-                {{ item.connectStatusText }}
-              </span>
-            </div>
-            <div class="td td-predict">{{ item.predict }}</div>
-            <div class="td td-alarm">{{ item.alarm }}</div>
+            <!-- 
+            <div class="td td-connect">-</div>
+            <div class="td td-predict">-</div>
+            <div class="td td-alarm">-</div> 
+            -->
           </div>
+          <div v-if="tableData.length === 0" class="no-data">暂无数据</div>
         </div>
       </div>
 
@@ -126,7 +113,10 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue';
+import { ref, computed, watch } from 'vue';
+import { getGasStationPageList } from '@/services/gasService';
+import { Close } from "@vicons/ionicons5";
+import { NButton, NIcon } from "naive-ui";
 
 const props = defineProps({
   visible: {
@@ -144,208 +134,113 @@ const emit = defineEmits(['update:visible']);
 // 搜索关键词
 const searchKeyword = ref('');
 
-// 筛选条件
-const filters = ref({
-  area: false,
-  powerMethod: false,
-  runStatus: false,
-  connectStatus: false
-});
-
-// 切换筛选状态
-const toggleFilter = (key: string) => {
-  filters.value[key as keyof typeof filters.value] = !filters.value[key as keyof typeof filters.value];
-};
-
 // 分页
 const currentPage = ref(1);
 const pageSize = ref(10);
+const total = ref(0);
+const tableData = ref<any[]>([]);
+const loading = ref(false);
 
-// 监测设备数据
-const monitoringData = ref([
-  {
-    id: 1,
-    area: '燃气',
-    deviceId: 'SHB801',
-    deviceName: '可燃气体智能监测仪',
-    position: '安装位置',
-    powerMethod: '插电式',
-    runStatus: 'online',
-    runStatusText: '在线',
-    connectStatus: 'good',
-    connectStatusText: '良好',
-    predict: '12',
-    alarm: '49'
-  },
-  {
-    id: 2,
-    area: '燃气',
-    deviceId: 'SHB801',
-    deviceName: '可燃气体智能监测仪',
-    position: '安装位置',
-    powerMethod: '电池',
-    runStatus: 'online',
-    runStatusText: '在线',
-    connectStatus: 'good',
-    connectStatusText: '良好',
-    predict: '23',
-    alarm: '5'
-  },
-  {
-    id: 3,
-    area: '燃气',
-    deviceId: 'SHB801',
-    deviceName: '可燃气体智能监测仪',
-    position: '安装位置',
-    powerMethod: '低功耗锂电池',
-    runStatus: 'online',
-    runStatusText: '在线',
-    connectStatus: 'maintenance',
-    connectStatusText: '维护中',
-    predict: '4',
-    alarm: '67'
-  },
-  {
-    id: 4,
-    area: '燃气',
-    deviceId: 'SHB801',
-    deviceName: '可燃气体智能监测仪',
-    position: '安装位置',
-    powerMethod: '插电式',
-    runStatus: 'online',
-    runStatusText: '在线',
-    connectStatus: 'maintenance',
-    connectStatusText: '维护中',
-    predict: '4',
-    alarm: '67'
-  },
-  {
-    id: 5,
-    area: '燃气',
-    deviceId: 'SHB801',
-    deviceName: '可燃气体智能监测仪',
-    position: '安装位置',
-    powerMethod: '插电式',
-    runStatus: 'online',
-    runStatusText: '在线',
-    connectStatus: 'scrapped',
-    connectStatusText: '报废',
-    predict: '5',
-    alarm: '5'
-  },
-  {
-    id: 6,
-    area: '燃气',
-    deviceId: 'SHB801',
-    deviceName: '可燃气体智能监测仪',
-    position: '安装位置',
-    powerMethod: '插电式',
-    runStatus: 'online',
-    runStatusText: '在线',
-    connectStatus: 'good',
-    connectStatusText: '良好',
-    predict: '6',
-    alarm: '4'
-  },
-  {
-    id: 7,
-    area: '燃气终端用户',
-    deviceId: 'SHB801',
-    deviceName: '可燃气体智能监测仪',
-    position: '安装位置',
-    powerMethod: '插电式',
-    runStatus: 'online',
-    runStatusText: '在线',
-    connectStatus: 'good',
-    connectStatusText: '良好',
-    predict: '4',
-    alarm: '3'
-  },
-  {
-    id: 8,
-    area: '燃气终端用户',
-    deviceId: 'SHB801',
-    deviceName: '可燃气体智能监测仪',
-    position: '安装位置',
-    powerMethod: '插电式',
-    runStatus: 'online',
-    runStatusText: '在线',
-    connectStatus: 'good',
-    connectStatusText: '良好',
-    predict: '9',
-    alarm: '8'
-  },
-  {
-    id: 9,
-    area: '燃气终端用户',
-    deviceId: 'SHB801',
-    deviceName: '可燃气体智能监测仪',
-    position: '安装位置',
-    powerMethod: '插电式',
-    runStatus: 'offline',
-    runStatusText: '离线',
-    connectStatus: 'maintenance',
-    connectStatusText: '维护中',
-    predict: '9',
-    alarm: '9'
-  },
-]);
-
-// 当前页数据
-const currentPageData = computed(() => {
-  const start = (currentPage.value - 1) * pageSize.value;
-  const end = start + pageSize.value;
-  return monitoringData.value.slice(start, end);
-});
-
-// 总页数
-const totalPages = computed(() => {
-  return Math.ceil(monitoringData.value.length / pageSize.value);
-});
-
-// 可见页码
-const visiblePages = computed(() => {
-  const pages = [];
-  for (let i = 1; i <= Math.min(6, totalPages.value); i++) {
-    pages.push(i);
+// 监听 visible 变化，显示时加载数据
+watch(() => props.visible, (val) => {
+  if (val) {
+    currentPage.value = 1;
+    searchKeyword.value = '';
+    fetchData();
   }
-  return pages;
 });
+
+// 获取数据
+const fetchData = async () => {
+  if (!props.stationData?.qybm) return;
+  
+  loading.value = true;
+  try {
+    const res = await getGasStationPageList({
+      page: currentPage.value.toString(),
+      rows: pageSize.value.toString(),
+      Ssqybm: props.stationData.qybm,
+      Yysfzc:'-1'
+    });
+    
+    if (res && res.rows) {
+      tableData.value = res.rows;
+      total.value = res.total || 0;
+    } else {
+      tableData.value = [];
+      total.value = 0;
+    }
+  } catch (error) {
+    console.error('获取场站列表失败:', error);
+    tableData.value = [];
+    total.value = 0;
+  } finally {
+    loading.value = false;
+  }
+};
 
 const handleClose = () => {
   emit('update:visible', false);
 };
 
 const handleSearch = () => {
-  console.log('搜索:', searchKeyword.value);
+  currentPage.value = 1;
+  fetchData();
 };
 
 const prevPage = () => {
   if (currentPage.value > 1) {
     currentPage.value--;
+    fetchData();
   }
 };
 
 const nextPage = () => {
   if (currentPage.value < totalPages.value) {
     currentPage.value++;
+    fetchData();
   }
 };
 
 const goToPage = (page: number) => {
   currentPage.value = page;
+  fetchData();
 };
+
+// 总页数
+const totalPages = computed(() => {
+  return Math.ceil(total.value / pageSize.value) || 1;
+});
+
+// 可见页码
+const visiblePages = computed(() => {
+  const pages = [];
+  const total = totalPages.value;
+  const current = currentPage.value;
+  
+  // 简单的页码逻辑，始终显示当前页附近的页码
+  let start = Math.max(1, current - 2);
+  let end = Math.min(total, current + 2);
+  
+  if (end - start < 4) {
+    if (start === 1) end = Math.min(total, 5);
+    if (end === total) start = Math.max(1, total - 4);
+  }
+
+  for (let i = start; i <= end; i++) {
+    pages.push(i);
+  }
+  return pages;
+});
 </script>
 
 <style lang="scss" scoped>
 .monitoring-dialog {
   position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 1100px;
+  bottom: 0;
+  left: 1320px;
+  width: 1920px;
   max-height: 80vh;
-  background: rgba(0, 20, 40, 0.95);
   backdrop-filter: blur(10px);
   border: 1px solid rgba(22, 119, 255, 0.3);
   border-radius: 4px;
@@ -354,44 +249,26 @@ const goToPage = (page: number) => {
   overflow: hidden;
   display: flex;
   flex-direction: column;
+  pointer-events: auto;
 
   .dialog-header {
-    height: 40px;
-    padding: 0 15px;
+    height: 71px;
+    padding: 0 21px;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    background: linear-gradient(
-      90deg,
-      rgba(22, 119, 255, 0.3) 0%,
-      rgba(22, 119, 255, 0.1) 100%
-    );
-    border-bottom: 1px solid rgba(22, 119, 255, 0.3);
+    background-image: url("@/assets/img/gasModule/detail_head_bg.webp");
+    border-bottom: 2px solid rgba(13, 165, 190, 0.5);
+    background-size: 100% 100%;
     flex-shrink: 0;
 
     .dialog-title {
-      font-family: SourceHanSansSC, SourceHanSansSC;
-      font-weight: var(--font-weight-bold);
-      font-size: 16px;
-      color: #ffffff;
-    }
-
-    .close-btn {
-      width: 24px;
-      height: 24px;
-      background: transparent;
-      border: none;
-      color: rgba(255, 255, 255, 0.6);
-      font-size: 18px;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: all 0.3s ease;
-
-      &:hover {
-        color: #ff4d4f;
-      }
+      font-family: YouSheBiaoTiHei;
+      font-weight: var(--font-weight-medium);
+      font-size: var(--font-size-2xl);
+      color: #e4f3ff;
+      line-height: calc(var(--font-size-2xl) * 1.464);
+      background: linear-gradient(90deg, #FFFFFF 18%, #10ADC0 100%);
     }
   }
 
@@ -401,6 +278,7 @@ const goToPage = (page: number) => {
     display: flex;
     flex-direction: column;
     overflow: hidden;
+    background: linear-gradient( 270deg, rgba(8, 46, 77, 0.6) 0%, rgba(0, 0, 0, 0.6) 99.92%);
 
     .toolbar {
       display: flex;
@@ -414,7 +292,7 @@ const goToPage = (page: number) => {
         gap: 0;
 
         .search-input {
-          width: 140px;
+          width: 200px; /* 稍微加宽 */
           height: 28px;
           padding: 0 10px;
           background: rgba(0, 0, 0, 0.3);
@@ -462,27 +340,6 @@ const goToPage = (page: number) => {
         display: flex;
         gap: 8px;
         margin-left: auto;
-
-        .filter-btn {
-          height: 28px;
-          padding: 0 16px;
-          background: rgba(22, 119, 255, 0.5);
-          border: none;
-          border-radius: 2px;
-          color: #ffffff;
-          font-size: 12px;
-          cursor: pointer;
-          transition: all 0.3s ease;
-
-          &:hover {
-            background: rgba(22, 119, 255, 0.7);
-          }
-
-          &.active {
-            background: rgba(22, 119, 255, 0.8);
-            box-shadow: 0 0 8px rgba(22, 119, 255, 0.5);
-          }
-        }
       }
     }
 
@@ -494,15 +351,19 @@ const goToPage = (page: number) => {
 
       .table-header {
         display: grid;
-        grid-template-columns: 50px 100px 80px 1fr 80px 100px 80px 80px 50px 50px;
+        /* 调整列宽以适应场站数据 */
+        grid-template-columns: 50px 80px 120px 1fr 1fr 100px 80px;
         background: rgba(22, 119, 255, 0.25);
 
         .th {
           padding: 10px 6px;
-          font-weight: 500;
-          font-size: 12px;
-          color: #8ecff0;
-          text-align: center;
+          font-family: SourceHanSansSC, SourceHanSansSC;
+          font-weight: bold;
+          font-size: 28px;
+          color: #E4F3FF;
+          line-height: 40px;
+          text-align: left;
+          font-style: normal;
           display: flex;
           align-items: center;
           justify-content: center;
@@ -512,6 +373,13 @@ const goToPage = (page: number) => {
       .table-body {
         flex: 1;
         overflow-y: auto;
+        
+        .loading-text, .no-data {
+            text-align: center;
+            padding: 20px;
+            color: rgba(255,255,255,0.6);
+            font-size: 14px;
+        }
 
         &::-webkit-scrollbar {
           width: 4px;
@@ -528,7 +396,8 @@ const goToPage = (page: number) => {
 
         .table-row {
           display: grid;
-          grid-template-columns: 50px 100px 80px 1fr 80px 100px 80px 80px 50px 50px;
+          /* 与 header 保持一致 */
+          grid-template-columns: 50px 80px 120px 1fr 1fr 100px 80px;
           background: rgba(0, 30, 50, 0.4);
           border-bottom: 1px solid rgba(22, 119, 255, 0.1);
           transition: all 0.2s ease;
@@ -543,9 +412,13 @@ const goToPage = (page: number) => {
 
           .td {
             padding: 8px 6px;
-            font-size: 12px;
-            color: #d0e8f0;
-            text-align: center;
+            font-family: SourceHanSansSC, SourceHanSansSC;
+            font-weight: 400;
+            font-size: 30px;
+            color: #E4F3FF;
+            line-height: 60px;
+            text-align: left;
+            font-style: normal;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -558,25 +431,19 @@ const goToPage = (page: number) => {
             }
 
             .status-text {
-              font-size: 12px;
+              font-family: SourceHanSansSC, SourceHanSansSC;
+              font-weight: 400;
+              font-size: 30px;
+              color: #E4F3FF;
+              line-height: 60px;
+              text-align: left;
+              font-style: normal;
 
               &.status-online {
                 color: #52c41a;
               }
 
               &.status-offline {
-                color: #ff4d4f;
-              }
-
-              &.connect-good {
-                color: #52c41a;
-              }
-
-              &.connect-maintenance {
-                color: #faad14;
-              }
-
-              &.connect-scrapped {
                 color: #ff4d4f;
               }
             }

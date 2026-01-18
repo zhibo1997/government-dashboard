@@ -233,7 +233,7 @@ function getPie3D(pieData, internalDiameterRatio) {
       false,
       false,
       k,
-      0.1
+      series[i].pieData.value === 0 ? 0 : 0.2 + (i % 5) * 1.2 // 基于索引设置阶梯高度，拉开高度差
     );
     startValue = endValue;
     legendData.push(series[i].name);
@@ -244,7 +244,7 @@ function getPie3D(pieData, internalDiameterRatio) {
 
 // 生成3D饼图option
 function get3DPieOption(pieData) {
-  const series = getPie3D(pieData, 0.6);
+  const series = getPie3D(pieData, 0.7); // 内径变大，环变细
 
   // 添加2D饼图用于显示label
   series.push({
@@ -253,9 +253,9 @@ function get3DPieOption(pieData) {
     label: {
       opacity: 1,
       position: "outside",
-      fontSize: 18,
-      lineHeight: 22,
-      formatter: "{b}\n{d}%",
+      fontSize: 14,
+      lineHeight: 20,
+      formatter: "{b} {d}%",
       color: "#E4F3FF",
     },
     labelLine: {
@@ -268,7 +268,7 @@ function get3DPieOption(pieData) {
     },
     startAngle: -20,
     clockwise: false,
-    radius: ["20%", "60%"],
+    radius: ["40%", "65%"], // 调整2D饼图的大小以匹配3D图
     center: ["50%", "50%"],
     data: pieData.map((item) => {
       return {
@@ -296,7 +296,7 @@ function get3DPieOption(pieData) {
       borderWidth: 1,
       textStyle: {
         color: "#ffffff",
-        fontSize: 28,
+        fontSize: 14,
       },
     },
     xAxis3D: {
@@ -313,12 +313,13 @@ function get3DPieOption(pieData) {
     },
     grid3D: {
       show: false,
-      boxHeight: 10,
+      boxHeight: 15, // 增加box高度
       viewControl: {
         alpha: 30,
         beta: 40,
-        distance: 150,
-        autoRotate: false,
+        distance: 140, // 稍微拉近一点
+        autoRotate: false, // 开启自动旋转增加动态效果
+        autoRotateSpeed: 5,
         rotateSensitivity: 0,
         zoomSensitivity: 0,
         panSensitivity: 0,
@@ -353,6 +354,24 @@ const initGasTypeChart = () => {
   gasTypeChart.setOption(option);
 };
 
+// 压力等级色系 (蓝青色调)
+const pressureColors = [
+  "#3B8BF5", // 蓝色
+  "#00D9FF", // 青色
+  "#7B61FF", // 紫色
+  "#FFD15C", // 黄色
+  "#26C2E2", // 浅青
+];
+
+// 气源类型色系 (橙绿暖色调)
+const gasTypeColors = [
+  "#FF6B35", // 橙红
+  "#95F204", // 绿色
+  "#FFB800", // 橙黄
+  "#00D9FF", // 补一个青色
+  "#A3A3A3", // 灰色
+];
+
 // 获取管线长度数据
 const fetchGasCdRatio = async () => {
   try {
@@ -361,11 +380,12 @@ const fetchGasCdRatio = async () => {
     totalLength.value = data.reduce((sum, item) => sum + item.count, 0);
 
     // 转换为压力等级分布饼图数据
-    pressureChartData.value = data.map((item) => ({
+    pressureChartData.value = data.map((item, index) => ({
       name: gxdlbMap.value[item.materialType] || item.materialType,
       value: parseFloat(item.ratio) || 0,
       itemStyle: {
-        opacity: 0.9,
+        color: pressureColors[index % pressureColors.length],
+        opacity: 0.5,
       },
     }));
 
@@ -383,11 +403,12 @@ const fetchGasPubunderpointRatio = async () => {
     totalPoints.value = data.reduce((sum, item) => sum + item.count, 0);
 
     // 转换为气源类型分布饼图数据
-    gasTypeChartData.value = data.map((item) => ({
+    gasTypeChartData.value = data.map((item, index) => ({
       name: gxdlbMap.value[item.materialType] || item.materialType,
       value: parseFloat(item.ratio) || 0,
       itemStyle: {
-        opacity: 0.9,
+        color: gasTypeColors[index % gasTypeColors.length],
+        opacity: 0.5,
       },
     }));
 
