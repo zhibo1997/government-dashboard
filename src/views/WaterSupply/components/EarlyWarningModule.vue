@@ -244,7 +244,7 @@ watch(monthlyData, (newData) => {
 .warning-list {
   display: flex;
   flex-direction: row;
-  margin: 20px 0 40px;
+  margin: 10px 0 20px;
 }
 
 .warning-content {
@@ -257,6 +257,7 @@ watch(monthlyData, (newData) => {
   flex-direction: row;
   justify-content: space-between;
   width: 100%;
+  flex: 1;
 
   .handled-chart {
     width: 531px;

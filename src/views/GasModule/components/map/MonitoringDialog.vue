@@ -42,48 +42,47 @@
 
       <!-- 数据表格 -->
       <div class="data-table">
-        <div class="table-header">
-          <div class="th th-index">序号</div>
-          <div class="th th-area">所属专项</div>
-          <div class="th th-id">场站编号</div>
-          <div class="th th-name">场站名称</div>
-          <div class="th th-position">安装位置</div>
-          <div class="th th-type">场站类型</div>
-          <div class="th th-run">运行状态</div>
-          <!-- <div class="th th-connect">运维状态</div>
-          <div class="th th-predict">预警</div>
-          <div class="th th-alarm">报警</div> -->
-        </div>
-
-        <div class="table-body" v-if="loading">
-            <div class="loading-text">加载中...</div>
-        </div>
-        <div class="table-body" v-else>
-          <div 
-            class="table-row"
-            :class="{ 'row-even': index % 2 === 1 }"
-            v-for="(item, index) in tableData"
-            :key="item.lsh || index"
-          >
-            <div class="td td-index">{{ (currentPage - 1) * pageSize + index + 1 }}</div>
-            <div class="td td-area">燃气</div>
-            <div class="td td-id">{{ item.czbh }}</div>
-            <div class="td td-name" :title="item.czmc">{{ item.czmc }}</div>
-            <div class="td td-position" :title="item.xxdz">{{ item.xxdz }}</div>
-            <div class="td td-type">{{ item.czlx }}</div>
-            <div class="td td-run">
-              <span class="status-text" :class="item.sjtbzt === 'I' ? 'status-online' : 'status-offline'">
-                {{ item.sjtbzt === 'I' ? '正常' : '异常' }}
-              </span>
-            </div>
-            <!-- 
-            <div class="td td-connect">-</div>
-            <div class="td td-predict">-</div>
-            <div class="td td-alarm">-</div> 
-            -->
-          </div>
-          <div v-if="tableData.length === 0" class="no-data">暂无数据</div>
-        </div>
+        <table class="table">
+          <thead class="table-header">
+            <tr>
+              <th class="th th-index">序号</th>
+              <th class="th th-area">所属专项</th>
+              <th class="th th-id">场站编号</th>
+              <th class="th th-name">场站名称</th>
+              <th class="th th-position">安装位置</th>
+              <th class="th th-type">场站类型</th>
+              <th class="th th-run">运行状态</th>
+            </tr>
+          </thead>
+          <tbody class="table-body" v-if="loading">
+            <tr>
+              <td colspan="7" class="loading-text">加载中...</td>
+            </tr>
+          </tbody>
+          <tbody class="table-body" v-else>
+            <tr 
+              class="table-row"
+              :class="{ 'row-even': index % 2 === 1 }"
+              v-for="(item, index) in tableData"
+              :key="item.lsh || index"
+            >
+              <td class="td td-index">{{ (currentPage - 1) * pageSize + index + 1 }}</td>
+              <td class="td td-area">燃气</td>
+              <td class="td td-id">{{ item.czbh }}</td>
+              <td class="td td-name" :title="item.czmc">{{ item.czmc }}</td>
+              <td class="td td-position" :title="item.xxdz">{{ item.xxdz }}</td>
+              <td class="td td-type">{{ item.czlx }}</td>
+              <td class="td td-run">
+                <span class="status-text" :class="item.sjtbzt === 'I' ? 'status-online' : 'status-offline'">
+                  {{ item.sjtbzt === 'I' ? '正常' : '异常' }}
+                </span>
+              </td>
+            </tr>
+            <tr v-if="tableData.length === 0">
+              <td colspan="7" class="no-data">暂无数据</td>
+            </tr>
+          </tbody>
+        </table>
       </div>
 
       <!-- 分页 -->
@@ -235,6 +234,8 @@ const visiblePages = computed(() => {
 </script>
 
 <style lang="scss" scoped>
+$table-columns: 80px 120px 160px 1fr 1fr 140px 120px;
+
 .monitoring-dialog {
   position: absolute;
   bottom: 0;
@@ -293,14 +294,14 @@ const visiblePages = computed(() => {
 
         .search-input {
           width: 200px; /* 稍微加宽 */
-          height: 28px;
+          height: 36px; /* 增加高度 */
           padding: 0 10px;
           background: rgba(0, 0, 0, 0.3);
           border: 1px solid rgba(255, 255, 255, 0.15);
           border-right: none;
           border-radius: 2px 0 0 2px;
           color: #ffffff;
-          font-size: 12px;
+          font-size: 16px; /* 增大字体 */
 
           &::placeholder {
             color: rgba(255, 255, 255, 0.35);
@@ -313,8 +314,8 @@ const visiblePages = computed(() => {
         }
 
         .search-btn {
-          width: 32px;
-          height: 28px;
+          width: 40px; /* 稍微加宽 */
+          height: 36px; /* 增加高度 */
           background: rgba(22, 119, 255, 0.6);
           border: 1px solid rgba(22, 119, 255, 0.6);
           border-radius: 0 2px 2px 0;
@@ -330,8 +331,8 @@ const visiblePages = computed(() => {
           }
 
           .search-icon {
-            width: 14px;
-            height: 14px;
+            width: 18px; /* 增大图标 */
+            height: 18px;
           }
         }
       }
@@ -345,14 +346,15 @@ const visiblePages = computed(() => {
 
     .data-table {
       flex: 1;
-      display: flex;
-      flex-direction: column;
       overflow: hidden;
 
+      .table {
+        width: 100%;
+        border-collapse: collapse;
+        table-layout: auto; /* 自适应宽度 */
+      }
+
       .table-header {
-        display: grid;
-        /* 调整列宽以适应场站数据 */
-        grid-template-columns: 50px 80px 120px 1fr 1fr 100px 80px;
         background: rgba(22, 119, 255, 0.25);
 
         .th {
@@ -364,14 +366,22 @@ const visiblePages = computed(() => {
           line-height: 40px;
           text-align: left;
           font-style: normal;
-          display: flex;
-          align-items: center;
-          justify-content: center;
+          border: none;
+          
+          /* 列宽自适应 */
+          &.th-index { width: 80px; }
+          &.th-area { width: 120px; }
+          &.th-id { width: 160px; }
+          &.th-name { width: auto; min-width: 200px; }
+          &.th-position { width: auto; min-width: 200px; }
+          &.th-type { width: 140px; }
+          &.th-run { width: 120px; }
         }
       }
 
       .table-body {
-        flex: 1;
+        display: block; /* 让tbody可滚动 */
+        max-height: calc(80vh - 200px); /* 根据实际高度调整 */
         overflow-y: auto;
         
         .loading-text, .no-data {
@@ -395,9 +405,6 @@ const visiblePages = computed(() => {
         }
 
         .table-row {
-          display: grid;
-          /* 与 header 保持一致 */
-          grid-template-columns: 50px 80px 120px 1fr 1fr 100px 80px;
           background: rgba(0, 30, 50, 0.4);
           border-bottom: 1px solid rgba(22, 119, 255, 0.1);
           transition: all 0.2s ease;
@@ -419,9 +426,7 @@ const visiblePages = computed(() => {
             line-height: 60px;
             text-align: left;
             font-style: normal;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            border: none;
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
@@ -453,77 +458,83 @@ const visiblePages = computed(() => {
     }
 
     .pagination {
-      padding: 12px 0 0;
-      display: flex;
-      align-items: center;
-      justify-content: flex-end;
-      gap: 6px;
-      flex-shrink: 0;
-
-      .page-btn {
-        width: 24px;
-        height: 24px;
-        background: transparent;
-        border: 1px solid rgba(255, 255, 255, 0.2);
-        border-radius: 2px;
-        color: rgba(255, 255, 255, 0.6);
-        cursor: pointer;
-        font-size: 12px;
-        transition: all 0.3s ease;
-
-        &:hover:not(:disabled) {
-          border-color: rgba(22, 119, 255, 0.5);
-          color: #ffffff;
-        }
-
-        &:disabled {
-          opacity: 0.3;
-          cursor: not-allowed;
-        }
-      }
-
-      .page-numbers {
+        padding: 12px 0 0;
         display: flex;
-        gap: 4px;
         align-items: center;
+        justify-content: flex-end;
+        gap: 6px;
+        flex-shrink: 0;
 
-        .page-num {
-          min-width: 24px;
-          height: 24px;
-          padding: 0 6px;
+        .page-btn {
+          width: 32px; /* 增大按钮 */
+          height: 32px;
           background: transparent;
           border: 1px solid rgba(255, 255, 255, 0.2);
           border-radius: 2px;
           color: rgba(255, 255, 255, 0.6);
           cursor: pointer;
-          font-size: 12px;
+          font-size: 14px; /* 增大字体 */
           transition: all 0.3s ease;
+          display: flex; /* 居中内容 */
+          align-items: center;
+          justify-content: center;
 
-          &:hover {
+          &:hover:not(:disabled) {
             border-color: rgba(22, 119, 255, 0.5);
             color: #ffffff;
           }
 
-          &.active {
-            background: rgba(22, 119, 255, 0.6);
-            border-color: rgba(22, 119, 255, 0.6);
-            color: #ffffff;
+          &:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
           }
         }
 
-        .page-dots {
-          color: rgba(255, 255, 255, 0.4);
-          padding: 0 2px;
-          font-size: 12px;
+        .page-numbers {
+          display: flex;
+          gap: 4px;
+          align-items: center;
+
+          .page-num {
+            min-width: 32px; /* 增大按钮 */
+            height: 32px;
+            padding: 0 6px;
+            background: transparent;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 2px;
+            color: rgba(255, 255, 255, 0.6);
+            cursor: pointer;
+            font-size: 14px; /* 增大字体 */
+            transition: all 0.3s ease;
+            display: flex; /* 居中内容 */
+            align-items: center;
+            justify-content: center;
+
+            &:hover {
+              border-color: rgba(22, 119, 255, 0.5);
+              color: #ffffff;
+            }
+
+            &.active {
+              background: rgba(22, 119, 255, 0.6);
+              border-color: rgba(22, 119, 255, 0.6);
+              color: #ffffff;
+            }
+          }
+
+          .page-dots {
+            color: rgba(255, 255, 255, 0.4);
+            padding: 0 2px;
+            font-size: 14px;
+          }
+        }
+
+        .page-info {
+          margin-left: 8px;
+          font-size: 14px;
+          color: rgba(255, 255, 255, 0.5);
         }
       }
-
-      .page-info {
-        margin-left: 8px;
-        font-size: 12px;
-        color: rgba(255, 255, 255, 0.5);
-      }
-    }
   }
 }
 </style>

@@ -101,7 +101,7 @@ const monitoringPointsHook = inject<any>('monitoringPointsHook');
 interface Props {
   viewerInstance: any
   sceneMode: 2 | 3
-  currentBaseMap: 'vec' | 'img' | 'ter' | 'arcgis'
+  currentBaseMap: 'vec' | 'img' | 'ter' | 'arcgis' | 'vector_color' | 'vector_blue'
   compassRotation: number
   defaultTilesetVisible: boolean
 }
@@ -111,7 +111,7 @@ const props = defineProps<Props>()
 // Emits - 通知父组件
 const emit = defineEmits<{
   'update:scene-mode': [mode: 2 | 3]
-  'update:base-map': [type: 'vec' | 'img' | 'ter' | 'arcgis']
+  'update:base-map': [type: 'vec' | 'img' | 'ter' | 'arcgis' | 'vector_color' | 'vector_blue']
   'reset-map': []
   'toggle-measure': []
   'toggle-default-tileset': []
@@ -131,6 +131,8 @@ const baseMapTypes = [
   { value: "img", label: "影像地图", icon: "🛰️" },
   { value: "vec", label: "矢量地图", icon: "🗺️" },
   { value: "ter", label: "地形地图", icon: "🏔️" },
+  { value: "vector_color", label: "彩色矢量", icon: "🎨" },
+  { value: "vector_blue", label: "蓝色矢量", icon: "💙" },
   // { value: "arcgis", label: "ArcGIS影像", icon: "📡" },
 ] as const;
 
@@ -325,12 +327,14 @@ const handleToggleDeviceType = async (sblx: string, visible: boolean) => {
 };
 
 // 切换底图
-const switchBaseMap = (type: "vec" | "img" | "ter" | "arcgis") => {
-  const typeNames: Record<'vec' | 'img' | 'ter' | 'arcgis', string> = {
+const switchBaseMap = (type: "vec" | "img" | "ter" | "arcgis" | "vector_color" | "vector_blue") => {
+  const typeNames: Record<'vec' | 'img' | 'ter' | 'arcgis' | 'vector_color' | 'vector_blue', string> = {
     'img': '影像',
     'vec': '矢量',
     'ter': '地形',
-    'arcgis': 'ArcGIS影像'
+    'arcgis': 'ArcGIS影像',
+    'vector_color': '彩色矢量',
+    'vector_blue': '蓝色矢量'
   }
   emit('update:base-map', type)
   showBaseMapPanel.value = false

@@ -255,7 +255,7 @@ export const handledOption = {
     left: 2,
     right: 2,
     top: 2,
-    bottom: 2,
+    bottom: "15%",
   },
   xAxis: {
     type: "category",

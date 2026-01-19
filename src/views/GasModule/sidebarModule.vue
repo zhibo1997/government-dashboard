@@ -37,6 +37,8 @@ const selectedStation = ref(null);
 const handleStationClick = (station) => {
   selectedStation.value = station;
   showStationDetail.value = true;
+  // 切换场站/企业时关闭监测设备列表
+  showMonitoringDialog.value = false;
 };
 
 // 显示监测设备

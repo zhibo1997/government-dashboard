@@ -1,11 +1,11 @@
 <template>
   <div class="map-container">
-    <vc-viewer ref="cesiumViewer" :selectionIndicator="false" :camera="camera" :infoBox="false" :sceneMode="sceneMode" :accessToken="defaultAccessToken" :requestRenderMode="true"
+    <vc-viewer ref="cesiumViewer" :selectionIndicator="false" :camera="camera" :infoBox="false" :sceneMode="sceneMode" :accessToken="defaultAccessToken" :requestRenderMode="true" :baseLayerPicker="false"
       :maximumRenderTimeChange="Infinity" @ready="onViewerReady">
-      <!-- 底图切换 (天地图 + Cesium Ion混合 + ArcGIS) -->
+      <!-- 底图切换 (天地图 + 自定义MVT矢量切片) -->
        
-      <vc-layer-imagery ref="basemapLayer">
-        <!-- 天地图底图 (影像/矢量) -->
+      <!-- 天地图底图 (影像/矢量/地形) -->
+      <vc-layer-imagery ref="basemapLayer" :show="showTianditu" :sort-order="1">
         <vc-imagery-provider-tianditu
           :map-style="tiandituMapStyle"
           :token="tiandituToken"
@@ -13,19 +13,9 @@
           @readyPromise="onTiandituReady"
           @errorEvent="onTiandituError"
         />
-        <!-- Cesium Ion底图 (地形) -->
-        <!-- <vc-imagery-provider-ion
-          :assetId="cesiumIonAssetId"
-          :accessToken="defaultAccessToken"
-        /> -->
-        <!-- ArcGIS影像底图 -->
-        <!-- <vc-imagery-provider-arcgis
-          :show="currentBaseMapType === 'arcgis'"
-          url="https://map1.cityfun.com.cn/arcgis/rest/services/YXX/YXX_QXIMAGE_2025/MapServer"
-          @readyPromise="onArcGISReady"
-          @errorEvent="onArcGISError"
-        /> -->
       </vc-layer-imagery>
+
+      <!-- 注意：自定义MVT矢量切片使用 Cesium 原生命令式加载，在 handleBaseMapChange 中处理 -->
 
       <!-- 阳新县行政区域边界 -->
       <vc-datasource-geojson
@@ -97,17 +87,28 @@ import MapToolbar from './MapToolbar.vue'
 import { inject } from 'vue'
 import ResponsiveWrapper from '@/components/ResponsiveWrapper.vue'
 import { useMonitoringPoints, type EnhancedMonitoringPoint } from '@/hook/useMonitoringPoints'
+import { useMapHooks } from '@/hook/useMapHooks'
 const defaultAccessToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiI1Njk0MWFkNy00NjAzLTRhYTAtYWM4Yi04YjM4Njg4M2IyMzEiLCJpZCI6Mjg1NTg3LCJpYXQiOjE3NDIzNTA2NDR9.tZ0ZoIsk2bMtMFtzNrO0WrRhS0VPfBhr0_78mtSYpMo';
+
+// 使用地图Hooks（MVT矢量切片加载）
+const { loadMVTLayer } = useMapHooks()
 
 // 使用监测点位 Hook
 const monitoringPoints = useMonitoringPoints()
+
+// 弹窗碰撞配置接口
+interface CollisionConfig {
+  lengthTolerance: number
+  widthTolerance: number
+  popupWidth: number
+  popupHeight: number
+  popupOffsetY: number
+}
 
 // 定义组件名称以支持keep-alive
 defineOptions({
   name: 'CesiumMap'
 });
-
-// 使用地图hooks
 
 // 相机范围限制清理函数
 let cameraBoundsCleanup: (() => void) | null = null
@@ -154,10 +155,24 @@ const mainFabOpts = {
 const defaultTilesetVisible = ref(false)
 
 // 底图类型
-const currentBaseMapType = ref<'vec' | 'img' | 'ter' | 'arcgis'>('img')
+const currentBaseMapType = ref<'vec' | 'img' | 'ter' | 'arcgis' | 'vector_color' | 'vector_blue'>('img')
 
 // 天地图 Token
 const tiandituToken = import.meta.env ? import.meta.env.VITE_TIANDITU_KEY || '' : ''
+
+// MVT图层引用（命令式加载）
+const currentMvtLayer = ref<any>(null)
+
+// MVT URL配置
+const mvtUrls = {
+  'vector_color': 'http://webres.cityfun.com.cn/CSSMX/cssmx_base/map_color.json',
+  'vector_blue': 'http://webres.cityfun.com.cn/CSSMX/cssmx_base/map_blue.json'
+}
+
+// 是否显示天地图底图
+const showTianditu = computed(() => {
+  return ['vec', 'img', 'ter'].includes(currentBaseMapType.value)
+})
 
 // 天地图地图样式映射
 const tiandituMapStyleMap: Record<'img' | 'vec' | 'ter', 'img_c' | 'vec_c' | 'ter_c'> = {
@@ -168,7 +183,10 @@ const tiandituMapStyleMap: Record<'img' | 'vec' | 'ter', 'img_c' | 'vec_c' | 'te
 
 // 当前天地图样式
 const tiandituMapStyle = computed((): 'img_c' | 'vec_c' | 'ter_c' => {
-  return tiandituMapStyleMap[currentBaseMapType.value as 'img' | 'vec']
+  if (['img', 'vec', 'ter'].includes(currentBaseMapType.value)) {
+    return tiandituMapStyleMap[currentBaseMapType.value as 'img' | 'vec' | 'ter']
+  }
+  return 'img_c' // 默认值
 })
 const mapAssetId = {
   'img': 2,
@@ -176,7 +194,10 @@ const mapAssetId = {
   'ter': 1
 }
 const cesiumIonAssetId=computed(() => {
-  return mapAssetId[currentBaseMapType.value as 'vec' | 'img' | 'ter']
+  if (['img', 'vec', 'ter'].includes(currentBaseMapType.value)) {
+    return mapAssetId[currentBaseMapType.value as 'vec' | 'img' | 'ter']
+  }
+  return 2
 })
 // 场景模式: 2=2D, 3=3D
 const sceneMode = ref<2 | 3>(3)
@@ -446,20 +467,63 @@ const handleSceneModeChange = (mode: 2 | 3) => {
 
 /**
  * 处理底图切换 (来自工具栏)
+ * 天地图使用声明式组件，MVT矢量切片使用 Cesium 原生 API
  */
-const handleBaseMapChange = (type: 'vec' | 'img' | 'ter' | 'arcgis') => {
+const handleBaseMapChange = async (type: 'vec' | 'img' | 'ter' | 'arcgis' | 'vector_color' | 'vector_blue') => {
   currentBaseMapType.value = type
+  
+  // 1. 清理现有的MVT图层（如果存在）
+  if (currentMvtLayer.value && viewerInstance.value) {
+    try {
+      viewerInstance.value.imageryLayers.remove(currentMvtLayer.value, true)
+      currentMvtLayer.value = null
+      console.log('🗑️ 旧MVT底图已移除')
+    } catch (e) {
+      console.warn('⚠️ 移除MVT图层时出错:', e)
+    }
+  }
+
+  // 2. 如果是矢量切片底图，使用 Cesium 原生API加载
+  if (type === 'vector_color' || type === 'vector_blue') {
+    if (viewerInstance.value) {
+      try {
+        const url = mvtUrls[type]
+        console.log(`🔄 正在加载矢量底图: ${type} - ${url}`)
+        
+        // 使用 useMapHooks 中的 loadMVTLayer 加载
+        const layer = await loadMVTLayer(viewerInstance.value, url)
+        
+        if (layer) {
+          currentMvtLayer.value = layer
+          // 确保底图在最下层
+          viewerInstance.value.imageryLayers.lowerToBottom(layer)
+          console.log(`✅ 矢量底图加载成功: ${type}`)
+        }
+      } catch (error) {
+        console.error(`❌ 加载矢量底图失败: ${type}`, error)
+      }
+    } else {
+      console.warn('⚠️ Viewer实例未就绪，无法加载矢量底图')
+    }
+  }
+
   const typeNames = {
     'img': '影像',
     'vec': '矢量',
     'ter': '地形',
-    'arcgis': 'ArcGIS影像'
+    'arcgis': 'ArcGIS影像',
+    'vector_color': '彩色矢量',
+    'vector_blue': '蓝色矢量'
   }
+  
   const providerInfo = type === 'ter' 
     ? '(Cesium Ion - Asset ID: 3)'
     : type === 'arcgis'
     ? '(ArcGIS影像服务)'
+    : (type === 'vector_color' || type === 'vector_blue')
+    ? '(MVT矢量切片 - Cesium 原生API)'
     : `(天地图 - ${type === 'img' ? '影像' : '矢量'})`
+  
   console.log(`✅ 底图切换为: ${typeNames[type]} ${providerInfo}`)
 }
 
@@ -569,7 +633,7 @@ defineExpose({
 
   // 监测点位相关
   monitoringPoints,
-  refreshMonitoringPoints: (sszx?: string) => monitoringPoints.refresh(sszx),
+  refreshMonitoringPoints: () => monitoringPoints.refresh(),
   setMonitoringPointsVisible: (visible: boolean) => monitoringPoints.setVisible(visible),
 
   // 多弹窗管理相关
