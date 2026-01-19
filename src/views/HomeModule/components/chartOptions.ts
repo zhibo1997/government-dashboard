@@ -384,9 +384,64 @@ export const getMonitoringAlarmChartOption = (
       ...item,
       type: "bar" as const,
       barWidth: 30,
+      barMinHeight: 5, // 确保 0 值也有微小高度可见
     } as any)),
   };
 };
+
+/**
+ * 获取预警统计环形图配置
+ * @param data 环形图数据 [{ name: '处置中', value: 18, color: '#...' }, ...]
+ */
+export const getMonitoringDonutChartOption = (
+  data: { name: string; value: number; color: string }[]
+): EChartsOption => {
+  return {
+    tooltip: {
+      trigger: "item",
+      formatter: "{b}: {c} ({d}%)",
+      backgroundColor: "rgba(0, 0, 0, 0.7)",
+      borderColor: "#D3EAF1",
+      borderWidth: 1,
+      textStyle: {
+        color: "#FFFFFF",
+      },
+    },
+    series: [
+      {
+        name: "预警统计",
+        type: "pie",
+        radius: ["50%", "80%"],
+        center: ["50%", "50%"],
+        avoidLabelOverlap: false,
+        label: {
+          show: true,
+          position: "outside",
+          formatter: "{b}: {c}",
+          color: "#D3EAF1",
+          fontSize: 24,
+          fontFamily: "SourceHanSansSC",
+        },
+        labelLine: {
+          show: true,
+          length: 10,
+          length2: 15,
+          lineStyle: {
+            color: "#D3EAF1",
+          },
+        },
+        data: data.map((item) => ({
+          name: item.name,
+          value: item.value,
+          itemStyle: {
+            color: item.color,
+          },
+        })),
+      },
+    ],
+  };
+};
+
 
 /**
  * 获取预警处置柱状图配置
@@ -423,6 +478,7 @@ export const getMonitoringEarlyWarningChartOption = (
       ...item,
       type: "bar" as const,
       barWidth: 30,
+      barMinHeight: 5, // 确保 0 值也有微小高度可见
     } as any)),
   };
 };

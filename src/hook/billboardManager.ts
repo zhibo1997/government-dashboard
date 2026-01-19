@@ -79,7 +79,7 @@ export function createBillboardCanvasWithArrow(
 
   // 2. 绘制内容背景
   if (resources.contentBg.complete && resources.contentBg.naturalWidth > 0) {
-    ctx.drawImage(resources.contentBg, 0, headerHeight, width, contentBodyHeight);
+    ctx.drawImage(resources.contentBg, 0, headerHeight -2, width, contentBodyHeight);
   }
 
   // 3. 绘制时间图标
@@ -94,8 +94,8 @@ export function createBillboardCanvasWithArrow(
   ctx.font = '20px "Microsoft YaHei", Arial, sans-serif';
   ctx.textBaseline = 'middle';
   // 时间文字位置：图标右侧
-  const timeTextX = padding + iconSize + 8;
-  ctx.fillText(point.formattedTime, timeTextX, headerHeight / 2);
+  const timeTextX = padding + iconSize + 4;
+  ctx.fillText(point.formattedTime, timeTextX, headerHeight / 2+4);
 
   // 5. 绘制分割线 (可选，如果背景图自带分割线则不需要，这里为了保险加一个淡淡的线)
   // ctx.strokeStyle = "rgba(0, 246, 255, 0.3)";

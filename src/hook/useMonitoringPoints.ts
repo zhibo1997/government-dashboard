@@ -264,13 +264,8 @@ export function useMonitoringPoints() {
     dataSource.value.entities.removeAll()
     dataSource.value.entities.suspendEvents()
 
-    // 定义不同专项的颜色映射
-    const sszxColorMap: Record<string, string> = {
-      'csaqzx_ql': '#1890ff',  // 桥梁监测 - 蓝色
-      'csaqzx_rq': '#ff4d4f',  // 燃气监测 - 红色
-      'csaqzx_gs': '#52c41a',  // 供水监测 - 绿色
-      'csaqzx_ps': '#faad14',  // 排水监测 - 黄色
-    };
+    // 统一点位颜色为蓝色
+    const pointColor = '#1890ff';
 
     const baseUrl = import.meta.env.VITE_BASE_URL
 
@@ -284,9 +279,6 @@ export function useMonitoringPoints() {
       const deviceIconUrl = `${baseUrl}/images/equipmentIcons/${iconName}`
       const position = Cesium.Cartesian3.fromDegrees(point.jdxx, point.wdxx)
       
-      // 根据专项类型获取对应颜色
-      const pointColor = sszxColorMap[point.sszx] || '#1890ff'; // 默认蓝色
-
       // 添加点位Entity（纯点/图标自适应）
       dataSource.value.entities.add({
         id: `${point.id}_point`,
@@ -297,7 +289,7 @@ export function useMonitoringPoints() {
           pixelSize: 6,
           color: Cesium.Color.fromCssColorString(pointColor),
           outlineColor: Cesium.Color.WHITE,
-          outlineWidth: 1,
+          outlineWidth: 0,
           distanceDisplayCondition: new Cesium.DistanceDisplayCondition(
             CAMERA_HEIGHT_THRESHOLD,
             Number.POSITIVE_INFINITY

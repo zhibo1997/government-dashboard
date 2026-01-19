@@ -10,15 +10,16 @@
           <!-- 左侧预警总数 -->
           <div class="total-warnings">
             <div class="total-value">
-              <span class="gradient-text">{{ totalWarnings }}</span>
+              <span class="gradient-text">{{ displayTotalWarnings }}</span>
             </div>
             <div class="total-label">预警总数</div>
           </div>
 
           <!-- 中间环形图占位 -->
-          <div class="donut-chart-placeholder"></div>
+          <div id="monitoring-donut-chart" class="donut-chart"></div>
 
         </div>
+
         <!-- 底部图表区域 -->
         <div class="chart-section">
           <div id="monitoring-early-warning-chart" class="echart"></div>
@@ -37,10 +38,18 @@
 
         <!-- 企业列表 -->
         <div class="disposal-list">
-          <div class="disposal-row" v-for="enterprise in currentTable.data" :key="enterprise.id">
-            <div class="row-col" v-for="column in currentTable.columns" :key="column.key">
-              {{ enterprise[column.key as keyof EnterpriseData] }}</div>
-          </div>
+          <template v-if="currentTable.data && currentTable.data.length">
+            <div class="disposal-row" v-for="enterprise in currentTable.data" :key="enterprise.id">
+              <div class="row-col" v-for="column in currentTable.columns" :key="column.key">
+                {{ formatDisplay(enterprise[column.key as keyof EnterpriseData]) }}
+              </div>
+            </div>
+          </template>
+          <template v-else>
+            <div class="disposal-row">
+              <div class="row-col" v-for="column in currentTable.columns" :key="column.key">-</div>
+            </div>
+          </template>
         </div>
       </div>
     </div>
@@ -51,14 +60,22 @@
 import { ref, onMounted, nextTick, computed } from "vue";
 import * as echarts from "echarts";
 import { getEarlyWarningDisposalCountList } from "@/services/statusService";
+import { getWarnStatistics } from "@/services/waterSupplyService";
 import { getCachedDictionary } from "@/services/dictionaryService";
-import { getMonitoringEarlyWarningChartOption, SeriesData, LevelMapping, createCustomVerticalGradient } from "./chartOptions";
+import { getMonitoringEarlyWarningChartOption, getMonitoringDonutChartOption, SeriesData, LevelMapping, createCustomVerticalGradient } from "./chartOptions";
 
 // 数据类型定义
 interface EarlyWarningDataItem {
   sszx: string;  // 数据中心标识
   czzt: string;  // 处置状态标识
   number: number; // 预警数量
+}
+
+interface WarnStatistics {
+  totalCount: number;
+  handlingCount: number;
+  handledCount: number;
+  unhandledCount: number;
 }
 
 // 专项映射
@@ -91,6 +108,14 @@ const statusColorMapping: Record<string, { start: string; end: string; display: 
 // 原始数据
 const earlyWarningData = ref<EarlyWarningDataItem[]>([]);
 
+// 预警统计数据（环形图）
+const warnStats = ref<WarnStatistics>({
+  totalCount: 0,
+  handlingCount: 0,
+  handledCount: 0,
+  unhandledCount: 0,
+});
+
 // 状态映射
 const statusMapping = ref<LevelMapping>({});
 
@@ -115,51 +140,30 @@ const currentTable = ref<{ columns: Array<{ key: string; label: string }>; data:
   data: []
 });
 
-// 预警总数
-const totalWarnings = computed(() => {
-  return earlyWarningData.value.reduce((sum, item) => sum + (item.number || 0), 0);
+// 显示用总数：优先使用环形图接口的总数，没有则显示 "-"
+const displayTotalWarnings = computed(() => {
+  if (warnStats.value.totalCount > 0) {
+    return String(warnStats.value.totalCount);
+  }
+  if (!earlyWarningData.value || earlyWarningData.value.length === 0) {
+    return "-";
+  }
+  const sum = earlyWarningData.value.reduce((acc, cur) => acc + (cur.number || 0), 0);
+  return sum > 0 ? String(sum) : "-";
 });
 
-// 处置状态统计（右侧显示）- 按实际数据顺序展示，不按字典顺序
-const statusStats = computed(() => {
-  // 用于记录状态及其首次出现的顺序和总数
-  const statusMap: Record<string, { name: string; key: string; value: number; order: number }> = {};
-  let order = 0;
 
-  // 遍历实际数据，按照首次出现的顺序累计数值
-  earlyWarningData.value.forEach((item) => {
-    const status = statusMapping.value[item.czzt];
-    if (status) {
-      const statusName = status.name;
-      if (!statusMap[statusName]) {
-        statusMap[statusName] = {
-          name: statusName,
-          key: status.key,
-          value: 0,
-          order: order++,
-        };
-      }
-      statusMap[statusName].value += item.number || 0;
-    }
-  });
-
-  // 按首次出现的顺序返回结果
-  return Object.values(statusMap)
-    .sort((a, b) => a.order - b.order)
-    .map((status) => {
-      const colorConfig = statusColorMapping[status.name];
-      return {
-        label: status.name,
-        key: status.key,
-        value: status.value,
-        color: colorConfig ? colorConfig.display : "#3C7CF8",
-      };
-    });
-});
+// 值格式化：空值统一显示为 "-"
+const formatDisplay = (value: unknown): string => {
+  if (value === null || value === undefined) return "-";
+  if (typeof value === "string" && value.trim() === "") return "-";
+  return String(value);
+};
 
 /**
  * 构建图表系列数据 - 按实际数据顺序
  */
+
 const buildChartSeries = (
   data: EarlyWarningDataItem[],
   statusMapping: LevelMapping
@@ -188,9 +192,14 @@ const buildChartSeries = (
     .sort((a, b) => sszxMapping[a].order - sszxMapping[b].order)
     .map((key) => sszxMapping[key].name);
 
-  // 构建系列数据 - 按实际数据中出现的顺序
-  const statusKeys = Array.from(statusOrder.keys())
-    .sort((a, b) => (statusOrder.get(a) ?? 0) - (statusOrder.get(b) ?? 0));
+  // 构建系列数据 - 仅展示“处置中”、“已处置”、“未处置”这三个状态
+  const allowedStatusNames = Object.keys(statusColorMapping);
+  const statusKeys = Object.keys(statusMapping)
+    .filter(key => allowedStatusNames.includes(statusMapping[key].name))
+    .sort((a, b) => {
+      // 按照 statusColorMapping 的顺序排序或保持字典顺序
+      return statusMapping[a].order - statusMapping[b].order;
+    });
 
   const seriesData = Object.keys(sszxMapping)
     .sort((a, b) => sszxMapping[a].order - sszxMapping[b].order)
@@ -199,6 +208,7 @@ const buildChartSeries = (
         return groupedData[sszxKey]?.[statusKey] || 0;
       });
     });
+
 
   // 转换为 ECharts 需要的格式
   const series: SeriesData[] = statusKeys.map((statusKey, index) => {
@@ -233,16 +243,43 @@ const initChart = async () => {
     }
     statusMapping.value = dictMap;
 
-    // 2. 获取预警处置数据
+    // 2. 获取预警统计数据（环形图）
+    const statsData = await getWarnStatistics("");
+    if (statsData) {
+      warnStats.value = {
+        totalCount: statsData.totalCount || 0,
+        handlingCount: statsData.handlingCount || 0,
+        handledCount: statsData.handledCount || 0,
+        unhandledCount: statsData.unhandledCount || 0,
+      };
+    }
+
+    // 3. 获取预警处置数据（柱状图）
     const data = await getEarlyWarningDisposalCountList();
     earlyWarningData.value = Array.isArray(data) ? data : [];
 
-    // 3. 渲染图表
+    // 4. 渲染图表
     await nextTick();
+    
+    // 渲染环形图
+    const donutDom = document.getElementById("monitoring-donut-chart");
+    if (donutDom) {
+      const donutChart = echarts.init(donutDom);
+      const donutOption = getMonitoringDonutChartOption([
+        { name: "处置中", value: warnStats.value.handlingCount, color: statusColorMapping["处置中"].display },
+        { name: "已处置", value: warnStats.value.handledCount, color: statusColorMapping["已处置"].display },
+        { name: "未处置", value: warnStats.value.unhandledCount, color: statusColorMapping["未处置"].display },
+      ]);
+      donutChart.setOption(donutOption);
+      window.addEventListener("resize", () => donutChart.resize());
+    }
+
+    // 渲染柱状图
     const chartDom = document.getElementById("monitoring-early-warning-chart");
     if (chartDom) {
       const chart = echarts.init(chartDom);
       const { xAxisData, series, statusKeys } = buildChartSeries(earlyWarningData.value, statusMapping.value);
+
 
       // 为每个系列添加渐变色
       const seriesWithGradient = series.map((s, index) => {
@@ -268,6 +305,7 @@ const initChart = async () => {
   }
 };
 
+
 onMounted(() => {
   initChart();
 });
@@ -283,6 +321,8 @@ onMounted(() => {
 
   .status-counts {
     height: 50%;
+    display: flex;
+    flex-direction: column;
   }
 
   // 上方处置状态区域
@@ -334,58 +374,13 @@ onMounted(() => {
       }
     }
 
-    // 中间环形图占位
-    .donut-chart-placeholder {
+    // 环形图区域
+    .donut-chart {
       flex: 1;
-      min-height: 140px;
+      height: 180px;
       display: flex;
       align-items: center;
       justify-content: center;
-      // 占位区域，后续用图片替换
-    }
-
-    // 右侧处置状态统计
-    .status-stats {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      min-width: 200px;
-
-      .status-item {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 24px;
-
-        .status-label {
-          font-family: SourceHanSansSC, SourceHanSansSC;
-          font-weight: 400;
-          font-size: 30px;
-          color: #D3EAF1;
-          line-height: 44px;
-          letter-spacing: 2px;
-          text-align: center;
-          font-style: normal;
-        }
-
-        .status-value {
-          width: 95.66px;
-          height: 40.44px;
-          background-size: 100% 100%;
-          text-align: center;
-          background-image: url('@/assets/img/homeModule/level1.webp');
-
-          >span {
-            font-family: YouSheBiaoTiHei;
-            font-size: 30px;
-            color: #FFFFFF;
-            line-height: 39px;
-            text-align: center;
-            font-style: normal;
-            background: linear-gradient(0deg, #FF1D1D 0%, #FD8837 100%);
-          }
-        }
-      }
     }
   }
 
