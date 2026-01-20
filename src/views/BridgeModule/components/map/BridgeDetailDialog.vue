@@ -1,8 +1,5 @@
 <template>
-  <div
-    class="bridge-detail-dialog"
-    v-show="visible"
-  >
+  <div class="bridge-detail-dialog" v-show="visible">
     <div class="dialog-header">
       <div class="dialog-title">{{ bridgeData?.llmc || "桥梁详情" }}</div>
       <n-button text class="close-btn" @click="handleClose">
@@ -107,7 +104,7 @@ const bridgeFields = [
 // 获取桥梁类型文本
 const getBridgeType = (qllx) => {
   if (!qllx) return '未知类型';
-  
+
   const typeMap = {
     'qllx001': '钢构桥',
     'qllx002': '钢筋混凝土桥',
@@ -122,12 +119,12 @@ const formatFieldValue = (key: string, value: any) => {
   if (value === null || value === undefined || value === '') {
     return '—';
   }
-  
+
   // 特殊字段格式化
   if (key === 'sfjc') {
     return value === 1 ? '是' : '否';
   }
-  
+
   if (key === 'qljg') {
     const structureMap = {
       'qljglb001': '梁桥',
@@ -139,11 +136,11 @@ const formatFieldValue = (key: string, value: any) => {
     };
     return structureMap[value] || value || '—';
   }
-  
+
   if (key === 'qllx') {
     return getBridgeType(value) || '—';
   }
-  
+
   if (key === 'ztdj') {
     const statusMap = {
       'ztdj001': '一类',
@@ -154,7 +151,7 @@ const formatFieldValue = (key: string, value: any) => {
     };
     return statusMap[value] || value || '—';
   }
-  
+
   if (key === 'qlyhdj') {
     const gradeMap = {
       'yhdj001': '一级',
@@ -163,7 +160,7 @@ const formatFieldValue = (key: string, value: any) => {
     };
     return gradeMap[value] || value || '—';
   }
-  
+
   if (key === 'hysx') {
     const industryMap = {
       'qlhysx001': '公路',
@@ -172,7 +169,7 @@ const formatFieldValue = (key: string, value: any) => {
     };
     return industryMap[value] || value || '—';
   }
-  
+
   return value || '—';
 };
 
@@ -257,12 +254,10 @@ const handleClose = () => {
   position: absolute;
   top: 80px;
   left: 1320px;
-  width: 680px; /* 加宽弹窗 */
-  background: linear-gradient(
-    270deg,
-    rgba(8, 46, 77, 0.4) 0%,
-    rgba(0, 0, 0, 0.4) 100%
-  );
+  width: 773px;
+  background: linear-gradient(270deg,
+      rgba(8, 46, 77, 0.4) 0%,
+      rgba(0, 0, 0, 0.4) 100%);
 
   border: 3px solid #226d76;
   z-index: 200;
@@ -280,10 +275,10 @@ const handleClose = () => {
 
     .dialog-title {
       font-family: SourceHanSansSC, SourceHanSansSC;
-      font-weight: 500;
-      font-size: 28px;
+      font-weight: var(--font-weight-medium);
+      font-size: var(--font-size-2xl);
       color: #e4f3ff;
-      line-height: 41px;
+      line-height: calc(var(--font-size-2xl) * 1.464);
     }
   }
 
@@ -333,9 +328,9 @@ const handleClose = () => {
       }
 
       .info-grid {
-        display: grid;
-        gap: 15px 20px;
-        grid-template-columns: 1fr 1fr; /* 两列布局 */
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
       }
 
       .status-badge-row {
@@ -344,12 +339,12 @@ const handleClose = () => {
         justify-content: center;
 
         .badge-btn {
-          padding: 6px 16px;
+          padding: 8px 20px;
           border-radius: 8px;
           font-family: SourceHanSansSC, SourceHanSansSC;
-          font-weight: 500;
-          font-size: 20px;
-          line-height: 29px;
+          font-weight: var(--font-weight-medium);
+          font-size: var(--font-size-2xl);
+          line-height: calc(var(--font-size-2xl) * 1.4);
 
           &.badge-type {
             background: #313d56;
@@ -357,33 +352,26 @@ const handleClose = () => {
             border: 2px solid #15779d;
 
             color: #e4f3ff;
-            line-height: 29px;
+            line-height: 1.4;
           }
 
           &.badge-normal {
-            background: linear-gradient(
-              90deg,
-              rgba(4, 247, 103, 0.6) 0%,
-              rgba(4, 199, 254, 0.6) 99%
-            );
+            background: linear-gradient(90deg,
+                rgba(4, 247, 103, 0.6) 0%,
+                rgba(4, 199, 254, 0.6) 99%);
             border: 2px solid #04c7fe;
             color: #fff;
           }
 
           &.badge-error {
             color: #fff;
-            background: linear-gradient(
-              90deg,
-              rgba(247, 94, 4, 0.6) 0%,
-              rgba(254, 172, 4, 0.6) 100%
-            );
+            background: linear-gradient(90deg,
+                rgba(247, 94, 4, 0.6) 0%,
+                rgba(254, 172, 4, 0.6) 100%);
             border: 2px solid #f76204;
-            border-image: linear-gradient(
-                180deg,
+            border-image: linear-gradient(180deg,
                 rgba(252, 155, 10, 1),
-                rgba(247, 98, 4, 1)
-              )
-              2 2;
+                rgba(247, 98, 4, 1)) 2 2;
           }
         }
       }
@@ -391,24 +379,27 @@ const handleClose = () => {
       .info-row {
         display: flex;
         align-items: center;
-        gap: 12px;
-        font-size: var(--font-size-2xl);
-        line-height: 26px;
+        gap: 16px;
+        font-size: var(--font-size-3xl);
+        line-height: calc(var(--font-size-3xl) * 1.4);
+        color: #e4f3ff;
 
         label {
           font-family: SourceHanSansSC, SourceHanSansSC;
-          font-weight: 400;
+          font-weight: var(--font-weight-normal);
           color: #a8d4e0;
-          min-width: 140px;
+          min-width: 160px;
           flex-shrink: 0;
+          text-align: right;
         }
 
         .info-value {
           font-family: SourceHanSansSC, SourceHanSansSC;
-          font-weight: 400;
-          color: #e4f3ff;
+          font-weight: var(--font-weight-normal);
           flex: 1;
           min-width: 0;
+          text-align: left;
+          word-break: break-word;
         }
       }
     }

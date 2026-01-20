@@ -155,19 +155,10 @@ const mainFabOpts = {
 const defaultTilesetVisible = ref(false)
 
 // 底图类型
-const currentBaseMapType = ref<'vec' | 'img' | 'ter' | 'arcgis' | 'vector_color' | 'vector_blue'>('img')
+const currentBaseMapType = ref<'vec' | 'img' | 'ter' | 'arcgis'>('img')
 
 // 天地图 Token
 const tiandituToken = import.meta.env ? import.meta.env.VITE_TIANDITU_KEY || '' : ''
-
-// MVT图层引用（命令式加载）
-const currentMvtLayer = ref<any>(null)
-
-// MVT URL配置
-const mvtUrls = {
-  'vector_color': 'http://webres.cityfun.com.cn/CSSMX/cssmx_base/map_color.json',
-  'vector_blue': 'http://webres.cityfun.com.cn/CSSMX/cssmx_base/map_blue.json'
-}
 
 // 是否显示天地图底图
 const showTianditu = computed(() => {
@@ -467,63 +458,24 @@ const handleSceneModeChange = (mode: 2 | 3) => {
 
 /**
  * 处理底图切换 (来自工具栏)
- * 天地图使用声明式组件，MVT矢量切片使用 Cesium 原生 API
+ * 只支持天地图和ArcGIS影像底图
  */
-const handleBaseMapChange = async (type: 'vec' | 'img' | 'ter' | 'arcgis' | 'vector_color' | 'vector_blue') => {
+const handleBaseMapChange = async (type: 'vec' | 'img' | 'ter' | 'arcgis') => {
   currentBaseMapType.value = type
-  
-  // 1. 清理现有的MVT图层（如果存在）
-  if (currentMvtLayer.value && viewerInstance.value) {
-    try {
-      viewerInstance.value.imageryLayers.remove(currentMvtLayer.value, true)
-      currentMvtLayer.value = null
-      console.log('🗑️ 旧MVT底图已移除')
-    } catch (e) {
-      console.warn('⚠️ 移除MVT图层时出错:', e)
-    }
-  }
-
-  // 2. 如果是矢量切片底图，使用 Cesium 原生API加载
-  if (type === 'vector_color' || type === 'vector_blue') {
-    if (viewerInstance.value) {
-      try {
-        const url = mvtUrls[type]
-        console.log(`🔄 正在加载矢量底图: ${type} - ${url}`)
-        
-        // 使用 useMapHooks 中的 loadMVTLayer 加载
-        const layer = await loadMVTLayer(viewerInstance.value, url)
-        
-        if (layer) {
-          currentMvtLayer.value = layer
-          // 确保底图在最下层
-          viewerInstance.value.imageryLayers.lowerToBottom(layer)
-          console.log(`✅ 矢量底图加载成功: ${type}`)
-        }
-      } catch (error) {
-        console.error(`❌ 加载矢量底图失败: ${type}`, error)
-      }
-    } else {
-      console.warn('⚠️ Viewer实例未就绪，无法加载矢量底图')
-    }
-  }
 
   const typeNames = {
     'img': '影像',
     'vec': '矢量',
     'ter': '地形',
-    'arcgis': 'ArcGIS影像',
-    'vector_color': '彩色矢量',
-    'vector_blue': '蓝色矢量'
+    'arcgis': 'ArcGIS影像'
   }
-  
-  const providerInfo = type === 'ter' 
+
+  const providerInfo = type === 'ter'
     ? '(Cesium Ion - Asset ID: 3)'
     : type === 'arcgis'
     ? '(ArcGIS影像服务)'
-    : (type === 'vector_color' || type === 'vector_blue')
-    ? '(MVT矢量切片 - Cesium 原生API)'
     : `(天地图 - ${type === 'img' ? '影像' : '矢量'})`
-  
+
   console.log(`✅ 底图切换为: ${typeNames[type]} ${providerInfo}`)
 }
 

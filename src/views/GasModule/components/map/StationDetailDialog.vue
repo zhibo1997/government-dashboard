@@ -272,8 +272,9 @@ const handleShowMonitoring = () => {
       &.liquefied-gas-info {}
 
       .info-grid {
-        display: grid;
-        gap: 15px 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
       }
 
       .status-badge-row {
@@ -282,12 +283,12 @@ const handleShowMonitoring = () => {
         justify-content: center;
 
         .badge-btn {
-          padding: 6px 16px;
+          padding: 8px 20px;
           border-radius: 8px;
           font-family: SourceHanSansSC, SourceHanSansSC;
           font-weight: var(--font-weight-medium);
-          font-size: var(--font-size-lg);
-          line-height: calc(var(--font-size-lg) * var(--line-height-normal));
+          font-size: var(--font-size-2xl);
+          line-height: calc(var(--font-size-2xl) * 1.4);
 
           &.badge-type {
             background: #313d56;
@@ -295,7 +296,7 @@ const handleShowMonitoring = () => {
             border: 2px solid #15779d;
 
             color: #e4f3ff;
-            line-height: calc(var(--font-size-lg) * var(--line-height-normal));
+            line-height: 1.4;
           }
 
           &.badge-normal {
@@ -324,14 +325,15 @@ const handleShowMonitoring = () => {
         align-items: center;
         gap: 16px;
         font-size: var(--font-size-3xl);
-        line-height: calc(var(--font-size-md) * var(--line-height-normal));
+        line-height: calc(var(--font-size-3xl) * 1.4);
         color: #e4f3ff;
 
         label {
           font-family: SourceHanSansSC, SourceHanSansSC;
           font-weight: var(--font-weight-normal);
-          min-width: 140px;
+          min-width: 160px;
           flex-shrink: 0;
+          text-align: right;
         }
 
         .info-value {
@@ -339,6 +341,8 @@ const handleShowMonitoring = () => {
           font-weight: var(--font-weight-normal);
           flex: 1;
           min-width: 0;
+          text-align: left;
+          word-break: break-word;
         }
       }
     }

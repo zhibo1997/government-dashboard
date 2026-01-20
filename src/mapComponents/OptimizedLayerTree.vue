@@ -52,13 +52,6 @@
               <div class="layer-info">
                 <span class="layer-name">{{ option.title }}</span>
               </div>
-              <div class="layer-actions" v-if="option.isLayer" @click.stop>
-                <n-icon
-                  :component="StarOutline"
-                  class="action-icon favorite-icon"
-                  title="收藏"
-                />
-              </div>
             </div>
           </template>
         </n-tree>
@@ -71,9 +64,8 @@
 import { ref, computed, onMounted, watch } from "vue";
 import { useRoute } from "vue-router";
 import { NTree, NSpin, NIcon, NInput } from "naive-ui";
-import { SearchOutline, StarOutline } from "@vicons/ionicons5";
+import { SearchOutline } from "@vicons/ionicons5";
 import { getLayerTree } from "@/services/commonService";
-import { useMapStore } from "@/stores/mapStore";
 
 // Props
 interface Props {
@@ -115,7 +107,6 @@ const expandedKeys = ref<string[]>([]);
 const checkedKeys = ref<string[]>([]);
 const rawLayerData = ref<any[]>([]);
 const searchKeyword = ref("");
-const mapStore = useMapStore();
 const route = useRoute();
 
 /**
@@ -674,13 +665,13 @@ defineExpose({
 // 标题栏
 .tree-header {
   flex-shrink: 0;
-  padding: 16px 20px;
+  padding: 12px 24px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
   background: transparent;
 
   .header-title {
-    font-size: 18px;
-    font-weight: 500;
+    font-size: 32px;
+    font-weight: 700;
     color: #ffffff;
   }
 }
@@ -688,36 +679,38 @@ defineExpose({
 // 搜索框
 .search-box {
   flex-shrink: 0;
-  padding: 16px 20px 12px;
+  padding: 20px 24px 16px;
 
   :deep(.n-input) {
     background: rgba(255, 255, 255, 0.05) !important;
     border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 4px;
     transition: all 0.3s ease;
-
+    .n-input__placeholder {
+      font-size: 32px !important;
+    }
     &:hover {
       border-color: rgba(255, 255, 255, 0.2);
     }
 
     &.n-input--focus {
       background: rgba(255, 255, 255, 0.08) !important;
-      border-color: rgba(22, 119, 255, 0.5);
+      // border-color: rgba(22, 119, 255, 0.5);
     }
 
     .n-input__input-el {
       color: #ffffff !important;
-      font-size: 18px !important;
-
-      &::placeholder {
-        color: rgba(255, 255, 255, 0.45);
-        font-size: 18px !important;
-      }
+      font-size: 32px !important;
+      height: 56px;
     }
 
     .n-input__border,
     .n-input__state-border {
       border: none;
+    }
+    .n-input-wrapper{
+      height: 56px;
+      --n-icon-size: 32px;
     }
   }
 }
@@ -725,15 +718,15 @@ defineExpose({
 // 图层数统计
 .layer-count {
   flex-shrink: 0;
-  padding: 12px 20px;
-  font-size: 16px;
+  padding: 16px 24px;
+  font-size: 32px;
   color: rgba(255, 255, 255, 0.65);
 
   .count-number {
     color: #1890ff;
-    font-weight: 500;
+    font-weight: 700;
     margin-left: 4px;
-    font-size: 16px;
+    font-size: 36px;
   }
 }
 
@@ -742,7 +735,7 @@ defineExpose({
   flex: 1;
   overflow-y: auto;
   overflow-x: hidden;
-  padding: 0 12px 16px;
+  padding: 0 16px 20px;
   // 自定义滚动条
   &::-webkit-scrollbar {
     width: 6px;
@@ -775,8 +768,8 @@ defineExpose({
   align-items: center;
   justify-content: space-between;
   width: 100%;
-  padding: 2px 0;
-  min-height: 32px;
+  padding: 4px 0;
+  min-height: 40px;
 }
 
 .layer-info {
@@ -788,58 +781,32 @@ defineExpose({
 }
 
 .layer-name {
-  font-size: 24px;
+  font-size: 28px;
   color: #ffffff;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
-.layer-actions {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-shrink: 0;
-  margin-left: 8px;
-
-  .action-icon {
-    font-size: 18px;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    padding: 4px;
-    border-radius: 4px;
-
-    &.favorite-icon {
-      color: rgba(255, 255, 255, 0.45);
-
-      &:hover {
-        color: #fadb14;
-        background: rgba(250, 219, 20, 0.1);
-      }
-
-      &.favorited {
-        color: #fadb14;
-      }
-    }
-  }
-}
-
 // 自定义 n-tree 样式
 :deep(.n-tree) {
   background: transparent;
   color: #ffffff;
-  font-size: 16px;
+  font-size: 28px;
 
   .n-tree-node {
-    margin: 4px 0;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 0;
   }
 
   .n-tree-node-content {
     color: #ffffff;
-    padding: 6px 10px;
-    border-radius: 4px;
     transition: all 0.2s ease;
-    font-size: 16px;
+    font-size: 32px;
+    min-height: 48px;
+    display: flex;
+    align-items: center;
 
     &:hover {
       background: rgba(255, 255, 255, 0.08);
@@ -852,21 +819,34 @@ defineExpose({
 
   // 展开/收起图标
   .n-tree-node-switcher {
-    width: 20px;
-    height: 20px;
-
+    width: 42px !important;
+    height: 42px !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    .n-tree-node-switcher__icon{
+      height: 42px;
+    width: 42px;
+    }
     .n-base-icon {
       color: rgba(255, 255, 255, 0.65);
-      font-size: 16px;
+      font-size: 42px;
     }
   }
-
+  .n-tree-node-checkbox{
+      width: 32px !important;
+      height: 32px !important;
+  }
   // 复选框样式
   .n-checkbox {
+    --n-size: 32px !important;
+    
     .n-checkbox-box {
       border: 2px solid rgba(255, 255, 255, 0.3);
       background-color: transparent;
       border-radius: 2px;
+      width: 32px;
+      height: 32px;
     }
 
     &.n-checkbox--checked .n-checkbox-box {
@@ -880,11 +860,12 @@ defineExpose({
 
     .n-checkbox-box .n-checkbox-icon {
       color: #ffffff;
+      font-size: 2px;
     }
   }
 
   .n-tree-node-indent {
-    width: 20px;
+    width: 28px;
   }
 
   // 空状态

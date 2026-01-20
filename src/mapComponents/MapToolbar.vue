@@ -101,7 +101,7 @@ const monitoringPointsHook = inject<any>('monitoringPointsHook');
 interface Props {
   viewerInstance: any
   sceneMode: 2 | 3
-  currentBaseMap: 'vec' | 'img' | 'ter' | 'arcgis' | 'vector_color' | 'vector_blue'
+  currentBaseMap: 'vec' | 'img' | 'ter' | 'arcgis'
   compassRotation: number
   defaultTilesetVisible: boolean
 }
@@ -111,7 +111,7 @@ const props = defineProps<Props>()
 // Emits - 通知父组件
 const emit = defineEmits<{
   'update:scene-mode': [mode: 2 | 3]
-  'update:base-map': [type: 'vec' | 'img' | 'ter' | 'arcgis' | 'vector_color' | 'vector_blue']
+  'update:base-map': [type: 'vec' | 'img' | 'ter' | 'arcgis']
   'reset-map': []
   'toggle-measure': []
   'toggle-default-tileset': []
@@ -131,8 +131,6 @@ const baseMapTypes = [
   { value: "img", label: "影像地图", icon: "🛰️" },
   { value: "vec", label: "矢量地图", icon: "🗺️" },
   { value: "ter", label: "地形地图", icon: "🏔️" },
-  { value: "vector_color", label: "彩色矢量", icon: "🎨" },
-  { value: "vector_blue", label: "蓝色矢量", icon: "💙" },
   // { value: "arcgis", label: "ArcGIS影像", icon: "📡" },
 ] as const;
 
@@ -327,14 +325,12 @@ const handleToggleDeviceType = async (sblx: string, visible: boolean) => {
 };
 
 // 切换底图
-const switchBaseMap = (type: "vec" | "img" | "ter" | "arcgis" | "vector_color" | "vector_blue") => {
-  const typeNames: Record<'vec' | 'img' | 'ter' | 'arcgis' | 'vector_color' | 'vector_blue', string> = {
+const switchBaseMap = (type: "vec" | "img" | "ter" | "arcgis") => {
+  const typeNames: Record<'vec' | 'img' | 'ter' | 'arcgis', string> = {
     'img': '影像',
     'vec': '矢量',
     'ter': '地形',
-    'arcgis': 'ArcGIS影像',
-    'vector_color': '彩色矢量',
-    'vector_blue': '蓝色矢量'
+    'arcgis': 'ArcGIS影像'
   }
   emit('update:base-map', type)
   showBaseMapPanel.value = false
@@ -363,14 +359,23 @@ const resetNorth = () => {
 
   const Cesium = (window as any).Cesium;
   if (Cesium) {
-    props.viewerInstance.camera.setView({
+    // 只改变相机方向，保持当前位置不变，并添加平滑旋转动画
+    const currentPosition = props.viewerInstance.camera.position;
+    props.viewerInstance.camera.flyTo({
+      destination: currentPosition,
       orientation: {
         heading: 0,
         pitch: Cesium.Math.toRadians(-90),
         roll: 0,
       },
+      duration: 1.5, // 旋转动画持续时间（秒）
+      complete: () => {
+        console.log("✅ 重置指北方向");
+      },
+      cancel: () => {
+        console.warn("⚠️ 重置指北方向操作已取消");
+      },
     });
-    console.log("✅ 重置指北方向");
   }
 };
 
@@ -457,8 +462,8 @@ defineExpose({
     right: 100%;
     top: 0;
     margin-right: 16px;
-    width: 400px;
-    max-height: 600px;
+    width: 480px;
+    max-height: 780px;
     background: rgba(11, 28, 45, 0.65);
     backdrop-filter: blur(10px);
     border: 2px solid rgba(22, 119, 255, 0.3);

@@ -42,7 +42,7 @@
       </div>
     </div>
 
-    <div class="panel-content" :class="{ hidden: isCollapsed }">
+    <div class="panel-content station-list-section" :class="{ hidden: isCollapsed }">
 
       <!-- 主标题 -->
       <div class="panel-title">
@@ -249,10 +249,15 @@ const nextPage = () => {
 
 <style lang="scss" scoped>
 .panel-content {
-  margin-bottom: 20px;
 
   &.hidden {
     display: none;
+  }
+  &.station-list-section {
+    flex: 1;
+    min-height: 600px;
+    display: flex;
+    flex-direction: column;
   }
 }
 
@@ -260,7 +265,8 @@ const nextPage = () => {
   position: absolute;
   left: 840px;
   width: 460px;
-  height: calc(100% - 40px);
+  height: 100%;
+  // height: calc(100% - 30px);
   border-radius: 8px;
   z-index: 100;
   display: flex;
@@ -385,8 +391,19 @@ const nextPage = () => {
     gap: 10px;
     background: linear-gradient(270deg, rgb(8, 46, 77, 0.4) 0%, rgba(0, 0, 0, 0.4) 100%);
     border-bottom: 1px solid rgba(0, 255, 255, 0.15);
-    flex-shrink: 0;
     backdrop-filter: blur(30px);
+  }
+
+  .filter-section {
+    flex-shrink: 0;
+  }
+
+  .list-section {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    padding: 0;
   }
 
   .filter-section {
@@ -408,9 +425,9 @@ const nextPage = () => {
           border-radius: 8px;
           border: 2px solid #3FFFFF;
           font-weight: var(--font-weight-medium);
-          font-size: var(--font-size-2xl);
+          font-size: 24px;
           color: #FFFFFF;
-          line-height: calc(var(--font-size-2xl) * 1.423);
+          line-height: 1.4;
           text-align: center;
           font-style: normal;
           cursor: pointer;
@@ -441,11 +458,10 @@ const nextPage = () => {
       .filter-input {
         flex: 1;
 
-        font-size: 16px;
+        font-size: 28px;
         font-family: SourceHanSansSC, SourceHanSansSC;
         font-weight: var(--font-weight-normal);
-        font-size: var(--font-size-3xl);
-        line-height: calc(var(--font-size-xl) * 1.458);
+        line-height: 1.4;
         text-align: left;
         font-style: normal;
         color: #ffffff;
@@ -454,7 +470,7 @@ const nextPage = () => {
         border: none;
 
         &::placeholder {
-          font-size: var(--font-size-3xl);
+          font-size: 28px;
           color: #E4F3FF;
         }
 
@@ -472,7 +488,7 @@ const nextPage = () => {
           --n-color:transparent !important;
           --n-color-active: transparent !important;
           --n-text-color: #E4F3FF !important;
-          --n-font-size: var(--font-size-3xl) !important;
+          --n-font-size: 28px !important;
           --n-padding-single: 0px !important;
           --n-border: none !important;
           --n-border-active: none !important;
@@ -484,7 +500,9 @@ const nextPage = () => {
   }
 
   .list-section {
-    height: 1160px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
     overflow: hidden;
     padding: 0;
 
@@ -505,6 +523,7 @@ const nextPage = () => {
     .list-content {
       flex: 1;
       overflow-y: auto;
+      min-height: 0;
 
       &::-webkit-scrollbar {
         width: 4px;
@@ -615,15 +634,15 @@ const nextPage = () => {
       gap: 8px;
 
       .page-btn {
-        min-width: 40px;
-        height: 40px;
-        padding: 0 8px;
+        min-width: 48px;
+        height: 48px;
+        padding: 0 12px;
         background: rgba(0, 0, 0, 0.3);
         border: 2px solid #11A7E2;
         border-radius: 6px;
         font-family: SourceHanSansSC, SourceHanSansSC;
         font-weight: var(--font-weight-normal);
-        font-size: var(--font-size-xl);
+        font-size: 24px;
         color: #FFFFFF;
         cursor: pointer;
         transition: all 0.2s ease;
@@ -654,9 +673,9 @@ const nextPage = () => {
         margin-left: 8px;
         font-family: SourceHanSansSC, SourceHanSansSC;
         font-weight: var(--font-weight-normal);
-        font-size: var(--font-size-xl);
+        font-size: 24px;
         color: #FFFFFF;
-        line-height: calc(var(--font-size-lg) * 1.45);
+        line-height: 1.4;
       }
     }
   }

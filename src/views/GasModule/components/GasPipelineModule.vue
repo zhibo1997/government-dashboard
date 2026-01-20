@@ -253,7 +253,7 @@ function get3DPieOption(pieData) {
     label: {
       opacity: 1,
       position: "outside",
-      fontSize: 14,
+      fontSize: 18,
       lineHeight: 20,
       formatter: "{b} {d}%",
       color: "#E4F3FF",
@@ -540,7 +540,7 @@ onBeforeUnmount(() => {
 
       .chart-3d {
         width: 320px;
-        height: 160px;
+        height: 200px;
       }
     }
   }

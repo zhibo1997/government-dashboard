@@ -117,8 +117,8 @@ router.beforeEach(async (to, from, next) => {
     if (to.name === 'Login' && authStore.isLoggedIn) {
       const isValidToken = await authStore.validateToken()
       if (isValidToken) {
-        // ✅ 修复：跳转到存在的路由
-        next({ name: '/' }) // 或 next('/')
+        // ✅ 修复：跳转到存在的路由（使用name: 'home'而不是'/'）
+        next({ name: 'home' })
         return
       } else {
         authStore.logout()

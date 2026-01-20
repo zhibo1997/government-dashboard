@@ -89,9 +89,11 @@ const handleLogin = async () => {
       message.success("登录成功！");
 
       // 获取重定向路径
-      const redirect = router.currentRoute.value.query.redirect || '/';
+      const redirect = router.currentRoute.value.query.redirect || '/home';
 
-      // 直接跳转，不使用setTimeout
+      console.log('登录成功，重定向到:', redirect);
+
+      // 确保跳转到正确的路径，使用 nextTick 确保 DOM 更新完成
       await router.push(redirect);
     } else {
       message.error("登录失败！");

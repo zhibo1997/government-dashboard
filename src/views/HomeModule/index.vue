@@ -25,7 +25,7 @@
 import LeftContent from './leftContent.vue'
 import RightContent from './rightContent.vue'
 import MapLegend from './components/MapLegend.vue'
-import { onMounted, ref } from 'vue'
+import { onMounted, ref, onBeforeMount } from 'vue'
 import { getCachedDictionaries } from '@/services/dictionaryService'
 
 // 定义组件名称
@@ -36,7 +36,7 @@ defineOptions({
 const loading = ref(false)
 
 // 在页面初始化时预加载所有字典数据
-onMounted(async () => {
+const preloadDictionaries = async () => {
   try {
     loading.value = true
     // 批量预加载所有需要的字典数据
@@ -53,6 +53,16 @@ onMounted(async () => {
     loading.value = false
     console.error('字典数据预加载失败:', error)
   }
+}
+
+// 使用 onBeforeMount 和 onMounted 确保数据加载
+onBeforeMount(() => {
+  console.log('HomeModule 即将挂载')
+})
+
+onMounted(async () => {
+  console.log('HomeModule 已挂载，开始预加载字典数据')
+  await preloadDictionaries()
 })
 </script>
 
