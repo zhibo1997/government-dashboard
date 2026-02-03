@@ -273,7 +273,7 @@ onMounted(async () => {
       .card-value {
         font-size: 40px;
         line-height: 52px;
-        background: linear-gradient(90deg, #FFFFFF 0%, #10ADC0 100%);
+        background: linear-gradient(180deg, #FFFFFF 0%, #10ADC0 100%);
       }
 
       .unit {
@@ -284,7 +284,7 @@ onMounted(async () => {
         font-size: var(--font-size-40);
         font-weight: var(--font-weight-bold);
         line-height: 42px;
-        background: linear-gradient(90deg, #FFFFFF 0%, #10ADC0 100%);
+        background: linear-gradient(180deg, #FFFFFF 0%, #10ADC0 100%);
       }
     }
 

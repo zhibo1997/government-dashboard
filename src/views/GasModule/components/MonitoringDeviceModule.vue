@@ -352,7 +352,7 @@ const deviceCategories = ref<
             }
 
             .online {
-              background: linear-gradient(90deg, #ffffff 0%, #10adc0 100%);
+              background: linear-gradient(180deg, #FFFFFF 0%, #10ADC0 100%);
             }
 
             .separator {

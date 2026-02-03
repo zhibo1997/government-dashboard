@@ -448,7 +448,7 @@ onMounted(async () => {
           font-family: YouSheBiaoTiHei;
           font-size: var(--font-size-3xl);
           color: #ffffff;
-          background: linear-gradient(90deg, #ffffff 0%, #10adc0 100%);
+          background: linear-gradient(180deg, #FFFFFF 0%, #10ADC0 100%);
 
           .unit {
             font-family: SourceHanSansSC, SourceHanSansSC;
@@ -606,7 +606,7 @@ onMounted(async () => {
             line-height: 1;
 
             &.progress-continuousImprovement {
-              background: linear-gradient(90deg, #ffffff 0%, #10adc0 100%);
+              background: linear-gradient(180deg, #FFFFFF 0%, #10ADC0 100%);
             }
 
             &.progress-rectified {

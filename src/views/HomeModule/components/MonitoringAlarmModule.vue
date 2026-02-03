@@ -352,7 +352,7 @@ onMounted(() => {
             background-image: url('@/assets/img/homeModule/level3.webp');
 
             >span {
-              background: linear-gradient(90deg, #FFFFFF 0%, #10ADC0 100%);
+              background: linear-gradient(180deg, #FFFFFF 0%, #10ADC0 100%);
             }
           }
         }

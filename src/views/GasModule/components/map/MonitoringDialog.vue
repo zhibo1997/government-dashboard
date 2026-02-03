@@ -265,7 +265,7 @@ const visiblePages = computed(() => {
       line-height: 57px;
       text-align: left;
       font-style: normal;
-      background: linear-gradient(90deg, #FFFFFF 18%, #10ADC0 100%);
+      background: linear-gradient(180deg, #FFFFFF 0%, #10ADC0 100%);;
     }
   }
 

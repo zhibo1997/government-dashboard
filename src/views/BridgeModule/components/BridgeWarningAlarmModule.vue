@@ -397,7 +397,7 @@ onMounted(() => {
             line-height: calc(var(--font-size-xl) * 1.292);
             text-align: center;
             font-style: normal;
-            background: linear-gradient(90deg, #ffffff 0%, #10adc0 100%);
+            background: linear-gradient(180deg, #FFFFFF 0%, #10ADC0 100%);
           }
         }
 
@@ -444,7 +444,7 @@ onMounted(() => {
         &:nth-child(3) {
           .level-value {
             >span {
-              background: linear-gradient(90deg, #ffffff 0%, #10adc0 100%);
+              background: linear-gradient(180deg, #FFFFFF 0%, #10ADC0 100%);
             }
 
             background-image: url("@/assets/img/gasModule/level3.webp");
@@ -513,7 +513,7 @@ onMounted(() => {
         line-height: calc(var(--font-size-3xl) * 1.306);
         text-align: left;
         font-style: normal;
-        background: linear-gradient(90deg, #ffffff 18%, #10adc0 100%);
+        background: linear-gradient(180deg, #FFFFFF 0%, #10ADC0 100%);;
       }
 
       &.active {

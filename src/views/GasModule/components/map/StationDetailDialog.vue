@@ -371,7 +371,7 @@ const handleShowMonitoring = () => {
         line-height: calc(var(--font-size-3xl) * var(--line-height-normal));
         text-align: left;
         font-style: normal;
-        background: linear-gradient(90deg, #ffffff 18%, #10adc0 100%);
+        background: linear-gradient(180deg, #FFFFFF 0%, #10ADC0 100%);;
         cursor: pointer;
         text-align: center;
 

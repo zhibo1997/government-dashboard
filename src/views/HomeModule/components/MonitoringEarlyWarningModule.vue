@@ -493,7 +493,7 @@ onMounted(() => {
       line-height: 47px;
       text-align: left;
       font-style: normal;
-      background: linear-gradient(90deg, #FFFFFF 0%, #10ADC0 100%);
+      background: linear-gradient(180deg, #FFFFFF 0%, #10ADC0 100%);
     }
   }
 }

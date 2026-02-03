@@ -164,7 +164,7 @@ onMounted(async () => {
         line-height: 52px;
         text-align: left;
         font-style: normal;
-        background: linear-gradient(90deg, #ffffff 0%, #10adc0 100%);
+        background: linear-gradient(180deg, #FFFFFF 0%, #10ADC0 100%);
       }
 
       .unit {

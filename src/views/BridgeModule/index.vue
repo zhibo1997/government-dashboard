@@ -62,7 +62,7 @@ onBeforeMount(async () => {
   background-clip: text !important; /* 标准属性 */
   -webkit-text-fill-color: transparent !important;
   color: transparent !important; /* 标准属性回退 */
-  background: linear-gradient(90deg, #ffffff 0%, #10adc0 100%);
+  background: linear-gradient(180deg, #FFFFFF 0%, #10ADC0 100%);
 }
 </style>
 

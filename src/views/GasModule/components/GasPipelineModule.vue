@@ -517,7 +517,7 @@ onBeforeUnmount(() => {
         line-height: calc(var(--font-size-2xl) * 1.214);
         text-align: center;
         font-style: normal;
-        background: linear-gradient(90deg, #ffffff 0%, #10adc0 100%);
+        background: linear-gradient(180deg, #FFFFFF 0%, #10ADC0 100%);
       }
     }
   }
@@ -578,7 +578,7 @@ onBeforeUnmount(() => {
         line-height: calc(var(--font-size-3xl) * 1.3);
         text-align: center;
         font-style: normal;
-        background: linear-gradient(90deg, #ffffff 0%, #10adc0 100%);
+        background: linear-gradient(180deg, #FFFFFF 0%, #10ADC0 100%);
       }
     }
 

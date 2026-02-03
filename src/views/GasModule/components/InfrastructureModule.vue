@@ -234,7 +234,7 @@ onMounted(async () => {
         font-family: YouSheBiaoTiHei;
         font-size: var(--font-size-4xl);
         line-height: calc(var(--font-size-4xl) * 1.306);
-        background: linear-gradient(90deg, #FFFFFF 18%, #10ADC0 100%);
+        background: linear-gradient(180deg, #FFFFFF 0%, #10ADC0 100%);;
       }
 
       &.active {
@@ -293,7 +293,7 @@ onMounted(async () => {
           line-height: calc(var(--font-size-xl) * 1.292);
           text-align: center;
           font-style: normal;
-          background: linear-gradient(90deg, #FFFFFF 0%, #10ADC0 100%);
+          background: linear-gradient(180deg, #FFFFFF 0%, #10ADC0 100%);
         }
 
         .unit {
