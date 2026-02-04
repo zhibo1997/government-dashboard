@@ -20,8 +20,4 @@ import EarlyWarningModule from './components/EarlyWarningModule.vue';
 </script>
 
 <style lang="scss" scoped>
-.right-content {
-  display: flex;
-  flex-direction: column;
-}
 </style>

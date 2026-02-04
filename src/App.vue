@@ -39,9 +39,9 @@ import { NMessageProvider, NDialogProvider, NConfigProvider, zhCN, dateZhCN } fr
     flex-direction: column;
     gap: 16px;
     z-index: 10;
-    padding: 0 0 20px 20px;
+    margin: 0 0 20px 20px;
     box-sizing: border-box;
-    background: linear-gradient(to right, rgba(0, 0, 0, 0.8), 80%, rgba(0, 0, 0, 0));
+    background: linear-gradient(00deg, #021A2E 0.08%, #021F37 100%);
   }
 
   // 右侧数据展示区域
@@ -52,9 +52,9 @@ import { NMessageProvider, NDialogProvider, NConfigProvider, zhCN, dateZhCN } fr
     flex-direction: column;
     gap: 16px;
     z-index: 10;
-    padding: 0 0 20px 20px;
+    margin: 0 20px 20px 0;
     box-sizing: border-box;
-    background: linear-gradient(to left, rgba(0, 0, 0, 0.8), 80%, rgba(0, 0, 0, 0));
+    background: linear-gradient(270deg, #021A2E 0.08%, #021F37 100%);
   }
 
 }

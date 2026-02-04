@@ -42,47 +42,53 @@
 
       <!-- 数据表格 -->
       <div class="data-table">
-        <table class="table">
-          <thead class="table-header">
-            <tr>
-              <th class="th th-index">序号</th>
-              <th class="th th-area">所属专项</th>
-              <th class="th th-id">场站编号</th>
-              <th class="th td-name">场站名称</th>
-              <th class="th th-position">安装位置</th>
-              <th class="th th-type">场站类型</th>
-              <th class="th th-run">运行状态</th>
-            </tr>
-          </thead>
-          <tbody class="table-body" v-if="loading">
-            <tr>
-              <td colspan="7" class="loading-text">加载中...</td>
-            </tr>
-          </tbody>
-          <tbody class="table-body" v-else>
-            <tr 
-              class="table-row"
-              :class="{ 'row-even': index % 2 === 1 }"
-              v-for="(item, index) in tableData"
-              :key="item.lsh || index"
+        <CommonTable
+          :columns="tableColumns"
+          :data="processedTableData"
+          row-key="lsh"
+          :empty-text="loading ? '加载中...' : '暂无数据'"
+          grid-template="0.8fr 1.2fr 1.5fr 2fr 2fr 1.5fr 1.2fr"
+        >
+          <!-- 自定义序号列 -->
+          <template #index="{ value }">
+            <span class="index-number">{{ value }}</span>
+          </template>
+          
+          <!-- 自定义专项列 -->
+          <template #specialty="{ row }">
+            <span class="specialty-tag">燃气</span>
+          </template>
+          
+          <!-- 自定义场站编号列 -->
+          <template #stationId="{ value }">
+            <span class="station-id">{{ value }}</span>
+          </template>
+          
+          <!-- 自定义场站名称列 -->
+          <template #stationName="{ value }">
+            <span class="station-name" :title="value">{{ value }}</span>
+          </template>
+          
+          <!-- 自定义安装位置列 -->
+          <template #position="{ value }">
+            <span class="position" :title="value">{{ value }}</span>
+          </template>
+          
+          <!-- 自定义场站类型列 -->
+          <template #stationType="{ value }">
+            <span class="station-type">{{ value }}</span>
+          </template>
+          
+          <!-- 自定义运行状态列 -->
+          <template #runStatus="{ row }">
+            <span 
+              class="status-text" 
+              :class="row.sjtbzt === 'I' ? 'status-online' : 'status-offline'"
             >
-              <td class="td td-index">{{ (currentPage - 1) * pageSize + index + 1 }}</td>
-              <td class="td td-area">燃气</td>
-              <td class="td td-id">{{ item.czbh }}</td>
-              <td class="td td-name" :title="item.czmc">{{ item.czmc }}</td>
-              <td class="td td-position" :title="item.xxdz">{{ item.xxdz }}</td>
-              <td class="td td-type">{{ item.czlx }}</td>
-              <td class="td td-run">
-                <span class="status-text" :class="item.sjtbzt === 'I' ? 'status-online' : 'status-offline'">
-                  {{ item.sjtbzt === 'I' ? '正常' : '异常' }}
-                </span>
-              </td>
-            </tr>
-            <tr v-if="tableData.length === 0">
-              <td colspan="7" class="no-data">暂无数据</td>
-            </tr>
-          </tbody>
-        </table>
+              {{ row.sjtbzt === 'I' ? '正常' : '异常' }}
+            </span>
+          </template>
+        </CommonTable>
       </div>
 
       <!-- 分页 -->
@@ -116,6 +122,7 @@ import { ref, computed, watch } from 'vue';
 import { getGasStationPageList } from '@/services/gasService';
 import { Close } from "@vicons/ionicons5";
 import { NButton, NIcon } from "naive-ui";
+import CommonTable from '@/components/CommonTable.vue';
 
 const props = defineProps({
   visible: {
@@ -139,6 +146,25 @@ const pageSize = ref(10);
 const total = ref(0);
 const tableData = ref<any[]>([]);
 const loading = ref(false);
+
+// 表格列配置
+const tableColumns = [
+  { key: 'index', title: '序号', width: '0.8fr' },
+  { key: 'specialty', title: '所属专项', width: '1.2fr' },
+  { key: 'stationId', title: '场站编号', width: '1.5fr' },
+  { key: 'stationName', title: '场站名称', width: '2fr' },
+  { key: 'position', title: '安装位置', width: '2fr' },
+  { key: 'stationType', title: '场站类型', width: '1.5fr' },
+  { key: 'runStatus', title: '运行状态', width: '1.2fr' }
+];
+
+// 处理表格数据，添加序号
+const processedTableData = computed(() => {
+  return tableData.value.map((item, index) => ({
+    ...item,
+    index: index + 1 + (currentPage.value - 1) * pageSize.value
+  }));
+});
 
 // 监听 visible 变化，显示时加载数据
 watch(() => props.visible, (val) => {
@@ -347,133 +373,62 @@ const visiblePages = computed(() => {
 
     .data-table {
       flex: 1;
-      overflow: hidden;
-      border-radius: 8px;
-      overflow: hidden;
-      border: 1px solid rgba(22, 119, 255, 0.2);
-
-      .table {
-        width: 100%;
-        border-collapse: collapse;
-        table-layout: fixed;
+      overflow: auto;
+      margin-top: 20px;
+      
+      // 自定义表格样式
+      .index-number {
+        color: #8CB7CF;
+        font-weight: 500;
       }
-
-      .table-header {
-        background: #2A5768;
-
-        .th {
-          padding: 16px 14px;
-          font-family: SourceHanSansSC, SourceHanSansSC;
-          font-weight: bold;
-          font-size: var(--font-size-3xl);
-          color: #E4F3FF;
-          line-height: 1.4;
-          text-align: left;
-          font-style: normal;
-          border: none;
-          border-right: 1px solid rgba(22, 119, 255, 0.15);
-
-          &:last-child {
-            border-right: none;
-          }
-        }
+      
+      .specialty-tag {
+        background: linear-gradient(135deg, #10ADC0 0%, #0DA5BE 100%);
+        padding: 4px 12px;
+        border-radius: 12px;
+        color: white;
+        font-weight: 500;
+        font-size: var(--font-size-sm);
       }
+      
+      .station-id {
+        color: #FFFFFF;
+        font-weight: 500;
+      }
+      
+      .station-name {
+        color: #FFFFFF;
+        font-weight: 500;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      
+      .position {
+        color: #e4f3ff;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      
+      .station-type {
+        color: #e4f3ff;
+      }
+      
+      .status-text {
+        padding: 4px 12px;
+        border-radius: 12px;
+        font-size: var(--font-size-sm);
+        font-weight: 500;
 
-      .table-body {
-        max-height: calc(80vh - 260px);
-        overflow-y: auto;
-
-        .loading-text, .no-data {
-          text-align: center;
-          padding: 40px;
-          color: rgba(255,255,255,0.5);
-          font-size: var(--font-size-3xl);
-          font-family: SourceHanSansSC, SourceHanSansSC;
+        &.status-online {
+          background: rgba(46, 213, 115, 0.2);
+          color: #2ED573;
         }
 
-        &::-webkit-scrollbar {
-          width: 6px;
-        }
-
-        &::-webkit-scrollbar-track {
-          background: rgba(0, 0, 0, 0.15);
-          border-radius: 3px;
-        }
-
-        &::-webkit-scrollbar-thumb {
-          background: linear-gradient(180deg, rgba(22, 119, 255, 0.6) 0%, rgba(13, 165, 190, 0.6) 100%);
-          border-radius: 3px;
-        }
-
-        .table-row {
-          height: 60px;
-          background: rgba(0, 30, 50, 0.5);
-          border-bottom: 1px solid rgba(22, 119, 255, 0.1);
-          transition: all 0.2s ease;
-          &:nth-child(2n) {
-            background: rgba(49,49,49,0.3);
-          }
-          &:nth-child(2n+1) {
-            background: rgba(0,0,0,0.3);
-          }
-
-          &.row-even {
-            background: rgba(0, 40, 60, 0.6);
-          }
-
-          &:hover {
-            background: rgba(22, 119, 255, 0.18);
-          }
-
-          .td {
-            padding: 14px;
-            font-family: SourceHanSansSC, SourceHanSansSC;
-            font-weight: 400;
-            font-size: var(--font-size-3xl);
-            color: #E4F3FF;
-            line-height: 1.4;
-            text-align: left;
-            font-style: normal;
-            border: none;
-            border-right: 1px solid rgba(22, 119, 255, 0.1);
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-
-            &:last-child {
-              border-right: none;
-            }
-
-            &.td-name {
-              color: #6dd5ed;
-              font-weight: 500;
-            }
-
-            .status-text {
-              font-family: SourceHanSansSC, SourceHanSansSC;
-              font-weight: 500;
-              font-size: var(--font-size-3xl);
-              color: #E4F3FF;
-              line-height: 1.4;
-              text-align: left;
-              font-style: normal;
-              padding: 6px 14px;
-              border-radius: 4px;
-              display: inline-block;
-
-              &.status-online {
-                color: #52c41a;
-                background: rgba(82, 196, 26, 0.15);
-                border: 1px solid rgba(82, 196, 26, 0.3);
-              }
-
-              &.status-offline {
-                color: #ff4d4f;
-                background: rgba(255, 77, 79, 0.15);
-                border: 1px solid rgba(255, 77, 79, 0.3);
-              }
-            }
-          }
+        &.status-offline {
+          background: rgba(255, 71, 87, 0.2);
+          color: #FF4757;
         }
       }
     }

@@ -26,32 +26,42 @@
           </div>
         </div>
       </div>
-      <div class="table">
-        <!-- 企业列表表头 -->
-        <div class="enterprise-header">
-          <div
-            class="header-col"
-            :class="column.key == 'qymc' ? 'col-name' : ''"
-            v-for="column in currentTable.columns"
-          >
-            {{ column.label }}
-          </div>
-        </div>
-
-        <!-- 企业列表 -->
-        <div class="enterprise-list">
-          <div class="enterprise-row" v-for="enterprise in currentTable.data" :key="enterprise.id">
-            <div
-              class="row-col"
-              :class="column.key == 'qymc' ? 'col-name' : ''"
-              v-for="column in currentTable.columns"
-            >
-              <span v-if="column.key === 'qymc'" :title="enterprise[column.key]">{{ enterprise[column.key] }}</span>
-              <span v-else>{{ enterprise[column.key] }}</span>
-            </div>
-          </div>
-        </div>
-      </div>
+      <CommonTable
+        :columns="tableColumns"
+        :data="currentTable.data"
+        row-key="id"
+        empty-text="暂无数据"
+      >
+        <!-- 自定义企业名称列，添加title提示 -->
+        <template #qymc="{ value }">
+          <span class="enterprise-name" :title="value">{{ value }}</span>
+        </template>
+        
+        <!-- 自定义数值列格式化 -->
+        <template #yyyjsl="{ value }">
+          {{ formatNumber(value) }}
+        </template>
+        
+        <template #yyczsl="{ value }">
+          {{ formatNumber(value) }}
+        </template>
+        
+        <template #yygxcd="{ value }">
+          {{ formatDistance(value) }}
+        </template>
+        
+        <template #yhqpsl="{ value }">
+          {{ formatNumber(value) }}
+        </template>
+        
+        <template #khzs="{ value }">
+          {{ formatNumber(value) }}
+        </template>
+        
+        <template #ysclsl="{ value }">
+          {{ formatNumber(value) }}
+        </template>
+      </CommonTable>
     </div>
   </div>
 </template>
@@ -64,6 +74,7 @@ import {
   getGasEnterpriseLedgerList,
   getBottleGasEnterpriseLedgerList,
 } from "@/services/gasService";
+import CommonTable from '@/components/CommonTable.vue';
 
 // 当前选中的气体类型
 const activeGasType = ref('natural'); // 默认天然气
@@ -107,6 +118,29 @@ const loadedData = ref({
 const currentStatistics = computed(() => {
   return activeGasType.value === 'natural' ? naturalGasStats.value : liquefiedGasStats.value;
 });
+// 表格列配置
+const tableColumns = computed(() => {
+  const baseColumns = [
+    { key: 'qymc', title: '企业名称', width: '2fr' }
+  ];
+  
+  if (activeGasType.value === 'natural') {
+    return [
+      ...baseColumns,
+      { key: 'yyyjsl', title: '窨井数量', width: '1fr' },
+      { key: 'yyczsl', title: '厂站数量', width: '1fr' },
+      { key: 'yygxcd', title: '管线长度(km)', width: '1fr' }
+    ];
+  } else {
+    return [
+      ...baseColumns,
+      { key: 'yhqpsl', title: '液化气瓶', width: '1fr' },
+      { key: 'khzs', title: '客户', width: '1fr' },
+      { key: 'ysclsl', title: '运输车辆', width: '1fr' }
+    ];
+  }
+});
+
 // 当前显示的企业列表
 const currentTable = computed(() => {
   return activeGasType.value === 'natural' ? naturalGasTableConfig.value : liquefiedGasTableConfig.value;
@@ -181,6 +215,21 @@ const getUnitByName = (name) => {
     '监测点': '个'
   };
   return unitMap[name] || '个';
+};
+
+// 数值格式化
+const formatNumber = (value) => {
+  if (value === null || value === undefined || value === '') return '-';
+  const num = Number(value);
+  return isNaN(num) ? String(value) : num.toString();
+};
+
+// 距离格式化
+const formatDistance = (value) => {
+  if (value === null || value === undefined || value === '') return '-';
+  const num = Number(value);
+  if (isNaN(num)) return String(value);
+  return num.toFixed(2);
 };
 
 // 监听气体类型切换，按需加载数据
@@ -305,86 +354,10 @@ onMounted(async () => {
     }
   }
 
-  .table {
-    width: 100%;
-  }
-
-  // 企业列表表头
-  .enterprise-header {
-    display: flex;
-    align-items: center;
-    height: 60px;
-    
-    background: #2A5768;
-    border: 2px solid #09739C;
-    border-radius: 6px;
-    margin-bottom: 12px;
-
-    .header-col {
-      font-family: SourceHanSansSC, SourceHanSansSC;
-      font-weight: var(--font-weight-bold);
-      font-size: var(--font-size-3xl);
-      color: #E4F3FF;
-      line-height: calc(var(--font-size-lg) * 1.45);
-      text-align: left;
-      font-style: normal;
-      flex: 1;
-
-      &.col-name {
-        flex: 2.4;
-        text-align: left;
-        padding-left: 10px;
-        width: 200px;
-      }
-    }
-  }
-
-  // 企业列表
-  .enterprise-list {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    height: 232px;
-    overflow-y: auto;
-    border: 2px solid #09739C;
-    border-top: none;
-
-    .enterprise-row {
-      display: flex;
-      align-items: center;
-      height: 58px;
-      background: linear-gradient(90deg, rgba(0, 150, 255, 0.06) 0%, rgba(0, 100, 200, 0.03) 100%);
-      border: 1px solid rgba(22, 119, 255, 0.15);
-      border-radius: 4px;
-      transition: all 0.3s ease;
-
-      &:hover {
-        background: linear-gradient(90deg, rgba(0, 150, 255, 0.12) 0%, rgba(0, 100, 200, 0.08) 100%);
-        border-color: rgba(22, 119, 255, 0.3);
-      }
-
-      .row-col {
-        font-family: SourceHanSansSC, SourceHanSansSC;
-        font-weight: var(--font-weight-normal);
-        color: #e4f3ff;
-        text-align: center;
-        font-weight: var(--font-weight-normal);
-        font-size: var(--font-size-3xl);
-        line-height: calc(var(--font-size-lg) * 2.9);
-        text-align: left;
-        font-style: normal;
-        padding-left: 20px;
-        flex: 1;
-
-        &.col-name {
-          flex: 2.4;
-          padding-left: 10px;
-          white-space: nowrap;
-          overflow: hidden;
-          text-overflow: ellipsis;
-        }
-      }
-    }
+  // 自定义表格样式
+  .enterprise-name {
+    color: #10ADC0;
+    font-weight: 500;
   }
 }
 </style>

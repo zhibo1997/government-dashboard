@@ -11,12 +11,6 @@
             <img src="@/assets/img/homeModule/risk_icon.webp" class="header-icon" alt="风险图标" />
             <span class="header-title gradient-text">风险</span>
           </div>
-          <div class="header-stats">
-            <span class="label">燃气：{{ riskStats.gas }}</span>
-            <span class="label">桥梁：{{ riskStats.bridge }}</span>
-            <span class="label">供水：{{ riskStats.water }}</span>
-            <span class="label">排水：{{ riskStats.drainage }}</span>
-          </div>
         </div>
         <div class="chart-container">
           <div id="risk-chart" class="echart"></div>
@@ -29,12 +23,6 @@
           <div class="header-title-wrapper">
             <img src="@/assets/img/homeModule/hazard_icon.webp" class="header-icon" alt="隐患图标" />
             <span class="header-title gradient-text">隐患</span>
-          </div>
-          <div class="header-stats">
-            <span class="label">燃气：{{ hazardStats.gas }}</span>
-            <span class="label">桥梁：{{ hazardStats.bridge }}</span>
-            <span class="label">供水：{{ hazardStats.water }}</span>
-            <span class="label">排水：{{ hazardStats.drainage }}</span>
           </div>
         </div>
         <div class="chart-container">
@@ -50,7 +38,7 @@ import { ref, onMounted, nextTick } from "vue";
 import * as echarts from "echarts";
 import { getRiskLevelCountList, getHazardLevelCountList } from "@/services/statusService";
 import { getCachedDictionary } from "@/services/dictionaryService";
-import { getRiskPictorialBarOption, getHazardPictorialBarOption, SeriesData, LevelMapping } from "./chartOptions";
+import { getRiskChartOption, getHazardChartOption, SeriesData, LevelMapping } from "./chartOptions";
 
 // 数据类型定义
 interface ChartDataItem {
@@ -75,7 +63,6 @@ interface ChartConfig {
   colorMapping: Record<string, string>;
   fetchDataFn: () => Promise<any>;
   getOptionFn: (xAxisData: string[], levelMapping: LevelMapping, series: SeriesData[]) => any;
-  statsRef: any;
 }
 
 // 专项映射
@@ -101,20 +88,20 @@ const hazardColorMapping: Record<string, string> = {
   重大隐患: "#FF4D4F",
 };
 
-// 统计数据
-const riskStats = ref<StatsData>({
-  gas: 0,
-  bridge: 0,
-  water: 0,
-  drainage: 0,
-});
-
-const hazardStats = ref<StatsData>({
-  gas: 0,
-  bridge: 0,
-  water: 0,
-  drainage: 0,
-});
+// 统计数据（已移除，不再需要）
+// const riskStats = ref<StatsData>({
+//   gas: 0,
+//   bridge: 0,
+//   water: 0,
+//   drainage: 0,
+// });
+// 
+// const hazardStats = ref<StatsData>({
+//   gas: 0,
+//   bridge: 0,
+//   water: 0,
+//   drainage: 0,
+// });
 
 // ECharts 实例
 let riskChart: echarts.ECharts | null = null;
@@ -151,6 +138,7 @@ const fetchLevelDict = async (
         const name = item.f_ItemName;
         mapping[item.f_ItemValue] = {
           name: name,
+          key: item.f_ItemValue,
           color: colorMapping[name] || "#999",
           order: index,
         };
@@ -225,16 +213,16 @@ const buildChartSeries = (
   const levelKeys = Object.keys(levelMapping).sort(
     (a, b) => levelMapping[a].order - levelMapping[b].order
   );
-
+  
   const series: SeriesData[] = levelKeys.map((levelKey) => {
     const levelInfo = levelMapping[levelKey];
     const seriesData = Object.keys(sszxMapping)
       .sort((a, b) => sszxMapping[a].order - sszxMapping[b].order)
       .map((sszxKey) => groupedData[sszxKey]?.[levelKey] || 0);
-
+  
     return {
       name: levelInfo.name,
-      type: "pictorialBar",
+      type: "bar",
       data: seriesData,
       itemStyle: {
         color: levelInfo.color,
@@ -262,8 +250,8 @@ const renderChart = async (config: ChartConfig, chart: echarts.ECharts | null) =
       return;
     }
 
-    // 计算统计数据
-    config.statsRef.value = calculateStats(data);
+    // 移除统计数据计算（不再需要显示统计信息）
+    // config.statsRef.value = calculateStats(data);
 
     // 构建图表数据
     const { xAxisData, series } = buildChartSeries(data, levelMapping, config.dataField);
@@ -293,10 +281,9 @@ onMounted(async () => {
     dataField: 'fxdj',
     colorMapping: riskColorMapping,
     fetchDataFn: getRiskLevelCountList,
-    getOptionFn: getRiskPictorialBarOption,
-    statsRef: riskStats,
+    getOptionFn: getRiskChartOption,
   };
-
+  
   // 隐患等级图表配置
   const hazardConfig: ChartConfig = {
     id: 'hazard-chart',
@@ -304,8 +291,7 @@ onMounted(async () => {
     dataField: 'yhdj',
     colorMapping: hazardColorMapping,
     fetchDataFn: getHazardLevelCountList,
-    getOptionFn: getHazardPictorialBarOption,
-    statsRef: hazardStats,
+    getOptionFn: getHazardChartOption,
   };
 
   // 并行渲染两个图表
@@ -369,19 +355,7 @@ onMounted(async () => {
         background: linear-gradient(0deg, #F75E04 0%, #FEAC04 100%);
       }
 
-      .header-stats {
-        .label {
-          font-family: SourceHanSansSC, SourceHanSansSC;
-          font-weight: bold;
-          font-size: 24px;
-          color: #D3EAF1;
-          line-height: 35px;
-          letter-spacing: 2px;
-          text-align: left;
-          font-style: normal;
-          margin-left: 30px;
-        }
-      }
+      /* header-stats 样式已移除 */
     }
 
     .chart-container {

@@ -100,35 +100,44 @@
         </div>
 
         <!-- 数据表格 -->
-        <div class="custom-table">
-          <!-- 表头 -->
-          <div class="table-header">
-            <div class="th th-type">类型</div>
-            <div class="th">一级</div>
-            <div class="th">二级</div>
-            <div class="th">三级</div>
-            <div class="th">已处置</div>
-            <div class="th">处置中</div>
-            <div class="th">未处置</div>
-          </div>
-
-          <!-- 表体 -->
-          <div class="table-body">
-            <div
-              class="table-row"
-              v-for="item in currentTableData"
-              :key="item.key"
-            >
-              <div class="td td-type">{{ item.type }}</div>
-              <div class="td">{{ item.level1 }}</div>
-              <div class="td">{{ item.level2 }}</div>
-              <div class="td">{{ item.level3 }}</div>
-              <div class="td">{{ item.handled }}</div>
-              <div class="td">{{ item.handling }}</div>
-              <div class="td">{{ item.unhandled }}</div>
-            </div>
-          </div>
-        </div>
+        <CommonTable
+          :columns="tableColumns"
+          :data="currentTableData"
+          row-key="key"
+          empty-text="暂无数据"
+          grid-template="1.8fr 1fr 1fr 1fr 1fr 1fr 1fr"
+        >
+          <!-- 自定义类型列 -->
+          <template #type="{ value }">
+            <span class="type-badge">{{ value }}</span>
+          </template>
+          
+          <!-- 自定义数值列，添加高亮效果 -->
+          <template #level1="{ value }">
+            <span :class="{ 'high-risk': value > 0 }">{{ value }}</span>
+          </template>
+          
+          <template #level2="{ value }">
+            <span :class="{ 'medium-risk': value > 0 }">{{ value }}</span>
+          </template>
+          
+          <template #level3="{ value }">
+            <span :class="{ 'low-risk': value > 0 }">{{ value }}</span>
+          </template>
+          
+          <!-- 处置状态列 -->
+          <template #handled="{ value }">
+            <span class="status-completed">{{ value }}</span>
+          </template>
+          
+          <template #handling="{ value }">
+            <span class="status-processing">{{ value }}</span>
+          </template>
+          
+          <template #unhandled="{ value }">
+            <span class="status-pending">{{ value }}</span>
+          </template>
+        </CommonTable>
       </div>
     </div>
   </div>
@@ -138,6 +147,7 @@
 import { ref, computed, onMounted } from "vue";
 import { getWarnStatistics } from "@/services/waterSupplyService";
 import { getBridgeWarningTypeList } from "@/services/bridgeService";
+import CommonTable from '@/components/CommonTable.vue';
 
 // ==================== 数据状态 ====================
 // 当前激活的Tab
@@ -177,6 +187,17 @@ const alarmTableData = ref([]);
 
 // ==================== 计算属性 ====================
 // 当前表格数据
+// 表格列配置
+const tableColumns = computed(() => [
+  { key: 'type', title: '类型', width: '1.8fr' },
+  { key: 'level1', title: '一级', width: '1fr' },
+  { key: 'level2', title: '二级', width: '1fr' },
+  { key: 'level3', title: '三级', width: '1fr' },
+  { key: 'handled', title: '已处置', width: '1fr' },
+  { key: 'processing', title: '处置中', width: '1fr' },
+  { key: 'pending', title: '未处置', width: '1fr' }
+]);
+
 const currentTableData = computed(() => {
   return activeTab.value === "warning"
     ? warningTableData.value
@@ -526,122 +547,40 @@ onMounted(() => {
     }
   }
 
-  // 自定义表格
-  .custom-table {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-    margin-top: 24px;
+  // 自定义表格样式
+  .type-badge {
+    background: linear-gradient(135deg, #10ADC0 0%, #0DA5BE 100%);
+    padding: 4px 12px;
+    border-radius: 12px;
+    color: white;
+    font-weight: 500;
   }
-
-  // 表头
-  .table-header {
-    display: grid;
-    grid-template-columns: 1.8fr 1fr 1fr 1fr 1fr 1fr 1fr;
-    height: 58px;
-    background: #2A5768;
-    border: 2px solid #09739C;
-    border-radius: 4px 4px 0 0;
-
-    .th {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-family: SourceHanSansSC, SourceHanSansSC;
-      font-weight: var(--font-weight-bold);
-      font-size: var(--font-size-2xl);
-      color: #e4f3ff;
-      line-height: calc(var(--font-size-base) * 1.45);
-      text-align: left;
-      font-style: normal;
-
-      &.th-type {
-        justify-content: flex-start;
-        padding-left: 20px;
-        width: 220px;
-      }
-    }
+  
+  .high-risk {
+    color: #FF4757;
+    font-weight: bold;
   }
-
-  // 表体
-  .table-body {
-    border: 2px solid #09739C;
-    border-top: none;
-    border-radius: 0 0 4px 4px;
-    height: 232px;
-    overflow-y: auto;
-
-    &::-webkit-scrollbar {
-      width: 6px;
-    }
-
-    &::-webkit-scrollbar-track {
-      background: rgba(0, 0, 0, 0.1);
-      border-radius: 3px;
-    }
-
-    &::-webkit-scrollbar-thumb {
-      background: rgba(22, 119, 255, 0.3);
-      border-radius: 3px;
-
-      &:hover {
-        background: rgba(22, 119, 255, 0.5);
-      }
-    }
-
-    .table-row {
-      display: grid;
-      grid-template-columns: 2fr 1fr 1fr 1fr 1fr 1fr 1fr;
-      min-height: 52px;
-      background: linear-gradient(90deg,
-          rgba(0, 150, 255, 0.04) 0%,
-          rgba(0, 100, 200, 0.02) 100%);
-      border-bottom: 1px solid rgba(22, 119, 255, 0.1);
-      transition: all 0.3s ease;
-
-      &:hover {
-        background: linear-gradient(90deg,
-            rgba(0, 150, 255, 0.1) 0%,
-            rgba(0, 100, 200, 0.05) 100%);
-      }
-
-      &:last-child {
-        border-bottom: none;
-      }
-
-      .td {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-family: SourceHanSansSC, SourceHanSansSC;
-        font-weight: var(--font-weight-normal);
-        font-size: var(--font-size-3xl);
-        color: #e4f3ff;
-        padding: 8px 10px;
-
-
-        &.td-type {
-          text-align: left;
-          color: #ffffff;
-          white-space: nowrap;
-          overflow: hidden;
-          padding-left: 0px;
-          text-overflow: ellipsis;
-          width: 220px;
-        }
-
-        &.td-level {
-          color: #faad14;
-          font-weight: var(--font-weight-medium);
-        }
-
-        &.td-status {
-          color: #10adc0;
-          font-weight: var(--font-weight-medium);
-        }
-      }
-    }
+  
+  .medium-risk {
+    color: #FFA502;
+    font-weight: bold;
+  }
+  
+  .low-risk {
+    color: #2ED573;
+    font-weight: bold;
+  }
+  
+  .status-completed {
+    color: #2ED573;
+  }
+  
+  .status-processing {
+    color: #FFA502;
+  }
+  
+  .status-pending {
+    color: #FF4757;
   }
 }
 </style>

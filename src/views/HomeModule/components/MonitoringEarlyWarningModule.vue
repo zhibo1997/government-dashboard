@@ -26,32 +26,42 @@
         </div>
       </div>
       <!-- 预警处置表格 -->
-      <div class="table">
-        <div class="content-header">
-          <span class="table-title gradient-text">预警处置</span>
-        </div>
-        <!-- 企业列表表头 -->
-        <div class="disposal-header">
-          <div class="header-col" v-for="column in currentTable.columns" :key="column.key">
-            {{ column.label }}</div>
-        </div>
-
-        <!-- 企业列表 -->
-        <div class="disposal-list">
-          <template v-if="currentTable.data && currentTable.data.length">
-            <div class="disposal-row" v-for="enterprise in currentTable.data" :key="enterprise.id">
-              <div class="row-col" v-for="column in currentTable.columns" :key="column.key">
-                {{ formatDisplay(enterprise[column.key as keyof EnterpriseData]) }}
-              </div>
-            </div>
-          </template>
-          <template v-else>
-            <div class="disposal-row">
-              <div class="row-col" v-for="column in currentTable.columns" :key="column.key">-</div>
-            </div>
-          </template>
-        </div>
-      </div>
+      <CommonTable
+        title="预警处置"
+        :columns="tableColumns"
+        :data="currentTable.data"
+        row-key="id"
+        empty-text="-"
+      >
+        <!-- 自定义序号列 -->
+        <template #序号="{ value }">
+          {{ formatDisplay(value) }}
+        </template>
+        
+        <!-- 自定义反馈时间列 -->
+        <template #反馈时间="{ value }">
+          {{ formatDisplay(value) }}
+        </template>
+        
+        <!-- 自定义预警等级列 -->
+        <template #预警等级="{ value }">
+          <span class="level-badge" :class="getLevelClass(value)">
+            {{ formatDisplay(value) }}
+          </span>
+        </template>
+        
+        <!-- 自定义关联目标列 -->
+        <template #关联目标="{ value }">
+          {{ formatDisplay(value) }}
+        </template>
+        
+        <!-- 自定义处置状态列 -->
+        <template #处置状态="{ value }">
+          <span class="status-badge" :class="getStatusClass(value)">
+            {{ formatDisplay(value) }}
+          </span>
+        </template>
+      </CommonTable>
     </div>
   </div>
 </template>
@@ -63,6 +73,7 @@ import { getEarlyWarningDisposalCountList } from "@/services/statusService";
 import { getWarnStatistics } from "@/services/waterSupplyService";
 import { getCachedDictionary } from "@/services/dictionaryService";
 import { getMonitoringEarlyWarningChartOption, getMonitoringDonutChartOption, SeriesData, LevelMapping, createCustomVerticalGradient } from "./chartOptions";
+import CommonTable from "@/components/CommonTable.vue";
 
 // 数据类型定义
 interface EarlyWarningDataItem {
@@ -140,6 +151,15 @@ const currentTable = ref<{ columns: Array<{ key: string; label: string }>; data:
   data: []
 });
 
+// 表格列配置
+const tableColumns = computed(() => [
+  { key: '序号', title: '序号', width: '1fr' },
+  { key: '反馈时间', title: '反馈时间', width: '2fr' },
+  { key: '预警等级', title: '预警等级', width: '1fr' },
+  { key: '关联目标', title: '关联目标', width: '2fr' },
+  { key: '处置状态', title: '处置状态', width: '1fr' }
+]);
+
 // 显示用总数：优先使用环形图接口的总数，没有则显示 "-"
 const displayTotalWarnings = computed(() => {
   if (warnStats.value.totalCount > 0) {
@@ -158,6 +178,26 @@ const formatDisplay = (value: unknown): string => {
   if (value === null || value === undefined) return "-";
   if (typeof value === "string" && value.trim() === "") return "-";
   return String(value);
+};
+
+// 获取预警等级样式类
+const getLevelClass = (level: string): string => {
+  const levelMap: Record<string, string> = {
+    '一级': 'level-high',
+    '二级': 'level-medium',
+    '三级': 'level-low'
+  };
+  return levelMap[level] || 'level-default';
+};
+
+// 获取处置状态样式类
+const getStatusClass = (status: string): string => {
+  const statusMap: Record<string, string> = {
+    '未处置': 'status-pending',
+    '处置中': 'status-processing',
+    '已处置': 'status-completed'
+  };
+  return statusMap[status] || 'status-default';
 };
 
 /**
@@ -397,82 +437,58 @@ onMounted(() => {
     }
   }
 
-  // 表格区域
-  .table {
-    height: 50%;
-    padding: 20px;
-    border-top: 1px solid rgba(22, 119, 255, 0.2);
-    flex-direction: column;
-    display: flex;
-
-    // 表头
-    .disposal-header {
-      display: flex;
-      align-items: center;
-      height: 60px;
-
-      background: #2A5768;
-      border: 2px solid #09739C;
-      border-radius: 6px;
-      margin-bottom: 12px;
-
-      .header-col {
-        font-family: SourceHanSansSC, SourceHanSansSC;
-        font-weight: var(--font-weight-bold);
-        font-size: var(--font-size-3xl);
-        color: #E4F3FF;
-        line-height: calc(var(--font-size-lg) * 1.45);
-        text-align: left;
-        font-style: normal;
-        flex: 1;
-
-        &.col-name {
-          grid-column: span 1;
-        }
-      }
+  // 自定义表格样式
+  .level-badge {
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 20px;
+    font-weight: 500;
+    
+    &.level-high {
+      background: linear-gradient(135deg, #FF4757 0%, #FF6B81 100%);
+      color: white;
     }
-
-    // 企业列表
-    .disposal-list {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      height: 232px;
-      overflow-y: auto;
-      border: 2px solid #09739C;
-      border-top: none;
-      flex: 1;
-
-      .disposal-row {
-        display: flex;
-        align-items: center;
-        height: 58px;
-        background: linear-gradient(90deg, rgba(0, 150, 255, 0.06) 0%, rgba(0, 100, 200, 0.03) 100%);
-        border: 1px solid rgba(22, 119, 255, 0.15);
-        border-radius: 4px;
-        transition: all 0.3s ease;
-
-        &:hover {
-          background: linear-gradient(90deg, rgba(0, 150, 255, 0.12) 0%, rgba(0, 100, 200, 0.08) 100%);
-          border-color: rgba(22, 119, 255, 0.3);
-        }
-
-        .row-col {
-          font-family: SourceHanSansSC, SourceHanSansSC;
-          font-weight: var(--font-weight-normal);
-          color: #e4f3ff;
-          text-align: center;
-          width: 200px;
-          font-weight: var(--font-weight-normal);
-          font-size: var(--font-size-3xl);
-          line-height: calc(var(--font-size-lg) * 2.9);
-          text-align: left;
-          font-style: normal;
-          padding-left: 20px;
-          flex: 1;
-
-        }
-      }
+    
+    &.level-medium {
+      background: linear-gradient(135deg, #FFA502 0%, #FFB347 100%);
+      color: white;
+    }
+    
+    &.level-low {
+      background: linear-gradient(135deg, #2ED573 0%, #7BED9F 100%);
+      color: white;
+    }
+    
+    &.level-default {
+      background: rgba(255, 255, 255, 0.1);
+      color: #E4F3FF;
+    }
+  }
+  
+  .status-badge {
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 20px;
+    font-weight: 500;
+    
+    &.status-pending {
+      background: linear-gradient(135deg, #FF4757 0%, #FF6B81 100%);
+      color: white;
+    }
+    
+    &.status-processing {
+      background: linear-gradient(135deg, #FFA502 0%, #FFB347 100%);
+      color: white;
+    }
+    
+    &.status-completed {
+      background: linear-gradient(135deg, #2ED573 0%, #7BED9F 100%);
+      color: white;
+    }
+    
+    &.status-default {
+      background: rgba(255, 255, 255, 0.1);
+      color: #E4F3FF;
     }
   }
 

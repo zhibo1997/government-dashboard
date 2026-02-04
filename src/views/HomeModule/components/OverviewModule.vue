@@ -27,13 +27,104 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from "vue";
+import { ref, onMounted } from "vue";
 import { getBasicFacilitiesOverview } from "@/services/statusService";
-import { getCachedDictionary } from "@/services/dictionaryService";
 import GasIcon from "@/assets/img/homeModule/gas_icon.webp";
 import WaterIcon from "@/assets/img/homeModule/water_icon.webp";
 import DrainageIcon from "@/assets/img/homeModule/drainage_icon.webp";
 import BridgeIcon from "@/assets/img/homeModule/bridge_icon.webp";
+
+// 根据设计图要求的固定数据结构
+const designData = {
+  "燃气": [
+    {
+      "f_ItemName": "天然气运营企业",
+      "f_ItemValue": "jcssdstj0103",
+      "f_Description": "个"
+    },
+    {
+      "f_ItemName": "天然气场站",
+      "f_ItemValue": "jcssdstj0102",
+      "f_Description": "个"
+    },
+    {
+      "f_ItemName": "液化气运营企业",
+      "f_ItemValue": "jcssdstj0302",
+      "f_Description": "个"
+    },
+    {
+      "f_ItemName": "天然气管网",
+      "f_ItemValue": "jcssdstj0101",
+      "f_Description": "km"
+    }
+  ],
+  "供水": [
+    {
+      "f_ItemName": "水厂",
+      "f_ItemValue": "jcssdstj0504",
+      "f_Description": "个"
+    },
+    {
+      "f_ItemName": "供水管网",
+      "f_ItemValue": "jcssdstj0501",
+      "f_Description": "公里"
+    },
+    {
+      "f_ItemName": "水源地",
+      "f_ItemValue": "jcssdstj0503",
+      "f_Description": "个"
+    },
+    {
+      "f_ItemName": "供水大用户",
+      "f_ItemValue": "jcssdstj0506",
+      "f_Description": "户"
+    }
+  ],
+  "排水": [
+    {
+      "f_ItemName": "污水厂",
+      "f_ItemValue": "jcssdstj0405",
+      "f_Description": "个"
+    },
+    {
+      "f_ItemName": "排水管网",
+      "f_ItemValue": "jcssdstj0401",
+      "f_Description": "km"
+    },
+    {
+      "f_ItemName": "排水泵站",
+      "f_ItemValue": "jcssdstj0406",
+      "f_Description": "个"
+    },
+    {
+      "f_ItemName": "易积水点",
+      "f_ItemValue": "jcssdstj0407",
+      "f_Description": "个"
+    }
+  ],
+  "桥梁": [
+    {
+      "f_ItemName": "桥梁",
+      "f_ItemValue": "jcssdstj0601",
+      "f_Description": "座"
+    },
+    {
+      "f_ItemName": "大桥及特大桥",
+      "f_ItemValue": "jcssdstj0602",
+      "f_Description": "座"
+    },
+    {
+      "f_ItemName": "立交桥",
+      "f_ItemValue": "jcssdstj0603",
+      "f_Description": "座"
+    },
+    {
+      "f_ItemName": "涵洞",
+      "f_ItemValue": "jcssdstj0604",
+      "f_Description": "个"
+    }
+  ]
+};
 
 // sszx 到 icon 和 title 的映射关系（专项编号）
 const sszxMapping: Record<string, { title: string, icon: string }> = {
@@ -65,67 +156,78 @@ interface OverviewCategory {
 const overviewData = ref<OverviewCategory[]>([])
 
 
-// 初始化数据
+// 初始化数据 - 根据设计图要求使用固定数据结构
 const initOverviewData = async () => {
   try {
-    // 1. 先获取字典数据，建立 jcsslx -> 字典信息 的映射
-    const dictData = await getCachedDictionary("jcsstjlx");
-    const dictMap = new Map();
-
-    if (dictData && dictData.length > 0) {
-      dictData.forEach((dict: any) => {
-        dictMap.set(dict.f_ItemValue, {
-          name: dict.f_ItemName,
-          unit: dict.f_Description
-        });
-      });
-    }
-
-    // 2. 获取后端数据
+    // 1. 获取后端数据
     const responseData = await getBasicFacilitiesOverview();
     const data = Array.isArray(responseData) ? responseData : [];
 
-    if (data && data.length > 0) {
-      // 转换数据并按 sszx 分组
-      const processedData = data.map((item: any) => {
-        const dictInfo = dictMap.get(item.jcsslx);
-        return {
-          lsh: item.lsh,
-          jcsslx: item.jcsslx,
-          sszx: item.sszx,
-          name: dictInfo?.name || item.jcsslx,
-          unit: dictInfo?.unit || '',
-          jcsstjsl: item.jcsstjsl || 0
-        } as OverviewItem;
-      });
+    // 2. 建立 jcsslx -> 实际数据 的映射
+    const dataMap = new Map();
+    data.forEach((item: any) => {
+      dataMap.set(item.jcsslx, item.jcsstjsl || 0);
+    });
 
-      // 按 sszx 分组，构建带有分类信息的数据结构
-      const groupedMap = new Map<string, OverviewItem[]>();
-      processedData.forEach((item: OverviewItem) => {
-        if (!groupedMap.has(item.sszx)) {
-          groupedMap.set(item.sszx, []);
-        }
-        groupedMap.get(item.sszx)!.push(item);
-      });
+    // 3. 构建最终的 overviewData 数组 - 按照设计图要求的固定结构
+    const categories: OverviewCategory[] = [];
+    
+    // 遍历设计图定义的数据结构
+    Object.entries(designData).forEach(([categoryTitle, items]) => {
+      // 找到对应的 sszx
+      const sszxEntry = Object.entries(sszxMapping).find(([_, mapping]) => mapping.title === categoryTitle);
+      if (!sszxEntry) return;
+      
+      const [sszx, mapping] = sszxEntry;
+      
+      // 转换设计图数据为组件需要的格式
+      const convertedItems: OverviewItem[] = items.map(item => ({
+        lsh: item.f_ItemValue, // 使用 f_ItemValue 作为唯一标识
+        jcsslx: item.f_ItemValue,
+        sszx: sszx,
+        name: item.f_ItemName,
+        unit: item.f_Description,
+        jcsstjsl: dataMap.get(item.f_ItemValue) || 0 // 从后端数据获取实际值，如果没有则为0
+      }));
 
-      // 构建最终的 overviewData 数组
-      const categories: OverviewCategory[] = [];
-      groupedMap.forEach((items, sszx) => {
-        const mapping = sszxMapping[sszx];
-        if (mapping) {
-          categories.push({
-            title: mapping.title,
-            icon: mapping.icon,
-            sszx: sszx,
-            items: items
-          });
-        }
+      categories.push({
+        title: mapping.title,
+        icon: mapping.icon,
+        sszx: sszx,
+        items: convertedItems
       });
+    });
 
-      overviewData.value = categories;
-    }
+    overviewData.value = categories;
   } catch (error) {
     console.error("获取总览数据失败:", error);
+    // 出错时显示设计图定义的默认结构，数值为0
+    const categories: OverviewCategory[] = [];
+    
+    Object.entries(designData).forEach(([categoryTitle, items]) => {
+      const sszxEntry = Object.entries(sszxMapping).find(([_, mapping]) => mapping.title === categoryTitle);
+      if (!sszxEntry) return;
+      
+      const [sszx, mapping] = sszxEntry;
+      
+      const convertedItems: OverviewItem[] = items.map(item => ({
+        lsh: item.f_ItemValue,
+        jcsslx: item.f_ItemValue,
+        sszx: sszx,
+        name: item.f_ItemName,
+        unit: item.f_Description,
+        jcsstjsl: 0
+      }));
+
+      categories.push({
+        title: mapping.title,
+        icon: mapping.icon,
+        sszx: sszx,
+        items: convertedItems
+      });
+    });
+    
+    overviewData.value = categories;
   }
 };
 
@@ -226,7 +328,7 @@ onMounted(() => {
         }
       }
       .item-text{
-        max-width: 160px;
+        max-width: 200px;
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;

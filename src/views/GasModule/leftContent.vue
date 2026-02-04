@@ -18,15 +18,4 @@ import MonitoringDeviceModule from './components/MonitoringDeviceModule.vue';
 </script>
 
 <style lang="scss" scoped>
-.left-content {
-  width: 820px;
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  z-index: 10;
-  padding: 0 0 20px 20px;
-  box-sizing: border-box;
-  background: linear-gradient(to right, rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0));
-}
 </style>

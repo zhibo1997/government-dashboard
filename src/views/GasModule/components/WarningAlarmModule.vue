@@ -80,33 +80,44 @@
         </div>
 
         <!-- 数据表格 -->
-        <div class="table">
-          <!-- 表头 -->
-          <div class="enterprise-header">
-            <div class="header-col th-type">类型</div>
-            <div class="header-col">一级</div>
-            <div class="header-col">二级</div>
-            <div class="header-col">三级</div>
-            <div class="header-col">已处置</div>
-            <div class="header-col">处置中</div>
-            <div class="header-col">未处置</div>
-          </div>
-
-          <!-- 表体 -->
-          <div class="enterprise-list">
-            <div class="enterprise-row" v-for="item in currentTableData" :key="item.key">
-              <div class="row-col td-type" :title="item.type">
-                {{ item.type }}
-              </div>
-              <div class="row-col">{{ item.level1 }}</div>
-              <div class="row-col">{{ item.level2 }}</div>
-              <div class="row-col">{{ item.level3 }}</div>
-              <div class="row-col">{{ item.handled }}</div>
-              <div class="row-col">{{ item.handling }}</div>
-              <div class="row-col">{{ item.unhandled }}</div>
-            </div>
-          </div>
-        </div>
+        <CommonTable
+          :columns="tableColumns"
+          :data="currentTableData"
+          row-key="key"
+          empty-text="暂无数据"
+          grid-template="1.8fr 1fr 1fr 1fr 1fr 1fr 1fr"
+        >
+          <!-- 自定义类型列 -->
+          <template #type="{ value }">
+            <span class="type-badge">{{ value }}</span>
+          </template>
+          
+          <!-- 自定义数值列，添加高亮效果 -->
+          <template #level1="{ value }">
+            <span :class="{ 'high-risk': value > 0 }">{{ value }}</span>
+          </template>
+          
+          <template #level2="{ value }">
+            <span :class="{ 'medium-risk': value > 0 }">{{ value }}</span>
+          </template>
+          
+          <template #level3="{ value }">
+            <span :class="{ 'low-risk': value > 0 }">{{ value }}</span>
+          </template>
+          
+          <!-- 处置状态列 -->
+          <template #handled="{ value }">
+            <span class="status-completed">{{ value }}</span>
+          </template>
+          
+          <template #handling="{ value }">
+            <span class="status-processing">{{ value }}</span>
+          </template>
+          
+          <template #unhandled="{ value }">
+            <span class="status-pending">{{ value }}</span>
+          </template>
+        </CommonTable>
       </div>
     </div>
   </div>
@@ -117,6 +128,7 @@ import { RANQI_SSZX } from "@/types";
 import { ref, computed, onMounted } from "vue";
 import { getWarnStatistics } from "@/services/waterSupplyService";
 import { getGasWarningTypeList } from "@/services/gasService";
+import CommonTable from '@/components/CommonTable.vue';
 
 // ==================== 数据状态 ====================
 // 当前激活的Tab
@@ -156,6 +168,17 @@ const alarmTableData = ref([]);
 
 // ==================== 计算属性 ====================
 // 当前表格数据
+// 表格列配置
+const tableColumns = computed(() => [
+  { key: 'type', title: '类型', width: '1.8fr' },
+  { key: 'level1', title: '一级', width: '1fr' },
+  { key: 'level2', title: '二级', width: '1fr' },
+  { key: 'level3', title: '三级', width: '1fr' },
+  { key: 'handled', title: '已处置', width: '1fr' },
+  { key: 'processing', title: '处置中', width: '1fr' },
+  { key: 'pending', title: '未处置', width: '1fr' }
+]);
+
 const currentTableData = computed(() => {
   return activeTab.value === "warning"
     ? warningTableData.value
@@ -504,99 +527,40 @@ onMounted(() => {
     }
   }
 
-  // 自定义表格
-  .table {
-    width: 100%;
-    margin-top: 24px;
+  // 自定义表格样式
+  .type-badge {
+    background: linear-gradient(135deg, #10ADC0 0%, #0DA5BE 100%);
+    padding: 4px 12px;
+    border-radius: 12px;
+    color: white;
+    font-weight: 500;
   }
-
-  // 企业列表表头
-  .enterprise-header {
-    display: flex;
-    align-items: center;
-    height: 58px;
-    background: #2A5768;
-    border: 2px solid #09739C;
-    border-radius: 4px 4px 0 0;
-
-    .header-col {
-      font-family: SourceHanSansSC, SourceHanSansSC;
-      font-weight: var(--font-weight-bold);
-      font-size: var(--font-size-2xl);
-      color: #E4F3FF;
-      line-height: calc(var(--font-size-base) * 1.45);
-      text-align: center;
-      font-style: normal;
-      flex: 1;
-
-      &.th-type {
-        flex: 2.5;
-      }
-    }
+  
+  .high-risk {
+    color: #FF4757;
+    font-weight: bold;
   }
-
-  // 企业列表
-  .enterprise-list {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    height: 232px;
-    overflow-y: auto;
-    border: 2px solid #09739C;
-    border-top: none;
-    border-radius: 0 0 4px 4px;
-
-    &::-webkit-scrollbar {
-      width: 6px;
-    }
-
-    &::-webkit-scrollbar-track {
-      background: rgba(0, 0, 0, 0.1);
-      border-radius: 3px;
-    }
-
-    &::-webkit-scrollbar-thumb {
-      background: rgba(22, 119, 255, 0.3);
-      border-radius: 3px;
-
-      &:hover {
-        background: rgba(22, 119, 255, 0.5);
-      }
-    }
-
-    .enterprise-row {
-      display: flex;
-      align-items: center;
-      min-height: 52px;
-      background: linear-gradient(90deg, rgba(0, 150, 255, 0.06) 0%, rgba(0, 100, 200, 0.03) 100%);
-      border: 1px solid rgba(22, 119, 255, 0.15);
-      border-radius: 4px;
-      transition: all 0.3s ease;
-
-      &:hover {
-        background: linear-gradient(90deg, rgba(0, 150, 255, 0.12) 0%, rgba(0, 100, 200, 0.08) 100%);
-        border-color: rgba(22, 119, 255, 0.3);
-      }
-
-      .row-col {
-        font-family: SourceHanSansSC, SourceHanSansSC;
-        font-weight: var(--font-weight-normal);
-        color: #e4f3ff;
-        text-align: center;
-        font-size: var(--font-size-3xl);
-        line-height: calc(var(--font-size-lg) * 1.5);
-        font-style: normal;
-        flex: 1;
-        padding: 0px 6px;
-
-        &.td-type {
-          flex: 2.5;
-          white-space: nowrap;
-          overflow: hidden;
-          text-overflow: ellipsis;
-        }
-      }
-    }
+  
+  .medium-risk {
+    color: #FFA502;
+    font-weight: bold;
+  }
+  
+  .low-risk {
+    color: #2ED573;
+    font-weight: bold;
+  }
+  
+  .status-completed {
+    color: #2ED573;
+  }
+  
+  .status-processing {
+    color: #FFA502;
+  }
+  
+  .status-pending {
+    color: #FF4757;
   }
 }
 </style>

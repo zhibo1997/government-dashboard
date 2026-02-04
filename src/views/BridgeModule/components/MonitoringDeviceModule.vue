@@ -45,22 +45,31 @@
 
       <!-- 预警类型统计区域 -->
       <div class="warning-statistics">
-        <div class="warning-table">
-          <div class="table-header">
-            <div class="header-cell">设备类型</div>
-            <div class="header-cell">在线</div>
-            <div class="header-cell">离线</div>
-            <div class="header-cell">故障</div>
-          </div>
-          <div class="table-body">
-            <div class="table-row" v-for="warning in warningStatistics" :key="warning.sblxmc">
-              <div class="row-cell">{{ warning.sblxmc }}</div>
-              <div class="row-cell">{{ warning.zx }}</div>
-              <div class="row-cell">{{ warning.lx }}</div>
-              <div class="row-cell">0</div>
-            </div>
-          </div>
-        </div>
+        <CommonTable
+          :columns="tableColumns"
+          :data="tableData"
+          row-key="sblxmc"
+          empty-text="暂无设备数据"
+          grid-template="2fr 1fr 1fr 1fr"
+        >
+          <!-- 自定义设备类型列 -->
+          <template #sblxmc="{ value }">
+            <span class="device-type">{{ value }}</span>
+          </template>
+          
+          <!-- 自定义状态列 -->
+          <template #zx="{ value }">
+            <span class="status-online">{{ value }}</span>
+          </template>
+          
+          <template #lx="{ value }">
+            <span class="status-offline">{{ value }}</span>
+          </template>
+          
+          <template #fault="{ value }">
+            <span class="status-fault">{{ value }}</span>
+          </template>
+        </CommonTable>
       </div>
     </div>
   </div>
@@ -69,7 +78,8 @@
 <script setup lang="ts">
 import { getBridgeEquipmentOnlineCount, getBridgeEquipmentRunStatusList } from "@/services/bridgeService";
 import { getEquipmentPageList } from "@/services/gasService";
-import { ref, onMounted } from "vue";
+import { ref, computed, onMounted } from "vue";
+import CommonTable from '@/components/CommonTable.vue';
 
 // 顶部统计数据
 const topStats = ref({
@@ -86,6 +96,22 @@ const warningStatistics = ref<
     lx: string | number;
   }>
 >([]);
+
+// 表格列配置
+const tableColumns = [
+  { key: 'sblxmc', title: '设备类型', width: '2fr' },
+  { key: 'zx', title: '在线', width: '1fr' },
+  { key: 'lx', title: '离线', width: '1fr' },
+  { key: 'fault', title: '故障', width: '1fr' }
+];
+
+// 处理表格数据，添加故障字段
+const tableData = computed(() => {
+  return warningStatistics.value.map(item => ({
+    ...item,
+    fault: 0 // 默认故障数为0
+  }));
+});
 
 // 初始化获取数据
 onMounted(async () => {
@@ -217,77 +243,27 @@ const initWarningStatistics = async () => {
   // 预警类型统计区域
   .warning-statistics {
     width: 100%;
-
-    .warning-table {
-      border-radius: 4px;
-      overflow: hidden;
-
-      .table-header {
-        display: grid;
-        grid-template-columns: 2fr 1fr 1fr 1fr;
-        background: #2A5768;
-        border: 2px solid #09739C;
-
-        .header-cell {
-          flex: 1;
-          padding: 16px 12px;
-          font-family: SourceHanSansSC, SourceHanSansSC;
-          font-weight: bold;
-          font-size: var(--font-size-2xl);
-          color: #e4f3ff;
-          line-height: 29px;
-          text-align: center;
-          font-style: normal;
-
-
-          &:first-child {
-            text-align: left;
-            padding-left: 20px;
-          }
-        }
-      }
-
-      .table-body {
-        max-height: 260px;
-        overflow-y: auto;
-        background: rgba(49, 49, 49, 0.3);
-        border: 2px solid #09739C;
-
-        .table-row {
-          border-bottom: 1px solid rgba(79, 184, 211, 0.15);
-          transition: background-color 0.3s ease;
-        display: grid;
-        grid-template-columns: 2fr 1fr 1fr 1fr;
-
-          &:hover {
-            background: rgba(79, 184, 211, 0.1);
-          }
-
-          &:last-child {
-            border-bottom: none;
-          }
-
-          .row-cell {
-            flex: 1;
-            padding: 14px 12px;
-            font-family: SourceHanSansSC, SourceHanSansSC;
-            font-weight: 400;
-            font-size: var(--font-size-3xl);
-            color: #effaff;
-            line-height: 29px;
-            text-align: center;
-            font-style: normal;
-
-            &:first-child {
-              text-align: left;
-              padding-left: 20px;
-              color: #fff;
-              font-weight: 500;
-            }
-          }
-        }
-      }
-    }
+  }
+  
+  // 自定义表格样式
+  .device-type {
+    color: #FFFFFF;
+    font-weight: 500;
+  }
+  
+  .status-online {
+    color: #2ED573;
+    font-weight: bold;
+  }
+  
+  .status-offline {
+    color: #FFA502;
+    font-weight: bold;
+  }
+  
+  .status-fault {
+    color: #FF4757;
+    font-weight: bold;
   }
 }
 </style>

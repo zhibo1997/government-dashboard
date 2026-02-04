@@ -5,6 +5,7 @@ export interface LevelMapping {
     name: string;
     key: string;
     order: number;
+    color?: string;
   };
 }
 
@@ -105,10 +106,12 @@ const Y_AXIS_CONFIG = {
  */
 const LEGEND_CONFIG = {
   orient: "horizontal" as const,
-  bottom: 16,
+  top: 16,
+  right: 16,
+  itemGap: 24, // 增加图例项之间的间隔
   textStyle: {
     fontFamily: "SourceHanSansSC",
-    fontSize: 20,
+    fontSize: 24, // 增大字体大小
     color: "#D3EAF1",
   },
 };
@@ -166,7 +169,7 @@ const hexToRgb = (hex: string): number[] => {
 };
 
 /**
- * 创建垂直渐变色对象（从下到上：浅色到深色）
+ * 创建垂直渐变色对象（从下到上：透明到深色）
  */
 const createVerticalGradient = (baseColor: string): any => {
   return {
@@ -176,7 +179,7 @@ const createVerticalGradient = (baseColor: string): any => {
     x2: 0,
     y2: 0,
     colorStops: [
-      { offset: 0, color: `rgba(${hexToRgb(baseColor).join(",")}, 0.2)` },
+      { offset: 0, color: `rgba(${hexToRgb(baseColor).join(",")}, 0)` },
       { offset: 1, color: baseColor },
     ],
   };
@@ -219,60 +222,45 @@ export const getRiskChartOption = (
   } as any));
 
   return {
-    grid: {
-      left: "12%",
-      right: "8%",
-      top: "15%",
-      bottom: "20%",
-    },
+    tooltip: TOOLTIP_CONFIG,
+    grid: CHART_GRID_CONFIG,
     xAxis: {
-      type: "category",
+      ...X_AXIS_CONFIG,
       data: xAxisData,
-      axisLine: {
-        lineStyle: {
-          color: "#3A5F6F",
-        },
-      },
-      axisLabel: {
-        fontFamily: "SourceHanSansSC, SourceHanSansSC",
-        fontWeight: 400,
-        fontSize: 24,
-        color: "#FFFFFF",
-        lineHeight: 35,
-        align: "center",
-      },
     },
-    yAxis: {
-      type: "value",
-      name: "单位：个",
-      nameTextStyle: {
-        fontFamily: "SourceHanSansSC, SourceHanSansSC",
-        fontWeight: 400,
-        fontSize: 24,
-        color: "#FFFFFF",
-        lineHeight: 35,
-      },
-      axisLine: {
-        show: false,
-      },
-      axisTick: {
-        show: false,
-      },
-      splitLine: {
-        lineStyle: {
-          color: "#1D3940",
-          type: "dashed",
-        },
-      },
-      axisLabel: {
-        fontFamily: "SourceHanSansSC, SourceHanSansSC",
-        fontWeight: 400,
-        fontSize: 24,
-        color: "#FFFFFF",
-        lineHeight: 35,
-      },
-    },
+    yAxis: Y_AXIS_CONFIG,
     series: seriesWithGradient,
+    legend: LEGEND_CONFIG,
+  };
+};
+
+/**
+ * 获取隐患等级图表配置
+ */
+export const getHazardChartOption = (
+  xAxisData: string[],
+  levelMapping: LevelMapping,
+  series: SeriesData[]
+): EChartsOption => {
+  // 添加渐变色效果
+  const seriesWithGradient = series.map((item) => ({
+    ...item,
+    
+    itemStyle: {
+      color: createVerticalGradient(item.itemStyle?.color as string),
+    },
+  } as any));
+
+  return {
+    tooltip: TOOLTIP_CONFIG,
+    grid: CHART_GRID_CONFIG,
+    xAxis: {
+      ...X_AXIS_CONFIG,
+      data: xAxisData,
+    },
+    yAxis: Y_AXIS_CONFIG,
+    series: seriesWithGradient,
+    legend: LEGEND_CONFIG,
   };
 };
 
@@ -367,11 +355,12 @@ export const getMonitoringAlarmChartOption = (
     },
     legend: {
       orient: "horizontal" as const,
-      top: 5,
-      right: "2%",
+      top: 16,
+      right: 16,
+      itemGap: 24,
       textStyle: {
         fontFamily: "SourceHanSansSC",
-        fontSize: 20,
+        fontSize: 24,
         color: "#D3EAF1",
       },
     },
@@ -461,11 +450,12 @@ export const getMonitoringEarlyWarningChartOption = (
     },
     legend: {
       orient: "horizontal" as const,
-      top: 5,
-      right: "2%",
+      top: 16,
+      right: 16,
+      itemGap: 24,
       textStyle: {
         fontFamily: "SourceHanSansSC",
-        fontSize: 20,
+        fontSize: 24,
         color: "#D3EAF1",
       },
     },

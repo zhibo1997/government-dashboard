@@ -26,9 +26,4 @@ import PipelineModule from './components/PipelineModule.vue'
 </script>
 
 <style lang="scss" scoped>
-.left-content {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
 </style>
