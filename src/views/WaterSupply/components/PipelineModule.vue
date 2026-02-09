@@ -6,17 +6,6 @@
     <div class="module-content pipeline-module-content">
       <div class="material-content">
         <div id="pipeline-chart" class="pipeline-chart"></div>
-        <div class="material-legend">
-          <div class="legend-item" v-for="item in pipelineLegend" :key="item.name">
-            <div class="legend-item-content">
-              <div class="legend-color" :style="{ backgroundColor: item.color }"></div>
-              <div class="legend-name">{{ item.name }}</div>
-            </div>
-            <div class="legend-value">
-              <span class="value-percent">{{ item.radio }}%</span>
-            </div>
-          </div>
-        </div>
       </div>
       <div class="hidden-danger">
         <!-- 隐患小球展示区 -->
@@ -85,7 +74,7 @@ const dangerCount = ref(0);
 
 const pipelineLegend = ref();
 
-const colors = ["#00bfff", "#ff4500", "#ffff00", "#66cc66"];
+const colors = ["#5D87AC", "#C3540C", "#4D74FF", "#93DBFF"];
 
 /**
  * 生成渐变色配置
@@ -125,7 +114,7 @@ const initMaterialList = async () => {
   const data = Array.isArray(res) ? res : (res?.data || []);
   nextTick(() => {
     const gwczData = (data as any[]).map((item, idx) => ({
-      name: gwczMap.value[item.materialType],
+      name: `${gwczMap.value[item.materialType]} ${item.ratio}%`,
       id: item.materialType,
       value: item.count,
       radio: item.ratio,
@@ -135,7 +124,7 @@ const initMaterialList = async () => {
     officialWebsiteOption.series[0].data = gwczData.map((gwcz, idx) => ({
       ...gwcz,
       itemStyle: {
-        color: getGradientColor(gwcz.color),
+        color: gwcz.color,
       },
     }));
     const chartDom = document.getElementById("pipeline-chart");
@@ -277,11 +266,11 @@ const initChart = () => { };
   align-items: center;
   justify-content: flex-start;
   padding-top: 20px;
+  height: 100%;
 
   .pipeline-chart {
-    width: 260px;
-    height: 260px;
-    margin-bottom: 30px;
+    width: 100%;
+    height: 100%;
   }
 
   .material-legend {
@@ -302,7 +291,7 @@ const initChart = () => { };
 
         .legend-name,
         .legend-value {
-          color: #00bfff;
+          color: #5D87AC;
         }
       }
 
@@ -316,12 +305,12 @@ const initChart = () => { };
         width: 24px;
         height: 24px;
         border-radius: 4px;
-        box-shadow: 0 0 8px rgba(0, 191, 255, 0.3);
+        box-shadow: 0 0 8px rgba(93, 135, 172, 0.3);
         transition: all 0.3s ease;
       }
 
       &:hover .legend-color {
-        box-shadow: 0 0 12px rgba(0, 191, 255, 0.6);
+        box-shadow: 0 0 12px rgba(93, 135, 172, 0.6);
       }
 
       .legend-name {

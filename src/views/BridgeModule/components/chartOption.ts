@@ -104,18 +104,11 @@ export const createChartOption = (chart: any, chartIndex: number): echarts.EChar
 
   return {
     tooltip: {
-      trigger: "item",
-      formatter: "{b}: {c}",
-      borderColor: "transparent",
-      borderWidth: 1,
-      textStyle: {
-        color: "#ffffff",
-        fontSize: 14,
-      },
+      show: false,
     },
     legend: {
       show: true,
-      orient: "horizontal",
+      orient: "vertical",
       bottom: 0,
       left: "center",
       itemWidth: 12,
@@ -123,7 +116,7 @@ export const createChartOption = (chart: any, chartIndex: number): echarts.EChar
       itemGap: 16,
       formatter: (name: string) => {
         const item = seriesData.find((d: any) => d.name === name);
-        return item ? `{name|${name}}` : name;
+        return item ? `{name|${name} (${item.value}座)}` : name;
       },
       textStyle: {
         color: "#f5fcff",
@@ -136,10 +129,11 @@ export const createChartOption = (chart: any, chartIndex: number): echarts.EChar
           },
         },
       },
+      data: seriesData.filter((item: any) => item.value > 0).map((item: any) => item.name)
     },
     series: [
       {
-        name: chart.title.slice(0, 4) + '\n\n' + chart.title.slice(4),
+        name: chart.title.slice(0, Math.ceil(chart.title.length / 2)) + '\n\n' + chart.title.slice(Math.ceil(chart.title.length / 2)),
 
         type: "pie",
         radius: ["58%", "75%"],

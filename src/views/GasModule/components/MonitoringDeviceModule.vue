@@ -336,6 +336,10 @@ const deviceCategories = ref<
             line-height: calc(var(--font-size-base) * 1.813);
             text-align: left;
             font-style: normal;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            width: 150px;
           }
 
           .device-count {

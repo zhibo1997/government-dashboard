@@ -29,7 +29,7 @@
               <span class="count-separator">/</span>
               <span class="count-fault gradient-text">{{ device.fault }}</span>
             </div>
-            <div class="device-name">{{ device.name }}</div>
+            <div class="device-name" :title="device.name">{{ device.name }}</div>
           </div>
         </div>
       </div>
@@ -192,7 +192,7 @@ onMounted(() => {
       display: flex;
       flex-direction: column;
       align-items: center;
-      margin-top: -20px;
+      margin-top: -10px;
 
       .device-count {
         width: 233px;
@@ -248,6 +248,10 @@ onMounted(() => {
         font-style: normal;
         position: relative;
         top: -20px;
+        width: 160px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
       }
     }
   }

@@ -47,48 +47,9 @@
           :data="processedTableData"
           row-key="lsh"
           :empty-text="loading ? '加载中...' : '暂无数据'"
+          :max-height="400"
           grid-template="0.8fr 1.2fr 1.5fr 2fr 2fr 1.5fr 1.2fr"
-        >
-          <!-- 自定义序号列 -->
-          <template #index="{ value }">
-            <span class="index-number">{{ value }}</span>
-          </template>
-          
-          <!-- 自定义专项列 -->
-          <template #specialty="{ row }">
-            <span class="specialty-tag">燃气</span>
-          </template>
-          
-          <!-- 自定义场站编号列 -->
-          <template #stationId="{ value }">
-            <span class="station-id">{{ value }}</span>
-          </template>
-          
-          <!-- 自定义场站名称列 -->
-          <template #stationName="{ value }">
-            <span class="station-name" :title="value">{{ value }}</span>
-          </template>
-          
-          <!-- 自定义安装位置列 -->
-          <template #position="{ value }">
-            <span class="position" :title="value">{{ value }}</span>
-          </template>
-          
-          <!-- 自定义场站类型列 -->
-          <template #stationType="{ value }">
-            <span class="station-type">{{ value }}</span>
-          </template>
-          
-          <!-- 自定义运行状态列 -->
-          <template #runStatus="{ row }">
-            <span 
-              class="status-text" 
-              :class="row.sjtbzt === 'I' ? 'status-online' : 'status-offline'"
-            >
-              {{ row.sjtbzt === 'I' ? '正常' : '异常' }}
-            </span>
-          </template>
-        </CommonTable>
+        />
       </div>
 
       <!-- 分页 -->

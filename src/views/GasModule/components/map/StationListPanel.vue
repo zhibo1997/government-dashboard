@@ -263,7 +263,7 @@ const nextPage = () => {
 
 .station-list-panel {
   position: absolute;
-  left: 840px;
+  left: 860px;
   width: 460px;
   height: 100%;
   // height: calc(100% - 30px);
@@ -544,7 +544,7 @@ const nextPage = () => {
       }
 
       .station-item {
-        padding: 20px;
+        padding: 20px 20px 30px;
         border-bottom: 2px solid #09739C;
 
         background: rgba(0, 0, 0, 0.2);
@@ -621,7 +621,9 @@ const nextPage = () => {
           text-align: left;
           font-style: normal;
           margin-top: 8px;
-
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
         }
       }
     }

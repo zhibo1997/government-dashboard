@@ -50,26 +50,9 @@
           :data="tableData"
           row-key="sblxmc"
           empty-text="暂无设备数据"
+          :max-height="300"
           grid-template="2fr 1fr 1fr 1fr"
-        >
-          <!-- 自定义设备类型列 -->
-          <template #sblxmc="{ value }">
-            <span class="device-type">{{ value }}</span>
-          </template>
-          
-          <!-- 自定义状态列 -->
-          <template #zx="{ value }">
-            <span class="status-online">{{ value }}</span>
-          </template>
-          
-          <template #lx="{ value }">
-            <span class="status-offline">{{ value }}</span>
-          </template>
-          
-          <template #fault="{ value }">
-            <span class="status-fault">{{ value }}</span>
-          </template>
-        </CommonTable>
+        />
       </div>
     </div>
   </div>

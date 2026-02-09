@@ -2,61 +2,94 @@ import * as echarts from "echarts";
 // 官网材质echarts图
 
 export const officialWebsiteOption: echarts.EChartsOption = {
+  backgroundColor: 'transparent',
   tooltip: {
-    trigger: "item",
-    formatter: "{b}: {c}km ({d}%)",
-    backgroundColor: "rgba(0, 0, 0, 0.8)",
-    borderColor: "#00bfff",
-    borderWidth: 1,
-    textStyle: {
-      color: "#fff",
-      fontSize: 14,
-    },
+    show: false,
   },
+
   title: {
-    text: "管网\n材质",
-    left: "center",
-    top: "35%",
+    text: "管网\n\n材质",
+    left: "30%",
+    top: "20%",
+    textStyle: {
+      color: "#e4f3ff",
+      fontSize: 36,
+      fontWeight: 600,
+      fontFamily: "YouSheBiaoTiHei",
+      lineHeight: 32,
+    },
+    subtextStyle: {
+      color: "rgba(228, 243, 255, 0.7)",
+      fontSize: 14,
+      fontFamily: "SourceHanSansSC",
+    },
+    itemGap: 8,
+  },
+  legend: {
+    show: true,
+    orient: "vertical",
+    bottom: "10%",
+    left: "10%",
     textStyle: {
       color: "#e4f3ff",
       fontSize: 28,
-      lineHeight: 42,
-      fontWeight: 500,
       fontFamily: "SourceHanSansSC",
+      fontWeight: 500,
     },
-  },
-  legend: {
-    show: false,
+    itemWidth: 20,
+    itemHeight: 20,
+    itemGap: 20,
+    formatter: function(name) {
+      return name;
+    }
   },
   series: [
     {
       name: "管网材质",
       type: "pie",
-      radius: ["70%", "90%"], // 内半径 70%，外半径 90%，形成环形
-      center: ["50%", "50%"], // 圆心位置
-      startAngle: 90, // 起始角度
-      padAngle: 3, // 项之间的间隔角度
+      radius: ["40%", "55%"],
+      center: ["40%", "30%"],
+      startAngle: 90,
+      padAngle: 1.5,
+      clockwise: true,  
       label: {
-        show: false, // 不显示标签在图上
+        show: false,
       },
       labelLine: {
-        show: false, // 不显示引导线
+        show: false,
       },
       itemStyle: {
-        borderRadius: 0, // 无圆角
-        borderColor: "rgba(0, 0, 0, 0.1)",
-        borderWidth: 0,
+        borderRadius: 2,
+        borderColor: "rgba(13, 35, 42, 0.8)",
+        borderWidth: 2,
+        shadowBlur: 10,
+        shadowColor: "rgba(93, 135, 172, 0.2)",
       },
-      data: [],
+      data: [
+        { value: 38, name: "PE", itemStyle: { color: "#5D87AC" } },
+        { value: 40, name: "球墨铸铁", itemStyle: { color: "#C3540C" } },
+        { value: 10, name: "PE", itemStyle: { color: "#4D74FF" } },
+        { value: 12, name: "球墨铸铁", itemStyle: { color: "#93DBFF" } }
+      ],
       emphasis: {
         scale: true,
-        scaleSize: 5,
+        scaleSize: 8,
         itemStyle: {
-          shadowBlur: 15,
-          shadowOffsetX: 0,
-          shadowColor: "rgba(0, 191, 255, 0.6)",
+          shadowBlur: 20,
+          shadowColor: "rgba(93, 135, 172, 0.4)",
+          borderWidth: 3,
+          borderColor: "#5D87AC",
         },
+        label: {
+          fontSize: 18,
+          fontWeight: 600,
+        }
       },
+      animationType: 'scale',
+      animationEasing: 'elasticOut',
+      animationDelay: function (idx) {
+        return Math.random() * 200;
+      }
     },
   ],
 };
@@ -250,12 +283,13 @@ export const handledOption = {
       fontSize: 18,
     },
     top: "0%",
+    right: "15%",
   },
   grid: {
     left: 2,
     right: 2,
-    top: 2,
-    bottom: "15%",
+    top: 40,
+    bottom: "20%",
   },
   xAxis: {
     type: "category",

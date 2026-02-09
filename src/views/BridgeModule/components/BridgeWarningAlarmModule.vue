@@ -105,39 +105,9 @@
           :data="currentTableData"
           row-key="key"
           empty-text="暂无数据"
+          :max-height="260"
           grid-template="1.8fr 1fr 1fr 1fr 1fr 1fr 1fr"
-        >
-          <!-- 自定义类型列 -->
-          <template #type="{ value }">
-            <span class="type-badge">{{ value }}</span>
-          </template>
-          
-          <!-- 自定义数值列，添加高亮效果 -->
-          <template #level1="{ value }">
-            <span :class="{ 'high-risk': value > 0 }">{{ value }}</span>
-          </template>
-          
-          <template #level2="{ value }">
-            <span :class="{ 'medium-risk': value > 0 }">{{ value }}</span>
-          </template>
-          
-          <template #level3="{ value }">
-            <span :class="{ 'low-risk': value > 0 }">{{ value }}</span>
-          </template>
-          
-          <!-- 处置状态列 -->
-          <template #handled="{ value }">
-            <span class="status-completed">{{ value }}</span>
-          </template>
-          
-          <template #handling="{ value }">
-            <span class="status-processing">{{ value }}</span>
-          </template>
-          
-          <template #unhandled="{ value }">
-            <span class="status-pending">{{ value }}</span>
-          </template>
-        </CommonTable>
+        />
       </div>
     </div>
   </div>
@@ -239,9 +209,9 @@ const fetchWarningAndAlarmData = async () => {
       { label: "未处置", count: data.unhandledCount || 0 },
     ];
     warningLevels.value = [
-      { label: "一级预警", count: data.yjyjCount || 0 },
-      { label: "二级预警", count: data.ejyjCount || 0 },
-      { label: "三级预警", count: data.sjyjCount || 0 },
+      { label: "一级", count: data.yjyjCount || 0 },
+      { label: "二级", count: data.ejyjCount || 0 },
+      { label: "三级", count: data.sjyjCount || 0 },
     ];
     
     // 更新报警数据
@@ -252,9 +222,9 @@ const fetchWarningAndAlarmData = async () => {
         { label: "未解除", count: data.alarmCount.wjc || 0 },
       ];
       alarmLevels.value = [
-        { label: "一级报警", count: data.alarmCount.yjyjCount || 0 },
-        { label: "二级报警", count: data.alarmCount.ejyjCount || 0 },
-        { label: "三级报警", count: data.alarmCount.sjyjCount || 0 },
+        { label: "一级", count: data.alarmCount.yjyjCount || 0 },
+        { label: "二级", count: data.alarmCount.ejyjCount || 0 },
+        { label: "三级", count: data.alarmCount.sjyjCount || 0 },
       ];
     }
     
@@ -325,9 +295,7 @@ onMounted(() => {
 
   // 预警/报警总数卡片（统一样式）
   .warning-total-card {
-    display: grid;
-    grid-template-columns: auto auto 1fr;
-    grid-template-rows: auto auto;
+    display: flex;
     gap: 15px 0px;
     transition: all 0.3s ease;
 
@@ -383,6 +351,7 @@ onMounted(() => {
     }
 
     .right-content {
+      flex: 1;
       margin-left: 12px;
       display: flex;
       flex-direction: column;
@@ -511,6 +480,7 @@ onMounted(() => {
     border-top: 2px solid rgba(31, 199, 255, 0.24);
     padding-top: 16px;
     margin-top: 16px;
+    gap: 24px;
   }
 
   // Tab按钮
@@ -547,15 +517,6 @@ onMounted(() => {
     }
   }
 
-  // 自定义表格样式
-  .type-badge {
-    background: linear-gradient(135deg, #10ADC0 0%, #0DA5BE 100%);
-    padding: 4px 12px;
-    border-radius: 12px;
-    color: white;
-    font-weight: 500;
-  }
-  
   .high-risk {
     color: #FF4757;
     font-weight: bold;

@@ -107,7 +107,7 @@ import { NMessageProvider, NDialogProvider, NConfigProvider, zhCN, dateZhCN } fr
 // 供水模块特有样式
 .map-toolbar {
   position: absolute;
-  right: 830px;
+  right: 850px;
   top: 180px;
 }
 

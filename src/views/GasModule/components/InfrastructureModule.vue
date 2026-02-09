@@ -31,37 +31,8 @@
         :data="currentTable.data"
         row-key="id"
         empty-text="暂无数据"
-      >
-        <!-- 自定义企业名称列，添加title提示 -->
-        <template #qymc="{ value }">
-          <span class="enterprise-name" :title="value">{{ value }}</span>
-        </template>
-        
-        <!-- 自定义数值列格式化 -->
-        <template #yyyjsl="{ value }">
-          {{ formatNumber(value) }}
-        </template>
-        
-        <template #yyczsl="{ value }">
-          {{ formatNumber(value) }}
-        </template>
-        
-        <template #yygxcd="{ value }">
-          {{ formatDistance(value) }}
-        </template>
-        
-        <template #yhqpsl="{ value }">
-          {{ formatNumber(value) }}
-        </template>
-        
-        <template #khzs="{ value }">
-          {{ formatNumber(value) }}
-        </template>
-        
-        <template #ysclsl="{ value }">
-          {{ formatNumber(value) }}
-        </template>
-      </CommonTable>
+        :max-height="220"
+      />
     </div>
   </div>
 </template>
@@ -129,7 +100,7 @@ const tableColumns = computed(() => {
       ...baseColumns,
       { key: 'yyyjsl', title: '窨井数量', width: '1fr' },
       { key: 'yyczsl', title: '厂站数量', width: '1fr' },
-      { key: 'yygxcd', title: '管线长度(km)', width: '1fr' }
+      { key: 'yygxcd', title: '管线长度', width: '1fr' }
     ];
   } else {
     return [

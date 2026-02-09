@@ -293,7 +293,7 @@ const nextPage = () => {
 
 .bridge-list-panel {
   position: absolute;
-  left: 840px;
+  left: 860px;
   width: 460px;
   height: 100%;
   border-radius: 8px;

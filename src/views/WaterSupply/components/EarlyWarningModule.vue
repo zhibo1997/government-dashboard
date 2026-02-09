@@ -258,12 +258,18 @@ watch(monthlyData, (newData) => {
   justify-content: space-between;
   width: 100%;
   flex: 1;
+  margin-top: 30px;
 
   .handled-chart {
     width: 531px;
     height: 100%;
   }
-
+  .handled-list{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+  }
   .handled-item {
     background-size: 100% 100%;
     width: 164px;

@@ -32,36 +32,8 @@
         :data="currentTable.data"
         row-key="id"
         empty-text="-"
-      >
-        <!-- 自定义序号列 -->
-        <template #序号="{ value }">
-          {{ formatDisplay(value) }}
-        </template>
-        
-        <!-- 自定义反馈时间列 -->
-        <template #反馈时间="{ value }">
-          {{ formatDisplay(value) }}
-        </template>
-        
-        <!-- 自定义预警等级列 -->
-        <template #预警等级="{ value }">
-          <span class="level-badge" :class="getLevelClass(value)">
-            {{ formatDisplay(value) }}
-          </span>
-        </template>
-        
-        <!-- 自定义关联目标列 -->
-        <template #关联目标="{ value }">
-          {{ formatDisplay(value) }}
-        </template>
-        
-        <!-- 自定义处置状态列 -->
-        <template #处置状态="{ value }">
-          <span class="status-badge" :class="getStatusClass(value)">
-            {{ formatDisplay(value) }}
-          </span>
-        </template>
-      </CommonTable>
+        :max-height="300"
+      />
     </div>
   </div>
 </template>

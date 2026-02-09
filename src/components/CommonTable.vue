@@ -20,7 +20,7 @@
       </div>
       
       <!-- 表体 -->
-      <div class="table-body">
+      <div class="table-body" :style="tableBodyStyle">
         <template v-if="data && data.length > 0">
           <div
             v-for="(row, index) in data"
@@ -90,6 +90,8 @@ interface Props {
   rowKey?: string
   // 自定义grid模板列（可选）
   gridTemplate?: string
+  // 表格内容最大高度（用于滚动）
+  maxHeight?: string | number
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -97,10 +99,20 @@ const props = withDefaults(defineProps<Props>(), {
   data: () => [],
   emptyText: '暂无数据',
   rowKey: 'id',
-  gridTemplate: ''
+  gridTemplate: '',
+  maxHeight: ''
 })
 
-// 计算grid模板
+// 计算表格主体样式
+const tableBodyStyle = computed(() => {
+  const style: Record<string, string> = {}
+  if (props.maxHeight) {
+    style.maxHeight = typeof props.maxHeight === 'number' 
+      ? `${props.maxHeight}px` 
+      : props.maxHeight
+  }
+  return style
+})
 const gridTemplate = computed(() => {
   if (props.gridTemplate) return props.gridTemplate
   
@@ -186,16 +198,16 @@ const getCellTitle = (row: TableRow, column: TableColumn): string => {
     .header-cell {
       display: flex;
       align-items: center;
-      justify-content: center;
-      padding: 12px 16px;
+    padding-left: 8px;
       font-family: SourceHanSansSC, SourceHanSansSC;
-      font-weight: 600;
-      font-size: 24px;
       color: #E4F3FF;
-      line-height: 1.4;
-      text-align: center;
       border-right: 1px solid rgba(22, 119, 255, 0.15);
-      
+      font-weight: bold;
+      font-size: 28px;
+      color: #E4F3FF;
+      line-height: 40px;
+      text-align: left;
+      font-style: normal;
       &:last-child {
         border-right: none;
       }
@@ -257,17 +269,19 @@ const getCellTitle = (row: TableRow, column: TableColumn): string => {
     }
   }
   
-  // 单元格通用样式
+  // 单元格通用样式 - 保留文字超出省略号
   .table-cell {
+    padding-left: 12px;
     font-family: SourceHanSansSC, SourceHanSansSC;
-    font-size: 24px;
+    font-weight: 400;
+    font-size: 30px;
     color: #E4F3FF;
-    line-height: 1.4;
-    text-align: center;
-    padding: 14px 16px;
-    white-space: nowrap;
+    line-height: 58px;
+    text-align: left;
+    font-style: normal;
     overflow: hidden;
     text-overflow: ellipsis;
+    white-space: nowrap;
     
     // 左对齐的列
     &.col-name,

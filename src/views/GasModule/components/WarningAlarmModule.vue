@@ -85,39 +85,9 @@
           :data="currentTableData"
           row-key="key"
           empty-text="暂无数据"
+          :max-height="260"
           grid-template="1.8fr 1fr 1fr 1fr 1fr 1fr 1fr"
-        >
-          <!-- 自定义类型列 -->
-          <template #type="{ value }">
-            <span class="type-badge">{{ value }}</span>
-          </template>
-          
-          <!-- 自定义数值列，添加高亮效果 -->
-          <template #level1="{ value }">
-            <span :class="{ 'high-risk': value > 0 }">{{ value }}</span>
-          </template>
-          
-          <template #level2="{ value }">
-            <span :class="{ 'medium-risk': value > 0 }">{{ value }}</span>
-          </template>
-          
-          <template #level3="{ value }">
-            <span :class="{ 'low-risk': value > 0 }">{{ value }}</span>
-          </template>
-          
-          <!-- 处置状态列 -->
-          <template #handled="{ value }">
-            <span class="status-completed">{{ value }}</span>
-          </template>
-          
-          <template #handling="{ value }">
-            <span class="status-processing">{{ value }}</span>
-          </template>
-          
-          <template #unhandled="{ value }">
-            <span class="status-pending">{{ value }}</span>
-          </template>
-        </CommonTable>
+        />
       </div>
     </div>
   </div>
@@ -305,9 +275,7 @@ onMounted(() => {
 
   // 预警/报警总数卡片（统一样式）
   .warning-total-card {
-    display: grid;
-    grid-template-columns: auto auto 1fr;
-    grid-template-rows: auto auto;
+    display: flex;
     gap: 15px 0px;
     transition: all 0.3s ease;
 
@@ -363,6 +331,7 @@ onMounted(() => {
     }
 
     .right-content {
+      flex: 1;
       margin-left: 12px;
       display: flex;
       flex-direction: column;
@@ -491,6 +460,7 @@ onMounted(() => {
     border-top: 2px solid rgba(31, 199, 255, 0.24);
     padding-top: 16px;
     margin-top: 16px;
+    gap: 24px;
   }
 
   // Tab按钮
@@ -525,42 +495,6 @@ onMounted(() => {
         }
       }
     }
-  }
-
-  // 自定义表格样式
-  .type-badge {
-    background: linear-gradient(135deg, #10ADC0 0%, #0DA5BE 100%);
-    padding: 4px 12px;
-    border-radius: 12px;
-    color: white;
-    font-weight: 500;
-  }
-  
-  .high-risk {
-    color: #FF4757;
-    font-weight: bold;
-  }
-  
-  .medium-risk {
-    color: #FFA502;
-    font-weight: bold;
-  }
-  
-  .low-risk {
-    color: #2ED573;
-    font-weight: bold;
-  }
-  
-  .status-completed {
-    color: #2ED573;
-  }
-  
-  .status-processing {
-    color: #FFA502;
-  }
-  
-  .status-pending {
-    color: #FF4757;
   }
 }
 </style>
