@@ -101,7 +101,7 @@ const updateChart = (data) => {
   handledOption.series[0].data = data.map((d) => d.unhandledCount);
   handledOption.series[1].data = data.map((d) => d.handledCount);
   handledOption.series[2].data = data.map((d) =>
-    ((d.handledCount / (d.unhandledCount + d.handledCount)) * 100).toFixed(2)
+    ((d.handledCount / (d.unhandledCount + d.handledCount)) * 100).toFixed(1)
   );
 
   handledEchart.setOption(handledOption, true);

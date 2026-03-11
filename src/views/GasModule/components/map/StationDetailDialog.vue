@@ -228,11 +228,6 @@ const handleShowMonitoring = () => {
   top: 80px;
   left: 1320px;
   width: 773px;
-  background: linear-gradient(270deg,
-      rgba(8, 46, 77, 0.4) 0%,
-      rgba(0, 0, 0, 0.4) 100%);
-
-  border: 3px solid #226d76;
   z-index: 200;
   overflow: hidden;
   pointer-events: auto;
@@ -261,7 +256,11 @@ const handleShowMonitoring = () => {
 
   .dialog-content {
     padding: 30px 20px 24px;
-    backdrop-filter: blur(30px);
+    background: linear-gradient(270deg, #021F37 0%, #02111D 99.92%);
+    box-shadow: -34px 0px 17px 0px rgba(4, 17, 38, 0.4), 34px 9px 17px 0px rgba(4, 17, 38, 0.4);
+    border: 2px solid;
+    border-image: linear-gradient(153deg, rgba(25, 163, 203, 1), rgba(12, 93, 117, 0.24), rgba(8, 189, 243, 0.04), rgba(0, 28, 38, 0), rgba(8, 97, 132, 0), rgba(17, 171, 233, 1)) 2 2;
+    backdrop-filter: blur(20px);
 
     .info-section {
       display: flex;
@@ -342,7 +341,9 @@ const handleShowMonitoring = () => {
           flex: 1;
           min-width: 0;
           text-align: left;
-          word-break: break-word;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
         }
       }
     }

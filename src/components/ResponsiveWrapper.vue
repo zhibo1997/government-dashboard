@@ -38,10 +38,26 @@ const props = defineProps({
   }
 })
 
-// 获取URL参数
+// 获取URL参数（支持hash路由）
 function getUrlParam(name) {
-  const urlParams = new URLSearchParams(window.location.search)
-  return urlParams.get(name)
+  // 先尝试从 search 获取
+  let urlParams = new URLSearchParams(window.location.search)
+  let value = urlParams.get(name)
+  if (value !== null) return value
+
+  // 再从 hash 中获取
+  const hash = window.location.hash
+  const hashQueryIndex = hash.indexOf('?')
+  if (hashQueryIndex !== -1) {
+    urlParams = new URLSearchParams(hash.slice(hashQueryIndex + 1))
+    value = urlParams.get(name)
+  }
+  return value
+}
+
+// 检查是否启用缩放（URL中是否有showStyle参数）
+function shouldEnableScale() {
+  return getUrlParam('showStyle') !== null
 }
 
 // 获取缩放模式，优先从URL参数读取
@@ -53,6 +69,8 @@ function getScaleMode() {
   return 'width' // 默认值
 }
 
+// 是否启用缩放
+const enableScale = ref(shouldEnableScale())
 // 当前缩放模式
 const currentScaleMode = ref(getScaleMode())
 
@@ -65,6 +83,12 @@ const actualBaseHeight = computed(() => props.baseHeight)
 
 // 计算缩放比例和尺寸
 function calculateResponsive() {
+  // 如果没有 showStyle 参数，不进行缩放
+  if (!enableScale.value) {
+    scaleRatio.value = 1
+    return
+  }
+
   const windowWidth = window.innerWidth
   const windowHeight = window.innerHeight
 
@@ -93,8 +117,11 @@ function calculateResponsive() {
 
 // 监听URL参数变化
 function watchUrlParams() {
+  const newEnableScale = shouldEnableScale()
   const newMode = getScaleMode()
-  if (newMode !== currentScaleMode.value) {
+
+  if (newEnableScale !== enableScale.value || newMode !== currentScaleMode.value) {
+    enableScale.value = newEnableScale
     currentScaleMode.value = newMode
     calculateResponsive()
   }
@@ -130,7 +157,8 @@ onUnmounted(() => {
 // 暴露响应式数据供父组件使用
 defineExpose({
   scaleRatio,
-  currentScaleMode
+  currentScaleMode,
+  enableScale
 })
 </script>
 

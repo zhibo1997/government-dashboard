@@ -249,6 +249,12 @@ const nextPage = () => {
 
 <style lang="scss" scoped>
 .panel-content {
+  background: linear-gradient(270deg, #021F37 0%, #02111D 99.92%);
+  box-shadow: -34px 0px 17px 0px rgba(4, 17, 38, 0.4), 34px 9px 17px 0px rgba(4, 17, 38, 0.4);
+  border: 2px solid;
+  border-image: linear-gradient(153deg, rgba(25, 163, 203, 1), rgba(12, 93, 117, 0.24), rgba(8, 189, 243, 0.04), rgba(0, 28, 38, 0), rgba(8, 97, 132, 0), rgba(17, 171, 233, 1)) 2 2;
+  backdrop-filter: blur(20px);
+    margin-bottom: 12px;
 
   &.hidden {
     display: none;
@@ -389,9 +395,8 @@ const nextPage = () => {
     display: flex;
     flex-direction: column;
     gap: 10px;
-    background: linear-gradient(270deg, rgb(8, 46, 77, 0.4) 0%, rgba(0, 0, 0, 0.4) 100%);
+    background: linear-gradient(270deg, rgba(2, 31, 55, 0.6) 0%, rgba(2, 17, 29, 0.6) 99.92%);
     border-bottom: 1px solid rgba(0, 255, 255, 0.15);
-    backdrop-filter: blur(30px);
   }
 
   .filter-section {

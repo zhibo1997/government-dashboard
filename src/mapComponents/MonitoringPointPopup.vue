@@ -77,7 +77,7 @@ const popupStyle = computed(() => {
 function formatValue(value: string | number): string {
   if (value === null || value === undefined || value === '') return '-'
   if (typeof value === 'number') {
-    return value.toFixed(2)
+    return value.toFixed(1)
   }
   return String(value)
 }

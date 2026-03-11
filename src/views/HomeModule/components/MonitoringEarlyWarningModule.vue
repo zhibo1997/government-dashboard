@@ -332,7 +332,7 @@ onMounted(() => {
   background-image: url('@/assets/img/homeModule/module_double_bg.webp');
 
   .status-counts {
-    height: 50%;
+    height: 70%;
     display: flex;
     flex-direction: column;
   }

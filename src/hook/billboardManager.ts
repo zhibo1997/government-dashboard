@@ -4,9 +4,9 @@
  */
 
 import type { EnhancedMonitoringPoint } from "./useMonitoringPoints";
-import BillboardContentBg from "@/assets/img/homeModule/billboard_content.webp";
-import BillboardArrow from "@/assets/img/homeModule/billboard_header.webp";
-import TimeIcon from "@/assets/img/homeModule/time_icon.webp";
+import BillboardContentBg from "@/assets/map/popup_content.webp";
+import BillboardArrow from "@/assets/map/popup_title.webp";
+import TimeIcon from "@/assets/map/date_icon.webp";
 
 // 预加载图片资源
 const resources = {
@@ -55,16 +55,16 @@ export function createBillboardCanvasWithArrow(
   const canvas = document.createElement("canvas");
   const ctx = canvas.getContext("2d")!;
 
-  // Canvas尺寸设置
-  const width = 240; // 加宽以适应新样式
-  const padding = 10;
-  const lineHeight = 24; // 增加行高
-  const headerHeight = 36; // 增加头部高度
-  
-  // 计算内容高度
-  const dataRows = point.parsedJcz.length;
+  // Canvas尺寸设置 - 按原尺寸1.2倍缩放
+  const width = 288;
+  const padding = 12;
+  const headerHeight = 43;
+  const lineHeight = 29;
+
+  // 确保 parsedJcz 是有效数组
+  const dataRows = Array.isArray(point.parsedJcz) ? Math.max(1, point.parsedJcz.length) : 1;
   const contentBodyHeight = dataRows * lineHeight + padding * 2;
-  const height = headerHeight + contentBodyHeight;
+  const height = Math.max(1, headerHeight + contentBodyHeight); // 确保高度至少为1
 
   canvas.width = width;
   canvas.height = height;
@@ -79,84 +79,77 @@ export function createBillboardCanvasWithArrow(
 
   // 2. 绘制内容背景
   if (resources.contentBg.complete && resources.contentBg.naturalWidth > 0) {
-    ctx.drawImage(resources.contentBg, 0, headerHeight -2, width, contentBodyHeight);
+    ctx.drawImage(resources.contentBg, 0, headerHeight - 2, width, contentBodyHeight);
   }
 
   // 3. 绘制时间图标
-  const iconSize = 20;
+  const iconSize = 24;
   const iconY = (headerHeight - iconSize) / 2;
   if (resources.timeIcon.complete && resources.timeIcon.naturalWidth > 0) {
     ctx.drawImage(resources.timeIcon, padding, iconY, iconSize, iconSize);
   }
 
   // 4. 绘制时间文字
-  ctx.fillStyle = '#00F6FF'; // 亮青色
-  ctx.font = '20px "Microsoft YaHei", Arial, sans-serif';
+  ctx.fillStyle = '#3FFFFF';
+  ctx.font = '500 24px "Source Han Sans SC", "Microsoft YaHei", Arial, sans-serif';
   ctx.textBaseline = 'middle';
-  // 时间文字位置：图标右侧
-  const timeTextX = padding + iconSize + 4;
-  ctx.fillText(point.formattedTime, timeTextX, headerHeight / 2+4);
+  const timeTextX = padding + iconSize + 5;
+  ctx.fillText(point.formattedTime || '-', timeTextX, headerHeight / 2);
 
-  // 5. 绘制分割线 (可选，如果背景图自带分割线则不需要，这里为了保险加一个淡淡的线)
-  // ctx.strokeStyle = "rgba(0, 246, 255, 0.3)";
-  // ctx.beginPath();
-  // ctx.moveTo(0, headerHeight);
-  // ctx.lineTo(width, headerHeight);
-  // ctx.stroke();
+  // 5. 绘制监测数据
+  if (Array.isArray(point.parsedJcz) && point.parsedJcz.length > 0) {
+    let yOffset = headerHeight + padding + lineHeight / 2;
+    const bulletRadius = 4;
+    const bulletOuterRadius = 5;
+    const bulletX = padding + 7;
+    const labelX = bulletX + bulletOuterRadius + 10;
 
-  // 6. 绘制监测数据
-  let yOffset = headerHeight + padding + lineHeight / 2;
-  const bulletRadius = 3;
-  const bulletOuterRadius = 4.5;
-  const bulletX = padding + 6;
-  const labelX = bulletX + bulletOuterRadius + 8;
-  
-  point.parsedJcz.forEach((item) => {
-    ctx.save();
-    ctx.shadowColor = "rgba(0, 246, 255, 0.9)";
-    ctx.shadowBlur = 6;
-    ctx.fillStyle = "#00F6FF";
-    ctx.beginPath();
-    ctx.arc(bulletX, yOffset, bulletRadius, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.restore();
+    point.parsedJcz.forEach((item) => {
+      // 绘制圆点装饰
+      ctx.save();
+      ctx.shadowColor = "rgba(0, 246, 255, 0.9)";
+      ctx.shadowBlur = 7;
+      ctx.fillStyle = "#00F6FF";
+      ctx.beginPath();
+      ctx.arc(bulletX, yOffset, bulletRadius, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
 
-    ctx.strokeStyle = "rgba(255, 255, 255, 0.65)";
-    ctx.lineWidth = 1;
-    ctx.beginPath();
-    ctx.arc(bulletX, yOffset, bulletOuterRadius, 0, Math.PI * 2);
-    ctx.stroke();
+      ctx.strokeStyle = "rgba(255, 255, 255, 0.65)";
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.arc(bulletX, yOffset, bulletOuterRadius, 0, Math.PI * 2);
+      ctx.stroke();
 
-    // 绘制指标名称 (白色)
-    ctx.fillStyle = '#FFFFFF';
-    ctx.font = '18px "Microsoft YaHei", Arial, sans-serif';
-    ctx.textAlign = 'left';
-    ctx.textBaseline = 'middle';
-    
-    // 名称 + 单位
-    const nameText = `${item.name}${item.unit ? `(${item.unit})` : ""}`;
-    ctx.fillText(nameText, labelX, yOffset);
-      
-    // 绘制指标值 (渐变色或高亮色)
-    const valueText = String(item.value);
-    
-    // 计算值的宽度以便右对齐
-    ctx.font = 'bold 18px "Microsoft YaHei", Arial, sans-serif'; // 值字体稍大
-    const valueWidth = ctx.measureText(valueText).width;
-    const valueX = width - padding - 10;
-    
-    // 创建值的渐变色
-    const gradient = ctx.createLinearGradient(valueX - valueWidth, yOffset - 10, valueX, yOffset + 10);
-    gradient.addColorStop(0, "#00F6FF"); // 青色
-    gradient.addColorStop(1, "#F9FF00"); // 黄色
-    ctx.fillStyle = gradient;
-    
-    ctx.textAlign = 'right';
-    ctx.fillText(valueText, valueX, yOffset);
-    
-    yOffset += lineHeight;
-  });
-  
+      // 绘制指标名称
+      ctx.fillStyle = '#E4F3FF';
+      ctx.font = '500 22px "Source Han Sans SC", "Microsoft YaHei", Arial, sans-serif';
+      ctx.textAlign = 'left';
+      ctx.textBaseline = 'middle';
+
+      const nameText = `${item.name}${item.unit ? `(${item.unit})` : ""}`;
+      ctx.fillText(nameText, labelX, yOffset);
+
+      // 绘制指标值
+      const valueText = String(item.value ?? '-');
+
+      ctx.font = '22px "YouSheBiaoTiYuan", "Microsoft YaHei", Arial, sans-serif';
+      const valueWidth = Math.max(1, ctx.measureText(valueText).width);
+      const valueX = width - padding - 12;
+
+      // 创建渐变色
+      const gradient = ctx.createLinearGradient(valueX - valueWidth, yOffset - 11, valueX, yOffset + 11);
+      gradient.addColorStop(0, "#3FFEFD");
+      gradient.addColorStop(1, "#FFF407");
+      ctx.fillStyle = gradient;
+
+      ctx.textAlign = 'right';
+      ctx.fillText(valueText, valueX, yOffset);
+
+      yOffset += lineHeight;
+    });
+  }
+
   return canvas;
 }
 

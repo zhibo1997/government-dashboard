@@ -74,7 +74,23 @@ const dangerCount = ref(0);
 
 const pipelineLegend = ref();
 
-const colors = ["#5D87AC", "#C3540C", "#4D74FF", "#93DBFF"];
+// 材质类型到颜色的映射（新色系）
+const materialColorMap = {
+  // PE系列
+  'PE': '#5D87AC',
+  'PE100': '#5D87AC',
+  'PE80': '#4D74FF',
+  // 球墨铸铁系列
+  '球墨铸铁': '#93DBFF',
+  '铸铁': '#C3540C',
+  // 其他材质
+  '钢管': '#4D74FF',
+  'PVC': '#93DBFF',
+  '默认': '#93DBFF'
+};
+
+// 备用颜色数组（用于未知材质）
+const fallbackColors = ["#5D87AC", "#C3540C", "#4D74FF", "#93DBFF"];
 
 /**
  * 生成渐变色配置
@@ -113,15 +129,36 @@ const initMaterialList = async () => {
   }
   const data = Array.isArray(res) ? res : (res?.data || []);
   nextTick(() => {
-    const gwczData = (data as any[]).map((item, idx) => ({
-      name: `${gwczMap.value[item.materialType]} ${item.ratio}%`,
-      id: item.materialType,
-      value: item.count,
-      radio: item.ratio,
-      color: colors[idx],
-    }));
+    // 先合并相同材质的数据
+    const mergedData = {};
+    (data as any[]).forEach(item => {
+      const materialName = gwczMap.value[item.materialType] || item.materialType;
+      if (mergedData[materialName]) {
+        mergedData[materialName].value += item.count;
+        mergedData[materialName].ratio += item.ratio;
+      } else {
+        mergedData[materialName] = {
+          name: materialName,
+          id: item.materialType,
+          value: item.count,
+          ratio: item.ratio,
+        };
+      }
+    });
+
+    // 转换为数组并分配颜色
+    const gwczData = Object.values(mergedData).map((item: any, idx) => {
+      // 优先使用材质映射的颜色，否则使用备用颜色
+      const color = materialColorMap[item.name] || materialColorMap[item.id] || fallbackColors[idx % fallbackColors.length];
+      return {
+        ...item,
+        name: `${item.name} ${item.ratio.toFixed(1)}%`,
+        color: color,
+      };
+    });
+
     pipelineLegend.value = gwczData;
-    officialWebsiteOption.series[0].data = gwczData.map((gwcz, idx) => ({
+    officialWebsiteOption.series[0].data = gwczData.map((gwcz: any) => ({
       ...gwcz,
       itemStyle: {
         color: gwcz.color,

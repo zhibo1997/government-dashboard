@@ -70,18 +70,40 @@ export function useMonitoringPoints() {
   
   // 相机高度监听
   let cameraHeightListener: any = null
+  let postRenderListener: any = null
   let lastCameraHeight = Infinity
-  
+
   // 相机高度阈值（米）
   const CAMERA_HEIGHT_THRESHOLD = 5000 // 5km
-  const ANTI_OVERLAP_MIN_DISTANCE_LOW = 150
-  const ANTI_OVERLAP_MIN_DISTANCE_HIGH = 50
-  
-  // 缓存防重叠计算结果（用于避免重复计算）
-  let cachedFilteredItemsAbove: any[] = []
-  let cachedFilteredItemsBelow: any[] = []
-  let cachedAllItems: any[] = []
-  let isCacheInitialized = false  // 标记缓存是否已初始化
+
+  // 渲染节流相关
+  let lastRenderTime = 0
+  const RENDER_THROTTLE_MS = 300 // 节流间隔（增加以减少渲染频率）
+
+  // Canvas 缓存（避免重复创建）
+  const canvasCache = new Map<string, HTMLCanvasElement>()
+  const MAX_CACHE_SIZE = 100 // 最大缓存数量
+
+  /**
+   * 根据相机高度动态计算防重叠距离
+   * @param cameraHeight 相机高度（米）
+   * @returns 防重叠最小距离（像素）
+   */
+  function calculateAntiOverlapDistance(cameraHeight: number): number {
+    // 相机高度越高，防重叠距离越大
+    // 相机高度越低（放大），防重叠距离越小
+    if (cameraHeight >= 10000) {
+      return 120 // 高空：大距离
+    } else if (cameraHeight >= 5000) {
+      return 80 // 中空：中等距离
+    } else if (cameraHeight >= 2000) {
+      return 50 // 低空：小距离
+    } else if (cameraHeight >= 500) {
+      return 30 // 近距离：很小距离
+    } else {
+      return 20 // 非常近：最小距离
+    }
+  }
 
   /**
    * 解析监测值 JSON 字符串
@@ -219,33 +241,46 @@ export function useMonitoringPoints() {
     if (cameraHeightListener) {
       cameraHeightListener()
     }
+    if (postRenderListener) {
+      postRenderListener()
+    }
 
-    // 监听相机移动结束事件
-    const removeListener = viewer.value.camera.moveEnd.addEventListener(() => {
+    // 使用 postRender 事件实时监听相机变化（带节流）
+    postRenderListener = viewer.value.scene.postRender.addEventListener(() => {
+      const now = Date.now()
+      if (now - lastRenderTime < RENDER_THROTTLE_MS) return
+
+      // 检查是否有数据需要渲染
+      if (!enhancedData.value || enhancedData.value.length === 0) return
+
       const currentHeight = getCameraHeight(viewer.value)
-      
-      // 检查是否跨越阈值
-      const wasAboveThreshold = lastCameraHeight >= CAMERA_HEIGHT_THRESHOLD
-      const isAboveThreshold = currentHeight >= CAMERA_HEIGHT_THRESHOLD
-      
-      // 相机高度变化逻辑：
-      // 1. 高度降低：重新计算防重叠（距离120）
-      // 2. 高度升高：使用缓存的防重叠结果
-      if (wasAboveThreshold && !isAboveThreshold) {
-        console.log(`📏 相机高度降低到 ${(currentHeight / 1000).toFixed(1)}km，重新计算防重叠`)
-        updateBillboards(true, ANTI_OVERLAP_MIN_DISTANCE_LOW)
-      } else if (!wasAboveThreshold && isAboveThreshold) {
-        console.log(`📏 相机高度升高到 ${(currentHeight / 1000).toFixed(1)}km，使用缓存的防重叠结果`)
-        renderBillboardsFromCache(true)  // 使用缓存
+      const heightDiff = Math.abs(currentHeight - lastCameraHeight)
+
+      // 高度变化超过 10% 或超过 1000米 时才重新渲染（更严格的条件）
+      const significantChange = heightDiff > lastCameraHeight * 0.1 || heightDiff > 1000
+
+      if (significantChange) {
+        lastRenderTime = now
+        const minDistance = calculateAntiOverlapDistance(currentHeight)
+        console.log(`📐 相机高度: ${(currentHeight / 1000).toFixed(1)}km，防重叠距离: ${minDistance}px`)
+        updateBillboards(true, minDistance)
+        lastCameraHeight = currentHeight
       }
-      
+    })
+
+    // moveEnd 事件作为兜底，确保移动结束后最终更新
+    cameraHeightListener = viewer.value.camera.moveEnd.addEventListener(() => {
+      // 检查是否有数据需要渲染
+      if (!enhancedData.value || enhancedData.value.length === 0) return
+
+      const currentHeight = getCameraHeight(viewer.value)
+      const minDistance = calculateAntiOverlapDistance(currentHeight)
+      updateBillboards(true, minDistance)
       lastCameraHeight = currentHeight
     })
 
-    cameraHeightListener = removeListener
     lastCameraHeight = getCameraHeight(viewer.value)
-    
-    console.log('✅ 相机高度监听已设置（高度变化智能调整）')
+    console.log('✅ 相机高度监听已设置（实时更新模式）')
   }
 
   /**
@@ -298,7 +333,8 @@ export function useMonitoringPoints() {
         // 图标样式（低海拔显示）
         billboard: {
           image: deviceIconUrl,
-          scale: 0.2,
+          width: 53,
+          height: 75,
           horizontalOrigin: Cesium.HorizontalOrigin.CENTER,
           verticalOrigin: Cesium.VerticalOrigin.BOTTOM,
           pixelOffset: new Cesium.Cartesian2(0, 20),
@@ -343,8 +379,36 @@ export function useMonitoringPoints() {
   }
 
   /**
+   * 获取或创建 Canvas（带缓存）
+   */
+  function getCachedCanvas(point: EnhancedMonitoringPoint): HTMLCanvasElement {
+    const cacheKey = point.id
+
+    // 检查缓存
+    if (canvasCache.has(cacheKey)) {
+      return canvasCache.get(cacheKey)!
+    }
+
+    // 创建新的 Canvas
+    const canvas = createBillboardCanvasWithArrow(point)
+
+    // 限制缓存大小
+    if (canvasCache.size >= MAX_CACHE_SIZE) {
+      // 删除最早的缓存项
+      const firstKey = canvasCache.keys().next().value
+      if (firstKey) {
+        canvasCache.delete(firstKey)
+      }
+    }
+
+    canvasCache.set(cacheKey, canvas)
+    return canvas
+  }
+
+  /**
    * 更新Billboard显示（使用BillboardCollection和防重叠算法）
    * @param applyAntiOverlap 是否应用防重叠算法：true=应用，false=显示全部
+   * @param minDistance 防重叠最小距离（像素）
    */
   function updateBillboards(applyAntiOverlap: boolean = true, minDistance?: number): void {
     if (!billboardCollection.value || !viewer.value) {
@@ -354,9 +418,6 @@ export function useMonitoringPoints() {
 
     const Cesium = (window as any).Cesium
     if (!Cesium) return
-
-    // 清空现有Billboard
-    billboardCollection.value.removeAll()
 
     // 收集所有点位的屏幕位置
     const billboardItems: any[] = []
@@ -369,6 +430,18 @@ export function useMonitoringPoints() {
       const screenPosition = worldToScreen(viewer.value, point.jdxx, point.wdxx)
       if (!screenPosition) continue
 
+      // 检查屏幕坐标是否在可视范围内（带边距）
+      const viewerCanvas = viewer.value.canvas
+      const margin = 100
+      if (
+        screenPosition.x < -margin ||
+        screenPosition.x > viewerCanvas.width + margin ||
+        screenPosition.y < -margin ||
+        screenPosition.y > viewerCanvas.height + margin
+      ) {
+        continue // 跳过视野外的点
+      }
+
       billboardItems.push({
         point,
         screenPosition,
@@ -378,131 +451,51 @@ export function useMonitoringPoints() {
 
     // 根据参数决定是否应用防重叠算法
     let filteredItems = billboardItems
-    let cacheScope: 'above' | 'below' | null = null
     if (applyAntiOverlap) {
       const currentHeight = getCameraHeight(viewer.value)
-      cacheScope = currentHeight < CAMERA_HEIGHT_THRESHOLD ? 'below' : 'above'
-      const computedMinDistance =
-        minDistance ??
-        (currentHeight < CAMERA_HEIGHT_THRESHOLD
-          ? ANTI_OVERLAP_MIN_DISTANCE_LOW
-          : ANTI_OVERLAP_MIN_DISTANCE_HIGH)
+      const computedMinDistance = minDistance ?? calculateAntiOverlapDistance(currentHeight)
       filteredItems = filterOverlappingBillboards(billboardItems, {
         minDistance: computedMinDistance,
         enabled: true
       })
     }
-    
-    if (applyAntiOverlap) {
-      cachedAllItems = billboardItems
-      if (cacheScope === 'above') {
-        cachedFilteredItemsAbove = filteredItems
-      } else if (cacheScope === 'below') {
-        cachedFilteredItemsBelow = filteredItems
-      }
-      const actionText = isCacheInitialized ? '更新缓存' : '初始化缓存'
-      isCacheInitialized = true
-      const cacheScopeText = cacheScope === 'above' ? '高海拔' : cacheScope === 'below' ? '低海拔' : '未知'
-      console.log(
-        `💾 ${actionText}(${cacheScopeText}): 全部 ${cachedAllItems.length} 个, 防重叠 ${filteredItems.length} 个`
-      )
-    }
 
-    // 添加Billboard到Collection
-    for (const item of filteredItems) {
-      const canvas = createBillboardCanvasWithArrow(item.point)
-      const position = Cesium.Cartesian3.fromDegrees(item.point.jdxx, item.point.wdxx)
-      
-      // 计算Y轴偏移（让三角箭头指向点位）
-      const canvasHeight = canvas.height
-      const yOffset = -canvasHeight / 2
-      
-      billboardCollection.value.add({
-        position: position,
-        image: canvas,
-        verticalOrigin: Cesium.VerticalOrigin.BOTTOM,
-        horizontalOrigin: Cesium.HorizontalOrigin.CENTER,
-        pixelOffset: new Cesium.Cartesian2(0, 0),
-        disableDepthTestDistance: Number.POSITIVE_INFINITY,
-        scaleByDistance: new Cesium.NearFarScalar(1000, 1.0, 50000, 0.5)
-        // 移除了translucencyByDistance，保持透明度恒定
-      })
-    }
-
-    const statusText = applyAntiOverlap ? '应用防重叠' : '显示全部'
-    console.log(`✅ Billboard更新完成（${statusText}），显示 ${filteredItems.length} 个（总共 ${billboardItems.length} 个）`)
-    
-    // 强制地图立即更新渲染
-    if (viewer.value && viewer.value.scene) {
-      console.log('强制地图立即更新渲染')
-      viewer.value.scene.requestRender();
-    }
-  }
-  
-  /**
-   * 从缓存渲染Billboard（用于相机高度变化时，避免重复计算）
-   * @param useFiltered 是否使用防重叠结果：true=使用防重叠，false=显示全部
-   */
-  function renderBillboardsFromCache(useFiltered: boolean): void {
-    if (!billboardCollection.value || !viewer.value) {
-      console.warn('⚠️ BillboardCollection或Viewer未初始化')
-      return
-    }
-    
-    // 检查缓存是否存在
-    if (cachedAllItems.length === 0) {
-      console.warn('⚠️ 缓存为空，无法从缓存渲染')
-      return
-    }
-
-    const Cesium = (window as any).Cesium
-    if (!Cesium) return
+    // 限制最大显示数量，防止 WebGL 资源耗尽
+    const MAX_VISIBLE_BILLBOARDS = 50
+    const itemsToShow = filteredItems.slice(0, MAX_VISIBLE_BILLBOARDS)
 
     // 清空现有Billboard
     billboardCollection.value.removeAll()
-    
-    // 选择使用的数据源
-    const currentHeight = getCameraHeight(viewer.value)
-    const isAboveThreshold = currentHeight >= CAMERA_HEIGHT_THRESHOLD
-    const desiredMinDistance = isAboveThreshold ? ANTI_OVERLAP_MIN_DISTANCE_HIGH : ANTI_OVERLAP_MIN_DISTANCE_LOW
-    const desiredFilteredItems = isAboveThreshold ? cachedFilteredItemsAbove : cachedFilteredItemsBelow
-    const itemsToRender = useFiltered ? desiredFilteredItems : cachedAllItems
 
-    if (useFiltered && itemsToRender.length === 0) {
-      updateBillboards(true, desiredMinDistance)
-      return
+    // 批量添加Billboard（使用缓存）
+    for (const item of itemsToShow) {
+      try {
+        const cachedCanvas = getCachedCanvas(item.point)
+        const position = Cesium.Cartesian3.fromDegrees(item.point.jdxx, item.point.wdxx)
+
+        billboardCollection.value.add({
+          position: position,
+          image: cachedCanvas,
+          verticalOrigin: Cesium.VerticalOrigin.BOTTOM,
+          horizontalOrigin: Cesium.HorizontalOrigin.CENTER,
+          pixelOffset: new Cesium.Cartesian2(0, 0),
+          disableDepthTestDistance: Number.POSITIVE_INFINITY,
+          scaleByDistance: new Cesium.NearFarScalar(1000, 1.0, 50000, 0.5)
+        })
+      } catch (e) {
+        console.warn('创建Billboard失败:', e)
+      }
     }
 
-    // 添加Billboard到Collection
-    for (const item of itemsToRender) {
-      const canvas = createBillboardCanvasWithArrow(item.point)
-      const position = Cesium.Cartesian3.fromDegrees(item.point.jdxx, item.point.wdxx)
-      
-      // 计算Y轴偏移（让三角箭头指向点位）
-      const canvasHeight = canvas.height
-      const yOffset = -canvasHeight / 2
-      
-      billboardCollection.value.add({
-        position: position,
-        image: canvas,
-        verticalOrigin: Cesium.VerticalOrigin.BOTTOM,
-        horizontalOrigin: Cesium.HorizontalOrigin.CENTER,
-        pixelOffset: new Cesium.Cartesian2(0, 0),
-        disableDepthTestDistance: Number.POSITIVE_INFINITY,
-        scaleByDistance: new Cesium.NearFarScalar(1000, 1.0, 50000, 0.5)
-        // 移除了translucencyByDistance，保持透明度恒定
-      })
-    }
+    const statusText = applyAntiOverlap ? '应用防重叠' : '显示全部'
+    console.log(`✅ Billboard更新完成（${statusText}），显示 ${itemsToShow.length} 个（总共 ${billboardItems.length} 个，缓存 ${canvasCache.size} 个）`)
 
-    const statusText = useFiltered ? '防重叠' : '全部'
-    console.log(`✅ 从缓存渲染Billboard（${statusText}），显示 ${itemsToRender.length} 个`)
-    
     // 强制地图立即更新渲染
     if (viewer.value && viewer.value.scene) {
-      viewer.value.scene.requestRender();
+      viewer.value.scene.requestRender()
     }
   }
-
+  
   /**
    * 验证坐标有效性
    */
@@ -562,20 +555,27 @@ export function useMonitoringPoints() {
       cameraHeightListener()
       cameraHeightListener = null
     }
-    
+    if (postRenderListener) {
+      postRenderListener()
+      postRenderListener = null
+    }
+
     // 清理BillboardCollection
     if (billboardCollection.value && viewer.value) {
       viewer.value.scene.primitives.remove(billboardCollection.value)
       billboardCollection.value = null
     }
 
+    // 清理Canvas缓存
+    canvasCache.clear()
+
     clearDataSource()
-    
+
     rawData.value = []
     enhancedData.value = []
     loadedDeviceTypes.value.clear()
     viewer.value = null
-    
+
     console.log('🗑️ 监测点位资源已清理')
   }
 
@@ -627,13 +627,7 @@ export function useMonitoringPoints() {
         // 从已加载列表中移除
         loadedDeviceTypes.value.delete(sblx)
       }
-      
-      // 重置缓存标记，强制重新计算
-      isCacheInitialized = false
-      cachedAllItems = []
-      cachedFilteredItemsAbove = []
-      cachedFilteredItemsBelow = []
-      
+
       // 更新地图显示
       await updateMapPoints()
       

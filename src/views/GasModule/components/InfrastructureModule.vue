@@ -200,7 +200,7 @@ const formatDistance = (value) => {
   if (value === null || value === undefined || value === '') return '-';
   const num = Number(value);
   if (isNaN(num)) return String(value);
-  return num.toFixed(2);
+  return num.toFixed(1);
 };
 
 // 监听气体类型切换，按需加载数据

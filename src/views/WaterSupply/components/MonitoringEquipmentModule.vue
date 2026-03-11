@@ -202,7 +202,7 @@ onMounted(() => {
         box-shadow: 0 4px 12px rgba(22, 119, 255, 0.2);
         position: relative;
         overflow: hidden;
-        padding-top: 10px;
+        padding-top: 30px;
         background-size: 100% 100%;
         background-image: url("@/assets/img/waterSupply/monitor_device.png");
 
