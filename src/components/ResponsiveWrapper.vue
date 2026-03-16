@@ -55,8 +55,12 @@ function getUrlParam(name) {
   return value
 }
 
-// 检查是否启用缩放（URL中是否有showStyle参数）
+// 检查是否启用缩放（URL中是否有showStyle参数，开发环境默认启用）
 function shouldEnableScale() {
+  // 开发环境默认启用缩放
+  // if (import.meta.env.DEV) {
+  //   return true
+  // }
   return getUrlParam('showStyle') !== null
 }
 
