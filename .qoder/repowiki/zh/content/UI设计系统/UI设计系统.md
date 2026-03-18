@@ -2,15 +2,28 @@
 
 <cite>
 **本文档引用的文件**
-- [SAFETY_MONITORING_MODULE_README.md](file://SAFETY_MONITORING_MODULE_README.md)
+- [DashboardHeader.vue](file://src/components/DashboardHeader.vue)
 - [variables.scss](file://src/assets/styles/variables.scss)
 - [base.css](file://src/assets/base.css)
 - [main.css](file://src/assets/main.css)
 - [ResponsiveWrapper.vue](file://src/components/ResponsiveWrapper.vue)
 - [App.vue](file://src/App.vue)
-- [leftContent.vue](file://src/views/gasModule/leftContent.vue)
-- [rightContent.vue](file://src/views/gasModule/rightContent.vue)
+- [leftContent.vue](file://src/views/GasModule/leftContent.vue)
+- [rightContent.vue](file://src/views/GasModule/rightContent.vue)
+- [MapLegend.vue](file://src/views/HomeModule/components/MapLegend.vue)
+- [MonitoringDialog.vue](file://src/views/GasModule/components/map/MonitoringDialog.vue)
+- [BridgeDetailDialog.vue](file://src/views/BridgeModule/components/map/BridgeDetailDialog.vue)
+- [StationDetailDialog.vue](file://src/views/GasModule/components/map/StationDetailDialog.vue)
+- [CommonTable.vue](file://src/components/CommonTable.vue)
+- [font.css](file://src/assets/font/font.css)
 </cite>
+
+## 更新摘要
+**所做更改**
+- 新增地图图例的视觉升级规范，包括渐变背景、边框装饰和模糊效果
+- 增强对话框组件的样式一致性，统一字体系统和视觉层次
+- 完善字体系统的一致化管理，统一使用SourceHanSansSC字体族
+- 更新玻璃态背景效果的实现细节和应用场景
 
 ## 目录
 1. [引言](#引言)
@@ -19,13 +32,16 @@
 4. [SCSS变量与全局样式](#scss变量与全局样式)
 5. [玻璃态背景效果](#玻璃态背景效果)
 6. [响应式设计](#响应式设计)
+7. [组件级设计规范](#组件级设计规范)
+8. [字体系统一致性](#字体系统一致性)
 
 ## 引言
 
-本UI设计系统文档旨在系统化整理政府dashboard项目的视觉规范，基于`SAFETY_MONITORING_MODULE_README.md`中的设计规范，详细说明颜色体系、布局规范、SCSS变量、全局样式规则以及玻璃态背景和响应式设计的实现方法。该系统为城市安全综合监测预警平台提供统一的视觉语言和开发标准。
+本UI设计系统文档旨在系统化整理政府dashboard项目的视觉规范，基于项目的设计规范，详细说明颜色体系、布局规范、SCSS变量、全局样式规则以及玻璃态背景和响应式设计的实现方法。该系统为城市安全综合监测预警平台提供统一的视觉语言和开发标准。
 
 **Section sources**
-- [SAFETY_MONITORING_MODULE_README.md](file://SAFETY_MONITORING_MODULE_README.md)
+- [DashboardHeader.vue](file://src/components/DashboardHeader.vue#L129-L137)
+- [variables.scss](file://src/assets/styles/variables.scss#L1-L218)
 
 ## 颜色体系
 
@@ -53,9 +69,8 @@
 - 右侧面板使用从右到左的渐变：`rgba(0, 0, 0, 0.8)` 到 `rgba(0, 0, 0, 0)`
 
 **Section sources**
-- [SAFETY_MONITORING_MODULE_README.md](file://SAFETY_MONITORING_MODULE_README.md#L57-L64)
-- [variables.scss](file://src/assets/styles/variables.scss#L4-L13)
-- [App.vue](file://src/App.vue#L46-L59)
+- [variables.scss](file://src/assets/styles/variables.scss#L1-L218)
+- [App.vue](file://src/App.vue#L33-L58)
 
 ## 布局规范
 
@@ -91,9 +106,11 @@ end
 ```
 
 **Diagram sources**
-- [SAFETY_MONITORING_MODULE_README.md](file://SAFETY_MONITORING_MODULE_README.md#L66-L71)
-- [leftContent.vue](file://src/views/gasModule/leftContent.vue#L26)
-- [rightContent.vue](file://src/views/gasModule/rightContent.vue#L26)
+- [leftContent.vue](file://src/views/GasModule/leftContent.vue#L1-L22)
+- [rightContent.vue](file://src/views/GasModule/rightContent.vue#L1-L22)
+
+**Section sources**
+- [App.vue](file://src/App.vue#L33-L58)
 
 ## SCSS变量与全局样式
 
@@ -122,11 +139,22 @@ end
 - `$font-size-md`: 16px
 - `$font-size-lg`: 18px
 - `$font-size-xl`: 20px
+- `$font-size-xxl`: 24px
+- `$font-size-2xl`: 28px
+- `$font-size-3xl`: 30px
+- `$font-size-4xl`: 32px
+
+#### 字体粗细
+- `$font-weight-normal`: 400
+- `$font-weight-medium`: 500
+- `$font-weight-semibold`: 600
+- `$font-weight-bold`: 700
 
 #### 圆角
 - `$border-radius-sm`: 4px
 - `$border-radius-md`: 6px
 - `$border-radius-lg`: 8px
+- `$border-radius-xl`: 12px
 
 #### 混入函数
 - `@mixin flex-center`: 居中对齐的flex布局
@@ -157,9 +185,9 @@ end
 - 使用`-webkit-background-clip: text`和`background-clip: text`实现
 
 **Section sources**
-- [variables.scss](file://src/assets/styles/variables.scss)
-- [base.css](file://src/assets/base.css)
-- [main.css](file://src/assets/main.css)
+- [variables.scss](file://src/assets/styles/variables.scss#L1-L218)
+- [base.css](file://src/assets/base.css#L1-L141)
+- [main.css](file://src/assets/main.css#L1-L50)
 
 ## 玻璃态背景效果
 
@@ -201,9 +229,8 @@ end
 - 滚动条的视觉增强
 
 **Section sources**
-- [App.vue](file://src/App.vue#L68-L72)
-- [ResponsiveWrapper.vue](file://src/components/ResponsiveWrapper.vue#L171-L173)
-- [StationListPanel.vue](file://src/views/gasModule/components/map/StationListPanel.vue#L348-L351)
+- [App.vue](file://src/App.vue#L62-L105)
+- [ResponsiveWrapper.vue](file://src/components/ResponsiveWrapper.vue#L137-L211)
 
 ## 响应式设计
 
@@ -265,5 +292,229 @@ Note right of Wrapper : 保持左上角对齐
 - 通过`provide`向子组件提供缩放比例
 
 **Section sources**
-- [ResponsiveWrapper.vue](file://src/components/ResponsiveWrapper.vue)
-- [CODEBUDDY.md](file://CODEBUDDY.md#L320-L322)
+- [ResponsiveWrapper.vue](file://src/components/ResponsiveWrapper.vue#L1-L211)
+
+## 组件级设计规范
+
+### DashboardHeader组件
+
+DashboardHeader组件采用了精心设计的渐变背景系统，确保视觉效果的一致性和专业性。
+
+#### 渐变背景方向修正
+
+**更新** DashboardHeader组件的渐变背景方向已从90度修正为180度，以提供更符合视觉预期的渐变效果。
+
+##### 标题文字渐变
+- **渐变角度**: 180deg（从上到下）
+- **颜色配置**: 从`#ffffff`（白色）到`#10adc0`（青色）
+- **应用位置**: 标题区域的渐变文字效果
+
+##### 侧边栏渐变背景
+- **左侧标签**: `linear-gradient(to right, rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0))`
+- **右侧标签**: `linear-gradient(to left, rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0))`
+- **渐变方向**: 从半透明黑色到完全透明的水平渐变
+
+##### 标签激活状态渐变
+- **激活状态**: `linear-gradient(0deg, #3ffefd 0%, #fff407 100%)`
+- **渐变角度**: 0deg（从左到右）
+- **颜色配置**: 从青色到黄色的水平渐变
+
+#### 字体和排版规范
+- **主标题**: `YouSheBiaoTiHei`字体，80px字号，白色文字
+- **标签文字**: `YouSheBiaoTiHei`字体，48px字号，白色文字
+- **文字效果**: 使用`-webkit-background-clip: text`实现文字渐变
+
+#### 视觉一致性改进
+- 统一的渐变角度（180deg）确保视觉方向的一致性
+- 优化的透明度层级（0.8到0）提供更好的层次感
+- 一致的字体家族和字号系统
+
+**Section sources**
+- [DashboardHeader.vue](file://src/components/DashboardHeader.vue#L129-L137)
+- [DashboardHeader.vue](file://src/components/DashboardHeader.vue#L154-L168)
+- [DashboardHeader.vue](file://src/components/DashboardHeader.vue#L182-L186)
+- [DashboardHeader.vue](file://src/components/DashboardHeader.vue#L214)
+
+## 字体系统一致性
+
+项目建立了统一的字体管理系统，确保所有组件使用一致的字体规范。
+
+### 字体家族定义
+
+通过`font.css`文件定义了两个核心字体：
+
+- **YouSheBiaoTiHei**: 用于标题和强调文本
+- **SourceHanSansSC**: 用于正文和界面文本
+
+### 字体使用规范
+
+#### 标题字体
+- **YouSheBiaoTiHei**: 用于所有标题级别
+- 字号范围：28px - 44px
+- 颜色：#FFFFFF（白色）
+
+#### 正文字体
+- **SourceHanSansSC**: 用于所有正文内容
+- 字号范围：12px - 32px
+- 颜色：#E4F3FF（浅蓝色）
+
+#### 字体变量系统
+- `--font-size-xs`: 12px
+- `--font-size-sm`: 14px
+- `--font-size-md`: 16px
+- `--font-size-lg`: 18px
+- `--font-size-xl`: 20px
+- `--font-size-2xl`: 28px
+- `--font-size-3xl`: 30px
+- `--font-size-4xl`: 32px
+
+### 字体混入函数
+
+通过SCSS混入函数提供统一的字体样式：
+
+- `@mixin text-heading-xl`: 32px, medium weight
+- `@mixin text-heading-lg`: 28px, medium weight
+- `@mixin text-body-lg`: 18px, normal weight
+- `@mixin text-body-md`: 16px, normal weight
+
+**Section sources**
+- [font.css](file://src/assets/font/font.css#L1-L14)
+- [variables.scss](file://src/assets/styles/variables.scss#L69-L90)
+- [variables.scss](file://src/assets/styles/variables.scss#L146-L188)
+
+## 地图表组件设计规范
+
+### MapLegend组件
+
+MapLegend组件实现了现代化的地图图例系统，提供清晰的设备类型标识。
+
+#### 视觉设计特点
+
+**更新** 图例组件采用了全新的视觉设计，增强了可读性和美观度：
+
+- **位置**: 绝对定位，底部20px，右侧860px
+- **背景**: 线性渐变背景，从#021A2E到#021F37
+- **边框**: 半透明蓝色边框，增强立体感
+- **模糊效果**: backdrop-filter: blur(4px)，实现毛玻璃效果
+
+#### 排版规范
+
+- **标题**: SourceHanSansSC字体，bold权重，40px字号
+- **标签**: SourceHanSansSC字体，500权重，30px字号
+- **间距**: 30px垂直间距，20px水平间距
+- **图标**: 36px × 50px，object-fit: contain
+
+#### 边框装饰系统
+
+使用复杂的border-image渐变实现装饰边框：
+
+```css
+border-image: linear-gradient(153deg, rgba(25, 163, 203, 1), rgba(12, 93, 117, 0.24), rgba(8, 189, 243, 0.04), rgba(0, 28, 38, 0), rgba(8, 97, 132, 0), rgba(17, 171, 233, 1)) 2 2;
+```
+
+**Section sources**
+- [MapLegend.vue](file://src/views/HomeModule/components/MapLegend.vue#L42-L103)
+
+## 对话框组件样式增强
+
+### MonitoringDialog组件
+
+MonitoringDialog组件实现了统一的对话框设计规范，确保用户体验的一致性。
+
+#### 头部设计
+- **渐变标题**: 使用`.gradient-text`类实现文字渐变效果
+- **关闭按钮**: 40px × 40px，圆角设计，悬浮效果
+- **背景**: 使用地图模块的头部背景图片
+
+#### 内容区域
+- **搜索栏**: 360px × 60px，圆角6px，半透明背景
+- **输入框**: SourceHanSansSC字体，30px字号，白色文字
+- **占位符**: 65%不透明度，30px字号
+
+#### 滚动条设计
+- **宽度**: 6px
+- **轨道**: 半透明黑色背景，圆角3px
+- **滑块**: 渐变背景，从rgba(22, 119, 255, 0.6)到rgba(13, 165, 190, 0.6)
+
+**Section sources**
+- [MonitoringDialog.vue](file://src/views/GasModule/components/map/MonitoringDialog.vue#L259-L301)
+
+### BridgeDetailDialog组件
+
+BridgeDetailDialog组件采用了高级的玻璃态设计，提供沉浸式的用户体验。
+
+#### 整体设计
+- **位置**: 绝对定位，top: 80px，left: 1320px，宽度773px
+- **背景**: 线性渐变，从#021F37到#02111D
+- **边框**: 渐变边框装饰，增强视觉层次
+- **模糊效果**: backdrop-filter: blur(20px)
+
+#### 头部设计
+- **背景图片**: 使用专门的头部背景
+- **边框**: 2px半透明蓝色边框
+- **字体**: SourceHanSansSC字体，medium权重，2xl字号
+
+#### 内容区域
+- **滚动区域**: 最大高度calc(100vh - 200px)，自动滚动
+- **状态徽章**: 统一的badge样式，圆角8px
+- **网格布局**: 信息项采用flex布局，gap: 15px
+
+#### 滚动条增强
+- **自定义滚动条**: 细宽度4px，半透明轨道
+- **悬停效果**: 滑块颜色从rgba(0, 255, 255, 0.3)到rgba(0, 255, 255, 0.5)
+
+**Section sources**
+- [BridgeDetailDialog.vue](file://src/views/BridgeModule/components/map/BridgeDetailDialog.vue#L252-L338)
+
+### StationDetailDialog组件
+
+StationDetailDialog组件提供了企业信息展示的完整解决方案。
+
+#### 设计特色
+- **条件样式**: 根据气体类型动态切换样式类
+- **图片展示**: 100%宽度，200px高度的企业图片
+- **网格布局**: 信息项采用flex布局，gap: 15px
+
+#### 状态管理
+- **类型徽章**: 统一的badge-type样式
+- **状态徽章**: 正常状态使用badge-normal，异常状态使用badge-error
+- **颜色系统**: 
+  - 正常: #313d56背景，#15779d边框
+  - 异常: #ff4757背景，#ff6b81边框
+
+#### 字体一致性
+- **徽章字体**: SourceHanSansSC字体，medium权重，2xl字号
+- **行高计算**: 使用calc(var(--font-size-2xl) × 1.4)确保垂直居中
+
+**Section sources**
+- [StationDetailDialog.vue](file://src/views/GasModule/components/map/StationDetailDialog.vue#L257-L299)
+
+## 表格组件统一规范
+
+### CommonTable组件
+
+CommonTable组件实现了统一的数据表格设计规范，确保数据展示的一致性。
+
+#### 头部设计
+- **背景图片**: 使用专门的头部背景
+- **渐变标题**: 文字渐变效果，从#FFFFFF到#10ADC0
+- **字体系统**: YouSheBiaoTiHei字体，36px字号
+
+#### 表头样式
+- **背景色**: #2A5768深蓝色背景
+- **边框**: 2px #09739C蓝色边框
+- **字体**: SourceHanSansSC字体，500权重，28px字号
+- **对齐**: 左对齐，padding-left: 20px
+
+#### 表体设计
+- **斑马线条纹**: 奇数行rgba(0, 0, 0, 0.3)，偶数行rgba(49, 49, 49, 0.3)
+- **悬停效果**: rgba(22, 119, 255, 0.1)过渡效果
+- **单元格**: 30px字号，58px行高，左对齐
+
+#### 滚动条设计
+- **宽度**: 6px
+- **轨道**: 半透明黑色背景，圆角3px
+- **滑块**: 渐变背景，从rgba(22, 119, 255, 0.6)到rgba(13, 165, 190, 0.6)
+
+**Section sources**
+- [CommonTable.vue](file://src/components/CommonTable.vue#L152-L309)

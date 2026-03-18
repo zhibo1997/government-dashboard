@@ -95,6 +95,7 @@ export function createBillboardCanvasWithArrow(
   ctx.textBaseline = 'middle';
   const timeTextX = padding + iconSize + 5;
   ctx.fillText(point.formattedTime || '-', timeTextX, headerHeight / 2);
+  console.info("🚀 ~ createBillboardCanvasWithArrow ~ point:", point)
 
   // 5. 绘制监测数据
   if (Array.isArray(point.parsedJcz) && point.parsedJcz.length > 0) {
