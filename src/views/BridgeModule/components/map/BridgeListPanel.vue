@@ -180,7 +180,7 @@ const loadBridges = async () => {
     // 处理分页数据结构
     if (res && res.rows && Array.isArray(res.rows)) {
       bridges.value = res.rows;
-      totalRecords.value = res.total || 0;
+      totalRecords.value = res.records || 0;
     } else {
       bridges.value = [];
       totalRecords.value = 0;
@@ -267,12 +267,14 @@ const handleBridgeClick = async (bridge) => {
 const prevPage = () => {
   if (currentPage.value > 1) {
     currentPage.value--;
+    loadBridges();
   }
 };
 
 const nextPage = () => {
   if (currentPage.value < totalPages.value) {
     currentPage.value++;
+    loadBridges();
   }
 };
 </script>

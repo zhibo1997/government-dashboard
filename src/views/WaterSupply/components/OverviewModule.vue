@@ -1,7 +1,7 @@
 <template>
   <div class="data-module overview-module">
     <div class="module-header">
-      <div class="module-title">纵览</div>
+      <div class="module-title">总览</div>
     </div>
     <div class="module-content">
       <div class="overview-content">

@@ -132,7 +132,7 @@ import { NMessageProvider, NDialogProvider, NConfigProvider, zhCN, dateZhCN } fr
     justify-content: space-between;
     flex: 1;
     position: relative;
-    height: calc(100% - 120px);
+    height: calc(100% - 159px);
     z-index: 11;
     top: -56px;
   }

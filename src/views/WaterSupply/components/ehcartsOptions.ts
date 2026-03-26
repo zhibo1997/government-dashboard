@@ -93,6 +93,78 @@ export const officialWebsiteOption: echarts.EChartsOption = {
     },
   ],
 };
+// 隐患柱状图
+export const dangerBarOption: echarts.EChartsOption = {
+  backgroundColor: 'transparent',
+  tooltip: {
+    trigger: 'axis',
+    axisPointer: { type: 'shadow' },
+    backgroundColor: 'rgba(2, 17, 29, 0.9)',
+    borderColor: 'rgba(13, 165, 190, 0.5)',
+    textStyle: { color: '#e4f3ff', fontSize: 24 },
+  },
+  grid: {
+    left: 10,
+    right: 10,
+    top: 20,
+    bottom: 10,
+    containLabel: true,
+  },
+  xAxis: {
+    type: 'category',
+    data: [],
+    axisLabel: {
+      color: '#e4f3ff',
+      fontSize: 24,
+      fontFamily: 'SourceHanSansSC',
+      rotate: 30,
+      interval: 'auto',
+    },
+    axisLine: {
+      lineStyle: { color: 'rgba(13, 165, 190, 0.5)' },
+    },
+    axisTick: { show: false },
+  },
+  yAxis: {
+    type: 'value',
+    axisLabel: {
+      color: 'rgba(228, 243, 255, 0.7)',
+      fontSize: 20,
+      fontFamily: 'SourceHanSansSC',
+    },
+    axisLine: { show: false },
+    splitLine: {
+      lineStyle: { color: 'rgba(13, 165, 190, 0.15)' },
+    },
+  },
+  series: [
+    {
+      name: "隐患数量",
+      type: "bar",
+      barMaxWidth: 40,
+      data: [],
+      itemStyle: {
+        borderRadius: [4, 4, 0, 0],
+      },
+      label: {
+        show: true,
+        position: 'top',
+        color: '#e4f3ff',
+        fontSize: 22,
+        fontFamily: 'SourceHanSansSC',
+      },
+      emphasis: {
+        itemStyle: {
+          shadowBlur: 12,
+          shadowColor: 'rgba(93, 135, 172, 0.4)',
+        },
+      },
+      animationDelay: function (idx) {
+        return idx * 100;
+      },
+    },
+  ],
+};
 export const risksOption = {
   radar: {
     // 雷达图配置

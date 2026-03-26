@@ -1,10 +1,10 @@
 <template>
-  <div class="responsive-wrapper">
+  <div class="responsive-wrapper" :class="{ 'no-scale': !enableScale }">
     <div class="scale-content" :style="{
-      transform: `scale(${scaleRatio})`,
+      transform: enableScale ? `scale(${scaleRatio})` : 'none',
       transformOrigin: 'top left',
-      width: `${actualBaseWidth}px`,
-      height: `${actualBaseHeight}px`
+      width: enableScale ? `${actualBaseWidth}px` : '100vw',
+      height: enableScale ? `${actualBaseHeight}px` : '100vh'
     }">
       <slot></slot>
     </div>
@@ -58,9 +58,9 @@ function getUrlParam(name) {
 // 检查是否启用缩放（URL中是否有showStyle参数，开发环境默认启用）
 function shouldEnableScale() {
   // 开发环境默认启用缩放
-  // if (import.meta.env.DEV) {
-  //   return true
-  // }
+  if (import.meta.env.DEV) {
+    return true
+  }
   return getUrlParam('showStyle') !== null
 }
 
@@ -168,13 +168,20 @@ defineExpose({
 
 <style scoped>
 .responsive-wrapper {
-  overflow-x: auto;
+  overflow: hidden;
   position: relative;
   z-index: 10;
   pointer-events: none;
   position: absolute;
   top: 0;
   left: 0;
+  width: 100vw;
+  height: 100vh;
+}
+
+/* 无缩放模式：内容自适应视口 */
+.responsive-wrapper.no-scale {
+  overflow: hidden;
 }
 
 /* 为需要交互的特定元素恢复鼠标事件 */
@@ -226,8 +233,13 @@ defineExpose({
   position: relative;
   transform-origin: top left;
   will-change: transform;
-  display: inline-block;
+  display: block;
+}
 
+/* 无缩放模式下内容自适应 */
+.no-scale .scale-content {
+  width: 100vw !important;
+  height: 100vh !important;
 }
 
 .responsive-wrapper :deep(.center-map) {

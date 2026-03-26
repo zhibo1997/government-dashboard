@@ -80,8 +80,8 @@ export function useMonitoringPoints() {
   let lastRenderTime = 0
   const RENDER_THROTTLE_MS = 300 // 节流间隔（增加以减少渲染频率）
 
-  // Canvas 缓存（避免重复创建）
-  const canvasCache = new Map<string, HTMLCanvasElement>()
+  // Canvas 缓存（缓存为 data URL 字符串，避免 WebGL 纹理复用冲突）
+  const canvasCache = new Map<string, string>()
   const MAX_CACHE_SIZE = 100 // 最大缓存数量
 
   /**
@@ -379,9 +379,10 @@ export function useMonitoringPoints() {
   }
 
   /**
-   * 获取或创建 Canvas（带缓存）
+   * 获取或创建 Billboard 图片（带缓存）
+   * 缓存为 data URL 字符串，避免 canvas 复用导致 WebGL 纹理冲突
    */
-  function getCachedCanvas(point: EnhancedMonitoringPoint): HTMLCanvasElement {
+  function getCachedCanvas(point: EnhancedMonitoringPoint): string {
     const cacheKey = point.id
 
     // 检查缓存
@@ -389,20 +390,28 @@ export function useMonitoringPoints() {
       return canvasCache.get(cacheKey)!
     }
 
-    // 创建新的 Canvas
+    // 创建新的 Canvas 并转为 data URL
     const canvas = createBillboardCanvasWithArrow(point)
+
+    // 校验 canvas 尺寸有效性
+    if (canvas.width <= 0 || canvas.height <= 0) {
+      console.warn('Canvas 尺寸无效:', { width: canvas.width, height: canvas.height, pointId: point.id })
+      // 返回 1x1 透明 PNG 作为兜底
+      return 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAC0lEQVQI12NgAAIABQABNjN9GQAAAAlwSFlzAAAWJQAAFiUBSVIk8AAAAA0lEQVQI12P4z8BQDwAEgAF/QualqQAAAABJRU5ErkJggg=='
+    }
+
+    const dataUrl = canvas.toDataURL('image/png')
 
     // 限制缓存大小
     if (canvasCache.size >= MAX_CACHE_SIZE) {
-      // 删除最早的缓存项
       const firstKey = canvasCache.keys().next().value
       if (firstKey) {
         canvasCache.delete(firstKey)
       }
     }
 
-    canvasCache.set(cacheKey, canvas)
-    return canvas
+    canvasCache.set(cacheKey, dataUrl)
+    return dataUrl
   }
 
   /**

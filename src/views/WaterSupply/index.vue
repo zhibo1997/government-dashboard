@@ -81,7 +81,7 @@ defineOptions({
 <style lang="scss" scoped>
 // 供水模块的 module-content 特殊布局
 :deep(.data-module .module-content) {
-  height: calc(100% - 60px);
+  height: calc(100% - 100px);
   align-items: center;
   justify-content: center;
 }
