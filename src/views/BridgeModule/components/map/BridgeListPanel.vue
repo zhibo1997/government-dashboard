@@ -212,18 +212,11 @@ const currentPage = ref(1);
 const pageSize = ref(10);
 const totalRecords = ref(0);
 
-// 桥梁数据
+// 桥梁数据（服务端分页，直接使用 API 返回的当前页数据）
 const bridges = ref([]);
 
-// 过滤后的桥梁列表
-const filteredBridges = computed(() => bridges.value);
-
 // 当前页显示的桥梁
-const currentPageBridges = computed(() => {
-  const start = (currentPage.value - 1) * pageSize.value;
-  const end = start + pageSize.value;
-  return filteredBridges.value.slice(start, end);
-});
+const currentPageBridges = computed(() => bridges.value);
 
 // 总页数
 const totalPages = computed(() => {

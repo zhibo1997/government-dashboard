@@ -1,10 +1,10 @@
 <template>
-  <div class="responsive-wrapper" :class="{ 'no-scale': !enableScale }">
+  <div class="responsive-wrapper">
     <div class="scale-content" :style="{
-      transform: enableScale ? `scale(${scaleRatio})` : 'none',
+      transform: `scale(${scaleRatio})`,
       transformOrigin: 'top left',
-      width: enableScale ? `${actualBaseWidth}px` : '100vw',
-      height: enableScale ? `${actualBaseHeight}px` : '100vh'
+      width: `${actualBaseWidth}px`,
+      height: `${actualBaseHeight}px`
     }">
       <slot></slot>
     </div>
@@ -38,30 +38,10 @@ const props = defineProps({
   }
 })
 
-// 获取URL参数（支持hash路由）
+// 获取URL参数
 function getUrlParam(name) {
-  // 先尝试从 search 获取
-  let urlParams = new URLSearchParams(window.location.search)
-  let value = urlParams.get(name)
-  if (value !== null) return value
-
-  // 再从 hash 中获取
-  const hash = window.location.hash
-  const hashQueryIndex = hash.indexOf('?')
-  if (hashQueryIndex !== -1) {
-    urlParams = new URLSearchParams(hash.slice(hashQueryIndex + 1))
-    value = urlParams.get(name)
-  }
-  return value
-}
-
-// 检查是否启用缩放（URL中是否有showStyle参数，开发环境默认启用）
-function shouldEnableScale() {
-  // 开发环境默认启用缩放
-  if (import.meta.env.DEV) {
-    return true
-  }
-  return getUrlParam('showStyle') !== null
+  const urlParams = new URLSearchParams(window.location.search)
+  return urlParams.get(name)
 }
 
 // 获取缩放模式，优先从URL参数读取
@@ -73,8 +53,6 @@ function getScaleMode() {
   return 'width' // 默认值
 }
 
-// 是否启用缩放
-const enableScale = ref(shouldEnableScale())
 // 当前缩放模式
 const currentScaleMode = ref(getScaleMode())
 
@@ -87,12 +65,6 @@ const actualBaseHeight = computed(() => props.baseHeight)
 
 // 计算缩放比例和尺寸
 function calculateResponsive() {
-  // 如果没有 showStyle 参数，不进行缩放
-  if (!enableScale.value) {
-    scaleRatio.value = 1
-    return
-  }
-
   const windowWidth = window.innerWidth
   const windowHeight = window.innerHeight
 
@@ -121,11 +93,8 @@ function calculateResponsive() {
 
 // 监听URL参数变化
 function watchUrlParams() {
-  const newEnableScale = shouldEnableScale()
   const newMode = getScaleMode()
-
-  if (newEnableScale !== enableScale.value || newMode !== currentScaleMode.value) {
-    enableScale.value = newEnableScale
+  if (newMode !== currentScaleMode.value) {
     currentScaleMode.value = newMode
     calculateResponsive()
   }
@@ -161,27 +130,19 @@ onUnmounted(() => {
 // 暴露响应式数据供父组件使用
 defineExpose({
   scaleRatio,
-  currentScaleMode,
-  enableScale
+  currentScaleMode
 })
 </script>
 
 <style scoped>
 .responsive-wrapper {
-  overflow: hidden;
+  overflow-x: auto;
   position: relative;
   z-index: 10;
   pointer-events: none;
   position: absolute;
   top: 0;
   left: 0;
-  width: 100vw;
-  height: 100vh;
-}
-
-/* 无缩放模式：内容自适应视口 */
-.responsive-wrapper.no-scale {
-  overflow: hidden;
 }
 
 /* 为需要交互的特定元素恢复鼠标事件 */
@@ -233,13 +194,8 @@ defineExpose({
   position: relative;
   transform-origin: top left;
   will-change: transform;
-  display: block;
-}
+  display: inline-block;
 
-/* 无缩放模式下内容自适应 */
-.no-scale .scale-content {
-  width: 100vw !important;
-  height: 100vh !important;
 }
 
 .responsive-wrapper :deep(.center-map) {
