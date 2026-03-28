@@ -10,6 +10,13 @@
     :visible="showBridgeDetail"
     :bridge-data="selectedBridge"
     @update:visible="showBridgeDetail = $event"
+    @show-equipment="handleShowEquipment"
+  />
+
+  <!-- 监测设备弹窗 -->
+  <EquipmentDialog
+    :visible="showEquipmentDialog"
+    :bridge-data="selectedBridge"
   />
 </template>
 
@@ -17,7 +24,7 @@
 import { ref } from "vue";
 import BridgeListPanel from "./components/map/BridgeListPanel.vue";
 import BridgeDetailDialog from "./components/map/BridgeDetailDialog.vue";
-
+import EquipmentDialog from "./components/map/EquipmentDialog.vue";
 
 // 桥梁模块侧边栏组件
 defineOptions({
@@ -27,14 +34,20 @@ defineOptions({
 // 控制显示状态
 const showBridgeList = ref(true);
 const showBridgeDetail = ref(false);
+const showEquipmentDialog = ref(false);
 const selectedBridge = ref(null);
 
 // 处理桥梁点击
 const handleBridgeClick = (bridge) => {
   selectedBridge.value = bridge;
   showBridgeDetail.value = true;
-  // 可在此处触发其他操作，如显示详情弹窗、地图交互等
-  console.log("选中桥梁:", bridge);
+  // 切换桥梁时关闭设备列表
+  showEquipmentDialog.value = false;
+};
+
+// 显示监测设备
+const handleShowEquipment = () => {
+  showEquipmentDialog.value = true;
 };
 </script>
 

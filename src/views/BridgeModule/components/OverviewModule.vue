@@ -93,7 +93,13 @@ const fetchCardData = async () => {
  * 处理卡片数据
  */
 const processCardData = (data: any[]) => {
-  // 映射数据到卡片（不进行排序）
+  // 将 jcssdstj0601 排到第一个
+  data = [...data].sort((a, b) => {
+    if (a.jcsslx === 'jcssdstj0601') return -1;
+    if (b.jcsslx === 'jcssdstj0601') return 1;
+    return 0;
+  });
+  // 映射数据到卡片
   statsCards.value = data.map((item, index) => ({
     id: index + 1,
     value: item.jcsstjsl || 0, // 使用 jcsstjsl 作为数量

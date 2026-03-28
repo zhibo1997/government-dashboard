@@ -54,3 +54,18 @@ export async function getBridgeEquipmentRunStatusList() {
   const res = await get<any>('/gspspDtransBridge/jscbYxztSstj/list', defaultParams)
   return res.data || []
 }
+
+/**
+ * 获取某桥梁目标编码下的监测设备分页列表
+ */
+export async function getBridgeTargetEquipmentPageList(params?: {
+  page?: string
+  rows?: string
+  glmbbh?: string
+  sbmc?: string
+  sszx?: string
+  gdfs?: string
+}) {
+  const res = await get<any>('/gspspDtrans/glmbbh/eqp/page', { ...defaultParams, ...params })
+  return res.data || []
+}

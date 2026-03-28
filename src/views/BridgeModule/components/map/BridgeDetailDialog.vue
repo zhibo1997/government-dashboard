@@ -15,6 +15,18 @@
     <div class="dialog-content">
       <!-- 桥梁基本信息 -->
       <div class="info-section">
+        <!-- 状态标签移到顶部 -->
+        <div class="status-badge-row">
+          <button class="badge-btn badge-type">{{ getBridgeType(bridgeData?.qllx) || '未知类型' }}</button>
+          <button
+            class="badge-btn badge-normal"
+            v-if="bridgeData?.sjtbzt === 'I'"
+          >
+            正常
+          </button>
+          <button class="badge-btn badge-error" v-else>异常</button>
+        </div>
+
         <!-- 桥梁图片 -->
         <div class="bridge-image" v-if="bridgeData?.qltp">
           <img :src="bridgeData.qltp" alt="桥梁图片" />
@@ -30,17 +42,13 @@
             <span class="info-value">{{ formatFieldValue(field.key, bridgeData?.[field.key]) }}</span>
           </div>
         </div>
+      </div>
 
-        <div class="status-badge-row">
-          <button class="badge-btn badge-type">{{ getBridgeType(bridgeData?.qllx) || '未知类型' }}</button>
-          <button
-            class="badge-btn badge-normal"
-            v-if="bridgeData?.sjtbzt === 'I'"
-          >
-            正常
-          </button>
-          <button class="badge-btn badge-error" v-else>异常</button>
-        </div>
+      <!-- 操作按钮 -->
+      <div class="action-section">
+        <button class="action-btn btn-monitoring" @click="handleShowEquipment">
+          监测设备
+        </button>
       </div>
     </div>
   </div>
@@ -71,7 +79,12 @@ onMounted(async () => {
   viewer.value = readyObj.viewer;
 });
 
-const emit = defineEmits(["update:visible"]);
+const emit = defineEmits(["update:visible", "show-equipment"]);
+
+// 显示监测设备弹窗
+const handleShowEquipment = () => {
+  emit("show-equipment");
+};
 
 // 桥梁字段定义
 const bridgeFields = [
@@ -311,27 +324,6 @@ const handleClose = () => {
       gap: 10px;
       margin-bottom: 12px;
 
-      .bridge-image {
-        width: 100%;
-        height: 200px;
-        margin-bottom: 15px;
-        border-radius: 8px;
-        overflow: hidden;
-        border: 2px solid #15779d;
-
-        img {
-          width: 100%;
-          height: 100%;
-          object-fit: cover;
-        }
-      }
-
-      .info-grid {
-        display: flex;
-        flex-direction: column;
-        gap: 15px;
-      }
-
       .status-badge-row {
         display: flex;
         gap: 12px;
@@ -375,6 +367,27 @@ const handleClose = () => {
         }
       }
 
+      .bridge-image {
+        width: 100%;
+        height: 200px;
+        margin-bottom: 15px;
+        border-radius: 8px;
+        overflow: hidden;
+        border: 2px solid #15779d;
+
+        img {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+        }
+      }
+
+      .info-grid {
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+      }
+
       .info-row {
         display: flex;
         align-items: center;
@@ -401,6 +414,39 @@ const handleClose = () => {
           overflow: hidden;
           text-overflow: ellipsis;
           white-space: nowrap;
+        }
+      }
+    }
+
+    // 操作按钮区域
+    .action-section {
+      display: flex;
+      justify-content: center;
+      gap: 16px;
+      padding-top: 12px;
+      border-top: 2px solid rgba(13, 165, 190, 0.3);
+      margin-bottom: 12px;
+
+      .action-btn {
+        width: 170px;
+        height: 60px;
+        cursor: pointer;
+        text-align: center;
+        font-family: SourceHanSansSC, SourceHanSansSC;
+        font-weight: var(--font-weight-medium);
+        font-size: var(--font-size-3xl);
+        color: #ffffff;
+
+        &.btn-monitoring {
+          background: rgba(0, 60, 80, 0.6);
+          border: 2px solid #0da5be;
+          border-radius: 6px;
+
+          &:hover {
+            background: rgba(13, 165, 190, 0.4);
+            border-color: #3fffff;
+            box-shadow: 0 0 16px rgba(13, 165, 190, 0.5);
+          }
         }
       }
     }

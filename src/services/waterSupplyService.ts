@@ -100,7 +100,7 @@ export async function getDrainageRiskCount(param: {
 export async function getWarnStatistics(Sszx: string) {
   const res = await get<any>('/gspspDtransPubmnteawarn/warnStatistics', {
     ...defaultParams,
-    Year: '2025',
+    Year: '2026',
     Sszx,
   })
   return res?.data || {}
