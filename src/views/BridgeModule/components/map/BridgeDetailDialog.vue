@@ -55,7 +55,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, watch, nextTick, onMounted, onBeforeUnmount, ref } from "vue";
+import { computed, watch, nextTick, onMounted, onBeforeUnmount, ref, inject } from "vue";
 import { useVueCesium } from "vue-cesium";
 import { NButton, NIcon } from "naive-ui";
 import { Close } from "@vicons/ionicons5";
@@ -68,6 +68,7 @@ const dialogX = ref(0);
 const dialogY = ref(0);
 const isEntityVisible = ref(true);
 let removePostRender: (() => void) | null = null;
+const scaleRatio = inject('responsiveScale', ref(1));
 
 const dialogStyle = computed(() => ({
   left: `${dialogX.value}px`,
@@ -276,7 +277,7 @@ const startPositionTracking = () => {
     const position = entity.position.getValue(viewer.value.clock.currentTime);
     if (!position) return;
 
-    const screenPos = Cesium.SceneTransforms.worldToWindowCoordinates(
+    const screenPos = Cesium.SceneTransforms.wgs84ToWindowCoordinates(
       viewer.value.scene,
       position
     );
@@ -287,8 +288,8 @@ const startPositionTracking = () => {
     }
 
     isEntityVisible.value = true;
-    dialogX.value = screenPos.x + 20;
-    dialogY.value = Math.max(10, screenPos.y - 200);
+    dialogX.value = (screenPos.x + 20) / scaleRatio.value;
+    dialogY.value = Math.max(10, (screenPos.y - 200) / scaleRatio.value);
   });
 };
 
