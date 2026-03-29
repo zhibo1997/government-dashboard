@@ -2,7 +2,7 @@
   <div class="station-detail-dialog" :class="{
     'natural-gas-info': isNaturalGas,
     'liquefied-gas-info': isLiquefiedGas,
-  }" v-show="visible">
+  }" v-show="visible && isEntityVisible" :style="dialogStyle">
     <div class="dialog-header">
       <div class="dialog-title">{{ stationData?.qymc || "企业详情" }}</div>
       <n-button text class="close-btn" @click="handleClose">
@@ -68,13 +68,25 @@
 </template>
 
 <script setup lang="ts">
-import { computed, watch, nextTick, onMounted, ref } from "vue";
+import { computed, watch, nextTick, onMounted, onBeforeUnmount, ref } from "vue";
 import { useVueCesium } from "vue-cesium";
 import { NButton, NIcon } from "naive-ui";
 import { Close } from "@vicons/ionicons5";
 import GasMarkerIcon from "@/assets/img/gasModule/gas_marker.webp";
 
 const viewer = ref<Cesium.Viewer | null>(null);
+
+// 位置跟踪相关
+const dialogX = ref(0);
+const dialogY = ref(0);
+const isEntityVisible = ref(true);
+let removePostRender: (() => void) | null = null;
+
+const dialogStyle = computed(() => ({
+  left: `${dialogX.value}px`,
+  top: `${dialogY.value}px`,
+}));
+
 const props = defineProps({
   visible: {
     type: Boolean,
@@ -150,6 +162,42 @@ watch(
   { deep: true }
 );
 
+// 开始位置跟踪
+const startPositionTracking = () => {
+  if (!viewer.value) return;
+  stopPositionTracking();
+
+  removePostRender = viewer.value.scene.postRender.addEventListener(() => {
+    const entity = viewer.value.entities.getById("station-marker");
+    if (!entity?.position) return;
+
+    const position = entity.position.getValue(viewer.value.clock.currentTime);
+    if (!position) return;
+
+    const screenPos = Cesium.SceneTransforms.worldToWindowCoordinates(
+      viewer.value.scene,
+      position
+    );
+
+    if (!screenPos) {
+      isEntityVisible.value = false;
+      return;
+    }
+
+    isEntityVisible.value = true;
+    dialogX.value = screenPos.x + 20;
+    dialogY.value = Math.max(10, screenPos.y - 200);
+  });
+};
+
+// 停止位置跟踪
+const stopPositionTracking = () => {
+  if (removePostRender) {
+    removePostRender();
+    removePostRender = null;
+  }
+};
+
 // 在地图上添加标记点
 const addMarkerToMap = (longitude, latitude) => {
   try {
@@ -186,7 +234,8 @@ const addMarkerToMap = (longitude, latitude) => {
       ),
     });
 
-    // 计算标记点在屏幕上的位置并调整对话框位置
+    // 开始位置跟踪
+    startPositionTracking();
   } catch (error) {
     console.error("在地图上添加标记点失败:", error);
   }
@@ -206,6 +255,7 @@ const removeExistingMarkers = (viewer) => {
 };
 
 const handleClose = () => {
+  stopPositionTracking();
   emit("update:visible", false);
   // 关闭对话框时移除标记点
   try {
@@ -220,23 +270,29 @@ const handleClose = () => {
 const handleShowMonitoring = () => {
   emit("show-monitoring");
 };
+
+onBeforeUnmount(() => {
+  stopPositionTracking();
+});
 </script>
 
 <style lang="scss" scoped>
 .station-detail-dialog {
   position: absolute;
-  top: 80px;
-  left: 1320px;
   width: 773px;
   z-index: 200;
   overflow: hidden;
   pointer-events: auto;
+  display: flex;
+  flex-direction: column;
+  max-height: calc(100vh - 100px);
 
   &.liquefied-gas-info {
     width: 620px;
   }
 
   .dialog-header {
+    flex-shrink: 0;
     height: 70px;
     padding: 0 20px;
     display: flex;
@@ -255,6 +311,10 @@ const handleShowMonitoring = () => {
   }
 
   .dialog-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
     padding: 30px 20px 24px;
     background: linear-gradient(270deg, #021F37 0%, #02111D 99.92%);
     box-shadow: -34px 0px 17px 0px rgba(4, 17, 38, 0.4), 34px 9px 17px 0px rgba(4, 17, 38, 0.4);
@@ -263,10 +323,30 @@ const handleShowMonitoring = () => {
     backdrop-filter: blur(20px);
 
     .info-section {
+      flex: 1;
+      overflow-y: auto;
       display: flex;
       flex-direction: column;
       gap: 10px;
       margin-bottom: 12px;
+
+      &::-webkit-scrollbar {
+        width: 4px;
+      }
+
+      &::-webkit-scrollbar-track {
+        background: rgba(0, 0, 0, 0.2);
+        border-radius: 2px;
+      }
+
+      &::-webkit-scrollbar-thumb {
+        background: rgba(0, 255, 255, 0.3);
+        border-radius: 2px;
+
+        &:hover {
+          background: rgba(0, 255, 255, 0.5);
+        }
+      }
 
       &.liquefied-gas-info {}
 
@@ -349,6 +429,7 @@ const handleShowMonitoring = () => {
     }
 
     .action-section {
+      flex-shrink: 0;
       display: flex;
       justify-content: center;
       gap: 16px;

@@ -35,10 +35,13 @@
           row-key="sbbh"
           :empty-text="loading ? '加载中...' : '暂无设备数据'"
           :max-height="400"
-          grid-template="0.8fr 2fr 1.5fr 2fr 1.2fr 1fr"
+          grid-template="0.6fr 1fr 1.5fr 2fr 1.5fr 1fr 1fr 1fr 0.8fr"
         >
           <template #sbyxzt="{ row }">
             <span class="status-tag" :class="getDeviceStatusClass(row.sbyxzt)">{{ formatDeviceStatus(row.sbyxzt) }}</span>
+          </template>
+          <template #sbywzt="{ row }">
+            <span class="status-tag" :class="getMaintStatusClass(row.sbywzt)">{{ formatMaintStatus(row.sbywzt) }}</span>
           </template>
           <template #action="{ row }">
             <button class="view-btn" @click="handleViewEquipment(row)">查看</button>
@@ -104,20 +107,40 @@ const total = ref(0)
 const tableData = ref<any[]>([])
 const loading = ref(false)
 
+// 所属专项映射
+const sszxMap: Record<string, string> = {
+  'csaqzx_ql': '桥梁',
+  'csaqzx_gs': '供水',
+  'csaqzx_rq': '燃气',
+  'csaqzx_ps': '排水',
+}
+
+// 供电方式映射
+const gdfsMap: Record<string, string> = {
+  'gdfs001': '插电式',
+  'gdfs002': '电池',
+  'gdfs003': '太阳能',
+}
+
 // 设备表格列配置
 const equipmentColumns = [
-  { key: 'index', title: '序号', width: '0.8fr' },
+  { key: 'index', title: '序号', width: '0.6fr' },
+  { key: 'sszxName', title: '所属专项', width: '1fr' },
+  { key: 'sbbh', title: '设备编号', width: '1.5fr' },
   { key: 'sbmc', title: '设备名称', width: '2fr' },
-  { key: 'sblxmc', title: '设备类型', width: '1.5fr' },
-  { key: 'azwz', title: '安装位置', width: '2fr' },
-  { key: 'sbyxzt', title: '运行状态', width: '1.2fr' },
-  { key: 'action', title: '操作', width: '1fr' }
+  { key: 'azwz', title: '安装位置', width: '1.5fr' },
+  { key: 'gdfsName', title: '供电方式', width: '1fr' },
+  { key: 'sbyxzt', title: '运行状态', width: '1fr' },
+  { key: 'sbywzt', title: '运维状态', width: '1fr' },
+  { key: 'action', title: '操作', width: '0.8fr' },
 ]
 
 const processedEquipmentData = computed(() => {
   return tableData.value.map((item, index) => ({
     ...item,
     index: index + 1 + (currentPage.value - 1) * pageSize.value,
+    sszxName: sszxMap[item.sszx] || item.sszx || '—',
+    gdfsName: gdfsMap[item.gdfs] || item.gdfs || '—',
   }))
 })
 
@@ -155,7 +178,7 @@ const fetchData = async () => {
     }
     const res = await getBridgeTargetEquipmentPageList(params)
     if (res && res.rows) {
-      tableData.value = res.rows
+      tableData.value = res
       total.value = res.total || 0
     } else {
       tableData.value = []
@@ -232,6 +255,24 @@ const getDeviceStatusClass = (sbyxzt: string) => {
     'sbyxzt003': 'status-fault',
   }
   return map[sbyxzt] || ''
+}
+
+const formatMaintStatus = (sbywzt: string) => {
+  const map: Record<string, string> = {
+    'sbywzt001': '完好',
+    'sbywzt002': '维修',
+    'sbywzt003': '停用',
+  }
+  return map[sbywzt] || sbywzt || '—'
+}
+
+const getMaintStatusClass = (sbywzt: string) => {
+  const map: Record<string, string> = {
+    'sbywzt001': 'status-online',
+    'sbywzt002': 'status-fault',
+    'sbywzt003': 'status-offline',
+  }
+  return map[sbywzt] || ''
 }
 
 // 查看设备位置 - 在地图上标注并飞行

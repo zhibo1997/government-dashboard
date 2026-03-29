@@ -73,7 +73,7 @@
         <div class="pagination">
           <button class="page-btn" @click="prevPage" :disabled="currentPage === 1">‹</button>
           <button v-for="page in visiblePages" :key="page" class="page-btn" :class="{ active: page === currentPage }"
-            @click="currentPage = page">
+            @click="goToPage(page)">
             {{ page }}
           </button>
           <button class="page-btn page-more" v-if="totalPages > 6">...</button>
@@ -119,7 +119,7 @@ const props = defineProps({
 const emit = defineEmits(["update:visible", "bridge-click"]);
 
 // 面板折叠状态
-const isCollapsed = ref(false);
+const isCollapsed = ref(true);
 const showSearch = ref(false);
 
 
@@ -257,6 +257,13 @@ const handleBridgeClick = async (bridge) => {
 };
 
 // 翻页
+const goToPage = (page: number) => {
+  if (page !== currentPage.value && page >= 1 && page <= totalPages.value) {
+    currentPage.value = page;
+    loadBridges();
+  }
+};
+
 const prevPage = () => {
   if (currentPage.value > 1) {
     currentPage.value--;

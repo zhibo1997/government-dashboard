@@ -94,7 +94,7 @@ const props = defineProps({
 const emit = defineEmits(["update:visible", "station-click"]);
 
 // 面板折叠状态
-const isCollapsed = ref(false);
+const isCollapsed = ref(true);
 const showSearch = ref(false);
 
 // 搜索关键词

@@ -63,6 +63,7 @@ import {
   getMonthlyWarnStatistics,
   getWarnStatistics,
   getCheckResultStatistics,
+  CURRENT_YEAR,
 } from "@/services/waterSupplyService";
 import { getCachedDictionary } from "@/services/dictionaryService";
 
@@ -75,7 +76,7 @@ const moduleConfig = inject('MODULE_CONFIG', {
 });
 
 // 预警处置时间
-const warningDate = ref('2025');
+const warningDate = ref('');
 
 // 响应式数据
 const handledSummaryData = ref(null);
@@ -141,12 +142,6 @@ const fetchAllData = async (year) => {
   }
 };
 
-// 日期更改处理方法
-const onChangeWarningDate = (value) => {
-  if (!value) return;
-  const year = new Date(value).getFullYear().toString();
-  fetchAllData(year);
-};
 
 // 初始化字典数据
 const initDictionary = async () => {
@@ -166,8 +161,7 @@ const initDictionary = async () => {
 onMounted(async () => {
   await initDictionary();
   initChart();
-  const currentYear = new Date().getFullYear().toString();
-  await fetchAllData(currentYear);
+  await fetchAllData(CURRENT_YEAR);
 });
 
 // 监听monthlyData变化，更新图表

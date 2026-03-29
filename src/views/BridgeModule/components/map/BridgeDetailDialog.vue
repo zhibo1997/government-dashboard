@@ -1,5 +1,5 @@
 <template>
-  <div class="bridge-detail-dialog" v-show="visible">
+  <div class="bridge-detail-dialog" v-show="visible && isEntityVisible" :style="dialogStyle">
     <div class="dialog-header">
       <div class="dialog-title">{{ bridgeData?.llmc || "桥梁详情" }}</div>
       <n-button text class="close-btn" @click="handleClose">
@@ -55,13 +55,25 @@
 </template>
 
 <script setup lang="ts">
-import { computed, watch, nextTick, onMounted, ref } from "vue";
+import { computed, watch, nextTick, onMounted, onBeforeUnmount, ref } from "vue";
 import { useVueCesium } from "vue-cesium";
 import { NButton, NIcon } from "naive-ui";
 import { Close } from "@vicons/ionicons5";
 import BridgeMarkerIcon from "@/assets/img/bridgeModule/bridge_marker.webp";
 
 const viewer = ref<Cesium.Viewer | null>(null);
+
+// 位置跟踪相关
+const dialogX = ref(0);
+const dialogY = ref(0);
+const isEntityVisible = ref(true);
+let removePostRender: (() => void) | null = null;
+
+const dialogStyle = computed(() => ({
+  left: `${dialogX.value}px`,
+  top: `${dialogY.value}px`,
+}));
+
 const props = defineProps({
   visible: {
     type: Boolean,
@@ -232,6 +244,9 @@ const addMarkerToMap = (longitude, latitude) => {
         2000
       ),
     });
+
+    // 开始位置跟踪
+    startPositionTracking();
   } catch (error) {
     console.error("在地图上添加标记点失败:", error);
   }
@@ -249,7 +264,44 @@ const removeExistingMarkers = (viewer) => {
   }
 };
 
+// 开始位置跟踪
+const startPositionTracking = () => {
+  if (!viewer.value) return;
+  stopPositionTracking();
+
+  removePostRender = viewer.value.scene.postRender.addEventListener(() => {
+    const entity = viewer.value.entities.getById("bridge-marker");
+    if (!entity?.position) return;
+
+    const position = entity.position.getValue(viewer.value.clock.currentTime);
+    if (!position) return;
+
+    const screenPos = Cesium.SceneTransforms.worldToWindowCoordinates(
+      viewer.value.scene,
+      position
+    );
+
+    if (!screenPos) {
+      isEntityVisible.value = false;
+      return;
+    }
+
+    isEntityVisible.value = true;
+    dialogX.value = screenPos.x + 20;
+    dialogY.value = Math.max(10, screenPos.y - 200);
+  });
+};
+
+// 停止位置跟踪
+const stopPositionTracking = () => {
+  if (removePostRender) {
+    removePostRender();
+    removePostRender = null;
+  }
+};
+
 const handleClose = () => {
+  stopPositionTracking();
   emit("update:visible", false);
   // 关闭对话框时移除标记点
   try {
@@ -260,19 +312,25 @@ const handleClose = () => {
     console.warn("关闭对话框时移除标记点失败:", error);
   }
 };
+
+onBeforeUnmount(() => {
+  stopPositionTracking();
+});
 </script>
 
 <style lang="scss" scoped>
 .bridge-detail-dialog {
   position: absolute;
-  top: 80px;
-  left: 1320px;
   width: 773px;
   z-index: 200;
   overflow: hidden;
   pointer-events: auto;
+  display: flex;
+  flex-direction: column;
+  max-height: calc(100vh - 100px);
 
   .dialog-header {
+    flex-shrink: 0;
     height: 70px;
     padding: 0 20px;
     display: flex;
@@ -291,38 +349,42 @@ const handleClose = () => {
   }
 
   .dialog-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
     padding: 30px 20px 24px;
     background: linear-gradient(270deg, #021F37 0%, #02111D 99.92%);
     box-shadow: -34px 0px 17px 0px rgba(4, 17, 38, 0.4), 34px 9px 17px 0px rgba(4, 17, 38, 0.4);
     border: 2px solid;
     border-image: linear-gradient(153deg, rgba(25, 163, 203, 1), rgba(12, 93, 117, 0.24), rgba(8, 189, 243, 0.04), rgba(0, 28, 38, 0), rgba(8, 97, 132, 0), rgba(17, 171, 233, 1)) 2 2;
     backdrop-filter: blur(20px);
-    max-height: calc(100vh - 200px);
-    overflow-y: auto;
-
-    &::-webkit-scrollbar {
-      width: 4px;
-    }
-
-    &::-webkit-scrollbar-track {
-      background: rgba(0, 0, 0, 0.2);
-      border-radius: 2px;
-    }
-
-    &::-webkit-scrollbar-thumb {
-      background: rgba(0, 255, 255, 0.3);
-      border-radius: 2px;
-
-      &:hover {
-        background: rgba(0, 255, 255, 0.5);
-      }
-    }
 
     .info-section {
+      flex: 1;
+      overflow-y: auto;
       display: flex;
       flex-direction: column;
       gap: 10px;
       margin-bottom: 12px;
+
+      &::-webkit-scrollbar {
+        width: 4px;
+      }
+
+      &::-webkit-scrollbar-track {
+        background: rgba(0, 0, 0, 0.2);
+        border-radius: 2px;
+      }
+
+      &::-webkit-scrollbar-thumb {
+        background: rgba(0, 255, 255, 0.3);
+        border-radius: 2px;
+
+        &:hover {
+          background: rgba(0, 255, 255, 0.5);
+        }
+      }
 
       .status-badge-row {
         display: flex;
@@ -420,6 +482,7 @@ const handleClose = () => {
 
     // 操作按钮区域
     .action-section {
+      flex-shrink: 0;
       display: flex;
       justify-content: center;
       gap: 16px;

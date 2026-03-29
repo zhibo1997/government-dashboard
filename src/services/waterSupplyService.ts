@@ -9,6 +9,9 @@ import { BusinessModule, getModuleParams, DEFAULT_COMMON_PARAMS } from './config
 // 默认参数
 const defaultParams = getModuleParams(BusinessModule.WATER_SUPPLY)
 
+// 年份参数（全局统一）
+export const CURRENT_YEAR = '2025'
+
 /**
  * 获取基础设施总览统计
  */
@@ -100,7 +103,6 @@ export async function getDrainageRiskCount(param: {
 export async function getWarnStatistics(Sszx: string) {
   const res = await get<any>('/gspspDtransPubmnteawarn/warnStatistics', {
     ...defaultParams,
-    Year: '2026',
     Sszx,
   })
   return res?.data || {}
@@ -113,7 +115,7 @@ export async function getMonthlyWarnStatistics(params?: {
   Sszx: string
   Year?: string
 }) {
-  const currentYear = params?.Year || new Date().getFullYear().toString()
+  const currentYear = params?.Year || CURRENT_YEAR
   const res = await get<any>('/gspspDtransPubmnteawarn/monthlyWarnStatistics', {
     ...defaultParams,
     Year: currentYear,
@@ -129,7 +131,7 @@ export async function getCheckResultStatistics(params?: {
   Sszx: string
   Year?: string
 }) {
-  const currentYear = params?.Year || new Date().getFullYear().toString()
+  const currentYear = params?.Year || CURRENT_YEAR
   const res = await get<any>('/gspspDtransPubmnteawarn/checkResultStatistics', {
     ...defaultParams,
     Year: currentYear,

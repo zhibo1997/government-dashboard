@@ -76,13 +76,15 @@ const moduleConfig = inject('MODULE_CONFIG', {
   }
 });
 
-const szMap = ref<Record<string, string>>({});
+const szMap = ref<Record<string, { name: string; unit: string }>>({});
 onMounted(async () => {
-  // 获取最新供水水质字典（使用带缓存的优化函数）
-  const szjcsb = moduleConfig.dictKey?.szjcsb || "";
-  const dictionaries = await getCachedDictionary(szjcsb);
+  // 获取监测指标字典（jczbzd），用于映射指标编码为中文名称和单位
+  const dictionaries = await getCachedDictionary("jczbzd");
   szMap.value = dictionaries.reduce((acc, cur) => {
-    acc[cur.f_ItemValue] = cur.f_ItemName;
+    acc[cur.f_ItemValue] = {
+      name: cur.f_ItemName,
+      unit: cur.f_Description || '',
+    };
     return acc;
   }, {});
 
@@ -93,11 +95,12 @@ onMounted(async () => {
       const jcz = parse(item.jcz) as Record<string, any>;
       const parameters = [];
       for (let key in jcz) {
+        const dictItem = szMap.value[key];
         parameters.push({
           id: key,
-          name: szMap.value[key],
+          name: dictItem?.name || key,
           value: jcz[key]?.jcz,
-          unit: jcz[key]?.jcdw || "",
+          unit: dictItem?.unit || jcz[key]?.jcdw || "",
           status: "normal",
         });
       }
