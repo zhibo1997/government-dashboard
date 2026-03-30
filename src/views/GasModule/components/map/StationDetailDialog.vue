@@ -186,8 +186,8 @@ const startPositionTracking = () => {
     }
 
     isEntityVisible.value = true;
-    dialogX.value = (screenPos.x + 20) / scaleRatio.value;
-    dialogY.value = Math.max(10, (screenPos.y - 200) / scaleRatio.value);
+    dialogX.value = (screenPos.x - 773 * scaleRatio.value / 2) / scaleRatio.value;
+    dialogY.value = (screenPos.y) / scaleRatio.value - 880;
   });
 };
 
@@ -274,6 +274,9 @@ const handleShowMonitoring = () => {
 
 onBeforeUnmount(() => {
   stopPositionTracking();
+  if (viewer.value) {
+    removeExistingMarkers(viewer.value);
+  }
 });
 </script>
 
@@ -286,7 +289,6 @@ onBeforeUnmount(() => {
   pointer-events: auto;
   display: flex;
   flex-direction: column;
-  max-height: calc(100vh - 100px);
 
   &.liquefied-gas-info {
     width: 620px;
@@ -312,7 +314,7 @@ onBeforeUnmount(() => {
   }
 
   .dialog-content {
-    flex: 1;
+    height: 400px;
     display: flex;
     flex-direction: column;
     overflow: hidden;

@@ -288,8 +288,8 @@ const startPositionTracking = () => {
     }
 
     isEntityVisible.value = true;
-    dialogX.value = (screenPos.x + 20) / scaleRatio.value;
-    dialogY.value = Math.max(10, (screenPos.y - 200) / scaleRatio.value);
+    dialogX.value = (screenPos.x - 773 * scaleRatio.value / 2) / scaleRatio.value;
+    dialogY.value = (screenPos.y ) / scaleRatio.value - 780;
   });
 };
 
@@ -316,6 +316,9 @@ const handleClose = () => {
 
 onBeforeUnmount(() => {
   stopPositionTracking();
+  if (viewer.value) {
+    removeExistingMarkers(viewer.value);
+  }
 });
 </script>
 
@@ -350,9 +353,9 @@ onBeforeUnmount(() => {
   }
 
   .dialog-content {
-    flex: 1;
     display: flex;
     flex-direction: column;
+    height: 400px;
     overflow: hidden;
     padding: 30px 20px 24px;
     background: linear-gradient(270deg, #021F37 0%, #02111D 99.92%);

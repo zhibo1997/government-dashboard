@@ -2,6 +2,12 @@
   <div class="optimized-layer-tree">
     <!-- 标题栏 -->
     <div class="tree-header">
+      <n-checkbox
+        :checked="isAllChecked"
+        :indeterminate="isIndeterminate"
+        @update:checked="handleSelectAllToggle"
+        class="select-all-checkbox"
+      />
       <span class="header-title">图层</span>
     </div>
 
@@ -63,7 +69,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from "vue";
 import { useRoute } from "vue-router";
-import { NTree, NSpin, NIcon, NInput } from "naive-ui";
+import { NTree, NSpin, NIcon, NInput, NCheckbox } from "naive-ui";
 import { SearchOutline } from "@vicons/ionicons5";
 import { getLayerTree } from "@/services/commonService";
 
@@ -110,35 +116,10 @@ const searchKeyword = ref("");
 const route = useRoute();
 
 /**
- * 根据当前路由获取对应的专项模块代码
- * 返回后端API需要的 SszxCode 参数（中文名称）
+ * 获取专项模块代码（已不再限制，所有模块均显示全部图层）
  */
 function getModuleCodeByRoute(): string {
-  const routeName = route.name as string;
-  const moduleCodeMap: Record<string, string> = {
-    gas: "燃气",           // 燃气专项
-    waterProject: "供水", // 供水专项
-    bridge: "桥梁",      // 桥梁专项
-  };
-  
-  const moduleCode = moduleCodeMap[routeName];
-  
-  return moduleCode;
-}
-
-/**
- * 根据当前路由获取对应的专项编码（用于监测点位加载）
- * 返回类似 'csaqzx_rq' 的编码
- */
-function getSszxCodeByRoute(): string {
-  const routeName = route.name as string;
-  const sszxCodeMap: Record<string, string> = {
-    gas: 'csaqzx_rq',        // 燃气监测
-    waterProject: 'csaqzx_gs', // 供水监测
-    bridge: 'csaqzx_ql',      // 桥梁监测
-  };
-  
-  return sszxCodeMap[routeName] || '';
+  return '';
 }
 
 // 图层状态映射
@@ -175,8 +156,6 @@ async function fetchLayerTree() {
       // 初始化展开的节点
       initExpandedKeys();
       
-      // 初始化默认显示的监测点（问题1解决）
-      initializeDefaultMonitoringPoints();
     } else {
       console.warn("⚠️ 图层树数据为空");
       rawLayerData.value = [];
@@ -337,6 +316,108 @@ const totalLayerCount = computed(() => {
   countLayers(treeData.value);
   return count;
 });
+
+/**
+ * 所有叶子节点key（实际图层，非分组）
+ */
+const allLeafKeys = computed<string[]>(() => {
+  const keys: string[] = [];
+  const collectLeaves = (nodes: any[]) => {
+    nodes.forEach((node) => {
+      if (node.isLayer) {
+        keys.push(node.key);
+      }
+      if (node.children && node.children.length > 0) {
+        collectLeaves(node.children);
+      }
+    });
+  };
+  collectLeaves(treeData.value);
+  return keys;
+});
+
+/**
+ * 是否全选
+ */
+const isAllChecked = computed(() => {
+  const leaves = allLeafKeys.value;
+  if (leaves.length === 0) return false;
+  return leaves.every((key) => checkedKeys.value.includes(key));
+});
+
+/**
+ * 是否半选（indeterminate）
+ */
+const isIndeterminate = computed(() => {
+  const leaves = allLeafKeys.value;
+  if (leaves.length === 0) return false;
+  const checkedCount = leaves.filter((key) =>
+    checkedKeys.value.includes(key)
+  ).length;
+  return checkedCount > 0 && checkedCount < leaves.length;
+});
+
+/**
+ * 收集所有子节点已全部勾选的分组节点key
+ */
+function collectFullyCheckedGroupKeys(
+  nodes: any[],
+  checkedSet: Set<string>
+): string[] {
+  const groupKeys: string[] = [];
+
+  const processNode = (node: any): boolean => {
+    if (node.isLayer) {
+      return checkedSet.has(node.key);
+    }
+
+    if (node.children && node.children.length > 0) {
+      const allChildrenChecked = node.children.every((child: any) =>
+        processNode(child)
+      );
+      if (allChildrenChecked) {
+        groupKeys.push(node.key);
+        return true;
+      }
+      return false;
+    }
+
+    return false;
+  };
+
+  nodes.forEach(processNode);
+  return groupKeys;
+}
+
+/**
+ * 全选/取消全选处理
+ */
+function handleSelectAllToggle(checked: boolean) {
+  if (checked) {
+    const allKeys = [...allLeafKeys.value];
+    const groupKeys = collectFullyCheckedGroupKeys(
+      treeData.value,
+      new Set(allKeys)
+    );
+    checkedKeys.value = [...new Set([...allKeys, ...groupKeys])];
+  } else {
+    checkedKeys.value = [];
+  }
+
+  // 触发所有图层的显隐变化
+  const allLayerIds = Array.from(layerStates.value.keys());
+  allLayerIds.forEach((layerId) => {
+    const isChecked = checkedKeys.value.includes(layerId);
+    const currentState = layerStates.value.get(layerId);
+    if (currentState && currentState.visible !== isChecked) {
+      layerStates.value.set(layerId, {
+        ...currentState,
+        visible: isChecked,
+      });
+      handleLayerVisibilityChange(layerId, isChecked);
+    }
+  });
+}
 
 /**
  * 处理展开/折叠
@@ -554,62 +635,6 @@ function findLayerById(nodes: any[], id: string): any | null {
 }
 
 /**
- * 初始化默认显示的监测点（问题1解决）
- * 在图层树加载完成后，根据条件自动显示某些监测点
- */
-function initializeDefaultMonitoringPoints() {
-  console.log('🔄 开始初始化默认显示的监测点...');
-  
-  const defaultVisibleLayers: string[] = [];
-  
-  // 递归遍历图层树，找到所有需要默认显示的 specialLayer
-  const traverseNodes = (nodes: any[]) => {
-    nodes.forEach(node => {
-      // 判断是否为 specialLayer 且 visible 为 true
-      if (node.type === 'specialLayer' && (node.visible === 'true' || node.visible === true)) {
-        defaultVisibleLayers.push(node.id);
-        console.log(`📍 发现默认显示的监测点图层: ${node.name} (${node.id})`);
-      }
-      
-      // 递归处理子节点
-      if (node.child && Array.isArray(node.child)) {
-        traverseNodes(node.child);
-      }
-    });
-  };
-  
-  traverseNodes(rawLayerData.value);
-  
-  // 如果有需要默认显示的图层，更新勾选状态
-  if (defaultVisibleLayers.length > 0) {
-    console.log(`✅ 找到 ${defaultVisibleLayers.length} 个默认显示的监测点图层，开始加载...`);
-    
-    // 更新勾选状态（这会触发 handleCheckedKeysChange）
-    checkedKeys.value = [...new Set([...checkedKeys.value, ...defaultVisibleLayers])];
-    
-    // 手动触发图层显示逻辑
-    defaultVisibleLayers.forEach(layerId => {
-      const layerData = findLayerById(rawLayerData.value, layerId);
-      if (layerData) {
-        // 更新图层状态
-        const currentState = layerStates.value.get(layerId);
-        if (currentState) {
-          layerStates.value.set(layerId, {
-            ...currentState,
-            visible: true
-          });
-        }
-        
-        // 触发图层加载
-        handleLayerVisibilityChange(layerId, true);
-      }
-    });
-  } else {
-    console.log('ℹ️ 没有找到需要默认显示的监测点图层');
-  }
-}
-
-/**
  * 更新图层状态（供外部调用）
  */
 function updateLayerState(
@@ -668,6 +693,28 @@ defineExpose({
   padding: 12px 24px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
   background: transparent;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  .select-all-checkbox {
+    :deep(.n-checkbox-box) {
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      background-color: transparent;
+      border-radius: 2px;
+      width: 32px;
+      height: 32px;
+    }
+
+    &.n-checkbox--checked .n-checkbox-box {
+      background-color: #1890ff;
+      border-color: #1890ff;
+    }
+
+    :deep(.n-checkbox-box .n-checkbox-box__border) {
+      border: none;
+    }
+  }
 
   .header-title {
     font-size: 32px;

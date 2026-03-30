@@ -44,7 +44,7 @@
             <span class="status-tag" :class="getMaintStatusClass(row.sbywzt)">{{ formatMaintStatus(row.sbywzt) }}</span>
           </template>
           <template #action="{ row }">
-            <button class="view-btn" @click="handleViewEquipment(row)">查看</button>
+            <n-button text type="primary" class="view-btn" @click="handleViewEquipment(row)">查看</n-button>
           </template>
         </CommonTable>
       </div>
@@ -178,7 +178,7 @@ const fetchData = async () => {
     }
     const res = await getBridgeTargetEquipmentPageList(params)
     if (res && res.rows) {
-      tableData.value = res
+      tableData.value = res.rows;
       total.value = res.total || 0
     } else {
       tableData.value = []
@@ -448,19 +448,13 @@ const handleViewEquipment = (equipment: any) => {
       }
 
       .view-btn {
-        background: rgba(22, 119, 255, 0.3);
-        border: 1px solid rgba(22, 119, 255, 0.6);
-        border-radius: 4px;
-        color: #ffffff;
-        padding: 4px 16px;
-        cursor: pointer;
-        font-size: var(--font-size-sm);
-        transition: all 0.3s ease;
-
-        &:hover {
-          background: rgba(22, 119, 255, 0.5);
-          border-color: rgba(22, 119, 255, 0.9);
-        }
+        font-family: SourceHanSansSC, SourceHanSansSC;
+        font-weight: 400;
+        font-size: 30px;
+        color: #3FFFFF;
+        line-height: 60px;
+        text-align: left;
+font-style: normal;
       }
     }
 

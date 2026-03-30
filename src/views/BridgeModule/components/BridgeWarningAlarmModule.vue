@@ -1,5 +1,5 @@
 <template>
-  <div class="data-module warning-alarm-module">
+  <div class="data-module warning-alarm-module" @click="showMonitorPopup = true">
     <div class="module-header">
       <div class="module-title">预警报警</div>
     </div>
@@ -110,16 +110,37 @@
         />
       </div>
     </div>
+
+    <!-- 监测弹窗 -->
+    <Teleport to="body">
+      <div v-if="showMonitorPopup" class="monitor-popup-overlay" @click.self="showMonitorPopup = false">
+        <div
+          class="monitor-popup"
+          :style="{ transform: `scale(${scaleRatio})`, transformOrigin: 'top right', 
+          right: 960 * scaleRatio + 'px', top: 180 * scaleRatio + 'px' }"
+          @click.stop
+        >
+          <div class="monitor-popup-close" @click="showMonitorPopup = false"></div>
+          <img :src="bridgeMonitorPopupImg" class="monitor-popup-img" />
+        </div>
+      </div>
+    </Teleport>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from "vue";
+import { ref, computed, onMounted, inject } from "vue";
 import { getWarnStatistics } from "@/services/waterSupplyService";
 import { getBridgeWarningTypeList } from "@/services/bridgeService";
 import CommonTable from '@/components/CommonTable.vue';
+import bridgeMonitorPopupImg from '@/assets/img/bridge_monitor_popup.jpg';
+
+const scaleRatio = inject('responsiveScale', ref(1));
 
 // ==================== 数据状态 ====================
+// 监测弹窗显示状态
+const showMonitorPopup = ref(false);
+
 // 当前激活的Tab
 const activeTab = ref("warning");
 
@@ -542,6 +563,58 @@ onMounted(() => {
   
   .status-pending {
     color: #FF4757;
+  }
+}
+</style>
+
+<style lang="scss">
+// 监测弹窗（Teleport to body）
+.monitor-popup-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 10000;
+  pointer-events: auto;
+}
+
+.monitor-popup {
+  position: absolute;
+
+  .monitor-popup-close {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    width: 60px;
+    height: 60px;
+    cursor: pointer;
+    z-index: 1;
+
+    &::before,
+    &::after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 36px;
+      height: 4px;
+      background: rgba(255, 255, 255, 0.7);
+    }
+
+    &::before {
+      transform: translate(-50%, -50%) rotate(45deg);
+    }
+
+    &::after {
+      transform: translate(-50%, -50%) rotate(-45deg);
+    }
+  }
+
+  .monitor-popup-img {
+    width: 680px;
+    height: auto;
+    display: block;
   }
 }
 </style>

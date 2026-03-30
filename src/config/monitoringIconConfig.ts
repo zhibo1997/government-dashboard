@@ -10,13 +10,13 @@
  */
 export const DEVICE_ICON_MAP: Record<string, string> = {
   // 燃气监测设备
-  'jcsblx0101': 'jcsb_1.svg',
+  'jcsblx0101': '0101-可燃气体监测仪.svg',
   
   // 桥梁监测设备
-  'jcsblx0501': 'jcsb_2.svg',
-  'jcsblx0502': 'jcsb_2.svg',
-  'jcsblx0503': 'jcsb_2.svg',
-  'jcsblx0510': 'jcsb_2.svg',
+  'jcsblx0501': '0501-温度传感器.svg',
+  'jcsblx0502': '0502-应变传感器.svg',
+  'jcsblx0503': '0503-加速度传感器.svg',
+  'jcsblx0510': '0510-裂缝计.svg',
 }
 
 /**
