@@ -41,7 +41,7 @@
 <script setup lang="ts">
 import { ref, onMounted, nextTick, computed } from "vue";
 import * as echarts from "echarts";
-import { getEarlyWarningDisposalCountList } from "@/services/statusService";
+import { getEarlyWarningDisposalCountList, getEarlyWarningDisposalPage } from "@/services/statusService";
 import { getWarnStatistics } from "@/services/waterSupplyService";
 import { getCachedDictionary } from "@/services/dictionaryService";
 import { getMonitoringEarlyWarningChartOption, getMonitoringDonutChartOption, SeriesData, LevelMapping, createCustomVerticalGradient } from "./chartOptions";
@@ -118,7 +118,7 @@ const currentTable = ref<{ columns: Array<{ key: string; label: string }>; data:
     { key: '反馈时间', label: '反馈时间' },
     { key: '预警等级', label: '预警等级' },
     { key: '关联目标', label: '关联目标' },
-    { key: '处置状态', label: '处置状态' },
+    { key: 'fkms', label: '处置状态' },
   ],
   data: []
 });
@@ -320,7 +320,28 @@ const initChart = async () => {
 
 onMounted(() => {
   initChart();
+  fetchTableData();
 });
+
+/**
+ * 获取预警处置表格数据
+ */
+async function fetchTableData() {
+  try {
+    const res = await getEarlyWarningDisposalPage({ rows: 10, page: 1 });
+    const list = res.rows || res.records || res.list || [];
+    currentTable.value.data = list.map((item: any, index: number) => ({
+      id: item.id || index,
+      序号: index + 1,
+      反馈时间: item.fksj || '-',
+      预警等级: item.yjdj || '-',
+      关联目标: item.fkdw || '-',
+      处置状态: item.fkms || '-',
+    }));
+  } catch (error) {
+    console.error('获取预警处置列表失败:', error);
+  }
+}
 </script>
 
 <style lang="scss" scoped>

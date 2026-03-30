@@ -39,6 +39,18 @@ export async function getEarlyWarningDisposalCountList() {
 }
 
 /**
+ * 获取预警处置列表（分页）
+ */
+export async function getEarlyWarningDisposalPage(params: {
+  rows: number
+  page: number
+  sszx?: string
+}) {
+  const res = await get<any>('/zzts/yjcz/operate/page', params)
+  return res.data || {}
+}
+
+/**
  * 获取基础设施总览统计
  */
 export async function getBasicFacilitiesOverview(params?: {
