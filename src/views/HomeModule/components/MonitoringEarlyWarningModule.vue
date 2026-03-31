@@ -26,13 +26,14 @@
         </div>
       </div>
       <!-- 预警处置表格 -->
-      <CommonTable
+      <WarningDisposalTable
         title="预警处置"
         :columns="tableColumns"
         :data="currentTable.data"
         row-key="id"
         empty-text="-"
-        :max-height="300"
+        :auto-scroll="true"
+        :scroll-speed="1"
       />
     </div>
   </div>
@@ -45,7 +46,7 @@ import { getEarlyWarningDisposalCountList, getEarlyWarningDisposalPage } from "@
 import { getWarnStatistics } from "@/services/waterSupplyService";
 import { getCachedDictionary } from "@/services/dictionaryService";
 import { getMonitoringEarlyWarningChartOption, getMonitoringDonutChartOption, SeriesData, LevelMapping, createCustomVerticalGradient } from "./chartOptions";
-import CommonTable from "@/components/CommonTable.vue";
+import WarningDisposalTable from "./WarningDisposalTable.vue";
 
 // 数据类型定义
 interface EarlyWarningDataItem {
@@ -116,8 +117,7 @@ const currentTable = ref<{ columns: Array<{ key: string; label: string }>; data:
   columns: [
     { key: '序号', label: '序号' },
     { key: '反馈时间', label: '反馈时间' },
-    { key: '预警等级', label: '预警等级' },
-    { key: '关联目标', label: '关联目标' },
+    { key: '描述', label: '描述' },
     { key: 'fkms', label: '处置状态' },
   ],
   data: []
@@ -126,10 +126,8 @@ const currentTable = ref<{ columns: Array<{ key: string; label: string }>; data:
 // 表格列配置
 const tableColumns = computed(() => [
   { key: '序号', title: '序号', width: '1fr' },
-  { key: '反馈时间', title: '反馈时间', width: '2fr' },
-  { key: '预警等级', title: '预警等级', width: '1fr' },
-  { key: '关联目标', title: '关联目标', width: '2fr' },
-  { key: '处置状态', title: '处置状态', width: '1fr' }
+  { key: '反馈时间', title: '反馈时间', width: '2.5fr' },
+  { key: '处置状态', title: '处置状态', width: '1.5fr' }
 ]);
 
 // 显示用总数：优先使用环形图接口的总数，没有则显示 "-"
@@ -328,14 +326,13 @@ onMounted(() => {
  */
 async function fetchTableData() {
   try {
-    const res = await getEarlyWarningDisposalPage({ rows: 10, page: 1 });
+    const res = await getEarlyWarningDisposalPage({ rows: 20, page: 1 });
     const list = res.rows || res.records || res.list || [];
     currentTable.value.data = list.map((item: any, index: number) => ({
       id: item.id || index,
       序号: index + 1,
       反馈时间: item.fksj || '-',
-      预警等级: item.yjdj || '-',
-      关联目标: item.fkdw || '-',
+      描述: item.yjdj || '-',
       处置状态: item.fkms || '-',
     }));
   } catch (error) {

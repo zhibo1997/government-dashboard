@@ -61,9 +61,9 @@ const initGSItems = async () => {
         id: item.f_ItemValue,
         name: item.f_ItemName,
         unit: item.f_Description,
-        icon: iconMapping[item.f_ItemValue] ,
-        value: null, // 初始值为 null,后续从 initOverviewData 获取
-        jcsslx: item.f_ItemValue // 保存原始类型码,用于数据匹配
+        icon: iconMapping[item.f_ItemValue] || 'pump_station', // 使用默认图标作为后备
+        value: null, // 初始值为 null，后续从 initOverviewData 获取
+        jcsslx: item.f_ItemValue // 保存原始类型码，用于数据匹配
       }));
     }
   } catch (error) {

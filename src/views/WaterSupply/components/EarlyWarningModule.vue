@@ -4,7 +4,7 @@
       <div class="module-title">预警处置</div>
     </div>
     <div class="module-content warning-content">
-      <div class="warning-list">
+      <div class="warning-list" style="display: none;">
         <div class="warning-data">
           <img class="pyramid" src="@/assets/img/waterSupply/pyramid.png" alt="" />
           <div class="warning-data-content">
@@ -29,7 +29,7 @@
         </div>
       </div>
       <div class="handled-content">
-        <div class="handled-list">
+        <div class="handled-list" style="display: none;">
           <div class="handled-item item-handled">
             <span class="title">已处置</span>
             <span class="value gradient-text">{{
@@ -102,7 +102,7 @@ const updateChart = (data) => {
   handledOption.series[0].data = data.map((d) => d.unhandledCount);
   handledOption.series[1].data = data.map((d) => d.handledCount);
   handledOption.series[2].data = data.map((d) =>
-    ((d.handledCount / (d.unhandledCount + d.handledCount)) * 100).toFixed(1)
+    ((d.handledCount / (d.unhandledCount + d.handledCount)) * 100).toFixed(1) + '%'
   );
 
   handledEchart.setOption(handledOption, true);
@@ -251,19 +251,17 @@ watch(monthlyData, (newData) => {
   flex-direction: row;
   justify-content: space-between;
   width: 100%;
+  height: 100%;
   flex: 1;
-  margin-top: 30px;
 
   .handled-chart {
-    width: 531px;
+    width: 100%;
     height: 100%;
   }
   .handled-list{
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 16px;
+    display: none;
   }
+  
   .handled-item {
     background-size: 100% 100%;
     width: 164px;

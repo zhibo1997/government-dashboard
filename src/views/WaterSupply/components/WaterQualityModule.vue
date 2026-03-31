@@ -46,7 +46,9 @@
                   alt=""
                 />
               </div>
-              <div class="parameter-title">{{ parameter.name }}</div>
+              <div class="parameter-title">{{ parameter.name }}
+                <span v-if="parameter.unit" class="parameter-unit">({{ parameter.unit }})</span>
+              </div>
             </div>
           </div>
         </div>
@@ -265,6 +267,12 @@ const waterPlants = ref([]);
       line-height: 44px;
       text-align: center;
       font-style: normal;
+
+      .parameter-unit {
+        font-size: 24px;
+        color: rgba(228, 243, 255, 0.7);
+        margin-left: 4px;
+      }
     }
   }
 }

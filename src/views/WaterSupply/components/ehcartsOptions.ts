@@ -347,12 +347,15 @@ export const handledOption = {
     axisPointer: {
       type: "shadow",
     },
+    backgroundColor: 'rgba(2, 17, 29, 0.9)',
+    borderColor: 'rgba(13, 165, 190, 0.5)',
+    textStyle: { color: '#e4f3ff', fontSize: 28 },
   },
   legend: {
     data: ["未处置", "已处置", "处置率"],
     textStyle: {
       color: "#fff",
-      fontSize: 18,
+      fontSize: 24,
     },
     top: "0%",
     right: "15%",
@@ -368,7 +371,7 @@ export const handledOption = {
     data: [],
     axisLabel: {
       color: "#fff",
-      fontSize: 18,
+      fontSize: 24,
     },
     axisLine: {
       lineStyle: {
@@ -388,7 +391,7 @@ export const handledOption = {
       interval: 10,
       axisLabel: {
         color: "#fff",
-        fontSize: 18,
+        fontSize: 24,
       },
       axisLine: {
         lineStyle: {
@@ -410,7 +413,7 @@ export const handledOption = {
       interval: 20,
       axisLabel: {
         color: "#fff",
-        fontSize: 18,
+        fontSize: 24,
       },
       axisLine: {
         lineStyle: {

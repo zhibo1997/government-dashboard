@@ -5,17 +5,18 @@
     </div>
     <div class="module-content">
       <!-- 顶部统计卡片 -->
+       <!-- todo 目前为假数据 -->
       <div class="top-stats">
         <div class="stat-card">
           <div class="stat-icon">
             <img src="@/assets/img/device_count.webp" alt="监测设备" />
           </div>
           <div class="stat-info">
-            <div class="stat-label">监测设备总数</div>
+            <div class="stat-label">监控设备总数</div>
             <div class="stat-value">
-              <span class="value-total gradient-text">-</span>
+              <span class="value-total gradient-text">20</span>
               <span class="value-separator">/</span>
-              <span class="value-offline gradient-text">-</span>
+              <span class="value-offline gradient-text">18</span>
             </div>
           </div>
         </div>
@@ -27,7 +28,7 @@
           <div class="stat-info">
             <div class="stat-label">在线率</div>
             <div class="stat-value">
-              <span class="value-rate gradient-text">-</span>
+              <span class="value-rate gradient-text">90%</span>
             </div>
           </div>
         </div>
