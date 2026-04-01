@@ -46,7 +46,7 @@
           :checkable="true"
           :selectable="false"
           :block-line="true"
-          :cascade="false"
+          :cascade="true"
           key-field="key"
           label-field="title"
           children-field="children"
@@ -67,7 +67,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, watch } from "vue";
+import { ref, computed, onMounted, watch, nextTick } from "vue";
 import { useRoute } from "vue-router";
 import { NTree, NSpin, NIcon, NInput, NCheckbox } from "naive-ui";
 import { SearchOutline } from "@vicons/ionicons5";
@@ -122,6 +122,9 @@ function getModuleCodeByRoute(): string {
   return '';
 }
 
+// 图层数据缓存（按模块代码缓存，避免重复请求）
+const layerTreeCache = new Map<string, any[]>();
+
 // 图层状态映射
 const layerStates = ref<
   Map<
@@ -141,25 +144,29 @@ const layerStates = ref<
 async function fetchLayerTree() {
   loading.value = true;
   try {
-    // 根据当前路由获取模块代码
     const moduleCode = getModuleCodeByRoute();
-    
-    const response = await getLayerTree({ SszxCode: moduleCode });
 
-    if (response) {
-      rawLayerData.value = response;
-      console.log("✅ 图层树数据加载成功:", rawLayerData.value);
-
-      // 初始化图层状态
-      initializeLayerStates(rawLayerData.value);
-
-      // 初始化展开的节点
-      initExpandedKeys();
-      
+    // 优先读取缓存
+    if (layerTreeCache.has(moduleCode)) {
+      rawLayerData.value = layerTreeCache.get(moduleCode)!;
+      console.log("✅ 图层树数据命中缓存:", moduleCode);
     } else {
-      console.warn("⚠️ 图层树数据为空");
-      rawLayerData.value = [];
+      const response = await getLayerTree({ SszxCode: moduleCode });
+      if (response) {
+        rawLayerData.value = response;
+        layerTreeCache.set(moduleCode, response);
+        console.log("✅ 图层树数据加载并缓存:", moduleCode);
+      } else {
+        console.warn("⚠️ 图层树数据为空");
+        rawLayerData.value = [];
+      }
     }
+
+    // 初始化图层状态
+    initializeLayerStates(rawLayerData.value);
+
+    // 初始化展开的节点
+    initExpandedKeys();
   } catch (error) {
     console.error("❌ 获取图层树失败:", error);
   } finally {
@@ -174,7 +181,7 @@ function initializeLayerStates(nodes: any[]) {
   const processNode = (node: any) => {
     if (node.type !== "group" && node.url) {
       layerStates.value.set(node.id, {
-        visible: node.visible === "true" || node.visible === true,
+        visible: false,
         opacity: node.opacity || 1.0,
         loading: false,
         error: null,
@@ -393,6 +400,8 @@ function collectFullyCheckedGroupKeys(
  * 全选/取消全选处理
  */
 function handleSelectAllToggle(checked: boolean) {
+  const previousKeys = new Set(checkedKeys.value);
+
   if (checked) {
     const allKeys = [...allLeafKeys.value];
     const groupKeys = collectFullyCheckedGroupKeys(
@@ -404,19 +413,29 @@ function handleSelectAllToggle(checked: boolean) {
     checkedKeys.value = [];
   }
 
-  // 触发所有图层的显隐变化
-  const allLayerIds = Array.from(layerStates.value.keys());
-  allLayerIds.forEach((layerId) => {
-    const isChecked = checkedKeys.value.includes(layerId);
-    const currentState = layerStates.value.get(layerId);
-    if (currentState && currentState.visible !== isChecked) {
-      layerStates.value.set(layerId, {
-        ...currentState,
-        visible: isChecked,
-      });
-      handleLayerVisibilityChange(layerId, isChecked);
+  const newSet = new Set(checkedKeys.value);
+
+  // 处理新增勾选
+  for (const key of newSet) {
+    if (!previousKeys.has(key)) {
+      const node = findNodeByKey(treeData.value, key);
+      if (node?.isLayer) {
+        updateLayerVisibleState(key, true);
+        handleLayerVisibilityChange(key, true);
+      }
     }
-  });
+  }
+
+  // 处理取消勾选
+  for (const key of previousKeys) {
+    if (!newSet.has(key)) {
+      const node = findNodeByKey(treeData.value, key);
+      if (node?.isLayer) {
+        updateLayerVisibleState(key, false);
+        handleLayerVisibilityChange(key, false);
+      }
+    }
+  }
 }
 
 /**
@@ -464,24 +483,29 @@ function handleCheckedKeysChange(keys: string[]) {
   
   checkedKeys.value = finalKeys;
 
-  // 遍历所有图层,处理显隐状态变化
-  const allLayerIds = Array.from(layerStates.value.keys());
+  const newSet = new Set(finalKeys);
 
-  allLayerIds.forEach((layerId) => {
-    const isChecked = finalKeys.includes(layerId);
-    const currentState = layerStates.value.get(layerId);
-
-    if (currentState && currentState.visible !== isChecked) {
-      // 更新状态
-      layerStates.value.set(layerId, {
-        ...currentState,
-        visible: isChecked,
-      });
-
-      // 触发图层加载/卸载
-      handleLayerVisibilityChange(layerId, isChecked);
+  // 处理新增勾选的叶子节点
+  for (const key of finalKeys) {
+    if (!previousKeys.has(key)) {
+      const node = findNodeByKey(treeData.value, key);
+      if (node?.isLayer) {
+        updateLayerVisibleState(key, true);
+        handleLayerVisibilityChange(key, true);
+      }
     }
-  });
+  }
+
+  // 处理取消勾选的叶子节点
+  for (const key of previousKeys) {
+    if (!newSet.has(key)) {
+      const node = findNodeByKey(treeData.value, key);
+      if (node?.isLayer) {
+        updateLayerVisibleState(key, false);
+        handleLayerVisibilityChange(key, false);
+      }
+    }
+  }
 }
 
 /**
@@ -635,6 +659,16 @@ function findLayerById(nodes: any[], id: string): any | null {
 }
 
 /**
+ * 更新图层可见状态（内部辅助）
+ */
+function updateLayerVisibleState(layerId: string, visible: boolean) {
+  const state = layerStates.value.get(layerId);
+  if (state) {
+    layerStates.value.set(layerId, { ...state, visible });
+  }
+}
+
+/**
  * 更新图层状态（供外部调用）
  */
 function updateLayerState(
@@ -656,17 +690,88 @@ function updateLayerState(
   }
 }
 
+/**
+ * 按 ID 批量勾选并加载指定图层（供外部调用）
+ * @param ids 需要加载的图层 ID 数组
+ */
+function loadDefaultLayers(ids: string[]) {
+  if (!ids || ids.length === 0) return;
+
+  // 过滤出有效的叶子图层节点
+  const previousKeys = new Set(checkedKeys.value);
+  const validIds = ids.filter((id) => {
+    const node = findNodeByKey(treeData.value, id);
+    return node?.isLayer;
+  });
+
+  if (validIds.length === 0) return;
+
+  // 合并到现有 checkedKeys，并更新父分组节点
+  const newLeafKeys = [...new Set([...checkedKeys.value, ...validIds])];
+  const groupKeys = collectFullyCheckedGroupKeys(
+    treeData.value,
+    new Set(newLeafKeys)
+  );
+  checkedKeys.value = [...new Set([...newLeafKeys, ...groupKeys])];
+
+  // 仅对新增的图层触发加载
+  for (const id of validIds) {
+    if (!previousKeys.has(id)) {
+      updateLayerVisibleState(id, true);
+      handleLayerVisibilityChange(id, true);
+    }
+  }
+}
+
+/**
+ * 重置图层树状态并重新加载（供外部调用）
+ * 卸载所有可见图层、清空状态、重新请求数据
+ * @param defaultLayerIds 重新加载后需要自动勾选的图层 ID（可选）
+ */
+async function resetAndReload(defaultLayerIds?: string[]) {
+  // 1. 卸载当前所有可见图层
+  const currentVisibleLayers = Array.from(layerStates.value.entries())
+    .filter(([, state]) => state.visible)
+    .map(([id]) => id);
+
+  for (const layerId of currentVisibleLayers) {
+    updateLayerVisibleState(layerId, false);
+    handleLayerVisibilityChange(layerId, false);
+  }
+
+  // 2. 清空 UI 状态
+  checkedKeys.value = [];
+  layerStates.value.clear();
+  rawLayerData.value = [];
+  expandedKeys.value = [];
+
+  // 3. 重新获取图层数据
+  await fetchLayerTree();
+
+  // 4. 加载默认图层
+  if (defaultLayerIds && defaultLayerIds.length > 0) {
+    await nextTick();
+    loadDefaultLayers(defaultLayerIds);
+  }
+}
+
 // 组件挂载时加载数据
-onMounted(() => {
-  fetchLayerTree();
+onMounted(async () => {
+  const defaultIds = (route.meta?.defaultLayerIds as string[]) || undefined;
+  await fetchLayerTree();
+  if (defaultIds && defaultIds.length > 0) {
+    await nextTick();
+    loadDefaultLayers(defaultIds);
+  }
 });
 
-// 监听路由变化，切换模块时重新加载图层数据
+// 监听路由变化，切换模块时重置并重新加载图层数据
 watch(
   () => route.name,
   () => {
-    console.log(`📍 路由已变更，重新加载图层数据`);
-    fetchLayerTree();
+    const defaultIds = (route.meta?.defaultLayerIds as string[]) || undefined;
+    console.log(`📍 路由已变更，重置并重新加载图层数据，默认图层:`, defaultIds);
+    resetAndReload(defaultIds);
   }
 );
 
@@ -675,6 +780,8 @@ defineExpose({
   updateLayerState,
   fetchLayerTree,
   layerStates,
+  loadDefaultLayers,
+  resetAndReload,
 });
 </script>
 

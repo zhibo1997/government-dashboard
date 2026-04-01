@@ -38,10 +38,10 @@
           grid-template="0.6fr 1fr 1.5fr 2fr 1.5fr 1fr 1fr 1fr 0.8fr"
         >
           <template #sbyxzt="{ row }">
-            <span class="status-tag" :class="getDeviceStatusClass(row.sbyxzt)">{{ formatDeviceStatus(row.sbyxzt) }}</span>
+            <span class="status-text">{{ formatDeviceStatus(row.sbyxzt) }}</span>
           </template>
           <template #sbywzt="{ row }">
-            <span class="status-tag" :class="getMaintStatusClass(row.sbywzt)">{{ formatMaintStatus(row.sbywzt) }}</span>
+            <span class="status-text">{{ formatMaintStatus(row.sbywzt) }}</span>
           </template>
           <template #action="{ row }">
             <n-button text type="primary" class="view-btn" @click="handleViewEquipment(row)">查看</n-button>
@@ -425,26 +425,9 @@ const handleViewEquipment = (equipment: any) => {
       overflow: auto;
       margin-top: 20px;
 
-      .status-tag {
-        padding: 4px 12px;
-        border-radius: 12px;
+      .status-text {
+        color: #ffffff;
         font-size: var(--font-size-sm);
-        font-weight: 500;
-
-        &.status-online {
-          background: rgba(46, 213, 115, 0.2);
-          color: #2ED573;
-        }
-
-        &.status-offline {
-          background: rgba(255, 71, 87, 0.2);
-          color: #FF4757;
-        }
-
-        &.status-fault {
-          background: rgba(255, 165, 2, 0.2);
-          color: #FFA502;
-        }
       }
 
       .view-btn {

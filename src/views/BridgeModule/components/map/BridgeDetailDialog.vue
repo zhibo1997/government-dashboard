@@ -393,7 +393,6 @@ onBeforeUnmount(() => {
       .status-badge-row {
         display: flex;
         gap: 12px;
-        justify-content: center;
 
         .badge-btn {
           padding: 8px 20px;

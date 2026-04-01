@@ -25,7 +25,7 @@ const routes: RouteRecordRaw[] = [
       desc: '登录 - 安全综合检测预警平台'
     }
   },
-  
+
   // 持久化布局：业务模块父路由
   {
     path: '/',
@@ -47,7 +47,11 @@ const routes: RouteRecordRaw[] = [
         component: WaterSupplyView,
         meta: {
           requiresAuth: true,
-          desc: '供水专项'
+          desc: '供水专项',
+          defaultLayerIds: [
+            '5b42b88c-8fec-46b0-a9b5-3f35c8eb2067',
+            'c665ebf0-7327-473a-9743-42fc5ea2d111'
+          ]
         }
       },
       {
@@ -56,7 +60,11 @@ const routes: RouteRecordRaw[] = [
         component: GasModule,
         meta: {
           requiresAuth: true,
-          desc: '燃气专项'
+          desc: '燃气专项',
+          defaultLayerIds: [
+            '1b30d4d8-fd3c-4b21-86ab-f534e333a3c3',
+            'e9f47982-3a43-4d16-817c-80f6b65e0566'
+          ]
         }
       },
       {
@@ -65,7 +73,13 @@ const routes: RouteRecordRaw[] = [
         component: BridgeModule,
         meta: {
           requiresAuth: true,
-          desc: '桥梁专项'
+          desc: '桥梁专项',
+          defaultLayerIds: [
+            '06ad0be1-f8fd-44fb-92ec-be82de6f8f38',
+            '919829ed-9c4d-43ae-9a94-1ff0cef22a3f',
+            'ecb4e7b6-6a2e-4948-85b0-0c5975816e07',
+            'aa50cee7-c4f6-4315-bcb1-f89aea7c00c0'
+          ]
         }
       },
       {
@@ -74,7 +88,11 @@ const routes: RouteRecordRaw[] = [
         component: DrainageModule,
         meta: {
           requiresAuth: true,
-          desc: '排水专项'
+          desc: '排水专项',
+          defaultLayerIds: [
+            '5b42b88c-8fec-46b0-a9b5-3f35c8eb2067',
+            'c665ebf0-7327-473a-9743-42fc5ea2d111'
+          ]
         }
       }
     ]

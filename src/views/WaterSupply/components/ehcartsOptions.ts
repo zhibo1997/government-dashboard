@@ -350,6 +350,17 @@ export const handledOption = {
     backgroundColor: 'rgba(2, 17, 29, 0.9)',
     borderColor: 'rgba(13, 165, 190, 0.5)',
     textStyle: { color: '#e4f3ff', fontSize: 28 },
+    formatter: function (params) {
+      let result = params[0].axisValue + '<br/>';
+      params.forEach(param => {
+        if (param.seriesName === '处置率') {
+          result += param.marker + param.seriesName + ': ' + param.value.toFixed(1) + '%<br/>';
+        } else {
+          result += param.marker + param.seriesName + ': ' + param.value + '<br/>';
+        }
+      });
+      return result;
+    },
   },
   legend: {
     data: ["未处置", "已处置", "处置率"],
@@ -358,7 +369,7 @@ export const handledOption = {
       fontSize: 24,
     },
     top: "0%",
-    right: "15%",
+    left: "center",
   },
   grid: {
     left: 2,
@@ -386,12 +397,16 @@ export const handledOption = {
     {
       type: "value",
       name: "单位：个",
+      nameTextStyle: {
+        color: "#fff",
+        fontSize: 26,
+      },
       min: 0,
       max: 50,
       interval: 10,
       axisLabel: {
         color: "#fff",
-        fontSize: 24,
+        fontSize: 26,
       },
       axisLine: {
         lineStyle: {
@@ -408,12 +423,17 @@ export const handledOption = {
     {
       type: "value",
       name: "单位：% ",
+      nameTextStyle: {
+        color: "#fff",
+        fontSize: 26,
+      },
       min: 0,
       max: 100,
       interval: 20,
       axisLabel: {
         color: "#fff",
-        fontSize: 24,
+        fontSize: 26,
+        formatter: '{value} %',
       },
       axisLine: {
         lineStyle: {

@@ -74,14 +74,14 @@ export function createBillboardCanvasWithArrow(
 
   // 1. 绘制头部背景
   if (resources.headerBg.complete && resources.headerBg.naturalWidth > 0) {
-    ctx.globalAlpha = 0.95; // 设置透明度为 60%(40% 透明)
+    ctx.globalAlpha = 0.9; // 设置透明度为 60%(40% 透明)
     ctx.drawImage(resources.headerBg, 0, 0, width, headerHeight);
     ctx.globalAlpha = 1.0; // 恢复默认透明度
   }
 
   // 2. 绘制内容背景
   if (resources.contentBg.complete && resources.contentBg.naturalWidth > 0) {
-    ctx.globalAlpha = 0.95; // 设置透明度为 60%(40% 透明)
+    ctx.globalAlpha = 0.9; // 设置透明度为 60%(40% 透明)
     ctx.drawImage(resources.contentBg, 0, headerHeight - 2, width, contentBodyHeight);
     ctx.globalAlpha = 1.0; // 恢复默认透明度
   }

@@ -98,11 +98,11 @@ const initChart = () => {
 const updateChart = (data) => {
   if (!handledEchart || !data) return;
 
-  handledOption.xAxis.data = data.map((item) => item.month);
+  handledOption.xAxis.data = data.map((item) => `${item.year}-${item.month}`);
   handledOption.series[0].data = data.map((d) => d.unhandledCount);
   handledOption.series[1].data = data.map((d) => d.handledCount);
   handledOption.series[2].data = data.map((d) =>
-    ((d.handledCount / (d.unhandledCount + d.handledCount)) * 100).toFixed(1) + '%'
+    (d.handledCount / (d.unhandledCount + d.handledCount)) * 100
   );
 
   handledEchart.setOption(handledOption, true);

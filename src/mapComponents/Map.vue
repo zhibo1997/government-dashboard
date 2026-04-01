@@ -79,6 +79,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted, onBeforeUnmount, computed, watch } from 'vue'
+import { useRoute } from 'vue-router'
 import { VcCamera ,VcColor} from 'vue-cesium/lib/utils/types.js'
 import mapConfig from '@/config/mapConfig'
 import MeasureTool from './MeasureTool.vue'
@@ -151,8 +152,20 @@ const mainFabOpts = {
 
 
 
+// 路由
+const route = useRoute()
+
 // 默认3D Tiles显示状态
 const defaultTilesetVisible = ref(false)
+
+// 首页默认展示白膜，其他模块关闭
+watch(
+  () => route.name,
+  (name) => {
+    defaultTilesetVisible.value = name === 'home'
+  },
+  { immediate: true }
+)
 
 // 底图类型
 const currentBaseMapType = ref<'vec' | 'img' | 'ter' | 'arcgis'>('img')
