@@ -480,21 +480,21 @@ defineExpose({
     right: 100%;
     top: 0;
     margin-right: 16px;
-    width: 240px;
-    background: rgba(0, 15, 35, 0.65);
+    width: 380px;
+    background: rgba(11, 28, 45, 0.65);
     backdrop-filter: blur(10px);
     border: 2px solid rgba(22, 119, 255, 0.3);
     border-radius: 12px;
-    padding: 20px;
+    padding: 24px;
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
 
     .panel-title {
-      font-size: 18px;
-      font-weight: bold;
+      font-size: 32px;
+      font-weight: 700;
       color: #ffffff;
       margin-bottom: 16px;
       padding-bottom: 12px;
-      border-bottom: 1px solid rgba(22, 119, 255, 0.2);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
     }
 
     .base-map-options {
@@ -505,36 +505,36 @@ defineExpose({
       .base-map-option {
         display: flex;
         align-items: center;
-        gap: 12px;
-        padding: 12px 16px;
+        gap: 16px;
+        padding: 16px 20px;
         background: rgba(255, 255, 255, 0.05);
-        border: 1px solid rgba(22, 119, 255, 0.2);
+        border: 1px solid rgba(255, 255, 255, 0.1);
         border-radius: 8px;
         cursor: pointer;
         transition: all 0.3s ease;
 
         &:hover {
-          background: rgba(22, 119, 255, 0.15);
-          border-color: rgba(22, 119, 255, 0.5);
+          background: rgba(255, 255, 255, 0.08);
+          border-color: rgba(255, 255, 255, 0.2);
           transform: translateX(-4px);
         }
 
         &.active {
-          background: rgba(22, 119, 255, 0.25);
-          border-color: #1677ff;
+          background: rgba(255, 255, 255, 0.08);
+          border-color: rgba(255, 255, 255, 0.2);
 
           .option-label {
-            color: #1677ff;
-            font-weight: bold;
+            color: #1890ff;
+            font-weight: 700;
           }
         }
 
         .option-icon {
-          font-size: 24px;
+          font-size: 36px;
         }
 
         .option-label {
-          font-size: 16px;
+          font-size: 28px;
           color: #ffffff;
           flex: 1;
         }

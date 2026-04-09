@@ -13,13 +13,6 @@
     <div class="dialog-content">
       <!-- 天然气企业信息 -->
       <div class="info-section" v-if="isNaturalGas">
-        <div class="info-grid">
-          <div class="info-row" v-for="field in naturalGasFields" :key="field.key">
-            <label>{{ field.label }}：</label>
-            <span class="info-value">{{ stationData[field.key] || "—" }}</span>
-          </div>
-        </div>
-
         <div class="status-badge-row">
           <button class="badge-btn badge-type">天然气企业</button>
           <button class="badge-btn badge-normal" v-if="stationData?.sjtbzt === 'I'">
@@ -27,24 +20,26 @@
           </button>
           <button class="badge-btn badge-error" v-else>异常</button>
         </div>
+
+        <div class="info-grid">
+          <div class="info-row" v-for="field in naturalGasFields" :key="field.key">
+            <label>{{ field.label }}：</label>
+            <span class="info-value">{{ stationData[field.key] || "—" }}</span>
+          </div>
+        </div>
       </div>
 
       <!-- 液化气企业信息 -->
       <div class="info-section" v-else-if="isLiquefiedGas">
+        <div class="status-badge-row">
+          <button class="badge-btn badge-type">液化气企业</button>
+          <button class="badge-btn badge-normal" v-if="stationData?.sjtbzt === 'I'">
+            正常
+          </button>
+          <button class="badge-btn badge-error" v-else>异常</button>
+        </div>
+
         <div class="info-grid">
-          <div class="info-row">
-            <label>企业编码：</label>
-            <span class="info-value">{{ stationData.qybm || "—" }}</span>
-
-
-            <div class="status-badge-row">
-              <button class="badge-btn badge-type">液化气企业</button>
-              <button class="badge-btn badge-normal" v-if="stationData?.sjtbzt === 'I'">
-                正常
-              </button>
-              <button class="badge-btn badge-error" v-else>异常</button>
-            </div>
-          </div>
           <div class="info-row" v-for="field in liquefiedGasFields" :key="field.key">
             <label>{{ field.label }}：</label>
             <span class="info-value">{{ stationData[field.key] || "—" }}</span>
@@ -362,7 +357,6 @@ onBeforeUnmount(() => {
       .status-badge-row {
         display: flex;
         gap: 12px;
-        justify-content: center;
 
         .badge-btn {
           padding: 8px 20px;

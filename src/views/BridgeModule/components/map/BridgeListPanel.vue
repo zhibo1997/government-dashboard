@@ -24,7 +24,7 @@
         <!-- 名称搜索 -->
         <div class="filter-row search-row">
           <div class="filter-item search-item">
-            <input v-model="filters.name" type="text" class="filter-input" placeholder="请输入桥梁名称" />
+            <input v-model="filters.name" type="text" class="filter-input" placeholder="请输入名称" />
           </div>
           <button class="reset-btn" @click="resetFilters">重置</button>
         </div>

@@ -85,10 +85,11 @@ const legendItems = computed<LegendItem[]>(() => {
         width: 36px;
         height: 50px;
         object-fit: contain;
+        display: block;
       }
 
       .legend-label {
-        margin-left: px;
+        margin-left: 0;
         font-family: SourceHanSansSC, SourceHanSansSC;
         font-weight: 500;
         font-size: 30px;

@@ -1,7 +1,7 @@
 <template>
   <div class="data-module risk-hazard-module">
     <div class="module-header">
-      <div class="module-title">风险隐患</div>
+      <div class="module-title">风险隐点</div>
     </div>
     <div class="module-content">
       <div class="risk-container">
