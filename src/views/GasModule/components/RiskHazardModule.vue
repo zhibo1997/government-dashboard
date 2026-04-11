@@ -1,7 +1,7 @@
 <template>
   <div class="data-module risk-hazard-module">
     <div class="module-header">
-      <div class="module-title">风险隐点</div>
+      <div class="module-title">风险点</div>
     </div>
     <div class="module-content">
       <div class="risk-container">
@@ -399,7 +399,7 @@ onMounted(async () => {
 
   // 左侧多环形图区域
   .left-chart {
-    width: 38%;
+    width: 100%;
     display: flex;
     flex-direction: column;
 

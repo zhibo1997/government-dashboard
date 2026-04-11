@@ -14,8 +14,26 @@
       <!-- 主标题 -->
       <div class="panel-title">
         <div class="title-container">
-          <span class="title-text">燃气企业</span>
-          <!-- <img src="@/assets/img/gasModule/pull_down.webp" class="pull-down-icon" alt="" /> -->
+          <div class="title-dropdown" @click="toggleTitleMenu">
+            <span class="title-text">{{ currentTitle }}</span>
+            <img
+              src="@/assets/img/gasModule/pull_down.webp"
+              class="pull-down-icon"
+              :class="{ rotated: showTitleMenu }"
+              alt=""
+            />
+          </div>
+          <div class="title-menu" v-if="showTitleMenu">
+            <div
+              class="title-menu-item"
+              :class="{ active: currentTitle === item.label }"
+              v-for="item in titleOptions"
+              :key="item.value"
+              @click.stop="selectTitle(item)"
+            >
+              {{ item.label }}
+            </div>
+          </div>
         </div>
         <img src="@/assets/img/gasModule/icon_close.webp" class="panel-close" alt="" />
       </div>
@@ -30,6 +48,24 @@
           <button class="reset-btn" @click="resetFilters">重置</button>
         </div>
 
+
+        <!-- 场站名称搜索 -->
+        <div class="filter-row search-row">
+          <div class="filter-item search-item">
+            <input v-model="filters.czmc" type="text" class="filter-input" placeholder="请输入场站名称" />
+          </div>
+        </div>
+
+        <!-- 场站类型 -->
+        <div class="filter-item filter-item-select">
+          <n-select
+            v-model:value="filters.Czlx"
+            :options="czlxOptions"
+            placeholder="请选择场站类型"
+            clearable
+            class="filter-select"
+          />
+        </div>
 
         <!-- 燃气类型 -->
         <div class="filter-item filter-item-select">
@@ -57,8 +93,9 @@
             :class="{ active: station.lsh === activeStationId }" @click="handleStationClick(station)">
             <div class="station-badges">
               <span class="badge badge-type">{{ getStationType(station.rqlx) }}</span>
+              <span class="badge badge-type" v-if="station.czlx">{{ getCzlxName(station.czlx) }}</span>
             </div>
-            <div class="station-name">{{ station.qymc }}</div>
+            <div class="station-name">{{ station.qymc || station.czmc }}</div>
             <div class="station-address">{{ station.xxdz }}</div>
           </div>
         </div>
@@ -81,6 +118,7 @@
 
 <script setup lang="ts">
 import { getGasEnterprisePageList, getGasEnterpriseLedgerDetail, getBottleGasEnterpriseLedgerDetail, getGasUserPageList, getGasStationPageList } from "@/services/gasService";
+import { getCachedDictionary } from "@/services/dictionaryService";
 import { ref, computed, onMounted, watch } from "vue";
 import { NSelect } from "naive-ui";
 
@@ -97,6 +135,23 @@ const emit = defineEmits(["update:visible", "station-click"]);
 const isCollapsed = ref(true);
 const showSearch = ref(false);
 
+// 标题下拉切换
+const showTitleMenu = ref(false);
+const currentTitle = ref('燃气企业');
+const titleOptions = [
+  { label: '燃气企业', value: 'enterprise' },
+  { label: '监测设备', value: 'monitor' },
+];
+
+const toggleTitleMenu = () => {
+  showTitleMenu.value = !showTitleMenu.value;
+};
+
+const selectTitle = (item: { label: string; value: string }) => {
+  currentTitle.value = item.label;
+  showTitleMenu.value = false;
+};
+
 // 搜索关键词
 const searchKeyword = ref("");
 
@@ -104,6 +159,8 @@ const searchKeyword = ref("");
 const filters = ref({
   company: "",
   type: "rqlx001",
+  czmc: "",
+  Czlx: null as string | null,
 });
 
 // 燃气类型选项
@@ -120,8 +177,19 @@ const gasTypeOptions = [
   }
 ];
 
+// 场站类型字典映射
+const czlxDictMap = ref<Record<string, string>>({});
+const czlxOptions = ref<{ label: string; value: string }[]>([]);
+
+/**
+ * 获取场站类型名称（通过字典映射）
+ */
+const getCzlxName = (czlx: string): string => {
+  return czlxDictMap.value[czlx] || czlx || '未知类型';
+};
+
 // 监听筛选条件变化
-watch([searchKeyword, () => filters.value.type], () => {
+watch([searchKeyword, () => filters.value.type, () => filters.value.czmc, () => filters.value.Czlx], () => {
   currentPage.value = 1;
   loadStations();
 }, { deep: true });
@@ -130,6 +198,8 @@ watch([searchKeyword, () => filters.value.type], () => {
 const resetFilters = () => {
   searchKeyword.value = "";
   filters.value.company = "";
+  filters.value.czmc = "";
+  filters.value.Czlx = null;
   currentPage.value = 1;
   loadStations();
 };
@@ -161,7 +231,24 @@ const loadStations = async () => {
   }
 }
 
-onMounted(() => {
+onMounted(async () => {
+  // 加载场站类型字典
+  try {
+    const czlxDict = await getCachedDictionary("czlx");
+    if (czlxDict && czlxDict.length > 0) {
+      czlxDictMap.value = czlxDict.reduce((acc: Record<string, string>, cur: any) => {
+        acc[cur.f_ItemValue] = cur.f_ItemName;
+        return acc;
+      }, {});
+      czlxOptions.value = czlxDict.map((item: any) => ({
+        label: item.f_ItemName,
+        value: item.f_ItemValue,
+      }));
+    }
+  } catch (error) {
+    console.error("加载场站类型字典失败:", error);
+  }
+
   loadStations();
 });
 
@@ -369,15 +456,65 @@ const nextPage = () => {
         height: 9px;
       }
 
-      .title-text {
-        font-family: SourceHanSansSC, SourceHanSansSC;
-        font-weight: var(--font-weight-medium);
-        font-size: var(--font-size-4xl);
-        color: #FFFFFF;
-        line-height: calc(var(--font-size-3xl) * 1.467);
-        text-align: center;
-        font-style: normal;
-        margin-right: 18px;
+      .title-dropdown {
+        display: flex;
+        align-items: center;
+        cursor: pointer;
+        position: relative;
+
+        .title-text {
+          font-family: SourceHanSansSC, SourceHanSansSC;
+          font-weight: var(--font-weight-medium);
+          font-size: var(--font-size-4xl);
+          color: #FFFFFF;
+          line-height: calc(var(--font-size-3xl) * 1.467);
+          text-align: center;
+          font-style: normal;
+          margin-right: 10px;
+        }
+
+        .pull-down-icon {
+          width: 16px;
+          height: 9px;
+          transition: transform 0.3s ease;
+
+          &.rotated {
+            transform: rotate(180deg);
+          }
+        }
+      }
+
+      .title-menu {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        margin-top: 8px;
+        background: linear-gradient(180deg, #0A2A3F 0%, #061A28 100%);
+        border: 1px solid rgba(0, 255, 255, 0.3);
+        border-radius: 8px;
+        z-index: 200;
+        min-width: 180px;
+        overflow: hidden;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+
+        .title-menu-item {
+          padding: 14px 20px;
+          font-family: SourceHanSansSC, SourceHanSansSC;
+          font-weight: var(--font-weight-normal);
+          font-size: var(--font-size-xl);
+          color: #E4F3FF;
+          cursor: pointer;
+          transition: all 0.2s ease;
+
+          &:hover {
+            background: rgba(13, 165, 190, 0.3);
+          }
+
+          &.active {
+            color: #3FFFFF;
+            background: rgba(13, 165, 190, 0.2);
+          }
+        }
       }
     }
 

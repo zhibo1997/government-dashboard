@@ -31,7 +31,7 @@
         :data="currentTable.data"
         row-key="id"
         empty-text="暂无数据"
-        :max-height="220"
+        :max-height="280"
       />
     </div>
   </div>
@@ -122,7 +122,7 @@ const fetchNaturalGasStats = async () => {
   if (loadedData.value.naturalGasStats) return; // 已加载则跳过
   try {
     const data = await getNaturalGasCountList();
-    naturalGasStats.value = data.map(item => ({
+    naturalGasStats.value = data.filter(item => item.name !== '监测点').map(item => ({
       key: item.name,
       label: item.name,
       value: item.count,
@@ -163,7 +163,7 @@ const fetchLiquefiedGasStats = async () => {
   if (loadedData.value.liquefiedGasStats) return; // 已加载则跳过
   try {
     const data = await getLiquefiedGasCountList();
-    liquefiedGasStats.value = data.map(item => ({
+    liquefiedGasStats.value = data.filter(item => item.name !== '监测点').map(item => ({
       key: item.name,
       label: item.name,
       value: item.count,
@@ -182,8 +182,7 @@ const getUnitByName = (name) => {
     '供应站': '座',
     '管网': '公里',
     '井盖': '个',
-    '用户': '户',
-    '监测点': '个'
+    '用户': '户'
   };
   return unitMap[name] || '个';
 };
@@ -229,6 +228,8 @@ onMounted(async () => {
 
   .base-info {
     display: flex;
+    width: 100%;
+    gap: 12px;
   }
 
   // 气体类型切换标签
@@ -273,15 +274,14 @@ onMounted(async () => {
     justify-content: space-between;
     margin-bottom: 25px;
     flex-direction: row;
+    flex:1;
 
     .stat-card {
       flex: 1;
       background: linear-gradient(135deg, rgba(0, 150, 255, 0.08) 0%, rgba(0, 100, 200, 0.05) 100%);
       border: 1px solid rgba(22, 119, 255, 0.25);
       border-radius: 6px;
-      // padding: 15px 12px;
       text-align: center;
-      width: 95px;
       display: flex;
       flex-direction: column;
       align-items: center;

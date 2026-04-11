@@ -540,7 +540,7 @@ onBeforeUnmount(() => {
 
       .chart-3d {
         width: 320px;
-        height: 200px;
+        height: 240px;
       }
     }
   }

@@ -19,7 +19,7 @@ export default defineConfig(({ command, mode }) => {
     // 设置静态资源基础路径
     base: env.VITE_BASE_URL || "/clmap/",
     plugins: [vue(), vueDevTools({
-      launchEditor: 'qoder',
+      launchEditor: 'Lingma',
     })],
     resolve: {
       alias: {

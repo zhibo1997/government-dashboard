@@ -32,7 +32,7 @@
             <img src="@/assets/img/online_rate.webp" alt="在线率" />
           </div>
           <div class="stat-info">
-            <div class="stat-label">在线率</div>
+            <div class="statlabel">在线率</div>
             <div class="stat-value">
               <span class="value-rate gradient-text">{{
                 topStats.onlineRate
@@ -206,7 +206,9 @@ const deviceCategories = ref<
 
 <style lang="scss" scoped>
 .monitoring-device-module {
-
+  .module-content{
+    justify-content: space-around;
+  }
 
   // 顶部统计卡片
   .top-stats {
@@ -297,7 +299,7 @@ const deviceCategories = ref<
     .category-column {
       background-image: url("@/assets/img/gasModule/device_item.webp");
       width: 33.3%;
-      height: 285px;
+      height: 300px;
 
       .category-header {
         height: 70px;

@@ -37,9 +37,9 @@ import { NMessageProvider, NDialogProvider, NConfigProvider, zhCN, dateZhCN } fr
     height: 100%;
     display: flex;
     flex-direction: column;
-    gap: 16px;
+    gap: 18px;
     z-index: 10;
-    margin: 0 0 20px 20px;
+    margin: 0 0 22px 22px;
     box-sizing: border-box;
     background: linear-gradient(00deg, #021A2E 0.08%, #021F37 100%);
   }
@@ -50,9 +50,9 @@ import { NMessageProvider, NDialogProvider, NConfigProvider, zhCN, dateZhCN } fr
     height: 100%;
     display: flex;
     flex-direction: column;
-    gap: 16px;
+    gap: 18px;
     z-index: 10;
-    margin: 0 20px 20px 0;
+    margin: 0 22px 22px 0;
     box-sizing: border-box;
     background: linear-gradient(270deg, #021A2E 0.08%, #021F37 100%);
   }
@@ -79,25 +79,25 @@ import { NMessageProvider, NDialogProvider, NConfigProvider, zhCN, dateZhCN } fr
   }
 
   .module-header {
-    height: 90px;
+    height: 100px;
     display: flex;
     align-items: center;
 
     .module-title {
       font-family: YouSheBiaoTiHei;
-      font-size: 44px;
+      font-size: 50px;
       color: #ffffff;
       text-align: left;
       font-style: normal;
-      padding-left: 140px;
-      margin-top: 10px;
+      padding-left: 155px;
+      margin-top: 12px;
     }
   }
 
   .module-content {
     flex: 1;
     padding: 20px 30px;
-    height: calc(100% - 90px);
+    height: calc(100% - 100px);
     display: flex;
     flex-direction: column;
     border-radius: 8px;

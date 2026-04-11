@@ -255,6 +255,8 @@ onMounted(() => {
         height: 60.66px;
         background-image: url('@/assets/img/homeModule/alarm_count.webp');
         background-size: 100% 100%;
+        display: flex;
+        justify-content: center;
 
         >span {
 
@@ -322,6 +324,8 @@ onMounted(() => {
           height: 79.13px;
           background-size: 100% 100%;
           text-align: center;
+          display: flex;
+          justify-content: center;
           
           >span {
             line-height: 79.13px;

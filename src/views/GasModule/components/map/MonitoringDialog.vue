@@ -119,11 +119,17 @@ const tableColumns = [
   { key: 'runStatus', title: '运行状态', width: '1.2fr' }
 ];
 
-// 处理表格数据，添加序号
+// 处理表格数据，映射字段并添加序号
 const processedTableData = computed(() => {
   return tableData.value.map((item, index) => ({
     ...item,
-    index: index + 1 + (currentPage.value - 1) * pageSize.value
+    index: index + 1 + (currentPage.value - 1) * pageSize.value,
+    specialty: '燃气',
+    stationId: item.czbh || '—',
+    stationName: item.czmc || '—',
+    position: item.xxdz || '—',
+    stationType: item.czlx || '—',
+    runStatus: item.sjtbzt === 'I' ? '正常' : '异常',
   }));
 });
 
@@ -151,7 +157,7 @@ const fetchData = async () => {
     
     if (res && res.rows) {
       tableData.value = res.rows;
-      total.value = res.total || 0;
+      total.value = res.records || 0;
     } else {
       tableData.value = [];
       total.value = 0;
