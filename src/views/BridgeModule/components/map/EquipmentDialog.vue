@@ -69,21 +69,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch, onMounted } from 'vue'
-import { useVueCesium } from 'vue-cesium'
+import { ref, computed, watch } from 'vue'
 import { getBridgeTargetEquipmentPageList } from '@/services/bridgeService'
 import { Close } from '@vicons/ionicons5'
 import { NButton, NIcon } from 'naive-ui'
 import CommonTable from '@/components/CommonTable.vue'
-import BridgeMarkerIcon from '@/assets/img/bridgeModule/bridge_marker.webp'
-
-const viewer = ref<Cesium.Viewer | null>(null)
-
-onMounted(async () => {
-  const $vc = useVueCesium()
-  const readyObj = await $vc.creatingPromise
-  viewer.value = readyObj.viewer
-})
 
 const props = defineProps({
   visible: {
@@ -96,7 +86,7 @@ const props = defineProps({
   },
 })
 
-const emit = defineEmits(['update:visible'])
+const emit = defineEmits(['update:visible', 'equipment-view'])
 
 // 搜索
 const searchKeyword = ref('')
@@ -151,15 +141,7 @@ watch(() => props.visible, (val) => {
     searchKeyword.value = ''
     fetchData()
   } else {
-    // 关闭时移除设备标记
-    try {
-      if (viewer.value) {
-        const marker = viewer.value.entities.getById('equipment-marker')
-        if (marker) viewer.value.entities.remove(marker)
-      }
-    } catch (e) {
-      console.warn('移除设备标记失败:', e)
-    }
+    // 关闭时清理
   }
 })
 
@@ -248,15 +230,6 @@ const formatDeviceStatus = (sbyxzt: string) => {
   return map[sbyxzt] || sbyxzt || '—'
 }
 
-const getDeviceStatusClass = (sbyxzt: string) => {
-  const map: Record<string, string> = {
-    'sbyxzt001': 'status-online',
-    'sbyxzt002': 'status-offline',
-    'sbyxzt003': 'status-fault',
-  }
-  return map[sbyxzt] || ''
-}
-
 const formatMaintStatus = (sbywzt: string) => {
   const map: Record<string, string> = {
     'sbywzt001': '完好',
@@ -266,51 +239,9 @@ const formatMaintStatus = (sbywzt: string) => {
   return map[sbywzt] || sbywzt || '—'
 }
 
-const getMaintStatusClass = (sbywzt: string) => {
-  const map: Record<string, string> = {
-    'sbywzt001': 'status-online',
-    'sbywzt002': 'status-fault',
-    'sbywzt003': 'status-offline',
-  }
-  return map[sbywzt] || ''
-}
-
-// 查看设备位置 - 在地图上标注并飞行
+// 查看设备 - 通知父组件显示详情弹窗
 const handleViewEquipment = (equipment: any) => {
-  if (!viewer.value) {
-    console.warn('Cesium viewer 实例未找到')
-    return
-  }
-  const lng = equipment.jd || equipment.longitude
-  const lat = equipment.wd || equipment.latitude
-  if (!lng || !lat) {
-    console.warn('设备缺少位置数据')
-    return
-  }
-
-  // 移除之前的设备标记
-  const existingMarker = viewer.value.entities.getById('equipment-marker')
-  if (existingMarker) {
-    viewer.value.entities.remove(existingMarker)
-  }
-
-  // 添加设备标记
-  const entity = viewer.value.entities.add({
-    id: 'equipment-marker',
-    position: Cesium.Cartesian3.fromDegrees(lng, lat),
-    billboard: {
-      image: BridgeMarkerIcon,
-      scale: 1.0,
-      scaleByDistance: new Cesium.NearFarScalar(500, 1, 1000000, 0),
-      horizontalOrigin: Cesium.HorizontalOrigin.CENTER,
-      verticalOrigin: Cesium.VerticalOrigin.BOTTOM,
-    }
-  })
-
-  viewer.value.flyTo(entity, {
-    duration: 2,
-    offset: new Cesium.HeadingPitchRange(0, Cesium.Math.toRadians(-45), 1000),
-  })
+  emit('equipment-view', equipment)
 }
 </script>
 
@@ -437,7 +368,7 @@ const handleViewEquipment = (equipment: any) => {
         color: #3FFFFF;
         line-height: 60px;
         text-align: left;
-font-style: normal;
+        font-style: normal;
       }
     }
 
@@ -471,7 +402,7 @@ font-style: normal;
 
         &:disabled {
           opacity: 0.3;
-          cursor: not-allowed;
+          cursor: not-a allowed;
         }
       }
 

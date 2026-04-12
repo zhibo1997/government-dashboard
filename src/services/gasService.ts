@@ -189,3 +189,16 @@ export async function getGasWarningTypeList() {
   const res = await get<any>('/gspspDtransGas/gasYjList/list', defaultParams)
   return res.data || []
 }
+
+/**
+ * 获取监测设备最新数据
+ */
+export async function getEquipmentData(params: {
+  gldwbh: string
+  sbbh: string
+  sblx: string
+  number?: number
+}) {
+  const res = await get<any>('/eqp/pubmnt/data', params)
+  return res.data || []
+}

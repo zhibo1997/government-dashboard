@@ -17,6 +17,13 @@
   <EquipmentDialog
     :visible="showEquipmentDialog"
     :bridge-data="selectedBridge"
+    @equipment-view="handleEquipmentView"
+  />
+
+  <!-- 设备详情弹窗（顶层渲染，避免父容器偏移影响定位） -->
+  <EquipmentDetailPopup
+    v-model:visible="showEquipmentDetail"
+    :equipment-data="selectedEquipment"
   />
 </template>
 
@@ -25,6 +32,7 @@ import { ref } from "vue";
 import BridgeListPanel from "./components/map/BridgeListPanel.vue";
 import BridgeDetailDialog from "./components/map/BridgeDetailDialog.vue";
 import EquipmentDialog from "./components/map/EquipmentDialog.vue";
+import EquipmentDetailPopup from "./components/map/EquipmentDetailPopup.vue";
 
 // 桥梁模块侧边栏组件
 defineOptions({
@@ -35,7 +43,9 @@ defineOptions({
 const showBridgeList = ref(true);
 const showBridgeDetail = ref(false);
 const showEquipmentDialog = ref(false);
+const showEquipmentDetail = ref(false);
 const selectedBridge = ref(null);
+const selectedEquipment = ref<any>({});
 
 // 处理桥梁点击
 const handleBridgeClick = (bridge) => {
@@ -48,6 +58,12 @@ const handleBridgeClick = (bridge) => {
 // 显示监测设备
 const handleShowEquipment = () => {
   showEquipmentDialog.value = true;
+};
+
+// 处理设备查看
+const handleEquipmentView = (equipment: any) => {
+  selectedEquipment.value = equipment;
+  showEquipmentDetail.value = true;
 };
 </script>
 

@@ -4,6 +4,7 @@
     <StationListPanel
       v-model:visible="showStationList"
       @station-click="handleStationClick"
+      @equipment-click="handleEquipmentClick"
     />
 
     <!-- 场站详情弹窗 -->
@@ -18,6 +19,12 @@
       v-model:visible="showMonitoringDialog"
       :station-data="selectedStation"
     />
+
+    <!-- 设备详情弹窗 -->
+    <EquipmentDetailDialog
+      v-model:visible="showEquipmentDetail"
+      :equipment-data="selectedEquipment"
+    />
   <!-- </div> -->
 </template>
 
@@ -26,12 +33,15 @@ import { ref } from "vue";
 import StationListPanel from "./components/map/StationListPanel.vue";
 import StationDetailDialog from "./components/map/StationDetailDialog.vue";
 import MonitoringDialog from "./components/map/MonitoringDialog.vue";
+import EquipmentDetailDialog from "./components/map/EquipmentDetailDialog.vue";
 
 // 控制显示状态
 const showStationList = ref(true);
 const showStationDetail = ref(false);
 const showMonitoringDialog = ref(false);
+const showEquipmentDetail = ref(false);
 const selectedStation = ref(null);
+const selectedEquipment = ref<any>({});
 
 // 处理场站点击
 const handleStationClick = (station) => {
@@ -44,6 +54,12 @@ const handleStationClick = (station) => {
 // 显示监测设备
 const handleShowMonitoring = () => {
   showMonitoringDialog.value = true;
+};
+
+// 处理设备点击
+const handleEquipmentClick = (equipment: any) => {
+  selectedEquipment.value = equipment;
+  showEquipmentDetail.value = true;
 };
 </script>
 

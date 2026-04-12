@@ -206,10 +206,10 @@ const createRiskLevelChartOption = (riskLegendData: any[]): echarts.EChartsOptio
   const placeHolderStyle = getPlaceHolderStyle();
 
   const radiusMap = [
+    [118, 120],
     [98, 100],
     [78, 80],
     [58, 60],
-    [38, 40],
   ];
   const lineLengthMap = [40, 50, 60, 70];
 
@@ -310,20 +310,27 @@ watch(
 <style lang="scss" scoped>
 .risk-chart-container {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
+  align-items: center;
+  width: 100%;
+  height: 100%;
 
   .risk-echart {
-    width: 100%;
-    height: 250px;
+    width: 50%;
+    min-width: 200px;
+    height: 100%;
   }
 
   .risk-legend {
+    flex: 1;
     display: flex;
     flex-direction: column;
-    gap: 6px;
+    justify-content: center;
+    gap: 24px;
+    padding: 0 10px;
 
     .legend-item {
-      padding: 2px 10px;
+      padding: 8px 14px;
       display: flex;
       justify-content: space-between;
       align-items: center;

@@ -43,35 +43,27 @@
         <!-- 名称搜索 -->
         <div class="filter-row search-row">
           <div class="filter-item search-item">
-            <input v-model="searchKeyword" type="text" class="filter-input" placeholder="请输入名称" />
+            <input v-model="searchKeyword" type="text" class="filter-input" :placeholder="listMode === 'monitor' ? '请输入设备名称' : '请输入名称'" />
           </div>
           <button class="reset-btn" @click="resetFilters">重置</button>
         </div>
 
-
-        <!-- 场站名称搜索 -->
-        <div class="filter-row search-row">
-          <div class="filter-item search-item">
-            <input v-model="filters.czmc" type="text" class="filter-input" placeholder="请输入场站名称" />
-          </div>
-        </div>
-
-        <!-- 场站类型 -->
-        <div class="filter-item filter-item-select">
+        <!-- 燃气类型（仅企业模式显示） -->
+        <div class="filter-item filter-item-select" v-if="listMode === 'enterprise'">
           <n-select
-            v-model:value="filters.Czlx"
-            :options="czlxOptions"
-            placeholder="请选择场站类型"
-            clearable
+            v-model:value="filters.type"
+            :options="gasTypeOptions"
             class="filter-select"
           />
         </div>
 
-        <!-- 燃气类型 -->
-        <div class="filter-item filter-item-select">
+        <!-- 设备类型（仅监测设备模式显示） -->
+        <div class="filter-item filter-item-select" v-if="listMode === 'monitor'">
           <n-select
-            v-model:value="filters.type"
-            :options="gasTypeOptions"
+            v-model:value="filters.sblx"
+            :options="sblxOptions"
+            placeholder="全部设备类型"
+            clearable
             class="filter-select"
           />
         </div>
@@ -89,25 +81,43 @@
       <!-- 企业列表 -->
       <div class="list-section">
         <div class="list-content">
-          <div class="station-item" v-for="station in stations" :key="station.lsh"
-            :class="{ active: station.lsh === activeStationId }" @click="handleStationClick(station)">
-            <div class="station-badges">
-              <span class="badge badge-type">{{ getStationType(station.rqlx) }}</span>
-              <span class="badge badge-type" v-if="station.czlx">{{ getCzlxName(station.czlx) }}</span>
+          <!-- 燃气企业列表 -->
+          <template v-if="listMode === 'enterprise'">
+            <div class="station-item" v-for="station in stations" :key="station.lsh"
+              :class="{ active: station.lsh === activeStationId }" @click="handleStationClick(station)">
+              <div class="station-badges">
+                <span class="badge badge-type">{{ getStationType(station.rqlx) }}</span>
+              </div>
+              <div class="station-name">{{ station.qymc || station.czmc }}</div>
+              <div class="station-address">{{ station.xxdz }}</div>
             </div>
-            <div class="station-name">{{ station.qymc || station.czmc }}</div>
-            <div class="station-address">{{ station.xxdz }}</div>
-          </div>
+          </template>
+          <!-- 监测设备列表 -->
+          <template v-else>
+            <div class="station-item" v-for="item in stations" :key="item.lsh"
+              :class="{ active: item.lsh === activeStationId }" @click="handleEquipmentClick(item)">
+              <div class="station-badges">
+                <span class="badge badge-type">{{ getSblxName(item.sblx) }}</span>
+                <span class="badge badge-status" :class="item.sbyxzt === 'sbyxzt001' ? 'badge-normal' : 'badge-error'">
+                  {{ item.sbyxzt === 'sbyxzt001' ? '正常' : '异常' }}
+                </span>
+              </div>
+              <div class="station-name">{{ item.sbmc }}</div>
+              <div class="station-address">{{ item.sbbh }}</div>
+            </div>
+          </template>
         </div>
 
         <!-- 分页 -->
         <div class="pagination">
           <button class="page-btn" @click="prevPage" :disabled="currentPage === 1">‹</button>
-          <button v-for="page in visiblePages" :key="page" class="page-btn" :class="{ active: page === currentPage }"
-            @click="currentPage = page">
-            {{ page }}
-          </button>
-          <button class="page-btn page-more" v-if="totalPages > 6">...</button>
+          <template v-for="page in visiblePages" :key="page">
+            <span v-if="page < 0" class="page-ellipsis">...</span>
+            <button v-else class="page-btn" :class="{ active: page === currentPage }"
+              @click="goToPage(page)">
+              {{ page }}
+            </button>
+          </template>
           <button class="page-btn" @click="nextPage" :disabled="currentPage === totalPages">›</button>
           <span class="page-info">{{ currentPage }} / {{ totalPages }}</span>
         </div>
@@ -117,7 +127,7 @@
 </template>
 
 <script setup lang="ts">
-import { getGasEnterprisePageList, getGasEnterpriseLedgerDetail, getBottleGasEnterpriseLedgerDetail, getGasUserPageList, getGasStationPageList } from "@/services/gasService";
+import { getGasEnterprisePageList, getGasEnterpriseLedgerDetail, getBottleGasEnterpriseLedgerDetail, getGasUserPageList, getGasStationPageList, getEquipmentPageList } from "@/services/gasService";
 import { getCachedDictionary } from "@/services/dictionaryService";
 import { ref, computed, onMounted, watch } from "vue";
 import { NSelect } from "naive-ui";
@@ -129,7 +139,7 @@ const props = defineProps({
   },
 });
 
-const emit = defineEmits(["update:visible", "station-click"]);
+const emit = defineEmits(["update:visible", "station-click", "equipment-click"]);
 
 // 面板折叠状态
 const isCollapsed = ref(true);
@@ -150,6 +160,9 @@ const toggleTitleMenu = () => {
 const selectTitle = (item: { label: string; value: string }) => {
   currentTitle.value = item.label;
   showTitleMenu.value = false;
+  currentPage.value = 1;
+  searchKeyword.value = "";
+  loadStations();
 };
 
 // 搜索关键词
@@ -159,8 +172,7 @@ const searchKeyword = ref("");
 const filters = ref({
   company: "",
   type: "rqlx001",
-  czmc: "",
-  Czlx: null as string | null,
+  sblx: null as string | null,
 });
 
 // 燃气类型选项
@@ -177,19 +189,16 @@ const gasTypeOptions = [
   }
 ];
 
-// 场站类型字典映射
-const czlxDictMap = ref<Record<string, string>>({});
-const czlxOptions = ref<{ label: string; value: string }[]>([]);
+// 设备类型字典
+const sblxDictMap = ref<Record<string, string>>({});
+const sblxOptions = ref<{ label: string; value: string }[]>([]);
 
-/**
- * 获取场站类型名称（通过字典映射）
- */
-const getCzlxName = (czlx: string): string => {
-  return czlxDictMap.value[czlx] || czlx || '未知类型';
+const getSblxName = (code: string): string => {
+  return sblxDictMap.value[code] || code || '未知类型';
 };
 
 // 监听筛选条件变化
-watch([searchKeyword, () => filters.value.type, () => filters.value.czmc, () => filters.value.Czlx], () => {
+watch([searchKeyword, () => filters.value.type, () => filters.value.sblx], () => {
   currentPage.value = 1;
   loadStations();
 }, { deep: true });
@@ -198,8 +207,7 @@ watch([searchKeyword, () => filters.value.type, () => filters.value.czmc, () => 
 const resetFilters = () => {
   searchKeyword.value = "";
   filters.value.company = "";
-  filters.value.czmc = "";
-  filters.value.Czlx = null;
+  filters.value.sblx = null;
   currentPage.value = 1;
   loadStations();
 };
@@ -213,42 +221,57 @@ const getStationType = (rqlx) => {
   return typeMap[rqlx] || rqlx || '未知类型';
 };
 
-// 加载场站数据
+// 当前列表模式
+const listMode = computed(() => {
+  const opt = titleOptions.find(o => o.label === currentTitle.value);
+  return opt?.value || 'enterprise';
+});
+
+// 加载列表数据
 const loadStations = async () => {
   try {
-    const response: any = await getGasEnterprisePageList({
-      page: currentPage.value.toString(),
-      rows: pageSize.value.toString(),
-      rqlx: filters.value.type,
-      qymc: searchKeyword.value
-    });
+    let response: any;
+    if (listMode.value === 'monitor') {
+      response = await getEquipmentPageList({
+        page: currentPage.value.toString(),
+        rows: pageSize.value.toString(),
+        sbmc: searchKeyword.value || undefined,
+        sblx: filters.value.sblx || undefined,
+      });
+    } else {
+      response = await getGasEnterprisePageList({
+        page: currentPage.value.toString(),
+        rows: pageSize.value.toString(),
+        rqlx: filters.value.type,
+        qymc: searchKeyword.value
+      });
+    }
     if (response && response.rows) {
       stations.value = response.rows || [];
       total.value = response.records || 0;
     }
   } catch (error) {
-    console.error("加载场站数据失败:", error);
+    console.error("加载数据失败:", error);
   }
 }
 
 onMounted(async () => {
-  // 加载场站类型字典
+  // 加载设备类型字典
   try {
-    const czlxDict = await getCachedDictionary("czlx");
-    if (czlxDict && czlxDict.length > 0) {
-      czlxDictMap.value = czlxDict.reduce((acc: Record<string, string>, cur: any) => {
-        acc[cur.f_ItemValue] = cur.f_ItemName;
-        return acc;
-      }, {});
-      czlxOptions.value = czlxDict.map((item: any) => ({
-        label: item.f_ItemName,
-        value: item.f_ItemValue,
-      }));
-    }
+    const rqDict = await getCachedDictionary("jcsblx_rq");
+    const rqzdyhDict = await getCachedDictionary("jcsblx_rqzdyh");
+    const allDict = [...(rqDict || []), ...(rqzdyhDict || [])];
+    sblxDictMap.value = allDict.reduce((acc: Record<string, string>, cur: any) => {
+      acc[cur.f_ItemValue] = cur.f_ItemName;
+      return acc;
+    }, {});
+    sblxOptions.value = allDict.map((item: any) => ({
+      label: item.f_ItemName,
+      value: item.f_ItemValue,
+    }));
   } catch (error) {
-    console.error("加载场站类型字典失败:", error);
+    console.error("加载设备类型字典失败:", error);
   }
-
   loadStations();
 });
 
@@ -267,15 +290,31 @@ const stations = ref([]);
 
 // 总页数
 const totalPages = computed(() => {
-  return Math.ceil(stations.value.length / pageSize.value);
+  return Math.ceil(total.value / pageSize.value) || 1;
 });
 
-// 可见页码
+// 可见页码（只显示3个：第1页、当前页、最后一页）
 const visiblePages = computed(() => {
-  const pages = [];
-  for (let i = 1; i <= Math.min(6, totalPages.value); i++) {
-    pages.push(i);
+  const total = totalPages.value;
+  const current = currentPage.value;
+
+  if (total <= 3) {
+    return Array.from({ length: total }, (_, i) => i + 1);
   }
+
+  const pages: number[] = [1];
+
+  if (current !== 1 && current !== total) {
+    pages.push(-1); // 省略号
+    pages.push(current);
+    pages.push(-2); // 省略号
+  } else if (current === 1) {
+    pages.push(-2); // 省略号
+  } else {
+    pages.push(-1); // 省略号
+  }
+
+  pages.push(total);
   return pages;
 });
 
@@ -320,17 +359,30 @@ const handleStationClick = async (station) => {
   }
 };
 
+// 监测设备详情
+const handleEquipmentClick = (item: any) => {
+  activeStationId.value = item.lsh;
+  emit("equipment-click", item);
+};
+
 // 翻页
 const prevPage = () => {
   if (currentPage.value > 1) {
     currentPage.value--;
+    loadStations();
   }
 }
 
 const nextPage = () => {
   if (currentPage.value < totalPages.value) {
     currentPage.value++;
+    loadStations();
   }
+}
+
+const goToPage = (page: number) => {
+  currentPage.value = page;
+  loadStations();
 }
 </script>
 
@@ -342,6 +394,7 @@ const nextPage = () => {
   border-image: linear-gradient(153deg, rgba(25, 163, 203, 1), rgba(12, 93, 117, 0.24), rgba(8, 189, 243, 0.04), rgba(0, 28, 38, 0), rgba(8, 97, 132, 0), rgba(17, 171, 233, 1)) 2 2;
   backdrop-filter: blur(20px);
     margin-bottom: 12px;
+    overflow: visible;
 
   &.hidden {
     display: none;
@@ -364,7 +417,7 @@ const nextPage = () => {
   z-index: 100;
   display: flex;
   flex-direction: column;
-  overflow: hidden;
+  overflow: visible;
   pointer-events: auto;
 
   &.collapsed {
@@ -446,10 +499,12 @@ const nextPage = () => {
     background-size: 100% 100%;
     flex-shrink: 0;
     padding: 0 12px 0 30px;
+    overflow: visible;
 
     .title-container {
       display: flex;
       align-items: baseline;
+      position: relative;
 
       .pull-down-icon {
         width: 16px;
@@ -811,6 +866,13 @@ const nextPage = () => {
           border-color: transparent;
           background: transparent;
         }
+      }
+
+      .page-ellipsis {
+        font-size: 24px;
+        color: #FFFFFF;
+        line-height: 48px;
+        padding: 0 4px;
       }
 
       .page-info {

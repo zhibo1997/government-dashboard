@@ -10,20 +10,17 @@
           <RiskLevelChart
             :chart-id="riskChartId"
             :sszx="sszxParam"
-            @data-loaded="handleRiskDataLoaded"
           />
         </div>
 
-        <!-- 右侧:隐患统计和整改状态 -->
-        <div class="right-stats">
+        <!-- 右侧:隐患统计和整改状态（暂时隐藏，后期可能恢复） -->
+        <!-- <div class="right-stats">
           <div class="stats-container">
-            <!-- 隐患总数 -->
             <div class="total-hazard">
               <div class="total-label">隐患总数</div>
               <div class="total-value gradient-text">{{ totalHazard }}</div>
             </div>
 
-            <!-- 三类隐患统计 -->
             <div class="hazard-types">
               <div class="hazard-type-item" v-for="item in hazardTypes" :key="item.type" :class="`type-${item.type}`">
                 <div class="type-value gradient-text">{{ item.count }}</div>
@@ -32,7 +29,6 @@
             </div>
           </div>
 
-          <!-- 整改状态 -->
           <div class="rectification-section">
             <div class="rectification-item" v-for="item in rectificationData" :key="item.status">
               <div class="right-chart">
@@ -47,7 +43,7 @@
               </div>
             </div>
           </div>
-        </div>
+        </div> -->
       </div>
     </div>
   </div>

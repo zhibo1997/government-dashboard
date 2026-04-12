@@ -11,8 +11,8 @@
       <!-- 搜索和筛选 -->
       <div class="toolbar">
         <div class="search-group">
-          <input 
-            type="text" 
+          <input
+            type="text"
             v-model="searchKeyword"
             placeholder="输入场站名称"
             class="search-input"
@@ -25,18 +25,15 @@
             </svg>
           </button>
         </div>
-
         <div class="filter-group">
-          <!-- 筛选按钮暂时保留样式，功能待定或隐藏 -->
-          <!--
-          <button 
-            class="filter-btn" 
-            :class="{ active: filters.area }" 
-            @click="toggleFilter('area')"
-          >
-            所属专区
-          </button>
-          -->
+          <n-select
+            v-model:value="selectedCzlx"
+            :options="czlxOptions"
+            placeholder="场站类型"
+            clearable
+            class="filter-select"
+            @update:value="handleSearch"
+          />
         </div>
       </div>
 
@@ -79,10 +76,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue';
+import { ref, computed, watch, onMounted } from 'vue';
 import { getGasStationPageList } from '@/services/gasService';
+import { getCachedDictionary } from '@/services/dictionaryService';
 import { Close } from "@vicons/ionicons5";
-import { NButton, NIcon } from "naive-ui";
+import { NButton, NIcon, NSelect } from "naive-ui";
 import CommonTable from '@/components/CommonTable.vue';
 
 const props = defineProps({
@@ -100,6 +98,35 @@ const emit = defineEmits(['update:visible']);
 
 // 搜索关键词
 const searchKeyword = ref('');
+// 场站类型筛选
+const selectedCzlx = ref('');
+const czlxOptions = ref<{ label: string; value: string }[]>([]);
+
+// 场站类型字典映射
+const czlxDictMap = ref<Record<string, string>>({});
+
+// 加载场站类型字典
+const loadCzlxDict = async () => {
+  try {
+    const czlxDict = await getCachedDictionary('czlx');
+    if (czlxDict && czlxDict.length > 0) {
+      czlxDictMap.value = czlxDict.reduce((acc: Record<string, string>, cur: any) => {
+        acc[cur.f_ItemValue] = cur.f_ItemName;
+        return acc;
+      }, {});
+      czlxOptions.value = czlxDict.map((item: any) => ({
+        label: item.f_ItemName,
+        value: item.f_ItemValue,
+      }));
+    }
+  } catch (error) {
+    console.error('获取场站类型字典失败:', error);
+  }
+};
+
+const getCzlxName = (code: string): string => {
+  return czlxDictMap.value[code] || code || '—';
+};
 
 // 分页
 const currentPage = ref(1);
@@ -128,7 +155,7 @@ const processedTableData = computed(() => {
     stationId: item.czbh || '—',
     stationName: item.czmc || '—',
     position: item.xxdz || '—',
-    stationType: item.czlx || '—',
+    stationType: getCzlxName(item.czlx),
     runStatus: item.sjtbzt === 'I' ? '正常' : '异常',
   }));
 });
@@ -138,8 +165,13 @@ watch(() => props.visible, (val) => {
   if (val) {
     currentPage.value = 1;
     searchKeyword.value = '';
+    selectedCzlx.value = '';
     fetchData();
   }
+});
+
+onMounted(() => {
+  loadCzlxDict();
 });
 
 // 获取数据
@@ -152,6 +184,8 @@ const fetchData = async () => {
       page: currentPage.value.toString(),
       rows: pageSize.value.toString(),
       Ssqybm: props.stationData.qybm,
+      czmc: searchKeyword.value || undefined,
+      Czlx: selectedCzlx.value || undefined,
       Yysfzc:'-1'
     });
     
@@ -333,8 +367,25 @@ const visiblePages = computed(() => {
 
       .filter-group {
         display: flex;
+        align-items: center;
         gap: 8px;
-        margin-left: auto;
+
+        .filter-select {
+          width: 280px;
+          :deep(.n-base-selection) {
+            --n-height: 60px !important;
+            --n-color: transparent !important;
+            --n-color-active: transparent !important;
+            --n-text-color: #E4F3FF !important;
+            --n-font-size: 28px !important;
+            --n-padding-single: 0 16px !important;
+            --n-border: 1px solid rgba(255, 255, 255, 0.15) !important;
+            --n-border-active: 1px solid rgba(22, 119, 255, 0.5) !important;
+            --n-border-focus: 1px solid rgba(22, 119, 255, 0.5) !important;
+            --n-border-hover: 1px solid rgba(22, 119, 255, 0.4) !important;
+            --n-border-radius: 6px !important;
+          }
+        }
       }
     }
 
