@@ -163,13 +163,12 @@ watch(
     if (!newData) return;
 
     // 定位到地图
-    const lng = newData.jd || newData.longitude;
-    const lat = newData.wd || newData.latitude;
-    if (lng && lat) {
-      addMarkerToMap(lng, lat);
+    const pointInfo = newData.pointInfo;
+    if (pointInfo?.jd && pointInfo?.wd) {
+      addMarkerToMap(pointInfo.jd, pointInfo.wd);
     }
 
-    // 获取监测数据
+    // 获取监测数据 - 兼容 dwbm 和 gldwbh 两种字段名
     const dwbh = newData.dwbm || newData.gldwbh || '';
     const sbbh = newData.sbbh || '';
     const sblx = newData.sblx || '';
@@ -182,6 +181,7 @@ watch(
           number: 20,
         });
         monitorRecords.value = data || [];
+        // 渲染折线图
         if (data && data.length > 1) {
           nextTick(() => {
             initLineChart(data);
@@ -200,6 +200,7 @@ watch(
 const initLineChart = (rawData: any[]) => {
   if (!lineChartRef.value || !Array.isArray(rawData) || rawData.length === 0) return;
 
+  // 清理旧图表
   if (lineChartInstance) {
     lineChartInstance.dispose();
     lineChartInstance = null;
@@ -329,19 +330,19 @@ const initLineChart = (rawData: any[]) => {
   chartInstance.setOption(option);
 };
 
-// 开始位置跟踪
+// 开始位置跟踪 - 仿造 StationDetailDialog
 const startPositionTracking = () => {
   if (!viewer.value) return;
   stopPositionTracking();
 
   removePostRender = viewer.value.scene.postRender.addEventListener(() => {
-    const entity = viewer.value!.entities.getById("bridge-equipment-marker");
+    const entity = viewer.value!.entities.getById("equipment-marker");
     if (!entity?.position) return;
 
     const position = entity.position.getValue(viewer.value!.clock.currentTime);
     if (!position) return;
 
-    // @ts-ignore
+    // @ts-ignore - Cesium API exists at runtime
     const screenPos = Cesium.SceneTransforms.wgs84ToWindowCoordinates(
       viewer.value!.scene,
       position
@@ -353,6 +354,7 @@ const startPositionTracking = () => {
     }
 
     isEntityVisible.value = true;
+    // 完全仿造 StationDetailDialog 的定位方式
     dialogX.value = (screenPos.x - 620 * scaleRatio.value / 2) / scaleRatio.value;
     dialogY.value = (screenPos.y) / scaleRatio.value - 480;
   });
@@ -365,14 +367,14 @@ const stopPositionTracking = () => {
   }
 };
 
-// 在地图上添加标记点
+// 在地图上添加标记点 - 仿造 StationDetailDialog
 const addMarkerToMap = (longitude: number, latitude: number) => {
   try {
     if (!viewer.value) return;
     removeExistingMarkers();
 
     const entity = viewer.value.entities.add({
-      id: "bridge-equipment-marker",
+      id: "equipment-marker",
       position: Cesium.Cartesian3.fromDegrees(longitude, latitude),
       point: {
         pixelSize: 14,
@@ -385,7 +387,7 @@ const addMarkerToMap = (longitude: number, latitude: number) => {
 
     viewer.value.flyTo(entity, {
       duration: 2,
-      offset: new Cesium.HeadingPitchRange(0, Cesium.Math.toRadians(-45), 1000),
+      offset: new Cesium.HeadingPitchRange(0, Cesium.Math.toRadians(-45), 2000),
     });
 
     startPositionTracking();
@@ -397,7 +399,7 @@ const addMarkerToMap = (longitude: number, latitude: number) => {
 const removeExistingMarkers = () => {
   try {
     if (!viewer.value) return;
-    const existing = viewer.value.entities.getById("bridge-equipment-marker");
+    const existing = viewer.value.entities.getById("equipment-marker");
     if (existing) viewer.value.entities.remove(existing);
   } catch (error) {
     console.warn("移除标记点失败:", error);
@@ -408,6 +410,7 @@ const handleClose = () => {
   stopPositionTracking();
   removeExistingMarkers();
   monitorRecords.value = [];
+  // 清理图表
   if (lineChartInstance) {
     lineChartInstance.dispose();
     lineChartInstance = null;

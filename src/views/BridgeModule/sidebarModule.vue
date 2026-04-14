@@ -15,7 +15,7 @@
 
   <!-- 监测设备弹窗 -->
   <EquipmentDialog
-    :visible="showEquipmentDialog"
+    v-model:visible="showEquipmentDialog"
     :bridge-data="selectedBridge"
     @equipment-view="handleEquipmentView"
   />
@@ -51,8 +51,9 @@ const selectedEquipment = ref<any>({});
 const handleBridgeClick = (bridge) => {
   selectedBridge.value = bridge;
   showBridgeDetail.value = true;
-  // 切换桥梁时关闭设备列表
+  // 切换桥梁时关闭设备列表和设备详情
   showEquipmentDialog.value = false;
+  showEquipmentDetail.value = false;
 };
 
 // 显示监测设备

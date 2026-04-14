@@ -26,19 +26,6 @@
                 <div class="status-label">{{ item.label }}</div>
               </div>
             </div>
-            <!-- 等级统计 -->
-            <div class="level-stats">
-              <div
-                class="level-item"
-                v-for="item in warningLevels"
-                :key="item.label"
-              >
-                <div class="level-value">
-                  <span class="gradient-text">{{ item.count }}</span>
-                </div>
-                <div class="level-label">{{ item.label }}</div>
-              </div>
-            </div>
           </div>
         </div>
 
@@ -62,7 +49,32 @@
                 <div class="status-label">{{ item.label }}</div>
               </div>
             </div>
-            <!-- 等级统计 -->
+          </div>
+        </div>
+      </div>
+
+      <!-- 隐藏等级统计和表格区域，后期可能需要展示 -->
+      <!--
+      <div class="stats-section-levels">
+        <div class="warning-total-card">
+          <div class="right-content">
+            <div class="level-stats">
+              <div
+                class="level-item"
+                v-for="item in warningLevels"
+                :key="item.label"
+              >
+                <div class="level-value">
+                  <span class="gradient-text">{{ item.count }}</span>
+                </div>
+                <div class="level-label">{{ item.label }}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="warning-total-card alarm-card">
+          <div class="right-content">
             <div class="level-stats">
               <div
                 class="level-item"
@@ -78,6 +90,28 @@
           </div>
         </div>
       </div>
+
+      <div class="table-section">
+        <div class="tab-buttons">
+          <div
+            class="tab-btn"
+            :class="{ active: activeTab === 'warning' }"
+            @click="activeTab = 'warning'"
+          >
+            <span class="gradient-text">预警</span>
+          </div>
+        </div>
+
+        <CommonTable
+          :columns="tableColumns"
+          :data="currentTableData"
+          row-key="key"
+          empty-text="暂无数据"
+          :max-height="260"
+          grid-template="1.8fr 1fr 1fr 1fr 1fr 1fr 1fr"
+        />
+      </div>
+      -->
 
       <!-- 下方切换Tab和表格 -->
       <div class="table-section">
@@ -131,8 +165,8 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, inject } from "vue";
 import { getWarnStatistics } from "@/services/waterSupplyService";
-import { getBridgeWarningTypeList } from "@/services/bridgeService";
-import CommonTable from '@/components/CommonTable.vue';
+// import { getBridgeWarningTypeList } from "@/services/bridgeService";
+// import CommonTable from '@/components/CommonTable.vue';
 import bridgeMonitorPopupImg from '@/assets/img/bridge_monitor_popup.jpg';
 
 const scaleRatio = inject('responsiveScale', ref(1));
@@ -170,15 +204,16 @@ const alarmLevels = ref([
   { label: "三级", count: 0 },
 ]);
 
-// 预警表格数据
+// 预警表格数据（隐藏）
+/*
 const warningTableData = ref([]);
+*/
 
-// 报警表格数据
+// 报警表格数据（隐藏）
+/*
 const alarmTableData = ref([]);
-
-// ==================== 计算属性 ====================
-// 当前表格数据
-// 表格列配置
+*/
+/*
 const tableColumns = computed(() => [
   { key: 'type', title: '类型', width: '1.8fr' },
   { key: 'level1', title: '一级', width: '1fr' },
@@ -194,6 +229,7 @@ const currentTableData = computed(() => {
     ? warningTableData.value
     : alarmTableData.value;
 });
+*/
 
 // ==================== 数据获取 ====================
 /**
@@ -248,16 +284,16 @@ const fetchWarningAndAlarmData = async () => {
         { label: "三级", count: data.alarmCount.sjyjCount || 0 },
       ];
     }
-    
-    // 获取预警列表数据
-    await fetchWarningListData();
+
+    // 获取预警列表数据（隐藏）
+    // await fetchWarningListData();
   } catch (error) {
     console.error("获取预警报警数据失败:", error);
   }
 };
 
 /**
- * 获取预警列表数据
+ * 获取预警列表数据（隐藏）
  * 接口返回数据结构:
  * [
  *   {
@@ -271,11 +307,12 @@ const fetchWarningAndAlarmData = async () => {
  *   }
  * ]
  */
+/*
 const fetchWarningListData = async () => {
   try {
     const data: any = await getBridgeWarningTypeList();
     console.log("🚀 ~ fetchWarningListData ~ data:", data);
-    
+
     // 转换数据格式以匹配表格需求
     if (Array.isArray(data)) {
       warningTableData.value = data.map((item, index) => ({
@@ -293,6 +330,7 @@ const fetchWarningListData = async () => {
     console.error("获取预警列表数据失败:", error);
   }
 };
+*/
 
 // ==================== 生命周期 ====================
 onMounted(() => {
@@ -309,21 +347,16 @@ onMounted(() => {
 
   // 上方统计卡片区域
   .stats-section {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
+    display: flex;
+    flex-direction: column;
     gap: 16px;
+    padding: 20px 0;
   }
 
-  // 预警/报警总数卡片（统一样式）
+  // 预警/报警总数卡片
   .warning-total-card {
     display: flex;
-    gap: 15px 0px;
-    transition: all 0.3s ease;
-
-    &:hover {
-      border-color: rgba(22, 119, 255, 0.4);
-      box-shadow: 0 4px 12px rgba(22, 119, 255, 0.2);
-    }
+    gap: 15px;
 
     // 报警卡片特殊样式
     &.alarm-card {
@@ -344,6 +377,7 @@ onMounted(() => {
       background-size: 100% 100%;
       display: flex;
       align-items: center;
+      justify-content: center;
       position: relative;
       flex-direction: column;
 
@@ -376,7 +410,7 @@ onMounted(() => {
       margin-left: 12px;
       display: flex;
       flex-direction: column;
-      justify-content: space-between;
+      justify-content: center;
     }
 
     // 状态统计
@@ -418,79 +452,131 @@ onMounted(() => {
         }
       }
     }
+  }
 
-    // 等级统计
-    .level-stats {
+  /* 隐藏的等级统计样式 - 后期可能需要 */
+  /*
+  .stats-section-levels {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .level-stats {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    justify-content: space-between;
+
+    .level-item {
       display: flex;
-      gap: 10px;
+      flex-direction: column;
       align-items: center;
-      justify-content: space-between;
+      gap: 5px;
 
-      .level-item {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 5px;
-
-        &:nth-child(1) {
-          .level-value {
-            >span {
-              background: linear-gradient(0deg, #ff1d1d 0%, #fd8837 100%);
-            }
-
-            background-image: url("@/assets/img/gasModule/level1.webp");
-          }
-        }
-
-        &:nth-child(2) {
-          .level-value {
-            >span {
-              background: linear-gradient(0deg, #f75e04 0%, #feac04 100%);
-            }
-
-            background-image: url("@/assets/img/gasModule/level2.webp");
-          }
-        }
-
-        &:nth-child(3) {
-          .level-value {
-            >span {
-              background: linear-gradient(180deg, #FFFFFF 0%, #10ADC0 100%);
-            }
-
-            background-image: url("@/assets/img/gasModule/level3.webp");
-          }
-        }
-
+      &:nth-child(1) {
         .level-value {
-          width: 64.56px;
-          height: 27.29px;
-          text-align: center;
-          line-height: 27.29px;
-          margin-bottom: 11px;
-
           >span {
-            font-family: YouSheBiaoTiHei;
-            font-size: var(--font-size-2xl);
-            color: #ffffff;
-            line-height: calc(var(--font-size-xl) * 1.292);
-            text-align: center;
-            font-style: normal;
+            background: linear-gradient(0deg, #ff1d1d 0%, #fd8837 100%);
           }
+          background-image: url("@/assets/img/gasModule/level1.webp");
         }
+      }
 
-        .level-label {
-          font-family: SourceHanSansSC, SourceHanSansSC;
-          font-weight: var(--font-weight-normal);
-          font-size: var(--font-size-xl);
-          color: #d3eaf1;
-          line-height: calc(var(--font-size-sm) * 1.5);
+      &:nth-child(2) {
+        .level-value {
+          >span {
+            background: linear-gradient(0deg, #f75e04 0%, #feac04 100%);
+          }
+          background-image: url("@/assets/img/gasModule/level2.webp");
+        }
+      }
+
+      &:nth-child(3) {
+        .level-value {
+          >span {
+            background: linear-gradient(180deg, #FFFFFF 0%, #10ADC0 100%);
+          }
+          background-image: url("@/assets/img/gasModule/level3.webp");
+        }
+      }
+
+      .level-value {
+        width: 64.56px;
+        height: 27.29px;
+        text-align: center;
+        line-height: 27.29px;
+        margin-bottom: 11px;
+
+        >span {
+          font-family: YouSheBiaoTiHei;
+          font-size: var(--font-size-2xl);
+          color: #ffffff;
+          line-height: calc(var(--font-size-xl) * 1.292);
           text-align: center;
           font-style: normal;
         }
       }
+
+      .level-label {
+        font-family: SourceHanSansSC, SourceHanSansSC;
+        font-weight: var(--font-weight-normal);
+        font-size: var(--font-size-xl);
+        color: #d3eaf1;
+        line-height: calc(var(--font-size-sm) * 1.5);
+        text-align: center;
+        font-style: normal;
+      }
     }
   }
+  */
+
+  /* 隐藏的表格区域样式 - 后期可能需要 */
+  /*
+  .table-section {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    border-top: 2px solid rgba(31, 199, 255, 0.24);
+    padding-top: 16px;
+    margin-top: 16px;
+    gap: 24px;
+  }
+
+  .tab-buttons {
+    display: flex;
+    gap: 20px;
+
+    .tab-btn {
+      width: 160.24px;
+      height: 60px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      background-image: url("@/assets/img/gasModule/tab.webp");
+
+      span {
+        font-family: YouSheBiaoTiHei;
+        font-size: var(--font-size-3xl);
+        color: #e74040;
+        line-height: calc(var(--font-size-3xl) * 1.306);
+        text-align: left;
+        font-style: normal;
+        background: linear-gradient(180deg, #FFFFFF 0%, #10ADC0 100%);;
+      }
+
+      &.active {
+        background-image: url("@/assets/img/gasModule/tab_active.webp");
+
+        span {
+          background: linear-gradient(0deg, #3ffefd 0%, #fff407 100%);
+        }
+      }
+    }
+  }
+  */
 
   // 下方表格区域
   .table-section {

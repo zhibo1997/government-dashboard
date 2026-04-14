@@ -2,9 +2,9 @@
   <div class="equipment-dialog" v-show="visible">
     <div class="dialog-header">
       <div class="dialog-title gradient-text">监测设备列表</div>
-      <n-button text class="close-btn" @click="handleClose">
+      <div class="close-btn" @click="handleClose">
         <n-icon size="40" color="rgb(17,167,226)" :component="Close" class="action-icon favorite-icon" />
-      </n-button>
+      </div>
     </div>
 
     <div class="dialog-content">
@@ -278,6 +278,24 @@ const handleViewEquipment = (equipment: any) => {
       text-align: left;
       font-style: normal;
       background: linear-gradient(180deg, #FFFFFF 0%, #10ADC0 100%);;
+    }
+
+    .close-btn {
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 8px;
+      border-radius: 4px;
+      transition: all 0.3s ease;
+
+      &:hover {
+        background: rgba(22, 119, 255, 0.1);
+      }
+
+      &:active {
+        transform: scale(0.95);
+      }
     }
   }
 
