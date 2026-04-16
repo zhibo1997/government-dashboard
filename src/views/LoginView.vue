@@ -5,7 +5,8 @@
         <img src="@/assets/img/login/form_bg.webp" alt="登录背景" />
       </div>
       <div class="login-title">
-        <img src="@/assets/img/login/title.webp" alt="登录标题" />
+        <!-- <img src="@/assets/img/login/image.png" alt="登录标题" /> -->
+        <h2 class="title-text">阳新县城市生命线监测预警平台</h2>
       </div>
       <div class="login-card">
         <n-form ref="formRef" :show-require-mark="false" label-placement="left" :model="formData" :rules="rules"
@@ -166,6 +167,27 @@ const handleLogin = async () => {
       width: 100%;
       height: 100%;
       object-fit: contain;
+    }
+
+    .title-text {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      color: #fff;
+      font-size: 130px;
+      font-weight: 500;
+      // font-style: italic;
+      white-space: nowrap;
+      // font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+      font-family: 'YouSheBiaoTiHei';
+      letter-spacing: 4px;
+      text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3), 0 0 20px rgba(255, 255, 255, 0.1);
+      margin: 0;
+      line-height: 1;
+      -webkit-text-stroke: 0.5px rgba(255, 255, 255, 0.8);
+      text-transform: uppercase;
+      
     }
   }
 

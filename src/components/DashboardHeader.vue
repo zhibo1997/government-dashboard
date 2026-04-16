@@ -21,10 +21,10 @@
     </div>
     <div
       class="head-title"
-      title="阳新县城市安全综合监测预警平台"
+      title="阳新县城市生命线监测预警平台"
       @click="handleTitleClick"
     >
-      <span class="gradient-text">阳新县城市安全综合监测预警平台</span>
+      <span class="gradient-text">阳新县城市生命线监测预警平台</span>
     </div>
     <div class="right-tabs tabs">
       <div class="tabs-content">
