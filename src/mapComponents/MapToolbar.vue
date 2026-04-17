@@ -462,7 +462,7 @@ defineExpose({
     right: 100%;
     top: 0;
     margin-right: 16px;
-    width: 480px;
+    width: 560px;
     max-height: 780px;
     background: rgba(11, 28, 45, 0.65);
     backdrop-filter: blur(10px);

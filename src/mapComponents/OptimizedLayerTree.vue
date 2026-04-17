@@ -691,18 +691,46 @@ function updateLayerState(
 }
 
 /**
+ * 将传入的 ID 列表展开为所有叶子图层 ID（支持父分组 ID）
+ * 如果传入的是分组节点，递归收集其下所有叶子图层
+ */
+function expandToLeafIds(ids: string[]): string[] {
+  const leafIds: string[] = [];
+
+  for (const id of ids) {
+    const node = findNodeByKey(treeData.value, id);
+    if (!node) continue;
+
+    if (node.isLayer) {
+      leafIds.push(id);
+    } else if (node.children && node.children.length > 0) {
+      // 分组节点，递归收集所有子叶子节点
+      const collectLeaves = (n: any) => {
+        if (n.isLayer) {
+          leafIds.push(n.key);
+        } else if (n.children && n.children.length > 0) {
+          n.children.forEach(collectLeaves);
+        }
+      };
+      node.children.forEach(collectLeaves);
+    }
+  }
+
+  return leafIds;
+}
+
+/**
  * 按 ID 批量勾选并加载指定图层（供外部调用）
- * @param ids 需要加载的图层 ID 数组
+ * 支持传入父分组 ID，自动展开为所有子图层
+ * @param ids 需要加载的图层 ID 或分组 ID 数组
  */
 function loadDefaultLayers(ids: string[]) {
   if (!ids || ids.length === 0) return;
 
-  // 过滤出有效的叶子图层节点
   const previousKeys = new Set(checkedKeys.value);
-  const validIds = ids.filter((id) => {
-    const node = findNodeByKey(treeData.value, id);
-    return node?.isLayer;
-  });
+
+  // 将分组 ID 展开为叶子图层 ID
+  const validIds = expandToLeafIds(ids);
 
   if (validIds.length === 0) return;
 
