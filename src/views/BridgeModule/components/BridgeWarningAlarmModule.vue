@@ -307,6 +307,8 @@ onMounted(() => {
   .stats-section {
     display: flex;
     flex-direction: column;
+    height: 100%;
+    justify-content: space-around;
     gap: 16px;
     padding: 20px 0;
   }
@@ -324,6 +326,9 @@ onMounted(() => {
         .ring-value {
           background: linear-gradient(0deg, #ff4d4f 0%, #ff7875 100%);
         }
+      }
+      .status-stats{
+        justify-content: space-around !important;
       }
     }
 
@@ -368,6 +373,7 @@ onMounted(() => {
       display: flex;
       flex-direction: column;
       justify-content: center;
+      gap: 24px;
     }
 
     // 状态统计
@@ -381,7 +387,7 @@ onMounted(() => {
         display: flex;
         flex-direction: column;
         align-items: center;
-        gap: 8px;
+        // gap: 8px;
 
         .status-ring {
           width: 88px;
@@ -481,7 +487,6 @@ onMounted(() => {
       }
     }
   }
-
   /* 隐藏的表格区域样式 - 后期可能需要 */
   /*
   .table-section {

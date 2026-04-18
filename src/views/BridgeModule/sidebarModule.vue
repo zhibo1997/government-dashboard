@@ -65,6 +65,7 @@ const handleShowEquipment = () => {
 const handleEquipmentView = (equipment: any) => {
   selectedEquipment.value = equipment;
   showEquipmentDetail.value = true;
+  showBridgeDetail.value = false;
 };
 </script>
 

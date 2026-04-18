@@ -288,21 +288,18 @@ onMounted(() => {
 
   // 上方统计卡片区域
   .stats-section {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    justify-content: space-around;
     gap: 16px;
+    padding: 20px 0;
   }
 
   // 预警/报警总数卡片（统一样式）
   .warning-total-card {
     display: flex;
-    gap: 15px 0px;
-    transition: all 0.3s ease;
-
-    &:hover {
-      border-color: rgba(22, 119, 255, 0.4);
-      box-shadow: 0 4px 12px rgba(22, 119, 255, 0.2);
-    }
+    gap: 15px;
 
     // 报警卡片特殊样式
     &.alarm-card {
@@ -313,13 +310,14 @@ onMounted(() => {
           background: linear-gradient(0deg, #ff4d4f 0%, #ff7875 100%);
         }
       }
+      .status-stats {
+        justify-content: space-around !important;
+      }
     }
 
     // 总数环形
     .total-ring {
-      // width: 105px;
       width: 158px;
-      // height: 194px;
       height: 291px;
       background-image: url("@/assets/img/gasModule/warning_total.webp");
       background-size: 100% 100%;
@@ -330,16 +328,14 @@ onMounted(() => {
 
       .ring-value {
         font-family: YouSheBiaoTiHei;
-        font-size: var(--font-size-4xl);
+        font-size: 40px;
         color: #ffffff;
         line-height: calc(var(--font-size-4xl) * 1.294);
         text-align: center;
         font-style: normal;
         background: linear-gradient(0deg, #f75e04 0%, #feac04 100%);
-        // margin-top: 40px;
-        margin-top: 60px;
-        // margin-bottom: 30px;
-        margin-bottom: 45px;
+        margin-top: 70px;
+        margin-bottom: 70px;
       }
     }
 
@@ -347,7 +343,7 @@ onMounted(() => {
     .total-label {
       font-family: SourceHanSansSC, SourceHanSansSC;
       font-weight: var(--font-weight-bold);
-      font-size: var(--font-size-3xl);
+      font-size: 40px;
       color: #d3eaf1;
       line-height: calc(var(--font-size-xl) * 1.458);
       text-align: center;
@@ -356,17 +352,16 @@ onMounted(() => {
 
     .right-content {
       flex: 1;
-      // margin-left: 12px;
       margin-left: 18px;
       display: flex;
       flex-direction: column;
-      justify-content: space-between;
+      justify-content: center;
+      gap: 24px;
     }
 
     // 状态统计
     .status-stats {
       display: flex;
-      // gap: 10px;
       gap: 15px;
       justify-content: space-between;
       align-items: center;
@@ -375,27 +370,22 @@ onMounted(() => {
         display: flex;
         flex-direction: column;
         align-items: center;
-        // gap: 5px;
-        gap: 8px;
 
         .status-ring {
-          // width: 58.55px;
           width: 88px;
-          // height: 58.55px;
           height: 88px;
           background-image: url("@/assets/img/gasModule/status_ring.webp");
           background-size: 100% 100%;
           display: flex;
           align-items: center;
           justify-content: center;
-          // margin-bottom: 11px;
           margin-bottom: 17px;
 
           .ring-num {
             font-family: YouSheBiaoTiHei;
-            font-size: var(--font-size-xl);
+            font-size: 40px;
             color: #ffffff;
-            line-height: calc(var(--font-size-xl) * 1.292);
+            line-height: calc(var(--font-size-2xl) * 1.292);
             text-align: center;
             font-style: normal;
             background: linear-gradient(180deg, #FFFFFF 0%, #10ADC0 100%);
@@ -403,7 +393,7 @@ onMounted(() => {
         }
 
         .status-label {
-          font-size: var(--font-size-xl);
+          font-size: 40px;
           color: rgba(255, 255, 255, 0.75);
         }
       }
@@ -412,7 +402,6 @@ onMounted(() => {
     // 等级统计
     .level-stats {
       display: flex;
-      // gap: 10px;
       gap: 15px;
       align-items: center;
       justify-content: space-between;
@@ -421,7 +410,6 @@ onMounted(() => {
         display: flex;
         flex-direction: column;
         align-items: center;
-        // gap: 5px;
         gap: 8px;
 
         &:nth-child(1) {
@@ -429,7 +417,6 @@ onMounted(() => {
             >span {
               background: linear-gradient(0deg, #ff1d1d 0%, #fd8837 100%);
             }
-
             background-image: url("@/assets/img/gasModule/level1.webp");
           }
         }
@@ -439,7 +426,6 @@ onMounted(() => {
             >span {
               background: linear-gradient(0deg, #f75e04 0%, #feac04 100%);
             }
-
             background-image: url("@/assets/img/gasModule/level2.webp");
           }
         }
@@ -449,26 +435,21 @@ onMounted(() => {
             >span {
               background: linear-gradient(180deg, #FFFFFF 0%, #10ADC0 100%);
             }
-
             background-image: url("@/assets/img/gasModule/level3.webp");
           }
         }
 
         .level-value {
-          // width: 64.56px;
           width: 97px;
-          // height: 27.29px;
           height: 41px;
           background-size: 100% 100%;
           text-align: center;
-          // line-height: 27.29px;
           line-height: 41px;
-          // margin-bottom: 11px;
           margin-bottom: 17px;
 
           >span {
             font-family: YouSheBiaoTiHei;
-            font-size: var(--font-size-2xl);
+            font-size: 40px;
             color: #ffffff;
             line-height: calc(var(--font-size-xl) * 1.292);
             text-align: center;
@@ -479,7 +460,7 @@ onMounted(() => {
         .level-label {
           font-family: SourceHanSansSC, SourceHanSansSC;
           font-weight: var(--font-weight-normal);
-          font-size: var(--font-size-xl);
+          font-size: 40px;
           color: #d3eaf1;
           line-height: calc(var(--font-size-sm) * 1.5);
           text-align: center;
@@ -517,7 +498,7 @@ onMounted(() => {
 
       span {
         font-family: YouSheBiaoTiHei;
-        font-size: var(--font-size-3xl);
+        font-size: 40px;
         color: #e74040;
         line-height: calc(var(--font-size-3xl) * 1.306);
         text-align: left;

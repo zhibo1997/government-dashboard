@@ -28,7 +28,6 @@ const dictData = ref<DictionaryItem[]>([])
 
 onMounted(async () => {
   const data = await getCachedDictionary('jcsblx')
-  console.info("🚀 ~ data:", data)
   dictData.value = data || []
 })
 

@@ -83,6 +83,53 @@ export function useMonitoringPoints() {
   const canvasCache = new Map<string, string>()
   const MAX_CACHE_SIZE = 100 // 最大缓存数量
 
+  // 图标 SVG 缓存（避免重复加载）
+  const svgImageCache = new Map<string, HTMLImageElement>()
+
+  /**
+   * 加载 SVG 并渲染为高清 Canvas data URL
+   * @param url SVG 图标 URL
+   * @param width 输出宽度
+   * @param height 输出高度
+   * @returns Canvas data URL
+   */
+  function loadSvgAsDataUrl(url: string, width: number, height: number): Promise<string> {
+    const cacheKey = `${url}_${width}_${height}`
+    if (canvasCache.has(cacheKey)) {
+      return Promise.resolve(canvasCache.get(cacheKey)!)
+    }
+
+    return new Promise((resolve) => {
+      const canvas = document.createElement('canvas')
+      canvas.width = width
+      canvas.height = height
+      const ctx = canvas.getContext('2d')!
+
+      let img = svgImageCache.get(url)
+      if (img) {
+        ctx.drawImage(img, 0, 0, width, height)
+        const dataUrl = canvas.toDataURL('image/png')
+        canvasCache.set(cacheKey, dataUrl)
+        resolve(dataUrl)
+        return
+      }
+
+      img = new Image(width, height)
+      img.onload = () => {
+        svgImageCache.set(url, img)
+        ctx.drawImage(img, 0, 0, width, height)
+        const dataUrl = canvas.toDataURL('image/png')
+        canvasCache.set(cacheKey, dataUrl)
+        resolve(dataUrl)
+      }
+      img.onerror = () => {
+        // 加载失败返回 1x1 透明图
+        resolve('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAC0lEQVQI12NgAAIABQABNjN9GQAAAAlwSFlzAAAWJQAAFiUBSVIk8AAAAA0lEQVQI12P4z8BQDwAEgAF/QualqQAAAABJRU5ErkJggg==')
+      }
+      img.src = url
+    })
+  }
+
   /**
    * 根据相机高度动态计算防重叠距离
    * @param cameraHeight 相机高度（米）
@@ -301,15 +348,18 @@ export function useMonitoringPoints() {
     // 统一点位颜色为蓝色
     const pointColor = '#1890ff';
 
-    for (const point of enhancedData.value) {
-      // 验证坐标有效性
-      if (!isValidCoordinate(point.jdxx, point.wdxx)) {
-        continue
-      }
+    // 预加载所有高清图标
+    const iconLoadTasks = enhancedData.value
+      .filter(point => isValidCoordinate(point.jdxx, point.wdxx))
+      .map(point => {
+        const url = getDeviceIconUrl(point.sblx)
+        return loadSvgAsDataUrl(url, 150, 180).then(dataUrl => ({ point, dataUrl }))
+      })
+    const iconResults = await Promise.all(iconLoadTasks)
 
-      const deviceIconUrl = getDeviceIconUrl(point.sblx)
+    for (const { point, dataUrl } of iconResults) {
       const position = Cesium.Cartesian3.fromDegrees(point.jdxx, point.wdxx)
-      
+
       // 添加点位Entity（纯点/图标自适应）
       dataSource.value.entities.add({
         id: `${point.id}_point`,
@@ -328,12 +378,12 @@ export function useMonitoringPoints() {
         },
         // 图标样式（低海拔显示）
         billboard: {
-          image: deviceIconUrl,
+          image: dataUrl,
           width: 50,
           height: 60,
           horizontalOrigin: Cesium.HorizontalOrigin.CENTER,
           verticalOrigin: Cesium.VerticalOrigin.BOTTOM,
-          pixelOffset: new Cesium.Cartesian2(0, 20),
+          pixelOffset: new Cesium.Cartesian2(0, 40),
           distanceDisplayCondition: new Cesium.DistanceDisplayCondition(
             0,
             CAMERA_HEIGHT_THRESHOLD
