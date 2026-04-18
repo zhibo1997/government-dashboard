@@ -194,7 +194,7 @@ const loadBridges = async () => {
 
 onMounted(async () => {
   // 加载字典数据
-  const dict1 = await getCachedDictionary("qljg");
+  const dict1 = await getCachedDictionary("qljglb");
   const dict2 = await getCachedDictionary("qllx");
   qljgDict.value = dict1.map((item) => ({ value: item.f_ItemValue, text: item.f_ItemName }));
   qllxDict.value = dict2.map((item) => ({ value: item.f_ItemValue, text: item.f_ItemName }));

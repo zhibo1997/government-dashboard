@@ -211,7 +211,7 @@ const compassRotation = ref(0)
 
 // 初始相机位置
 const camera = ref<VcCamera | null>({
-  position: [mapConfig.center[0], mapConfig.center[1], 50000],
+  position: [mapConfig.initialCamera.center[0], mapConfig.initialCamera.center[1], mapConfig.initialCamera.height],
 })
 
 // 当前选中的要素
@@ -345,6 +345,18 @@ async function onViewerReady({ Cesium, viewer }: any) {
   // 监听相机变化更新指北针
   viewer.camera.changed.addEventListener(() => {
     compassRotation.value = Cesium.Math.toDegrees(viewer.camera.heading)
+  })
+
+  // 飞到初始视角
+  const ic = mapConfig.initialCamera
+  viewer.camera.flyTo({
+    destination: Cesium.Cartesian3.fromDegrees(ic.center[0], ic.center[1], ic.height),
+    orientation: {
+      heading: Cesium.Math.toRadians(ic.heading),
+      pitch: Cesium.Math.toRadians(ic.pitch),
+      roll: 0,
+    },
+    duration: 0,
   })
 
   // 初始化监测点位功能
@@ -528,15 +540,12 @@ const handleResetMap = () => {
 
   const Cesium = (window as any).Cesium
   if (Cesium) {
+    const ic = mapConfig.initialCamera
     viewerInstance.value.camera.flyTo({
-      destination: Cesium.Cartesian3.fromDegrees(
-        mapConfig.center[0],
-        mapConfig.center[1],
-        50000
-      ),
+      destination: Cesium.Cartesian3.fromDegrees(ic.center[0], ic.center[1], ic.height),
       orientation: {
-        heading: 0,
-        pitch: Cesium.Math.toRadians(-90),
+        heading: Cesium.Math.toRadians(ic.heading),
+        pitch: Cesium.Math.toRadians(ic.pitch),
         roll: 0,
       },
       duration: 2,

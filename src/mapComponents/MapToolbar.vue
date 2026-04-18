@@ -77,9 +77,7 @@
       <div class="toolbar-item" :class="{ active: props.defaultTilesetVisible }"
         @click="$emit('toggle-default-tileset')" title="默认3D Tiles">
         <div class="tool-icon">
-          <div class="icon-placeholder">
-            <BuildingSkyscraper />
-          </div>
+          <img src="@/assets/map/white_membrane.webp" alt="" />
         </div>
       </div>
     </template>
@@ -429,8 +427,7 @@ defineExpose({
 
     .tool-icon {
       display: flex;
-      align-items: center;
-      justify-content: center;
+      padding: 8px;
       width: 100%;
       height: 100%;
       transition: transform 0.3s ease;

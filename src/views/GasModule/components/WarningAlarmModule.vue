@@ -317,8 +317,10 @@ onMounted(() => {
 
     // 总数环形
     .total-ring {
-      width: 105px;
-      height: 194px;
+      // width: 105px;
+      width: 158px;
+      // height: 194px;
+      height: 291px;
       background-image: url("@/assets/img/gasModule/warning_total.webp");
       background-size: 100% 100%;
       display: flex;
@@ -334,8 +336,10 @@ onMounted(() => {
         text-align: center;
         font-style: normal;
         background: linear-gradient(0deg, #f75e04 0%, #feac04 100%);
-        margin-top: 40px;
-        margin-bottom: 30px;
+        // margin-top: 40px;
+        margin-top: 60px;
+        // margin-bottom: 30px;
+        margin-bottom: 45px;
       }
     }
 
@@ -352,7 +356,8 @@ onMounted(() => {
 
     .right-content {
       flex: 1;
-      margin-left: 12px;
+      // margin-left: 12px;
+      margin-left: 18px;
       display: flex;
       flex-direction: column;
       justify-content: space-between;
@@ -361,7 +366,8 @@ onMounted(() => {
     // 状态统计
     .status-stats {
       display: flex;
-      gap: 10px;
+      // gap: 10px;
+      gap: 15px;
       justify-content: space-between;
       align-items: center;
 
@@ -369,16 +375,21 @@ onMounted(() => {
         display: flex;
         flex-direction: column;
         align-items: center;
-        gap: 5px;
+        // gap: 5px;
+        gap: 8px;
 
         .status-ring {
-          width: 58.55px;
-          height: 58.55px;
+          // width: 58.55px;
+          width: 88px;
+          // height: 58.55px;
+          height: 88px;
           background-image: url("@/assets/img/gasModule/status_ring.webp");
+          background-size: 100% 100%;
           display: flex;
           align-items: center;
           justify-content: center;
-          margin-bottom: 11px;
+          // margin-bottom: 11px;
+          margin-bottom: 17px;
 
           .ring-num {
             font-family: YouSheBiaoTiHei;
@@ -401,7 +412,8 @@ onMounted(() => {
     // 等级统计
     .level-stats {
       display: flex;
-      gap: 10px;
+      // gap: 10px;
+      gap: 15px;
       align-items: center;
       justify-content: space-between;
 
@@ -409,7 +421,8 @@ onMounted(() => {
         display: flex;
         flex-direction: column;
         align-items: center;
-        gap: 5px;
+        // gap: 5px;
+        gap: 8px;
 
         &:nth-child(1) {
           .level-value {
@@ -442,11 +455,16 @@ onMounted(() => {
         }
 
         .level-value {
-          width: 64.56px;
-          height: 27.29px;
+          // width: 64.56px;
+          width: 97px;
+          // height: 27.29px;
+          height: 41px;
+          background-size: 100% 100%;
           text-align: center;
-          line-height: 27.29px;
-          margin-bottom: 11px;
+          // line-height: 27.29px;
+          line-height: 41px;
+          // margin-bottom: 11px;
+          margin-bottom: 17px;
 
           >span {
             font-family: YouSheBiaoTiHei;

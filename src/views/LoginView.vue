@@ -5,8 +5,8 @@
         <img src="@/assets/img/login/form_bg.webp" alt="登录背景" />
       </div>
       <div class="login-title">
-        <!-- <img src="@/assets/img/login/image.png" alt="登录标题" /> -->
-        <h2 class="title-text">阳新县城市生命线监测预警平台</h2>
+        <img src="@/assets/img/login/title.png" alt="登录标题" />
+        <!-- <h2 class="title-text">阳新县城市生命线监测预警平台</h2> -->
       </div>
       <div class="login-card">
         <n-form ref="formRef" :show-require-mark="false" label-placement="left" :model="formData" :rules="rules"
@@ -160,7 +160,7 @@ const handleLogin = async () => {
   .login-title {
     z-index: 10;
     position: relative;
-    height: 88px;
+    height: 140px;
     margin-top: 120px;
 
     img {

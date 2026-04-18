@@ -5,11 +5,19 @@
     </div>
     <div class="module-content">
       <div class="risk-container">
-        <!-- 左侧:多环形图 -->
+        <!-- 风险总数 -->
+        <div class="risk-total">
+          <span class="risk-total-label">风险总数</span>
+          <span class="risk-total-value gradient-text">{{ totalRisk }}</span>
+          <span class="risk-total-unit">个</span>
+        </div>
+
+        <!-- 多环形图 -->
         <div class="left-chart">
           <RiskLevelChart
             :chart-id="riskChartId"
             :sszx="'csaqzx_ql'"
+            @data-loaded="onRiskDataLoaded"
           />
         </div>
 
@@ -59,11 +67,19 @@
 //   initChart,
 // } from "../chartOption";
 import RiskLevelChart from "@/components/RiskLevelChart.vue";
+import { ref } from "vue";
 
 // ==================== 数据状态 ====================
 
 // 风险图表唯一ID
 const riskChartId = 'risk-chart-bridge';
+
+// 风险总数
+const totalRisk = ref(0);
+
+const onRiskDataLoaded = (data: any[]) => {
+  totalRisk.value = data.reduce((sum: number, item: any) => sum + (item.value || 0), 0);
+};
 
 // 共同参数（暂时隐藏右侧面板，后期可能恢复）
 // let glmblxs = "";
@@ -146,11 +162,36 @@ const riskChartId = 'risk-chart-bridge';
 <style lang="scss" scoped>
 .risk-hazard-module {
 
+  .risk-total {
+    text-align: center;
+    margin-bottom: 8px;
+
+    .risk-total-label {
+      font-family: SourceHanSansSC, SourceHanSansSC;
+      font-weight: 400;
+      font-size: var(--font-size-3xl);
+      color: #d3eaf1;
+    }
+
+    .risk-total-value {
+      font-family: YouSheBiaoTiHei;
+      font-size: 36px;
+      margin: 0 6px;
+      background: linear-gradient(180deg, #FFFFFF 0%, #10ADC0 100%);
+    }
+
+    .risk-total-unit {
+      font-family: SourceHanSansSC, SourceHanSansSC;
+      font-weight: 400;
+      font-size: var(--font-size-3xl);
+      color: #d3eaf1;
+    }
+  }
 
   .risk-container {
     display: flex;
-    flex-direction: row;
-    gap: 10px;
+    flex-direction: column;
+    // gap: 10px;
     height: 100%;
   }
 

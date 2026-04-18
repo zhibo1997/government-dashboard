@@ -1,5 +1,5 @@
 <template>
-  <div class="data-module monitoring-device-module">
+  <div class="data-module monitoring-device-module" @click="switchToMonitorMode?.()">
     <div class="module-header">
       <div class="module-title">监测设备</div>
     </div>
@@ -82,7 +82,9 @@ import {
   getDeviceTypeStatusCount,
 } from "@/services/waterSupplyService";
 
-import { ref, onMounted } from "vue";
+import { ref, onMounted, inject, type Ref } from "vue";
+
+const switchToMonitorMode = inject<Ref<(() => void) | null>>('switchToMonitorMode', ref(null));
 
 const jcsblxMap = ref<any>({});
 // 初始化获取状态数据

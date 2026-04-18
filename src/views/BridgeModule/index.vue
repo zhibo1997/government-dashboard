@@ -45,7 +45,8 @@ onBeforeMount(async () => {
       'glmblx_ql',
       'fxdj',
       'zgzt',
-      'csaqzx_ql'
+      'csaqzx_ql',
+      'qljglb',         // BridgeListPanel 结构类型
     ])
     console.log('桥梁模块字典数据预加载完成')
     loading.value = false

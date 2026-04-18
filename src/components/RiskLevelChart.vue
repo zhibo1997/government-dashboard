@@ -345,7 +345,7 @@ watch(
       .legend-name {
         font-family: SourceHanSansSC, SourceHanSansSC;
         font-weight: 400;
-        font-size: var(--font-size-2xl);
+        font-size: 40px;
         color: #d3eaf1;
         display: flex;
         align-items: center;
@@ -361,7 +361,7 @@ watch(
 
       .legend-value {
         font-family: YouSheBiaoTiHei;
-        font-size: var(--font-size-3xl);
+        font-size: 40px;
         color: #ffffff;
         background: linear-gradient(180deg, #FFFFFF 0%, #10ADC0 100%);
 

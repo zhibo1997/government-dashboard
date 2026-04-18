@@ -23,10 +23,6 @@
             <label>设备编号：</label>
             <span class="info-value">{{ equipmentData?.sbbh || '—' }}</span>
           </div>
-          <div class="info-row">
-            <label>安装位置：</label>
-            <span class="info-value">{{ equipmentData?.azwz || '—' }}</span>
-          </div>
           <div class="info-row" v-if="latestRecord">
             <label>监测时间：</label>
             <span class="info-value">{{ formatTime(latestRecord.jcsj) }}</span>
@@ -46,7 +42,7 @@
 
         <!-- 实时数据折线图 -->
         <div class="chart-section" v-if="monitorRecords.length > 1">
-          <div class="monitor-title">实时数据趋势</div>
+          <div class="monitor-title">监测数据走势</div>
           <div ref="lineChartRef" class="line-chart"></div>
         </div>
       </div>
@@ -275,7 +271,7 @@ const initLineChart = (rawData: any[]) => {
       trigger: "axis",
       backgroundColor: "rgba(0, 20, 40, 0.9)",
       borderColor: "rgba(13, 165, 190, 0.5)",
-      textStyle: { color: "#e4f3ff", fontSize: 12 },
+      textStyle: { color: "#e4f3ff", fontSize: 14 },
       formatter: (params: any) => {
         if (!Array.isArray(params)) return '';
         let html = `<div style="margin-bottom:4px;color:#9ec3e8">${params[0].axisValue}</div>`;
@@ -291,22 +287,22 @@ const initLineChart = (rawData: any[]) => {
     legend: {
       data: indicators,
       top: 0,
-      textStyle: { color: "#9ec3e8", fontSize: 11 },
+      textStyle: { color: "#9ec3e8", fontSize: 13 },
       itemWidth: 16,
       itemHeight: 8,
     },
     grid: {
-      left: 40,
+      left: 44,
       right: 16,
       top: 30,
-      bottom: 24,
+      bottom: 28,
     },
     xAxis: {
       type: "category",
       data: xData,
       axisLabel: {
         color: "#9ec3e8",
-        fontSize: 10,
+        fontSize: 12,
         interval: Math.floor(xData.length / 6),
       },
       axisLine: { lineStyle: { color: "rgba(13, 165, 190, 0.3)" } },
@@ -316,7 +312,7 @@ const initLineChart = (rawData: any[]) => {
       type: "value",
       axisLabel: {
         color: "#9ec3e8",
-        fontSize: 10,
+        fontSize: 12,
       },
       splitLine: {
         lineStyle: { color: "rgba(13, 165, 190, 0.15)" },
@@ -493,12 +489,12 @@ onBeforeUnmount(() => {
         gap: 12px;
 
         .badge-btn {
-          padding: 8px 20px;
-          border-radius: 8px;
+          padding: 4px 12px;
+          border-radius: 6px;
           font-family: SourceHanSansSC, SourceHanSansSC;
           font-weight: var(--font-weight-medium);
-          font-size: var(--font-size-2xl);
-          line-height: calc(var(--font-size-2xl) * 1.4);
+          font-size: var(--font-size-lg);
+          line-height: calc(var(--font-size-lg) * 1.4);
 
           &.badge-type {
             background: #313d56;
@@ -574,8 +570,8 @@ onBeforeUnmount(() => {
           gap: 12px;
 
           .monitor-item {
-            background: rgba(0, 60, 80, 0.3);
-            border: 1px solid rgba(22, 119, 255, 0.2);
+            background: rgba(0, 30, 45, 0.6);
+            border: 1px solid rgba(13, 165, 190, 0.2);
             border-radius: 8px;
             padding: 12px;
             text-align: center;
@@ -583,14 +579,14 @@ onBeforeUnmount(() => {
             .monitor-value {
               font-family: YouSheBiaoTiHei;
               font-size: var(--font-size-3xl);
-              color: #ffffff;
-              background: linear-gradient(180deg, #FFFFFF 0%, #10ADC0 100%);
+              color: #10adc0;
+              background: transparent;
               line-height: 1.2;
 
               .monitor-unit {
                 font-family: SourceHanSansSC, SourceHanSansSC;
                 font-size: var(--font-size-sm);
-                color: #9ec3e8;
+                color: #6ba8c4;
                 margin-left: 4px;
                 background: transparent;
               }
@@ -599,7 +595,7 @@ onBeforeUnmount(() => {
             .monitor-label {
               font-family: SourceHanSansSC, SourceHanSansSC;
               font-size: var(--font-size-lg);
-              color: #9ec3e8;
+              color: #6ba8c4;
               margin-top: 6px;
             }
           }
@@ -621,7 +617,7 @@ onBeforeUnmount(() => {
 
         .line-chart {
           width: 100%;
-          height: 220px;
+          height: 300px;
         }
       }
     }

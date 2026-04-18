@@ -9,9 +9,17 @@
 export const mapConfig = {
   // 地图中心点坐标（阳新县）
   center: [115.186322, 29.864861] as [number, number],
-  
+
   // 默认缩放级别
   zoom: 11,
+
+  // 初始相机视角（修改这里即可调整默认视角）
+  initialCamera: {
+    center: [115.206458, 29.834871] as [number, number],
+    height: 1099.05,
+    heading: 21.17,
+    pitch: -29.76,
+  },
   
   // 相机平移范围限制（阳新县范围）
   cameraBounds: {

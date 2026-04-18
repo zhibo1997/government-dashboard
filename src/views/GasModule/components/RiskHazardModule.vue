@@ -4,12 +4,18 @@
       <div class="module-title">风险点</div>
     </div>
     <div class="module-content">
+      <div class="risk-total-row">
+        <span class="risk-total-label">风险总数</span>
+        <span class="risk-total-value gradient-text">{{ totalRisk }}</span>
+      </div>
       <div class="risk-container">
         <!-- 左侧:多环形图 -->
         <div class="left-chart">
           <RiskLevelChart
+            ref="riskChartRef"
             :chart-id="riskChartId"
             :sszx="'csaqzx_rq'"
+            @dataLoaded="onDataLoaded"
           />
         </div>
 
@@ -58,12 +64,19 @@
 //   createProgressOption,
 //   initChart,
 // } from "../chartOption";
+import { ref } from "vue";
 import RiskLevelChart from "@/components/RiskLevelChart.vue";
 
 // ==================== 数据状态 ====================
 
 // 风险图表唯一ID
 const riskChartId = 'risk-chart-gas';
+const riskChartRef = ref<InstanceType<typeof RiskLevelChart> | null>(null);
+const totalRisk = ref(0);
+
+const onDataLoaded = (data: { name: string; color: string; value: number }[]) => {
+  totalRisk.value = data.reduce((sum, item) => sum + (item.value || 0), 0);
+};
 
 // 共同参数（暂时隐藏右侧面板，后期可能恢复）
 // let glmblxs = "";
@@ -317,6 +330,25 @@ const riskChartId = 'risk-chart-gas';
 <style lang="scss" scoped>
 .risk-hazard-module {
 
+  .risk-total-row {
+    display: flex;
+    align-items: baseline;
+    justify-content: center;
+    gap: 8px;
+
+    .risk-total-label {
+      font-family: SourceHanSansSC, SourceHanSansSC;
+      font-weight: var(--font-weight-bold);
+      font-size: 40px;
+      color: #d3eaf1;
+    }
+
+    .risk-total-value {
+      font-family: YouSheBiaoTiHei;
+      font-size: 40px;
+      background: linear-gradient(0deg, #f75e04 0%, #feac04 100%);
+    }
+  }
 
   .risk-container {
     display: flex;

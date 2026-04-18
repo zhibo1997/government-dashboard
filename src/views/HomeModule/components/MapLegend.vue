@@ -13,10 +13,10 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
-import { DEVICE_ICON_MAP, DEVICE_TYPE_NAME_MAP } from '@/config/monitoringIconConfig'
+import { computed, onMounted, ref } from 'vue'
+import { getCachedDictionary } from '@/services/dictionaryService'
+import type { DictionaryItem } from '@/stores/dictionaryStore'
 
-// 定义图例项接口
 interface LegendItem {
   type: string
   name: string
@@ -24,18 +24,22 @@ interface LegendItem {
 }
 
 const baseUrl = import.meta.env.VITE_BASE_URL
+const dictData = ref<DictionaryItem[]>([])
 
-// 生成图例数据
+onMounted(async () => {
+  const data = await getCachedDictionary('jcsblx')
+  console.info("🚀 ~ data:", data)
+  dictData.value = data || []
+})
+
 const legendItems = computed<LegendItem[]>(() => {
-  return Object.keys(DEVICE_ICON_MAP).map(type => {
-    const iconName = DEVICE_ICON_MAP[type]
-    return {
-      type,
-      name: DEVICE_TYPE_NAME_MAP[type] || '未知设备',
-      // 使用与 useMonitoringPoints.ts 一致的图片路径逻辑
-      icon: `${baseUrl}/images/equipmentIcons/${iconName}`
-    }
-  })
+  return dictData.value
+    .filter(item => item.f_ItemValue)
+    .map(item => ({
+      type: item.f_ItemValue,
+      name: item.f_ItemName,
+      icon: `${baseUrl}/images/equipmentIcons/${item.f_ItemValue}.svg`
+    }))
 })
 </script>
 
@@ -58,7 +62,7 @@ const legendItems = computed<LegendItem[]>(() => {
     padding:  6px 0;
     text-align: center;
     border-bottom: 2px solid rgba(31, 199, 255, 0.24);
-    
+
     .title {
       font-family: SourceHanSansSC, SourceHanSansSC;
       font-weight: bold;
@@ -75,26 +79,31 @@ const legendItems = computed<LegendItem[]>(() => {
     flex-direction: column;
     gap: 30px;
     padding: 16px;
+    max-height: 400px;
+    overflow-y: auto;
 
     .legend-item {
       display: flex;
       align-items: center;
       gap: 20px;
-      
+
       .legend-icon {
-        width: 36px;
-        height: 50px;
+        width: 75px;
+        height: 90px;
         object-fit: contain;
         display: block;
       }
 
       .legend-label {
         margin-left: 0;
+        width: 360px;
+        white-space: normal;
+        word-break: break-all;
         font-family: SourceHanSansSC, SourceHanSansSC;
         font-weight: 500;
-        font-size: 30px;
+        font-size: 36px;
         color: #E4F3FF;
-        line-height: 44px;
+        line-height: 50px;
         text-align: left;
         font-style: normal;
       }

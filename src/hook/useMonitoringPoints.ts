@@ -12,8 +12,7 @@ import {
   getDeviceTypeName,
   getSszxName,
   getIndicatorName,
-  ICON_SIZE,
-  DEVICE_ICON_MAP
+  ICON_SIZE
 } from '@/config/monitoringIconConfig'
 import {
   createBillboardCanvasWithArrow,
@@ -302,16 +301,13 @@ export function useMonitoringPoints() {
     // 统一点位颜色为蓝色
     const pointColor = '#1890ff';
 
-    const baseUrl = import.meta.env.VITE_BASE_URL
-
     for (const point of enhancedData.value) {
       // 验证坐标有效性
       if (!isValidCoordinate(point.jdxx, point.wdxx)) {
         continue
       }
 
-      const iconName = DEVICE_ICON_MAP[point.sblx] || '0510-裂缝计.svg'
-      const deviceIconUrl = `${baseUrl}/images/equipmentIcons/${iconName}`
+      const deviceIconUrl = getDeviceIconUrl(point.sblx)
       const position = Cesium.Cartesian3.fromDegrees(point.jdxx, point.wdxx)
       
       // 添加点位Entity（纯点/图标自适应）
@@ -333,8 +329,8 @@ export function useMonitoringPoints() {
         // 图标样式（低海拔显示）
         billboard: {
           image: deviceIconUrl,
-          width: 53,
-          height: 75,
+          width: 50,
+          height: 60,
           horizontalOrigin: Cesium.HorizontalOrigin.CENTER,
           verticalOrigin: Cesium.VerticalOrigin.BOTTOM,
           pixelOffset: new Cesium.Cartesian2(0, 20),

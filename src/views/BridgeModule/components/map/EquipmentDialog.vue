@@ -371,12 +371,12 @@ const handleViewEquipment = (equipment: any) => {
 
     .data-table {
       flex: 1;
-      overflow: auto;
+      overflow: hidden;
       margin-top: 20px;
 
       .status-text {
         color: #ffffff;
-        font-size: var(--font-size-sm);
+        font-size: var(--font-size-2xl);
       }
 
       .view-btn {

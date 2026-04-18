@@ -129,8 +129,11 @@
 <script setup lang="ts">
 import { getGasEnterprisePageList, getGasEnterpriseLedgerDetail, getBottleGasEnterpriseLedgerDetail, getGasUserPageList, getGasStationPageList, getEquipmentPageList } from "@/services/gasService";
 import { getCachedDictionary } from "@/services/dictionaryService";
-import { ref, computed, onMounted, watch } from "vue";
+import { ref, computed, onMounted, watch, inject, type Ref } from "vue";
 import { NSelect } from "naive-ui";
+
+// 监测设备模块点击回调
+const switchToMonitorMode = inject<Ref<(() => void) | null>>('switchToMonitorMode', ref(null));
 
 const props = defineProps({
   visible: {
@@ -256,6 +259,15 @@ const loadStations = async () => {
 }
 
 onMounted(async () => {
+  // 注册监测设备模块点击回调
+  switchToMonitorMode.value = () => {
+    currentTitle.value = '监测设备';
+    searchKeyword.value = "";
+    currentPage.value = 1;
+    isCollapsed.value = false;
+    loadStations();
+  };
+
   // 加载设备类型字典
   try {
     const rqDict = await getCachedDictionary("jcsblx_rq");

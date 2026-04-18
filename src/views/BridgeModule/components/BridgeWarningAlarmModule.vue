@@ -329,26 +329,25 @@ onMounted(() => {
 
     // 总数环形
     .total-ring {
-      width: 105px;
-      height: 194px;
+      width: 158px;
+      height: 291px;
       background-image: url("@/assets/img/gasModule/warning_total.webp");
       background-size: 100% 100%;
       display: flex;
       align-items: center;
-      justify-content: center;
       position: relative;
       flex-direction: column;
 
       .ring-value {
         font-family: YouSheBiaoTiHei;
-        font-size: var(--font-size-4xl);
+        font-size: 40px;
         color: #ffffff;
         line-height: calc(var(--font-size-4xl) * 1.294);
         text-align: center;
         font-style: normal;
         background: linear-gradient(0deg, #f75e04 0%, #feac04 100%);
-        margin-top: 40px;
-        margin-bottom: 30px;
+        margin-top: 70px;
+        margin-bottom: 70px;
       }
     }
 
@@ -356,7 +355,7 @@ onMounted(() => {
     .total-label {
       font-family: SourceHanSansSC, SourceHanSansSC;
       font-weight: var(--font-weight-bold);
-      font-size: var(--font-size-3xl);
+      font-size: 40px;
       color: #d3eaf1;
       line-height: calc(var(--font-size-xl) * 1.458);
       text-align: center;
@@ -365,7 +364,7 @@ onMounted(() => {
 
     .right-content {
       flex: 1;
-      margin-left: 12px;
+      margin-left: 18px;
       display: flex;
       flex-direction: column;
       justify-content: center;
@@ -374,7 +373,7 @@ onMounted(() => {
     // 状态统计
     .status-stats {
       display: flex;
-      gap: 10px;
+      gap: 15px;
       justify-content: space-between;
       align-items: center;
 
@@ -382,22 +381,23 @@ onMounted(() => {
         display: flex;
         flex-direction: column;
         align-items: center;
-        gap: 5px;
+        gap: 8px;
 
         .status-ring {
-          width: 58.55px;
-          height: 58.55px;
+          width: 88px;
+          height: 88px;
           background-image: url("@/assets/img/gasModule/status_ring.webp");
+          background-size: 100% 100%;
           display: flex;
           align-items: center;
           justify-content: center;
-          margin-bottom: 11px;
+          margin-bottom: 17px;
 
           .ring-num {
             font-family: YouSheBiaoTiHei;
-            font-size: var(--font-size-xl);
+            font-size: 40px;
             color: #ffffff;
-            line-height: calc(var(--font-size-xl) * 1.292);
+            line-height: calc(var(--font-size-2xl) * 1.292);
             text-align: center;
             font-style: normal;
             background: linear-gradient(180deg, #FFFFFF 0%, #10ADC0 100%);
@@ -405,7 +405,7 @@ onMounted(() => {
         }
 
         .status-label {
-          font-size: var(--font-size-xl);
+          font-size: 40px;
           color: rgba(255, 255, 255, 0.75);
         }
       }
@@ -414,7 +414,7 @@ onMounted(() => {
     // 等级统计
     .level-stats {
       display: flex;
-      gap: 10px;
+      gap: 15px;
       align-items: center;
       justify-content: space-between;
 
@@ -422,7 +422,7 @@ onMounted(() => {
         display: flex;
         flex-direction: column;
         align-items: center;
-        gap: 5px;
+        gap: 8px;
 
         &:nth-child(1) {
           .level-value {
@@ -452,15 +452,16 @@ onMounted(() => {
         }
 
         .level-value {
-          width: 64.56px;
-          height: 27.29px;
+          width: 97px;
+          height: 41px;
+          background-size: 100% 100%;
           text-align: center;
-          line-height: 27.29px;
-          margin-bottom: 11px;
+          line-height: 41px;
+          margin-bottom: 17px;
 
           >span {
             font-family: YouSheBiaoTiHei;
-            font-size: var(--font-size-2xl);
+            font-size: 40px;
             color: #ffffff;
             line-height: calc(var(--font-size-xl) * 1.292);
             text-align: center;
@@ -471,7 +472,7 @@ onMounted(() => {
         .level-label {
           font-family: SourceHanSansSC, SourceHanSansSC;
           font-weight: var(--font-weight-normal);
-          font-size: var(--font-size-xl);
+          font-size: 40px;
           color: #d3eaf1;
           line-height: calc(var(--font-size-sm) * 1.5);
           text-align: center;
@@ -509,7 +510,7 @@ onMounted(() => {
 
       span {
         font-family: YouSheBiaoTiHei;
-        font-size: var(--font-size-3xl);
+        font-size: 40px;
         color: #e74040;
         line-height: calc(var(--font-size-3xl) * 1.306);
         text-align: left;
@@ -556,7 +557,7 @@ onMounted(() => {
 
       span {
         font-family: YouSheBiaoTiHei;
-        font-size: var(--font-size-3xl);
+        font-size: 40px;
         color: #e74040;
         line-height: calc(var(--font-size-3xl) * 1.306);
         text-align: left;

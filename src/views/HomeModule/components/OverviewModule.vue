@@ -244,7 +244,7 @@ onMounted(() => {
   .overview-content {
     display: flex;
     flex-direction: column;
-    gap: 20px;
+    gap: 34px;
     padding: 0 10px;
     max-height: 100%;
     overflow-y: auto;

@@ -46,6 +46,7 @@ const preloadDictionaries = async () => {
       'yhdj',       // RiskHazardModule
       'bjjb',       // MonitoringAlarmModule
       'yjczzt',     // MonitoringEarlyWarningModule
+      'jcsblx',     // MapLegend
     ])
     console.log('首页模块字典数据预加载完成')
     loading.value = false
