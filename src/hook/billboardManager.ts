@@ -55,11 +55,11 @@ export function createBillboardCanvasWithArrow(
   const canvas = document.createElement("canvas");
   const ctx = canvas.getContext("2d")!;
 
-  // Canvas尺寸设置 - 按原尺寸1.2倍缩放
-  const width = 288;
-  const padding = 12;
-  const headerHeight = 43;
-  const lineHeight = 29;
+  // Canvas尺寸设置 - 缩放系数0.8
+  const width = 230;
+  const padding = 10;
+  const headerHeight = 34;
+  const lineHeight = 23;
 
   // 确保 parsedJcz 是有效数组
   const dataRows = Array.isArray(point.parsedJcz) ? Math.max(1, point.parsedJcz.length) : 1;
@@ -72,22 +72,24 @@ export function createBillboardCanvasWithArrow(
   // 清空画布
   ctx.clearRect(0, 0, width, height);
 
-  // 1. 绘制头部背景
-  if (resources.headerBg.complete && resources.headerBg.naturalWidth > 0) {
-    ctx.globalAlpha = 0.9; // 设置透明度为 60%(40% 透明)
-    ctx.drawImage(resources.headerBg, 0, 0, width, headerHeight);
-    ctx.globalAlpha = 1.0; // 恢复默认透明度
-  }
+  // 1. 绘制头部背景 - 水平渐变 (左0.85 → 中1.0 → 右0.85)
+  const headerGrad = ctx.createLinearGradient(0, 0, width, 0);
+  headerGrad.addColorStop(0, "rgba(6, 30, 52, 0.85)");
+  headerGrad.addColorStop(0.5, "rgba(6, 30, 52, 1)");
+  headerGrad.addColorStop(1, "rgba(6, 30, 52, 0.85)");
+  ctx.fillStyle = headerGrad;
+  ctx.fillRect(0, 0, width, headerHeight);
 
-  // 2. 绘制内容背景
-  if (resources.contentBg.complete && resources.contentBg.naturalWidth > 0) {
-    ctx.globalAlpha = 0.9; // 设置透明度为 60%(40% 透明)
-    ctx.drawImage(resources.contentBg, 0, headerHeight - 2, width, contentBodyHeight);
-    ctx.globalAlpha = 1.0; // 恢复默认透明度
-  }
+  // 2. 绘制内容背景 - 水平渐变 (左0.85 → 中1.0 → 右0.85)
+  const contentGrad = ctx.createLinearGradient(0, 0, width, 0);
+  contentGrad.addColorStop(0, "rgba(6, 30, 52, 0.85)");
+  contentGrad.addColorStop(0.5, "rgba(6, 30, 52, 1)");
+  contentGrad.addColorStop(1, "rgba(6, 30, 52, 0.85)");
+  ctx.fillStyle = contentGrad;
+  ctx.fillRect(0, headerHeight - 2, width, contentBodyHeight);
 
   // 3. 绘制时间图标
-  const iconSize = 24;
+  const iconSize = 19;
   const iconY = (headerHeight - iconSize) / 2;
   if (resources.timeIcon.complete && resources.timeIcon.naturalWidth > 0) {
     ctx.drawImage(resources.timeIcon, padding, iconY, iconSize, iconSize);
@@ -95,25 +97,25 @@ export function createBillboardCanvasWithArrow(
 
   // 4. 绘制时间文字
   ctx.fillStyle = '#3FFFFF';
-  ctx.font = '500 24px "Source Han Sans SC", "Microsoft YaHei", Arial, sans-serif';
+  ctx.font = '500 19px "Source Han Sans SC", "Microsoft YaHei", Arial, sans-serif';
   ctx.textBaseline = 'middle';
-  const timeTextX = padding + iconSize + 5;
+  const timeTextX = padding + iconSize + 4;
   ctx.fillText(point.formattedTime || '-', timeTextX, headerHeight / 2);
   console.info("🚀 ~ createBillboardCanvasWithArrow ~ point:", point)
 
   // 5. 绘制监测数据
   if (Array.isArray(point.parsedJcz) && point.parsedJcz.length > 0) {
     let yOffset = headerHeight + padding + lineHeight / 2;
-    const bulletRadius = 4;
-    const bulletOuterRadius = 5;
-    const bulletX = padding + 7;
-    const labelX = bulletX + bulletOuterRadius + 10;
+    const bulletRadius = 3;
+    const bulletOuterRadius = 4;
+    const bulletX = padding + 6;
+    const labelX = bulletX + bulletOuterRadius + 8;
 
     point.parsedJcz.forEach((item) => {
       // 绘制圆点装饰
       ctx.save();
       ctx.shadowColor = "rgba(0, 246, 255, 0.9)";
-      ctx.shadowBlur = 7;
+      ctx.shadowBlur = 6;
       ctx.fillStyle = "#00F6FF";
       ctx.beginPath();
       ctx.arc(bulletX, yOffset, bulletRadius, 0, Math.PI * 2);
@@ -128,7 +130,7 @@ export function createBillboardCanvasWithArrow(
 
       // 绘制指标名称
       ctx.fillStyle = '#E4F3FF';
-      ctx.font = '500 22px "Source Han Sans SC", "Microsoft YaHei", Arial, sans-serif';
+      ctx.font = '500 18px "Source Han Sans SC", "Microsoft YaHei", Arial, sans-serif';
       ctx.textAlign = 'left';
       ctx.textBaseline = 'middle';
 
@@ -138,12 +140,12 @@ export function createBillboardCanvasWithArrow(
       // 绘制指标值
       const valueText = String(item.value ?? '-');
 
-      ctx.font = '22px "YouSheBiaoTiYuan", "Microsoft YaHei", Arial, sans-serif';
+      ctx.font = '18px "YouSheBiaoTiYuan", "Microsoft YaHei", Arial, sans-serif';
       const valueWidth = Math.max(1, ctx.measureText(valueText).width);
-      const valueX = width - padding - 12;
+      const valueX = width - padding - 10;
 
       // 创建渐变色
-      const gradient = ctx.createLinearGradient(valueX - valueWidth, yOffset - 11, valueX, yOffset + 11);
+      const gradient = ctx.createLinearGradient(valueX - valueWidth, yOffset - 9, valueX, yOffset + 9);
       gradient.addColorStop(0, "#3FFEFD");
       gradient.addColorStop(1, "#FFF407");
       ctx.fillStyle = gradient;

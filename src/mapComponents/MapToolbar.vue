@@ -72,6 +72,19 @@
         </div>
       </div>
 
+      <!-- 桥梁模型 -->
+      <div class="toolbar-item" :class="{ active: showBridgePanel }" @click="toggleBridgePanel" title="桥梁模型">
+        <div class="tool-icon">
+          <img src="@/assets/map/桥梁模型.webp" alt="" />
+        </div>
+      </div>
+
+      <!-- 燃气模型 -->
+      <div class="toolbar-item" :class="{ active: showGasPanel }" @click="toggleGasPanel" title="燃气模型">
+        <div class="tool-icon">
+          <img src="@/assets/map/燃气模型.webp" alt="" />
+        </div>
+      </div>
 
       <!-- 默认3D Tiles -->
       <div class="toolbar-item" :class="{ active: props.defaultTilesetVisible }"
@@ -81,14 +94,37 @@
         </div>
       </div>
     </template>
+
+    <!-- 桥梁模型面板（独立定位） -->
+    <transition name="slide-left">
+      <div v-show="showBridgePanel" class="bridge-panel" @click.stop>
+        <BridgeModelPanel
+          :viewer-instance="props.viewerInstance"
+          @load-3dtiles="handleLoad3DTiles"
+          @layer-toggle="handleLayerToggle"
+        />
+      </div>
+    </transition>
+
+    <!-- 燃气模型面板（独立定位） -->
+    <transition name="slide-left">
+      <div v-show="showGasPanel" class="gas-panel" @click.stop>
+        <GasModelPanel
+          :viewer-instance="props.viewerInstance"
+          @load-3dtiles="handleLoad3DTiles"
+          @layer-toggle="handleLayerToggle"
+        />
+      </div>
+    </transition>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, inject } from "vue";
 import OptimizedLayerTree from "./OptimizedLayerTree.vue";
+import BridgeModelPanel from "./BridgeModelPanel.vue";
+import GasModelPanel from "./GasModelPanel.vue";
 import { useMapHooks } from "@/hook/useMapHooks";
-import { BuildingSkyscraper } from "@vicons/tabler";
 
 const cesiumUtils = useMapHooks();
 
@@ -119,6 +155,8 @@ const emit = defineEmits<{
 const isCollapsed = ref(false);
 const showLayerTreePanel = ref(false);
 const showBaseMapPanel = ref(false);
+const showBridgePanel = ref(false);
+const showGasPanel = ref(false);
 const layerTreeRef = ref<any>(null);
 
 // 存储已加载的图层实例
@@ -139,24 +177,48 @@ const toggleCollapse = () => {
   if (isCollapsed.value) {
     showLayerTreePanel.value = false;
     showBaseMapPanel.value = false;
+    showBridgePanel.value = false;
+    showGasPanel.value = false;
   }
 };
 
 // 切换图层树面板
 const toggleLayerTreePanel = () => {
   showLayerTreePanel.value = !showLayerTreePanel.value;
-  // 打开图层树时关闭底图面板
   if (showLayerTreePanel.value) {
     showBaseMapPanel.value = false;
+    showBridgePanel.value = false;
+    showGasPanel.value = false;
   }
 };
 
 // 切换底图面板
 const toggleBaseMapPanel = () => {
   showBaseMapPanel.value = !showBaseMapPanel.value;
-  // 打开底图面板时关闭图层树
   if (showBaseMapPanel.value) {
     showLayerTreePanel.value = false;
+    showBridgePanel.value = false;
+    showGasPanel.value = false;
+  }
+};
+
+// 切换桥梁模型面板
+const toggleBridgePanel = () => {
+  showBridgePanel.value = !showBridgePanel.value;
+  if (showBridgePanel.value) {
+    showLayerTreePanel.value = false;
+    showBaseMapPanel.value = false;
+    showGasPanel.value = false;
+  }
+};
+
+// 切换燃气模型面板
+const toggleGasPanel = () => {
+  showGasPanel.value = !showGasPanel.value;
+  if (showGasPanel.value) {
+    showLayerTreePanel.value = false;
+    showBaseMapPanel.value = false;
+    showBridgePanel.value = false;
   }
 };
 
@@ -537,6 +599,38 @@ defineExpose({
         }
       }
     }
+  }
+
+  // 桥梁模型面板（独立定位，不嵌套在 toolbar-item 内）
+  > .bridge-panel {
+    position: absolute;
+    right: 100%;
+    bottom: 0;
+    margin-right: 16px;
+    width: 1100px;
+    height: 320px;
+    background: rgba(11, 28, 45, 0.65);
+    backdrop-filter: blur(10px);
+    border: 2px solid rgba(22, 119, 255, 0.3);
+    border-radius: 12px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+    overflow: hidden;
+  }
+
+  // 燃气模型面板
+  > .gas-panel {
+    position: absolute;
+    right: 100%;
+    bottom: 0;
+    margin-right: 16px;
+    width: 1100px;
+    height: 240px;
+    background: rgba(11, 28, 45, 0.65);
+    backdrop-filter: blur(10px);
+    border: 2px solid rgba(22, 119, 255, 0.3);
+    border-radius: 12px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+    overflow: hidden;
   }
 
   // 面板滑入动画

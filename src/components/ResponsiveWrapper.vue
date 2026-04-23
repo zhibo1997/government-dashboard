@@ -24,7 +24,7 @@ const props = defineProps({
   // 基准高度
   baseHeight: {
     type: Number,
-    default: 2160
+    default: 2314
   },
   // 最小缩放比例
   minScale: {
