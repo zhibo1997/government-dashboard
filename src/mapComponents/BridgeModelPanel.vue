@@ -1,7 +1,7 @@
 <template>
   <div class="bridge-model-panel">
     <div class="panel-title">桥梁模型</div>
-    <div class="bridge-list">
+    <div class="bridge-list" @wheel.prevent="onBridgeListWheel">
       <div
         v-for="bridge in bridgeList"
         :key="bridge.id"
@@ -93,6 +93,11 @@ const bridgeList: BridgeModel[] = [
 
 const activeBridgeIds = reactive(new Set<string>());
 const hoveredEquipmentId = ref("");
+
+function onBridgeListWheel(e: WheelEvent) {
+  const el = e.currentTarget as HTMLElement;
+  el.scrollLeft += e.deltaY;
+}
 
 function convertUrlProtocol(url: string): string {
   const isProduction = import.meta.env.PROD || import.meta.env.MODE === "production";
@@ -237,7 +242,7 @@ function toggleEquipment(bridge: BridgeModel, checked: boolean) {
 .equipment-area {
   position: absolute;
   top: 28px;
-  right: 16px;
+  right: 28px;
   display: flex;
   flex-direction: column;
   align-items: center;

@@ -1,5 +1,5 @@
 <template>
-  <ResponsiveWrapper :base-width="4096" :base-height="1920">
+  <ResponsiveWrapper>
     <div class="login-container">
       <div class="login-bg">
         <img src="@/assets/img/login/form_bg.webp" alt="登录背景" />

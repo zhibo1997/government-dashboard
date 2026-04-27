@@ -16,7 +16,7 @@
     </div>
 
     <!-- 持久化层：响应式容器 + 头部导航 -->
-    <ResponsiveWrapper :base-width="4096" :base-height="2160">
+    <ResponsiveWrapper>
       <DashboardHeader />
 
       <!-- 主体容器 -->
