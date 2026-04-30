@@ -47,11 +47,25 @@
  :default-tileset-visible="defaultTilesetVisible"
         @update:scene-mode="handleSceneModeChange" @update:base-map="handleBaseMapChange" @reset-map="handleResetMap"
         @toggle-measure="showMeasureTool = !showMeasureTool"
-        @toggle-default-tileset="toggleDefaultTileset" />
+        @toggle-default-tileset="toggleDefaultTileset"
+        @equipment-activate="handleEquipmentActivate" />
 
       <!-- 测量工具面板 -->
       <MeasureTool v-model:visible="showMeasureTool" @toggle-distance="toggleDistance" @toggle-area="toggleArea"
         @clear="clearMeasurements" ref="measureToolRef" />
+
+      <!-- 桥梁监测设备列表弹窗 -->
+      <EquipmentDialog
+        v-model:visible="equipmentDialogVisible"
+        :bridge-data="equipmentBridgeData"
+        @equipment-view="handleEquipmentView"
+      />
+
+      <!-- 设备详情弹窗 -->
+      <EquipmentDetailPopup
+        v-model:visible="showEquipmentDetail"
+        :equipment-data="selectedEquipment"
+      />
     </ResponsiveWrapper>
 
     <!-- 多弹窗容器（智能碰撞检测） -->
@@ -84,6 +98,8 @@ import { VcCamera ,VcColor} from 'vue-cesium/lib/utils/types.js'
 import mapConfig from '@/config/mapConfig'
 import MeasureTool from './MeasureTool.vue'
 import MapToolbar from './MapToolbar.vue'
+import EquipmentDialog from '@/views/BridgeModule/components/map/EquipmentDialog.vue'
+import EquipmentDetailPopup from '@/views/BridgeModule/components/map/EquipmentDetailPopup.vue'
 
 import { inject } from 'vue'
 import ResponsiveWrapper from '@/components/ResponsiveWrapper.vue'
@@ -127,6 +143,23 @@ const basemapLayer = ref(null)
 
 // 工具栏引用
 const toolbarRef = ref<any>(null)
+
+// 桥梁设备弹窗状态
+const equipmentDialogVisible = ref(false)
+const equipmentBridgeData = ref<any>({})
+const showEquipmentDetail = ref(false)
+const selectedEquipment = ref<any>({})
+
+const handleEquipmentActivate = (bridge: any, active: boolean) => {
+  equipmentBridgeData.value = active ? { qlbh: bridge.qlbh, llmc: bridge.name } : {}
+  equipmentDialogVisible.value = active
+}
+
+const handleEquipmentView = (equipment: any) => {
+  selectedEquipment.value = equipment
+  showEquipmentDetail.value = true
+}
+
 
 // 多弹窗容器引用
 const multiPopupRef = ref<any>(null)

@@ -73,21 +73,21 @@
       </div>
 
       <!-- 桥梁模型 -->
-      <div class="toolbar-item" :class="{ active: showBridgePanel }" @click="toggleBridgePanel" title="桥梁模型">
+      <div class="toolbar-item model-tool" :class="{ active: showBridgePanel }" @click="toggleBridgePanel" title="桥梁模型">
         <div class="tool-icon">
           <img src="@/assets/map/桥梁模型.webp" alt="" />
         </div>
       </div>
 
       <!-- 燃气模型 -->
-      <div class="toolbar-item" :class="{ active: showGasPanel }" @click="toggleGasPanel" title="燃气模型">
+      <div class="toolbar-item model-tool" :class="{ active: showGasPanel }" @click="toggleGasPanel" title="燃气模型">
         <div class="tool-icon">
           <img src="@/assets/map/燃气模型.webp" alt="" />
         </div>
       </div>
 
       <!-- 默认3D Tiles -->
-      <div class="toolbar-item" :class="{ active: props.defaultTilesetVisible }"
+      <div class="toolbar-item model-tool" :class="{ active: props.defaultTilesetVisible }"
         @click="$emit('toggle-default-tileset')" title="默认3D Tiles">
         <div class="tool-icon">
           <img src="@/assets/map/white_membrane.webp" alt="" />
@@ -102,6 +102,7 @@
           :viewer-instance="props.viewerInstance"
           @load-3dtiles="handleLoad3DTiles"
           @layer-toggle="handleLayerToggle"
+          @equipment-activate="handleEquipmentActivate"
         />
       </div>
     </transition>
@@ -116,6 +117,7 @@
         />
       </div>
     </transition>
+
   </div>
 </template>
 
@@ -149,6 +151,7 @@ const emit = defineEmits<{
   'reset-map': []
   'toggle-measure': []
   'toggle-default-tileset': []
+  'equipment-activate': [bridge: any, active: boolean]
 }>()
 
 // 本地UI状态管理
@@ -157,6 +160,8 @@ const showLayerTreePanel = ref(false);
 const showBaseMapPanel = ref(false);
 const showBridgePanel = ref(false);
 const showGasPanel = ref(false);
+const showEquipmentDialog = ref(false);
+const activeEquipmentBridge = ref<any>({});
 const layerTreeRef = ref<any>(null);
 
 // 存储已加载的图层实例
@@ -344,6 +349,44 @@ const handleLayerToggle = (
   }
 };
 
+// 处理监测设备激活/取消
+const handleEquipmentActivate = (bridge: any, active: boolean) => {
+  if (active) {
+    const applyOpacity = () => {
+      const bridgeLayer = loadedLayers.value.get(bridge.id);
+      if (bridgeLayer?.type === "3dtiles" && bridgeLayer.instance) {
+        cesiumUtils.set3DTilesStyle(bridgeLayer.instance, {
+          color: `color('white', 0.7)`,
+        });
+      }
+    };
+
+    const bridgeLayer = loadedLayers.value.get(bridge.id);
+    if (bridgeLayer) {
+      applyOpacity();
+    } else {
+      const timer = setInterval(() => {
+        if (loadedLayers.value.has(bridge.id)) {
+          clearInterval(timer);
+          applyOpacity();
+        }
+      }, 200);
+      setTimeout(() => clearInterval(timer), 10000);
+    }
+  } else {
+    const bridgeLayer = loadedLayers.value.get(bridge.id);
+    if (bridgeLayer?.type === "3dtiles" && bridgeLayer.instance) {
+      cesiumUtils.set3DTilesStyle(bridgeLayer.instance, {
+        color: `color('white', 1.0)`,
+      });
+    }
+  }
+
+  activeEquipmentBridge.value = active ? { qlbh: bridge.qlbh, llmc: bridge.name } : {};
+  showEquipmentDialog.value = active;
+  emit('equipment-activate', bridge, active);
+};
+
 // 处理图层透明度变化
 const handleLayerOpacityChange = (layerId: string, opacity: number) => {
   console.log(`调整图层透明度: ${layerId}, ${opacity}`);
@@ -439,11 +482,13 @@ const resetNorth = () => {
   }
 };
 
-// 暴露方法
+// 暴露方法和状态
 defineExpose({
   isCollapsed,
   loadedLayers,
   layerTreeRef,
+  showEquipmentDialog,
+  activeEquipmentBridge,
 });
 </script>
 
@@ -464,6 +509,10 @@ defineExpose({
       &:last-child {
         margin-bottom: 0;
       }
+    }
+    .model-tool .tool-icon {
+      width: 90%;
+      height: 90%;
     }
   }
 

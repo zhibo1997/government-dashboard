@@ -146,25 +146,38 @@ watch(() => props.visible, (val) => {
 })
 
 const fetchData = async () => {
-  if (!props.bridgeData?.qlbh) return
-
   loading.value = true
   try {
-    const params: Record<string, string> = {
-      page: currentPage.value.toString(),
-      rows: pageSize.value.toString(),
-      glmbbh: props.bridgeData.qlbh,
-    }
-    if (searchKeyword.value) {
-      params.sbmc = searchKeyword.value
-    }
-    const res = await getBridgeTargetEquipmentPageList(params)
-    if (res && res.rows) {
-      tableData.value = res.rows;
-      total.value = res.total || 0
+    if (props.bridgeData?.qlbh) {
+      const params: Record<string, string> = {
+        page: currentPage.value.toString(),
+        rows: pageSize.value.toString(),
+        glmbbh: props.bridgeData.qlbh,
+      }
+      if (searchKeyword.value) {
+        params.sbmc = searchKeyword.value
+      }
+      const res = await getBridgeTargetEquipmentPageList(params)
+      if (res && res.rows) {
+        tableData.value = res.rows
+        total.value = res.total || 0
+      } else {
+        tableData.value = []
+        total.value = 0
+      }
     } else {
-      tableData.value = []
-      total.value = 0
+      // Mock 数据，用于调试交互样式
+      tableData.value = [
+        { sbbh: 'SB2024001', sbmc: '应变传感器-01', sszx: 'csaqzx_ql', azwz: '主跨跨中截面', gdfs: 'gdfs001', sbyxzt: 'sbyxzt001', sbywzt: 'sbywzt001' },
+        { sbbh: 'SB2024002', sbmc: '位移传感器-01', sszx: 'csaqzx_ql', azwz: '桥墩顶部', gdfs: 'gdfs003', sbyxzt: 'sbyxzt001', sbywzt: 'sbywzt001' },
+        { sbbh: 'SB2024003', sbmc: '温湿度传感器-01', sszx: 'csaqzx_ql', azwz: '主梁内部', gdfs: 'gdfs002', sbyxzt: 'sbyxzt002', sbywzt: 'sbywzt002' },
+        { sbbh: 'SB2024004', sbmc: '加速度传感器-01', sszx: 'csaqzx_ql', azwz: '桥塔顶部', gdfs: 'gdfs001', sbyxzt: 'sbyxzt001', sbywzt: 'sbywzt001' },
+        { sbbh: 'SB2024005', sbmc: '倾角传感器-01', sszx: 'csaqzx_ql', azwz: '支座位置', gdfs: 'gdfs001', sbyxzt: 'sbyxzt003', sbywzt: 'sbywzt001' },
+        { sbbh: 'SB2024006', sbmc: '风速风向仪-01', sszx: 'csaqzx_ql', azwz: '桥面中段', gdfs: 'gdfs003', sbyxzt: 'sbyxzt001', sbywzt: 'sbywzt001' },
+        { sbbh: 'SB2024007', sbmc: '挠度传感器-01', sszx: 'csaqzx_ql', azwz: '主跨1/4截面', gdfs: 'gdfs002', sbyxzt: 'sbyxzt002', sbywzt: 'sbywzt003' },
+        { sbbh: 'SB2024008', sbmc: '索力传感器-01', sszx: 'csaqzx_ql', azwz: '斜拉索锚固端', gdfs: 'gdfs001', sbyxzt: 'sbyxzt001', sbywzt: 'sbywzt001' },
+      ]
+      total.value = 8
     }
   } catch (error) {
     console.error('获取桥梁设备列表失败:', error)

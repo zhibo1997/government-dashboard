@@ -12,7 +12,7 @@
         <div class="bridge-image-wrapper">
           <img :src="bridge.image" :alt="bridge.name" class="bridge-image" />
           <div class="bridge-overlay" v-if="!activeBridgeIds.has(bridge.id)"></div>
-          <div class="equipment-label">监测设备</div>
+          <div class="equipment-label" v-if="bridge.equipment">监测设备</div>
           <div class="bridge-name">{{ bridge.name }}</div>
           <div class="equipment-area" v-if="bridge.equipment">
             <n-checkbox
@@ -37,6 +37,7 @@ import { NCheckbox } from "naive-ui";
 interface BridgeModel {
   name: string;
   id: string;
+  qlbh: string;
   url: string;
   image: string;
   equipment?: {
@@ -52,6 +53,7 @@ defineProps<{
 const emit = defineEmits<{
   "load-3dtiles": [url: string, layerId: string];
   "layer-toggle": [layerId: string, visible: boolean, layerData: any];
+  "equipment-activate": [bridge: BridgeModel, active: boolean];
 }>();
 
 const baseUrl = import.meta.env.VITE_BASE_URL || '';
@@ -60,12 +62,14 @@ const bridgeList: BridgeModel[] = [
   {
     name: "莲花湖大桥",
     id: "06ad0be1-f8fd-44fb-92ec-be82de6f8f38",
+    qlbh: "LHQ",
     url: "https://webres.cityfun.com.cn/CSSMX/model/LHQ/tileset.json",
     image: `${baseUrl}/images/bridgeImages/莲花湖大桥（莲花湖一号桥主桥）.png`,
   },
   {
     name: "陵园大道立交桥",
     id: "919829ed-9c4d-43ae-9a94-1ff0cef22a3f",
+    qlbh: "LYDDLJQ",
     url: "https://webres.cityfun.com.cn/CSSMX/model/LYDDLJQ/tileset.json",
     image: `${baseUrl}/images/bridgeImages/陵园大道立交桥.png`,
     equipment: {
@@ -76,6 +80,7 @@ const bridgeList: BridgeModel[] = [
   {
     name: "明月湾大桥",
     id: "ecb4e7b6-6a2e-4948-85b0-0c5975816e07",
+    qlbh: "MYWDQ",
     url: "https://webres.cityfun.com.cn/CSSMX/model/MYWDQ/tileset.json",
     image: `${baseUrl}/images/bridgeImages/明月湾大桥（跨莲花湖二号桥）.png`,
     equipment: {
@@ -86,6 +91,7 @@ const bridgeList: BridgeModel[] = [
   {
     name: "独山湖大桥",
     id: "b4cc6305-bfce-4f60-926c-0dff3e7a7a78",
+    qlbh: "DSHDQ",
     url: "http://webres.cityfun.com.cn/CSSMX/model/DSHDQ/tileset.json",
     image: `${baseUrl}/images/bridgeImages/独山湖大桥.jpg`,
   },
@@ -109,15 +115,34 @@ function convertUrlProtocol(url: string): string {
 
 function toggleBridge(bridge: BridgeModel) {
   const isActive = activeBridgeIds.has(bridge.id);
-  const url = convertUrlProtocol(bridge.url);
 
   if (isActive) {
     activeBridgeIds.delete(bridge.id);
+    const url = convertUrlProtocol(bridge.url);
     emit("layer-toggle", bridge.id, false, { type: "3dTile", url });
-  } else {
-    activeBridgeIds.add(bridge.id);
-    emit("load-3dtiles", url, bridge.id);
+    if (bridge.equipment && activeBridgeIds.has(bridge.equipment.id)) {
+      activeBridgeIds.delete(bridge.equipment.id);
+      emit("layer-toggle", bridge.equipment.id, false, { type: "3dTile", url: convertUrlProtocol(bridge.equipment.url) });
+      emit("equipment-activate", bridge, false);
+    }
+    return;
   }
+
+  // 互斥：关闭其他已激活的桥梁和设备
+  for (const id of [...activeBridgeIds]) {
+    const otherBridge = bridgeList.find(b => b.id === id || b.equipment?.id === id);
+    if (otherBridge) {
+      const isEquipment = otherBridge.equipment?.id === id;
+      if (isEquipment) {
+        emit("equipment-activate", otherBridge, false);
+      }
+      emit("layer-toggle", id, false, { type: "3dTile", url: convertUrlProtocol(isEquipment ? otherBridge.equipment!.url : otherBridge.url) });
+    }
+  }
+  activeBridgeIds.clear();
+
+  activeBridgeIds.add(bridge.id);
+  emit("load-3dtiles", convertUrlProtocol(bridge.url), bridge.id);
 }
 
 function toggleEquipment(bridge: BridgeModel, checked: boolean) {
@@ -128,9 +153,11 @@ function toggleEquipment(bridge: BridgeModel, checked: boolean) {
   if (checked) {
     activeBridgeIds.add(bridge.equipment.id);
     emit("load-3dtiles", url, bridge.equipment.id);
+    emit("equipment-activate", bridge, true);
   } else {
     activeBridgeIds.delete(bridge.equipment.id);
     emit("layer-toggle", bridge.equipment.id, false, { type: "3dTile", url });
+    emit("equipment-activate", bridge, false);
   }
 }
 </script>

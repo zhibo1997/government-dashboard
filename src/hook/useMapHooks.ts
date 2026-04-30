@@ -138,9 +138,6 @@ export function useMapHooks() {
       // 等待tileset准备完成
       await tileset.readyPromise;
 
-      // 调整相机视角到tileset
-      await viewer.zoomTo(tileset);
-
       console.log("✅ 3D Tiles加载成功");
 
       return tileset;
