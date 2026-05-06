@@ -269,7 +269,7 @@ const handleLoadMVT = async (url: string, layerId: string) => {
 };
 
 // 处理加载3D Tiles图层
-const handleLoad3DTiles = async (url: string, layerId: string) => {
+const handleLoad3DTiles = async (url: string, layerId: string, options?: { flyTo?: boolean }) => {
   if (!props.viewerInstance) {
     console.warn("⚠️ Viewer 实例未就绪");
     return;
@@ -278,7 +278,7 @@ const handleLoad3DTiles = async (url: string, layerId: string) => {
   try {
     console.log(`🔄 加载3D Tiles图层: ${url}`);
 
-    const tileset = await cesiumUtils.load3DTiles(props.viewerInstance, url);
+    const tileset = await cesiumUtils.load3DTiles(props.viewerInstance, url, options);
     loadedLayers.value.set(layerId, { type: "3dtiles", instance: tileset });
 
     console.log(`✅ 3D Tiles图层加载成功: ${layerId}`);
@@ -352,33 +352,56 @@ const handleLayerToggle = (
 // 处理监测设备激活/取消
 const handleEquipmentActivate = (bridge: any, active: boolean) => {
   if (active) {
-    const applyOpacity = () => {
+    const applyStyle = () => {
+      // 桥梁模型变透明
       const bridgeLayer = loadedLayers.value.get(bridge.id);
       if (bridgeLayer?.type === "3dtiles" && bridgeLayer.instance) {
         cesiumUtils.set3DTilesStyle(bridgeLayer.instance, {
           color: `color('white', 0.7)`,
         });
       }
+      // 设备模型高亮
+      if (bridge.equipment?.id) {
+        const eqLayer = loadedLayers.value.get(bridge.equipment.id);
+        if (eqLayer?.type === "3dtiles" && eqLayer.instance) {
+          cesiumUtils.set3DTilesStyle(eqLayer.instance, {
+            color: `color('cyan', 1.0)`,
+          });
+        }
+      }
     };
 
     const bridgeLayer = loadedLayers.value.get(bridge.id);
-    if (bridgeLayer) {
-      applyOpacity();
+    const eqLayer = bridge.equipment?.id ? loadedLayers.value.get(bridge.equipment.id) : null;
+    if (bridgeLayer && eqLayer) {
+      applyStyle();
     } else {
       const timer = setInterval(() => {
-        if (loadedLayers.value.has(bridge.id)) {
+        const bl = loadedLayers.value.get(bridge.id);
+        const el = bridge.equipment?.id ? loadedLayers.value.get(bridge.equipment.id) : null;
+        if (bl && el) {
           clearInterval(timer);
-          applyOpacity();
+          applyStyle();
         }
       }, 200);
       setTimeout(() => clearInterval(timer), 10000);
     }
   } else {
+    // 恢复桥梁模型
     const bridgeLayer = loadedLayers.value.get(bridge.id);
     if (bridgeLayer?.type === "3dtiles" && bridgeLayer.instance) {
       cesiumUtils.set3DTilesStyle(bridgeLayer.instance, {
         color: `color('white', 1.0)`,
       });
+    }
+    // 恢复设备模型
+    if (bridge.equipment?.id) {
+      const eqLayer = loadedLayers.value.get(bridge.equipment.id);
+      if (eqLayer?.type === "3dtiles" && eqLayer.instance) {
+        cesiumUtils.set3DTilesStyle(eqLayer.instance, {
+          color: `color('white', 1.0)`,
+        });
+      }
     }
   }
 

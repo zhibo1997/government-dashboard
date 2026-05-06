@@ -51,7 +51,7 @@ defineProps<{
 }>();
 
 const emit = defineEmits<{
-  "load-3dtiles": [url: string, layerId: string];
+  "load-3dtiles": [url: string, layerId: string, options?: { flyTo?: boolean }];
   "layer-toggle": [layerId: string, visible: boolean, layerData: any];
   "equipment-activate": [bridge: BridgeModel, active: boolean];
 }>();
@@ -152,7 +152,7 @@ function toggleEquipment(bridge: BridgeModel, checked: boolean) {
 
   if (checked) {
     activeBridgeIds.add(bridge.equipment.id);
-    emit("load-3dtiles", url, bridge.equipment.id);
+    emit("load-3dtiles", url, bridge.equipment.id, { flyTo: false });
     emit("equipment-activate", bridge, true);
   } else {
     activeBridgeIds.delete(bridge.equipment.id);

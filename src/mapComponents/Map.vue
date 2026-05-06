@@ -58,13 +58,9 @@
       <EquipmentDialog
         v-model:visible="equipmentDialogVisible"
         :bridge-data="equipmentBridgeData"
+        dialog-left="860px"
+        dialog-width="2380px"
         @equipment-view="handleEquipmentView"
-      />
-
-      <!-- 设备详情弹窗 -->
-      <EquipmentDetailPopup
-        v-model:visible="showEquipmentDetail"
-        :equipment-data="selectedEquipment"
       />
     </ResponsiveWrapper>
 
@@ -99,7 +95,6 @@ import mapConfig from '@/config/mapConfig'
 import MeasureTool from './MeasureTool.vue'
 import MapToolbar from './MapToolbar.vue'
 import EquipmentDialog from '@/views/BridgeModule/components/map/EquipmentDialog.vue'
-import EquipmentDetailPopup from '@/views/BridgeModule/components/map/EquipmentDetailPopup.vue'
 
 import { inject } from 'vue'
 import ResponsiveWrapper from '@/components/ResponsiveWrapper.vue'
@@ -147,8 +142,6 @@ const toolbarRef = ref<any>(null)
 // 桥梁设备弹窗状态
 const equipmentDialogVisible = ref(false)
 const equipmentBridgeData = ref<any>({})
-const showEquipmentDetail = ref(false)
-const selectedEquipment = ref<any>({})
 
 const handleEquipmentActivate = (bridge: any, active: boolean) => {
   equipmentBridgeData.value = active ? { qlbh: bridge.qlbh, llmc: bridge.name } : {}
@@ -156,8 +149,22 @@ const handleEquipmentActivate = (bridge: any, active: boolean) => {
 }
 
 const handleEquipmentView = (equipment: any) => {
-  selectedEquipment.value = equipment
-  showEquipmentDetail.value = true
+  const pointInfo = equipment?.pointInfo
+  if (!pointInfo?.jd || !pointInfo?.wd || !viewerInstance.value) return
+
+  const Cesium = (window as any).Cesium
+  if (!Cesium) return
+
+  const camera = viewerInstance.value.camera
+  viewerInstance.value.camera.flyTo({
+    destination: Cesium.Cartesian3.fromDegrees(pointInfo.jd, pointInfo.wd, 50),
+    orientation: {
+      heading: camera.heading,
+      pitch: camera.pitch,
+      roll: camera.roll,
+    },
+    duration: 1.5,
+  })
 }
 
 

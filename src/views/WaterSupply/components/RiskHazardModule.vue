@@ -11,7 +11,7 @@
         />
       </div>
       <!-- 整改状态 -->
-      <div class="rectification-section">
+      <!-- <div class="rectification-section">
         <div class="rectification-item" v-for="item in rectificationData" :key="item.status">
           <div class="left-nums">
             <div class="rectification-item-title">{{ item.title }}</div>
@@ -24,7 +24,7 @@
             <div class="status-chart" :id="`status-chart-${item.status}`"></div>
           </div>
         </div>
-      </div>
+      </div> -->
     </div>
   </div>
 </template>

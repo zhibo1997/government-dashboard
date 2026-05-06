@@ -128,8 +128,10 @@ const fetchRiskLevelData = async (): Promise<void> => {
     } else if (props.glmblx) {
       params.Glmblx = props.glmblx;
     }
+    console.info("🚀 RiskLevelChart ~ props:", { sszx: props.sszx, glmblx: props.glmblx }, "params:", params);
 
     const data = (await getRiskLevelCount(params)) as any[];
+    console.info("🚀 RiskLevelChart ~ getRiskLevelCount response:", JSON.stringify(data))
     if (!data || data.length === 0) {
       console.info("风险等级数据为空");
       riskLegend.value = getDefaultRiskLevels();
@@ -143,6 +145,7 @@ const fetchRiskLevelData = async (): Promise<void> => {
       color: riskLevelMap[item.riskType]?.color || "#FFFFFF",
       value: item.count || 0,
     }));
+    console.info("🚀 RiskLevelChart ~ riskLegend:", JSON.stringify(riskLegend.value));
 
     emit("dataLoaded", riskLegend.value);
   } catch (err) {
@@ -247,7 +250,11 @@ const createRiskLevelChartOption = (riskLegendData: any[]): echarts.EChartsOptio
  */
 const initChart = (): echarts.ECharts | null => {
   const chartDom = document.getElementById(props.chartId);
-  if (!chartDom) return null;
+  if (!chartDom) {
+    console.warn("🚀 RiskLevelChart ~ chartDom not found:", props.chartId);
+    return null;
+  }
+  console.info("🚀 RiskLevelChart ~ chartDom size:", chartDom.offsetWidth, "x", chartDom.offsetHeight);
   
   // 如果已存在实例，先销毁
   if (chartInstance) {
@@ -318,7 +325,7 @@ watch(
   .risk-echart {
     width: 50%;
     min-width: 200px;
-    height: 100%;
+    height: 250px;
   }
 
   .risk-legend {

@@ -1,5 +1,5 @@
 <template>
-  <div class="equipment-dialog" v-show="visible">
+  <div class="equipment-dialog" v-show="visible" :style="{ left: dialogLeft, width: dialogWidth }">
     <div class="dialog-header">
       <div class="dialog-title gradient-text">监测设备列表</div>
       <div class="close-btn" @click="handleClose">
@@ -83,6 +83,14 @@ const props = defineProps({
   bridgeData: {
     type: Object,
     default: () => ({}),
+  },
+  dialogLeft: {
+    type: String,
+    default: '1320px',
+  },
+  dialogWidth: {
+    type: String,
+    default: '1920px',
   },
 })
 

@@ -106,6 +106,7 @@ export function useMapHooks() {
       maximumScreenSpaceError?: number;
       maximumMemoryUsage?: number;
       show?: boolean;
+      flyTo?: boolean;
     } = {}
   ): Promise<any> {
     try {
@@ -118,6 +119,7 @@ export function useMapHooks() {
         maximumScreenSpaceError = 16,
         maximumMemoryUsage = 512,
         show = true,
+        flyTo = true,
       } = options;
 
       console.log(`开始加载3D Tiles: ${url}`);
@@ -137,6 +139,10 @@ export function useMapHooks() {
 
       // 等待tileset准备完成
       await tileset.readyPromise;
+
+      if (flyTo) {
+        await viewer.zoomTo(tileset);
+      }
 
       console.log("✅ 3D Tiles加载成功");
 

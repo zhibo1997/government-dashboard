@@ -162,11 +162,6 @@ watch(
     const pointInfo = newData.pointInfo;
     if (pointInfo?.jd && pointInfo?.wd) {
       addMarkerToMap(pointInfo.jd, pointInfo.wd);
-    } else {
-      // 没有坐标信息时，使用固定定位显示弹窗
-      isEntityVisible.value = true;
-      dialogX.value = 1320;
-      dialogY.value = 200;
     }
 
     // 获取监测数据 - 兼容 dwbm 和 gldwbh 两种字段名
@@ -384,6 +379,11 @@ const addMarkerToMap = (longitude: number, latitude: number) => {
         outlineWidth: 2,
         scaleByDistance: new Cesium.NearFarScalar(500, 1, 1000000, 0.4),
       }
+    });
+
+    viewer.value.flyTo(entity, {
+      duration: 2,
+      offset: new Cesium.HeadingPitchRange(0, Cesium.Math.toRadians(-45), 2000),
     });
 
     startPositionTracking();
