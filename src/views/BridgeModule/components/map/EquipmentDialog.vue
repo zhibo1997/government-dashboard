@@ -168,7 +168,7 @@ const fetchData = async () => {
       const res = await getBridgeTargetEquipmentPageList(params)
       if (res && res.rows) {
         tableData.value = res.rows
-        total.value = res.total || 0
+        total.value = res.records || 0
       } else {
         tableData.value = []
         total.value = 0

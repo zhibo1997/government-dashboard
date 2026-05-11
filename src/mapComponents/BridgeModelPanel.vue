@@ -65,6 +65,10 @@ const bridgeList: BridgeModel[] = [
     qlbh: "LHQ",
     url: "https://webres.cityfun.com.cn/CSSMX/model/LHQ/tileset.json",
     image: `${baseUrl}/images/bridgeImages/莲花湖大桥（莲花湖一号桥主桥）.png`,
+    equipment: {
+      id: "ad960df4-4bd4-414c-a69c-6257d86982b2",
+      url: "http://webres.cityfun.com.cn/CSSMX/model/LHQ_SB/tileset.json",
+    },
   },
   {
     name: "陵园大道立交桥",
@@ -94,6 +98,10 @@ const bridgeList: BridgeModel[] = [
     qlbh: "DSHDQ",
     url: "http://webres.cityfun.com.cn/CSSMX/model/DSHDQ/tileset.json",
     image: `${baseUrl}/images/bridgeImages/独山湖大桥.jpg`,
+    equipment: {
+      id: "430c03ed-dce2-463a-8ce0-02b310b2685c",
+      url: "http://webres.cityfun.com.cn/CSSMX/model/DSHDQ_SB/tileset.json",
+    },
   },
 ];
 
