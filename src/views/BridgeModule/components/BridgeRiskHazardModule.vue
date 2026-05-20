@@ -169,13 +169,13 @@ const onRiskDataLoaded = (data: any[]) => {
     .risk-total-label {
       font-family: SourceHanSansSC, SourceHanSansSC;
       font-weight: 400;
-      font-size: var(--font-size-3xl);
+      font-size: var(--font-size-heading);
       color: #d3eaf1;
     }
 
     .risk-total-value {
       font-family: YouSheBiaoTiHei;
-      font-size: 36px;
+      font-size: var(--font-size-subtitle);
       margin: 0 6px;
       background: linear-gradient(180deg, #FFFFFF 0%, #10ADC0 100%);
     }
@@ -183,7 +183,7 @@ const onRiskDataLoaded = (data: any[]) => {
     .risk-total-unit {
       font-family: SourceHanSansSC, SourceHanSansSC;
       font-weight: 400;
-      font-size: var(--font-size-3xl);
+      font-size: var(--font-size-heading);
       color: #d3eaf1;
     }
   }

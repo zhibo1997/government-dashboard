@@ -328,9 +328,9 @@ onMounted(() => {
 
       .ring-value {
         font-family: YouSheBiaoTiHei;
-        font-size: 40px;
+        font-size: var(--font-size-title);
         color: #ffffff;
-        line-height: calc(var(--font-size-4xl) * 1.294);
+        line-height: calc(var(--font-size-subtitle) * 1.294);
         text-align: center;
         font-style: normal;
         background: linear-gradient(0deg, #f75e04 0%, #feac04 100%);
@@ -343,9 +343,9 @@ onMounted(() => {
     .total-label {
       font-family: SourceHanSansSC, SourceHanSansSC;
       font-weight: var(--font-weight-bold);
-      font-size: 40px;
+      font-size: var(--font-size-title);
       color: #d3eaf1;
-      line-height: calc(var(--font-size-xl) * 1.458);
+      line-height: calc(var(--font-size-body) * 1.458);
       text-align: center;
       font-style: normal;
     }
@@ -383,9 +383,9 @@ onMounted(() => {
 
           .ring-num {
             font-family: YouSheBiaoTiHei;
-            font-size: 40px;
+            font-size: var(--font-size-title);
             color: #ffffff;
-            line-height: calc(var(--font-size-2xl) * 1.292);
+            line-height: calc(var(--font-size-heading) * 1.292);
             text-align: center;
             font-style: normal;
             background: linear-gradient(180deg, #FFFFFF 0%, #10ADC0 100%);
@@ -393,7 +393,7 @@ onMounted(() => {
         }
 
         .status-label {
-          font-size: 40px;
+          font-size: var(--font-size-title);
           color: rgba(255, 255, 255, 0.75);
         }
       }
@@ -449,9 +449,9 @@ onMounted(() => {
 
           >span {
             font-family: YouSheBiaoTiHei;
-            font-size: 40px;
+            font-size: var(--font-size-title);
             color: #ffffff;
-            line-height: calc(var(--font-size-xl) * 1.292);
+            line-height: calc(var(--font-size-body) * 1.292);
             text-align: center;
             font-style: normal;
           }
@@ -460,9 +460,9 @@ onMounted(() => {
         .level-label {
           font-family: SourceHanSansSC, SourceHanSansSC;
           font-weight: var(--font-weight-normal);
-          font-size: 40px;
+          font-size: var(--font-size-title);
           color: #d3eaf1;
-          line-height: calc(var(--font-size-sm) * 1.5);
+          line-height: calc(var(--font-size-mini) * 1.5);
           text-align: center;
           font-style: normal;
         }
@@ -498,9 +498,9 @@ onMounted(() => {
 
       span {
         font-family: YouSheBiaoTiHei;
-        font-size: 40px;
+        font-size: var(--font-size-title);
         color: #e74040;
-        line-height: calc(var(--font-size-3xl) * 1.306);
+        line-height: calc(var(--font-size-heading) * 1.306);
         text-align: left;
         font-style: normal;
         background: linear-gradient(180deg, #FFFFFF 0%, #10ADC0 100%);;

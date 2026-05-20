@@ -190,7 +190,7 @@ watch(monthlyData, (newData) => {
     border-radius: 8px;
     height: 56px;
     font-family: SourceHanSansSC, SourceHanSansSC;
-    font-size: 28px;
+    font-size: var(--font-size-heading);
     color: #ffffff;
     padding: 6px 20px;
 
@@ -205,7 +205,7 @@ watch(monthlyData, (newData) => {
 
     .n-input__input-el {
       color: #ffffff;
-      font-size: 28px;
+      font-size: var(--font-size-heading);
       caret-color: #1677ff;
     }
 
@@ -217,7 +217,7 @@ watch(monthlyData, (newData) => {
     .n-input__prefix {
       .n-base-icon {
         color: rgba(255, 255, 255, 0.6);
-        font-size: 24px;
+        font-size: var(--font-size-body);
       }
     }
 
@@ -276,7 +276,7 @@ watch(monthlyData, (newData) => {
     .title {
       font-family: SourceHanSansSC, SourceHanSansSC;
       font-weight: 400;
-      font-size: 24px;
+      font-size: var(--font-size-body);
       color: #BCD4D4;
       line-height: 35px;
       text-align: left;
@@ -285,7 +285,7 @@ watch(monthlyData, (newData) => {
 
     .value {
       font-family: YouSheBiaoTiHei;
-      font-size: var(--font-size-3xl);
+      font-size: var(--font-size-heading);
       color: #ffffff;
       line-height: 39px;
       text-align: left;
@@ -377,7 +377,7 @@ watch(monthlyData, (newData) => {
     .value {
       font-family: SourceHanSansSC, SourceHanSansSC;
       font-weight: 400;
-      font-size: var(--font-size-2xl);
+      font-size: var(--font-size-heading);
       line-height: 20px;
       text-align: left;
       font-style: normal;
@@ -391,7 +391,7 @@ watch(monthlyData, (newData) => {
     width: 140px;
     font-family: SourceHanSansSC, SourceHanSansSC;
     font-weight: 400;
-    font-size: var(--font-size-xl);
+    font-size: var(--font-size-body);
     color: #d3eaf1;
     line-height: 24px;
     text-align: left;

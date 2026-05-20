@@ -3,6 +3,7 @@
  * 集中管理 ECharts 图表的配置项、颜色、样式等
  */
 import * as echarts from "echarts";
+import { FONT_SIZE } from "@/assets/styles/font-sizes";
 
 // ==================== 颜色配置 ====================
 /**
@@ -156,7 +157,7 @@ export const createProgressOption = (
           formatter: `{a|${percentage}%}`,
           rich: {
             a: {
-              fontSize: 20,
+              fontSize: FONT_SIZE.caption,
               fontWeight: "bold",
               fontFamily: "YouSheBiaoTiHei",
               color: "#FFFFFF",

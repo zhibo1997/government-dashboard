@@ -180,7 +180,7 @@ function toggleEquipment(bridge: BridgeModel, checked: boolean) {
 }
 
 .panel-title {
-  font-size: 32px;
+  font-size: var(--font-size-subtitle);
   font-weight: 700;
   color: #ffffff;
   margin-bottom: 16px;

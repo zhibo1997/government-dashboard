@@ -339,13 +339,13 @@ const onDataLoaded = (data: { name: string; color: string; value: number }[]) =>
     .risk-total-label {
       font-family: SourceHanSansSC, SourceHanSansSC;
       font-weight: var(--font-weight-bold);
-      font-size: 40px;
+      font-size: var(--font-size-title);
       color: #d3eaf1;
     }
 
     .risk-total-value {
       font-family: YouSheBiaoTiHei;
-      font-size: 40px;
+      font-size: var(--font-size-title);
       background: linear-gradient(0deg, #f75e04 0%, #feac04 100%);
     }
   }
@@ -390,9 +390,9 @@ const onDataLoaded = (data: { name: string; color: string; value: number }[]) =>
       .total-label {
         font-family: SourceHanSansSC, SourceHanSansSC;
         font-weight: var(--font-weight-bold);
-        font-size: var(--font-size-3xl);
+        font-size: var(--font-size-heading);
         color: #d3eaf1;
-        line-height: calc(var(--font-size-base) * var(--line-height-normal));
+        line-height: calc(var(--font-size-caption) * var(--line-height-normal));
         letter-spacing: 1px;
         text-align: center;
         font-style: normal;

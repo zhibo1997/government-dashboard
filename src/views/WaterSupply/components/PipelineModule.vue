@@ -108,7 +108,7 @@ const initChart = () => { };
 
     .danger-count {
       font-family: YouSheBiaoTiHei;
-      font-size: 48px;
+      font-size: var(--font-size-hero);
       line-height: 62px;
       font-style: normal;
       background: linear-gradient(0deg, #3ffefd 0%, #fff407 100%);
@@ -120,7 +120,7 @@ const initChart = () => { };
     .danger-text {
       font-family: SourceHanSansSC, SourceHanSansSC;
       font-weight: 400;
-      font-size: 26px;
+      font-size: var(--font-size-body);
       line-height: 44px;
       font-style: normal;
       color: rgba(228, 243, 255, 0.8);

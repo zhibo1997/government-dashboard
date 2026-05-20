@@ -64,6 +64,7 @@
 <script setup lang="ts">
 import { ref, onMounted, nextTick, onBeforeUnmount, computed } from "vue";
 import * as echarts from "echarts";
+import { FONT_SIZE } from "@/assets/styles/font-sizes";
 import "echarts-gl";
 import {
   getGasCdRatio,
@@ -253,7 +254,7 @@ function get3DPieOption(pieData) {
     label: {
       opacity: 1,
       position: "outside",
-      fontSize: 18,
+      fontSize: FONT_SIZE.caption,
       lineHeight: 20,
       formatter: "{b} {d}%",
       color: "#E4F3FF",
@@ -296,7 +297,7 @@ function get3DPieOption(pieData) {
       borderWidth: 1,
       textStyle: {
         color: "#ffffff",
-        fontSize: 14,
+        fontSize: FONT_SIZE.mini,
       },
     },
     xAxis3D: {

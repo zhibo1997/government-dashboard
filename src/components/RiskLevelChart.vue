@@ -323,8 +323,7 @@ watch(
   height: 100%;
 
   .risk-echart {
-    width: 50%;
-    min-width: 200px;
+    width: 250px;
     height: 250px;
   }
 
@@ -352,7 +351,7 @@ watch(
       .legend-name {
         font-family: SourceHanSansSC, SourceHanSansSC;
         font-weight: 400;
-        font-size: 40px;
+        font-size: var(--font-size-title);
         color: #d3eaf1;
         display: flex;
         align-items: center;
@@ -368,14 +367,14 @@ watch(
 
       .legend-value {
         font-family: YouSheBiaoTiHei;
-        font-size: 40px;
+        font-size: var(--font-size-title);
         color: #ffffff;
         background: linear-gradient(180deg, #FFFFFF 0%, #10ADC0 100%);
 
         .unit {
           font-family: SourceHanSansSC, SourceHanSansSC;
           font-weight: 400;
-          font-size: 14px;
+          font-size: var(--font-size-mini);
           color: #d3eaf1;
           margin-left: 5px;
           background: transparent !important;

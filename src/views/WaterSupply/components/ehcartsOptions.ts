@@ -1,4 +1,5 @@
 import * as echarts from "echarts";
+import { FONT_SIZE } from "@/assets/styles/font-sizes";
 // 官网材质echarts图
 
 export const officialWebsiteOption: echarts.EChartsOption = {
@@ -13,14 +14,14 @@ export const officialWebsiteOption: echarts.EChartsOption = {
     top: "20%",
     textStyle: {
       color: "#e4f3ff",
-      fontSize: 36,
+      fontSize: FONT_SIZE.subtitle,
       fontWeight: 600,
       fontFamily: "YouSheBiaoTiHei",
       lineHeight: 32,
     },
     subtextStyle: {
       color: "rgba(228, 243, 255, 0.7)",
-      fontSize: 14,
+      fontSize: FONT_SIZE.mini,
       fontFamily: "SourceHanSansSC",
     },
     itemGap: 8,
@@ -32,7 +33,7 @@ export const officialWebsiteOption: echarts.EChartsOption = {
     left: "10%",
     textStyle: {
       color: "#e4f3ff",
-      fontSize: 28,
+      fontSize: FONT_SIZE.heading,
       fontFamily: "SourceHanSansSC",
       fontWeight: 500,
     },
@@ -81,7 +82,7 @@ export const officialWebsiteOption: echarts.EChartsOption = {
           borderColor: "#5D87AC",
         },
         label: {
-          fontSize: 18,
+          fontSize: FONT_SIZE.caption,
           fontWeight: 600,
         }
       },
@@ -101,7 +102,7 @@ export const dangerBarOption: echarts.EChartsOption = {
     axisPointer: { type: 'shadow' },
     backgroundColor: 'rgba(2, 17, 29, 0.9)',
     borderColor: 'rgba(13, 165, 190, 0.5)',
-    textStyle: { color: '#e4f3ff', fontSize: 24 },
+    textStyle: { color: '#e4f3ff', fontSize: FONT_SIZE.body },
   },
   grid: {
     left: 10,
@@ -115,7 +116,7 @@ export const dangerBarOption: echarts.EChartsOption = {
     data: [],
     axisLabel: {
       color: '#e4f3ff',
-      fontSize: 24,
+      fontSize: FONT_SIZE.body,
       fontFamily: 'SourceHanSansSC',
       rotate: 30,
       interval: 'auto',
@@ -129,7 +130,7 @@ export const dangerBarOption: echarts.EChartsOption = {
     type: 'value',
     axisLabel: {
       color: 'rgba(228, 243, 255, 0.7)',
-      fontSize: 20,
+      fontSize: FONT_SIZE.caption,
       fontFamily: 'SourceHanSansSC',
     },
     axisLine: { show: false },
@@ -150,7 +151,7 @@ export const dangerBarOption: echarts.EChartsOption = {
         show: true,
         position: 'top',
         color: '#e4f3ff',
-        fontSize: 22,
+        fontSize: FONT_SIZE.body,
         fontFamily: 'SourceHanSansSC',
       },
       emphasis: {
@@ -349,7 +350,7 @@ export const handledOption = {
     },
     backgroundColor: 'rgba(2, 17, 29, 0.9)',
     borderColor: 'rgba(13, 165, 190, 0.5)',
-    textStyle: { color: '#e4f3ff', fontSize: 28 },
+    textStyle: { color: '#e4f3ff', fontSize: FONT_SIZE.heading },
     formatter: function (params) {
       let result = params[0].axisValue + '<br/>';
       params.forEach(param => {
@@ -366,7 +367,7 @@ export const handledOption = {
     data: ["未处置", "已处置", "处置率"],
     textStyle: {
       color: "#fff",
-      fontSize: 24,
+      fontSize: FONT_SIZE.body,
     },
     top: "0%",
     left: "center",
@@ -382,7 +383,7 @@ export const handledOption = {
     data: [],
     axisLabel: {
       color: "#fff",
-      fontSize: 24,
+      fontSize: FONT_SIZE.body,
     },
     axisLine: {
       lineStyle: {
@@ -399,14 +400,14 @@ export const handledOption = {
       name: "单位：个",
       nameTextStyle: {
         color: "#fff",
-        fontSize: 26,
+        fontSize: FONT_SIZE.body,
       },
       min: 0,
       max: 50,
       interval: 10,
       axisLabel: {
         color: "#fff",
-        fontSize: 26,
+        fontSize: FONT_SIZE.body,
       },
       axisLine: {
         lineStyle: {
@@ -425,14 +426,14 @@ export const handledOption = {
       name: "单位：% ",
       nameTextStyle: {
         color: "#fff",
-        fontSize: 26,
+        fontSize: FONT_SIZE.body,
       },
       min: 0,
       max: 100,
       interval: 20,
       axisLabel: {
         color: "#fff",
-        fontSize: 26,
+        fontSize: FONT_SIZE.body,
         formatter: '{value} %',
       },
       axisLine: {

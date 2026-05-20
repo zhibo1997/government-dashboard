@@ -3,6 +3,7 @@
  * 集中管理 ECharts 图表的配置项、颜色、渐变等
  */
 import * as echarts from "echarts";
+import { FONT_SIZE } from "@/assets/styles/font-sizes";
 
 // ==================== 颜色配置 ====================
 /**
@@ -120,12 +121,12 @@ export const createChartOption = (chart: any, chartIndex: number): echarts.EChar
       },
       textStyle: {
         color: "#f5fcff",
-        fontSize: 20,
+        fontSize: FONT_SIZE.caption,
         fontFamily: "SourceHanSansCNVF, SourceHanSansCNVF",
         rich: {
           name: {
             color: "#f5fcff",
-            fontSize: 20,
+            fontSize: FONT_SIZE.caption,
           },
         },
       },
@@ -143,7 +144,7 @@ export const createChartOption = (chart: any, chartIndex: number): echarts.EChar
           show: true,
           position: "center",
           formatter: "{a}",
-          fontSize: 24,
+          fontSize: FONT_SIZE.body,
           fontWeight: "bold",
           color: "#effaff",
         },

@@ -85,7 +85,7 @@ import { NMessageProvider, NDialogProvider, NConfigProvider, zhCN, dateZhCN } fr
 
     .module-title {
       font-family: YouSheBiaoTiHei;
-      font-size: 50px;
+      font-size: var(--font-size-hero);
       color: #ffffff;
       text-align: left;
       font-style: normal;

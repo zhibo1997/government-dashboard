@@ -383,7 +383,7 @@ async function fetchTableData() {
 
         >span {
           font-family: YouSheBiaoTiHei;
-          font-size: 45px;
+          font-size: var(--font-size-hero);
           color: #FFFFFF;
           line-height: 59px;
           text-align: center;
@@ -395,7 +395,7 @@ async function fetchTableData() {
       .total-label {
         font-family: SourceHanSansSC, SourceHanSansSC;
         font-weight: 500;
-        font-size: 36px;
+        font-size: var(--font-size-subtitle);
         color: #D3EAF1;
         line-height: 52px;
         letter-spacing: 2px;
@@ -431,7 +431,7 @@ async function fetchTableData() {
   .level-badge {
     padding: 4px 12px;
     border-radius: 12px;
-    font-size: 20px;
+    font-size: var(--font-size-caption);
     font-weight: 500;
     
     &.level-high {
@@ -458,7 +458,7 @@ async function fetchTableData() {
   .status-badge {
     padding: 4px 12px;
     border-radius: 12px;
-    font-size: 20px;
+    font-size: var(--font-size-caption);
     font-weight: 500;
     
     &.status-pending {
@@ -494,7 +494,7 @@ async function fetchTableData() {
 
     .table-title {
       font-family: YouSheBiaoTiHei;
-      font-size: 36px;
+      font-size: var(--font-size-subtitle);
       color: #FFFFFF;
       line-height: 47px;
       text-align: left;

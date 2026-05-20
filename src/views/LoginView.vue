@@ -175,7 +175,7 @@ const handleLogin = async () => {
       left: 50%;
       transform: translate(-50%, -50%);
       color: #fff;
-      font-size: 130px;
+      font-size: var(--font-size-logo);
       font-weight: 500;
       // font-style: italic;
       white-space: nowrap;
@@ -235,7 +235,7 @@ const handleLogin = async () => {
       :deep() {
         .n-form-item-label {
           color: #fff;
-          font-size: 36px;
+          font-size: var(--font-size-subtitle);
         }
 
         .n-input__input-el {
@@ -251,7 +251,7 @@ const handleLogin = async () => {
         background-color: transparent;
         color: #fff;
         width: 320px;
-        font-size: 36px;
+        font-size: var(--font-size-subtitle);
 
         // 添加这些样式来确保彻底移除Naive UI的默认边框
         :deep(.n-input__border) {
@@ -268,7 +268,7 @@ const handleLogin = async () => {
     .login-button {
       width: 328px;
       height: 76px;
-      font-size: 36px;
+      font-size: var(--font-size-subtitle);
       font-weight: 500;
       background-image: url("../assets/img/login/button.webp");
       background-size: 100% 100%;

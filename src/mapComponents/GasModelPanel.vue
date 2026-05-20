@@ -91,7 +91,7 @@ function toggleItem(item: GasModel) {
 }
 
 .panel-title {
-  font-size: 32px;
+  font-size: var(--font-size-subtitle);
   font-weight: 700;
   color: #ffffff;
   margin-bottom: 16px;
@@ -177,7 +177,7 @@ function toggleItem(item: GasModel) {
   position: relative;
   z-index: 1;
   padding: 16px 20px;
-  font-size: 30px;
+  font-size: var(--font-size-heading);
   font-weight: 700;
   color: rgba(255, 255, 255, 0.7);
   text-align: center;

@@ -91,7 +91,7 @@ function formatValue(value: string | number): string {
   border: 1px solid #ddd;
   border-radius: 4px;
   color: #333;
-  font-size: 12px;
+  font-size: var(--font-size-mini);
   border-color: rgba(0, 0, 0, 0.2);
   box-shadow: rgba(0, 0, 0, 0.15) 0px 5px 15px;
   background: linear-gradient(30deg, rgb(255, 255, 255) 25%, rgb(249, 255, 252) 50%, rgb(227, 255, 240) 75%, rgb(179, 253, 214));
@@ -115,7 +115,7 @@ function formatValue(value: string | number): string {
   display: flex;
   align-items: center;
   gap: 6px;
-  font-size: 10px;
+  font-size: var(--font-size-mini);
   color: #666;
   border-bottom: 1px solid #efefef;
   padding: 2px 6px;
@@ -131,7 +131,7 @@ function formatValue(value: string | number): string {
   display: flex;
   align-items: baseline;
   gap: 4px;
-  font-size: 10px;
+  font-size: var(--font-size-mini);
   line-height: 1.2;
 
   .value-label {
@@ -142,13 +142,13 @@ function formatValue(value: string | number): string {
   .value-number {
     color: #1890ff;
     font-weight: 600;
-    font-size: 12px;
+    font-size: var(--font-size-mini);
     position: relative;
   }
 
   .value-unit {
     color: #999;
-    font-size: 10px;
+    font-size: var(--font-size-mini);
   }
 }
 </style>

@@ -54,7 +54,7 @@ onUnmounted(() => {
 <style scoped>
 .time-content {
   font-family: YouSheBiaoTiHei;
-  font-size: 40px;
+  font-size: var(--font-size-title);
   color: #FFFFFF;
   text-align: left;
   font-style: normal;

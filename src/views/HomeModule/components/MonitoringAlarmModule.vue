@@ -261,7 +261,7 @@ onMounted(() => {
         >span {
 
           font-family: YouSheBiaoTiHei;
-          font-size: 45px;
+          font-size: var(--font-size-hero);
           color: #FFFFFF;
           line-height: 59px;
           text-align: center;
@@ -273,7 +273,7 @@ onMounted(() => {
       .total-label {
         font-family: SourceHanSansSC, SourceHanSansSC;
         font-weight: 500;
-        font-size: 36px;
+        font-size: var(--font-size-subtitle);
         color: #D3EAF1;
         line-height: 52px;
         letter-spacing: 2px;
@@ -311,7 +311,7 @@ onMounted(() => {
         .level-label {
           font-family: SourceHanSansSC, SourceHanSansSC;
           font-weight: 400;
-          font-size: 30px;
+          font-size: var(--font-size-heading);
           color: #D3EAF1;
           line-height: 44px;
           letter-spacing: 2px;
@@ -330,7 +330,7 @@ onMounted(() => {
           >span {
             line-height: 79.13px;
             font-family: YouSheBiaoTiHei;
-            font-size: 43px;
+            font-size: var(--font-size-hero);
             color: #FFFFFF;
             text-align: center;
             font-style: normal;

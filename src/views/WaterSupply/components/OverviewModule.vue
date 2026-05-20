@@ -142,7 +142,7 @@ onMounted(async () => {
     .item-title {
       font-family: SourceHanSansSC, SourceHanSansSC;
       font-weight: 400;
-      font-size: 30px;
+      font-size: var(--font-size-heading);
       color: #e4f3ff;
       margin-bottom: 6px;
     }
@@ -159,7 +159,7 @@ onMounted(async () => {
 
       .value {
         font-family: YouSheBiaoTiHei;
-        font-size: 40px;
+        font-size: var(--font-size-title);
         color: #ffffff;
         line-height: 52px;
         text-align: left;
@@ -170,7 +170,7 @@ onMounted(async () => {
       .unit {
         font-family: SourceHanSansSC, SourceHanSansSC;
         font-weight: 400;
-        font-size: 20px;
+        font-size: var(--font-size-caption);
         color: #e4f3ff;
         line-height: 29px;
         text-align: left;

@@ -55,6 +55,7 @@ import { computed, watch, onMounted, onBeforeUnmount, ref, inject, nextTick } fr
 import { useVueCesium } from "vue-cesium";
 import { NButton, NIcon } from "naive-ui";
 import { Close } from "@vicons/ionicons5";
+import { FONT_SIZE } from "@/assets/styles/font-sizes";
 import { getEquipmentData } from "@/services/gasService";
 import { getCachedDictionary } from "@/services/dictionaryService";
 import dayjs from "dayjs";
@@ -302,7 +303,7 @@ const initLineChart = (rawData: any[]) => {
       data: xData,
       axisLabel: {
         color: "#9ec3e8",
-        fontSize: 12,
+        fontSize: FONT_SIZE.mini,
         interval: Math.floor(xData.length / 6),
       },
       axisLine: { lineStyle: { color: "rgba(13, 165, 190, 0.3)" } },
@@ -312,7 +313,7 @@ const initLineChart = (rawData: any[]) => {
       type: "value",
       axisLabel: {
         color: "#9ec3e8",
-        fontSize: 12,
+        fontSize: FONT_SIZE.mini,
       },
       splitLine: {
         lineStyle: { color: "rgba(13, 165, 190, 0.15)" },

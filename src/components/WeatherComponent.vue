@@ -115,7 +115,7 @@ onUnmounted(() => {
     flex-direction: row;
     align-items: center;
     font-family: YouSheBiaoTiHei;
-    font-size: 32px;
+    font-size: var(--font-size-subtitle);
     color: #FFFFFF;
     line-height: 42px;
     text-align: left;

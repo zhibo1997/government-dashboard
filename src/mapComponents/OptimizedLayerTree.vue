@@ -852,7 +852,7 @@ defineExpose({
   }
 
   .header-title {
-    font-size: 32px;
+    font-size: var(--font-size-subtitle);
     font-weight: 700;
     color: #ffffff;
   }
@@ -869,7 +869,7 @@ defineExpose({
     border-radius: 4px;
     transition: all 0.3s ease;
     .n-input__placeholder {
-      font-size: 32px !important;
+      font-size: var(--font-size-subtitle) !important;
     }
     &:hover {
       border-color: rgba(255, 255, 255, 0.2);
@@ -882,7 +882,7 @@ defineExpose({
 
     .n-input__input-el {
       color: #ffffff !important;
-      font-size: 32px !important;
+      font-size: var(--font-size-subtitle) !important;
       height: 56px;
     }
 
@@ -901,14 +901,14 @@ defineExpose({
 .layer-count {
   flex-shrink: 0;
   padding: 16px 24px;
-  font-size: 32px;
+  font-size: var(--font-size-subtitle);
   color: rgba(255, 255, 255, 0.65);
 
   .count-number {
     color: #1890ff;
     font-weight: 700;
     margin-left: 4px;
-    font-size: 36px;
+    font-size: var(--font-size-subtitle);
   }
 }
 
@@ -963,7 +963,7 @@ defineExpose({
 }
 
 .layer-name {
-  font-size: 28px;
+  font-size: var(--font-size-heading);
   color: #ffffff;
   white-space: nowrap;
   overflow: hidden;
@@ -974,7 +974,7 @@ defineExpose({
 :deep(.n-tree) {
   background: transparent;
   color: #ffffff;
-  font-size: 28px;
+  font-size: var(--font-size-heading);
 
   .n-tree-node {
     align-items: center;
@@ -985,7 +985,7 @@ defineExpose({
   .n-tree-node-content {
     color: #ffffff;
     transition: all 0.2s ease;
-    font-size: 32px;
+    font-size: var(--font-size-subtitle);
     min-height: 48px;
     display: flex;
     align-items: center;
@@ -1012,7 +1012,7 @@ defineExpose({
     }
     .n-base-icon {
       color: rgba(255, 255, 255, 0.65);
-      font-size: 42px;
+      font-size: var(--font-size-hero);
     }
   }
   .n-tree-node-checkbox{
@@ -1042,7 +1042,7 @@ defineExpose({
 
     .n-checkbox-box .n-checkbox-icon {
       color: #ffffff;
-      font-size: 2px;
+      display: none;
     }
   }
 

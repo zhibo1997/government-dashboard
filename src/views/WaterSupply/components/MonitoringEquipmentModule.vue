@@ -160,7 +160,7 @@ onMounted(() => {
 
       .rate-value {
         font-family: YouSheBiaoTiHei;
-        font-size: 40px;
+        font-size: var(--font-size-title);
         color: #ffffff;
         line-height: 52px;
         text-align: center;
@@ -170,7 +170,7 @@ onMounted(() => {
       .rate-name {
         font-family: SourceHanSansSC, SourceHanSansSC;
         font-weight: 400;
-        font-size: var(--font-size-2xl);
+        font-size: var(--font-size-heading);
         color: #e4f3ff;
         line-height: 35px;
         text-align: center;
@@ -208,7 +208,7 @@ onMounted(() => {
 
         .gradient-text {
           font-family: YouSheBiaoTiHei;
-          font-size: 32px;
+          font-size: var(--font-size-subtitle);
           color: #ffffff;
           line-height: 42px;
           text-align: center;
@@ -222,7 +222,7 @@ onMounted(() => {
 
         .count-separator {
           font-family: YouSheBiaoTiHei;
-          font-size: 32px;
+          font-size: var(--font-size-subtitle);
           color: #ffffff;
           line-height: 42px;
           text-align: center;
@@ -241,7 +241,7 @@ onMounted(() => {
       .device-name {
         font-family: SourceHanSansSC, SourceHanSansSC;
         font-weight: 400;
-        font-size: var(--font-size-2xl);
+        font-size: var(--font-size-heading);
         color: #e4f3ff;
         line-height: 35px;
         text-align: center;

@@ -772,7 +772,7 @@ defineExpose({
     bottom: 0;
     margin-right: 16px;
     width: 800px;
-    height: 460px;
+    height: 520px;
     background: rgba(11, 28, 45, 0.65);
     backdrop-filter: blur(10px);
     border: 2px solid rgba(22, 119, 255, 0.3);

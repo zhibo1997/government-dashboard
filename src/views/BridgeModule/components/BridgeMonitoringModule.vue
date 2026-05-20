@@ -274,7 +274,7 @@ defineOptions({
       .stat-label {
         font-family: SourceHanSansSC, SourceHanSansSC;
         font-weight: 500;
-        font-size: 32px;
+        font-size: var(--font-size-subtitle);
         color: #effaff;
         line-height: 46px;
         text-align: center;
@@ -288,7 +288,7 @@ defineOptions({
 
         >span {
           font-family: YouSheBiaoTiHei;
-          font-size: 32px;
+          font-size: var(--font-size-subtitle);
           color: #ffffff;
           line-height: 42px;
           text-align: center;
@@ -357,7 +357,7 @@ defineOptions({
   background: rgba(0, 150, 150, 0.6);
   border: 2px solid rgba(0, 212, 212, 0.5);
   color: #FFFFFF;
-  font-size: 24px;
+  font-size: var(--font-size-body);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -428,7 +428,7 @@ defineOptions({
     background: linear-gradient(90deg, rgba(12, 59, 58, 0) 0%, #0C3B3A 53%, rgba(12, 59, 58, 0) 100%);
     font-family: SourceHanSansSC, SourceHanSansSC;
     font-weight: 400;
-    font-size: var(--font-size-3xl);
+    font-size: var(--font-size-heading);
     color: #EFFAFF;
     line-height: 26px;
     font-style: normal;

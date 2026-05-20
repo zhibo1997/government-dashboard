@@ -96,37 +96,6 @@ const onDataLoaded = (data: { name: string; color: string; value: number }[]) =>
     .chart-area {
       width: 100%;
       height: 360px;
-
-      // 覆盖 RiskLevelChart 内部布局，让环形图在左侧充分展开
-      :deep(.risk-chart-container) {
-        .risk-echart {
-          width: 55%;
-          height: 100%;
-        }
-
-        .risk-legend {
-          gap: 20px;
-          padding: 0 16px;
-
-          .legend-item {
-            padding: 10px 16px;
-
-            .legend-name {
-              font-size: 28px;
-
-              .legend-color {
-                width: 12px;
-                height: 12px;
-                margin-right: 10px;
-              }
-            }
-
-            .legend-value {
-              font-size: 28px;
-            }
-          }
-        }
-      }
     }
   }
 }

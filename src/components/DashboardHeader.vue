@@ -128,7 +128,7 @@ const handleLogout = () => {
 
     > span {
       font-family: YouSheBiaoTiHei;
-      font-size: 80px;
+      font-size: var(--font-size-dashboard-title);
       color: #ffffff;
       line-height: 104px;
       text-align: left;
@@ -206,7 +206,7 @@ const handleLogout = () => {
     > span {
       height: 62px;
       font-family: YouSheBiaoTiHei;
-      font-size: 48px;
+      font-size: var(--font-size-hero);
       color: #ffffff;
       line-height: 56px;
       text-align: left;

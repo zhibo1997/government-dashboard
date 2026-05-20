@@ -169,7 +169,7 @@ const getCellTitle = (row: TableRow, column: TableColumn): string => {
     
     .table-title {
       font-family: YouSheBiaoTiHei;
-      font-size: 36px;
+      font-size: var(--font-size-subtitle);
       color: #FFFFFF;
       line-height: 47px;
       text-align: left;
@@ -203,7 +203,7 @@ const getCellTitle = (row: TableRow, column: TableColumn): string => {
       color: #E4F3FF;
       border-right: 1px solid rgba(22, 119, 255, 0.15);
       font-weight: bold;
-      font-size: 28px;
+      font-size: var(--font-size-heading);
       color: #E4F3FF;
       line-height: 40px;
       text-align: left;
@@ -262,7 +262,7 @@ const getCellTitle = (row: TableRow, column: TableColumn): string => {
         justify-content: center;
         height: 120px;
         font-family: SourceHanSansSC, SourceHanSansSC;
-        font-size: 24px;
+        font-size: var(--font-size-body);
         color: rgba(255, 255, 255, 0.5);
         grid-column: 1 / -1;
       }
@@ -274,7 +274,7 @@ const getCellTitle = (row: TableRow, column: TableColumn): string => {
     padding-left: 12px;
     font-family: SourceHanSansSC, SourceHanSansSC;
     font-weight: 400;
-    font-size: 30px;
+    font-size: var(--font-size-heading);
     color: #E4F3FF;
     line-height: 58px;
     text-align: left;

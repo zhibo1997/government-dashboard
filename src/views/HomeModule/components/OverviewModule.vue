@@ -288,7 +288,7 @@ onMounted(() => {
       .category-name {
         font-family: SourceHanSansSC, SourceHanSansSC;
         font-weight: 500;
-        font-size: 28px;
+        font-size: var(--font-size-heading);
         color: #EFFAFF;
         line-height: 40px;
         text-align: center;
@@ -317,7 +317,7 @@ onMounted(() => {
       span {
         font-family: SourceHanSansCNVF, SourceHanSansCNVF;
         font-weight: 400;
-        font-size: 26px;
+        font-size: var(--font-size-body);
         color: #F5FCFF;
         line-height: 37px;
         text-align: left;

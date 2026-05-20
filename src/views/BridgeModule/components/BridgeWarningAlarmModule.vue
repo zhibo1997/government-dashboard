@@ -345,9 +345,9 @@ onMounted(() => {
 
       .ring-value {
         font-family: YouSheBiaoTiHei;
-        font-size: 40px;
+        font-size: var(--font-size-title);
         color: #ffffff;
-        line-height: calc(var(--font-size-4xl) * 1.294);
+        line-height: calc(var(--font-size-subtitle) * 1.294);
         text-align: center;
         font-style: normal;
         background: linear-gradient(0deg, #f75e04 0%, #feac04 100%);
@@ -360,9 +360,9 @@ onMounted(() => {
     .total-label {
       font-family: SourceHanSansSC, SourceHanSansSC;
       font-weight: var(--font-weight-bold);
-      font-size: 40px;
+      font-size: var(--font-size-title);
       color: #d3eaf1;
-      line-height: calc(var(--font-size-xl) * 1.458);
+      line-height: calc(var(--font-size-body) * 1.458);
       text-align: center;
       font-style: normal;
     }
@@ -401,9 +401,9 @@ onMounted(() => {
 
           .ring-num {
             font-family: YouSheBiaoTiHei;
-            font-size: 40px;
+            font-size: var(--font-size-title);
             color: #ffffff;
-            line-height: calc(var(--font-size-2xl) * 1.292);
+            line-height: calc(var(--font-size-heading) * 1.292);
             text-align: center;
             font-style: normal;
             background: linear-gradient(180deg, #FFFFFF 0%, #10ADC0 100%);

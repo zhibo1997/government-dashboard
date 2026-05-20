@@ -1,4 +1,5 @@
 import { EChartsOption } from "echarts";
+import { FONT_SIZE } from "@/assets/styles/font-sizes";
 
 export interface LevelMapping {
   [key: string]: {
@@ -54,7 +55,7 @@ const CHART_GRID_CONFIG = {
 const AXIS_LABEL_STYLE = {
   fontFamily: "SourceHanSansSC, SourceHanSansSC",
   fontWeight: 400,
-  fontSize: 24,
+  fontSize: FONT_SIZE.body,
   color: "#FFFFFF",
   lineHeight: 35,
 };
@@ -111,7 +112,7 @@ const LEGEND_CONFIG = {
   itemGap: 24, // 增加图例项之间的间隔
   textStyle: {
     fontFamily: "SourceHanSansSC",
-    fontSize: 24, // 增大字体大小
+    fontSize: FONT_SIZE.body,
     color: "#D3EAF1",
   },
 };
@@ -129,7 +130,7 @@ const TOOLTIP_CONFIG = {
   borderWidth: 1,
   textStyle: {
     fontFamily: "SourceHanSansSC",
-    fontSize: 14,
+    fontSize: FONT_SIZE.mini,
     color: "#FFFFFF",
   },
   padding: [8, 12],

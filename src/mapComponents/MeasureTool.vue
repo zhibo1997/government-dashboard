@@ -160,13 +160,13 @@ defineExpose({
     user-select: none;
 
     .panel-title {
-      font-size: 18px;
+      font-size: var(--font-size-caption);
       font-weight: bold;
       color: #ffffff;
     }
 
     .close-icon {
-      font-size: 16px;
+      font-size: var(--font-size-caption);
       color: #ffffff;
       cursor: pointer;
       transition: all 0.3s ease;
@@ -250,13 +250,13 @@ defineExpose({
       }
 
       .tool-icon-svg {
-        font-size: 24px;
+        font-size: var(--font-size-body);
         color: #ffffff;
         transition: all 0.3s ease;
       }
 
       .tool-label {
-        font-size: 14px;
+        font-size: var(--font-size-mini);
         color: #ffffff;
         transition: all 0.3s ease;
       }
