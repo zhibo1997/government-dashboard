@@ -299,7 +299,7 @@ onMounted(() => {
 
 <style lang="scss" scoped>
 .warning-alarm-module {
-  flex: 1.3;
+  flex: 0.8;
   background-image: url("@/assets/img/gasModule/warning_alarm_bg.webp");
 
 

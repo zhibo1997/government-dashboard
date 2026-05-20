@@ -224,7 +224,7 @@ onMounted(async () => {
 
 <style lang="scss" scoped>
 .infrastructure-module {
-
+  flex: 1;
 
   .base-info {
     display: flex;

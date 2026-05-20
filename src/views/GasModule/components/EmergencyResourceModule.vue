@@ -120,7 +120,7 @@ onMounted(() => {
   padding: 0 30px 15px;
 }
 .emergency-resource-module {
-  flex: 0.7;
+  flex: 1;
   background-image: url("@/assets/img/gasModule/emergency_resource_bg.webp");
 
 

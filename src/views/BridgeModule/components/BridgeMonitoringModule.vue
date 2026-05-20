@@ -236,7 +236,9 @@ defineOptions({
 </script>
 
 <style lang="scss" scoped>
-.bridge-monitoring-module {}
+.bridge-monitoring-module {
+  flex: 1;
+}
 
 
 // 顶部统计卡片

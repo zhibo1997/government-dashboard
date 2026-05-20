@@ -14,7 +14,7 @@
             />
           </div>
           <div class="stat-info">
-            <div class="stat-label">监测设备总数</div>
+            <div class="stat-label">监测设备</div>
             <div class="stat-value">
               <span class="value-total gradient-text">{{
                 topStats.online
@@ -26,50 +26,27 @@
             </div>
           </div>
         </div>
+      </div>
 
-        <div class="stat-card">
-          <div class="stat-icon">
-            <img src="@/assets/img/online_rate.webp" alt="在线率" />
-          </div>
-          <div class="stat-info">
-            <div class="statlabel">在线率</div>
-            <div class="stat-value">
-              <span class="value-rate gradient-text">{{
-                topStats.onlineRate
-              }}</span>
-            </div>
+      <!-- 在线率概览 -->
+      <div class="overview-section">
+        <div class="overview-item" v-for="item in monitoringRate" :key="item.type">
+          <div class="rate-badge" :class="`rate-${item.type}`">
+            <div class="rate-value gradient-text">{{ item.value }}</div>
+            <div class="rate-name">{{ item.name }}</div>
           </div>
         </div>
       </div>
 
-      <!-- 设备分类统计 -->
-      <div class="device-categories">
-        <div
-          class="category-column"
-          v-for="category in deviceCategories"
-          :key="category.title"
-        >
-          <div class="category-header">
-            <span class="header-title">{{ category.title }}</span>
-          </div>
-          <div class="category-items">
-            <div
-              class="device-row"
-              v-for="device in category.devices"
-              :key="device.name"
-            >
-              <div class="device-name">{{ jcsblxMap[device.name] || device.name }}</div>
-              <div class="device-count">
-                <span class="online gradient-text">{{ device.onlineNum }}</span>
-                <span class="separator">/</span>
-                <span class="offline gradient-text">{{
-                  device.offlineNum
-                }}</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+      <!-- 设备列表 -->
+      <CommonTable
+        :columns="deviceTableColumns"
+        :data="flatDeviceList"
+        row-key="name"
+        empty-text="暂无数据"
+        :max-height="260"
+        grid-template="2fr 1fr 1fr"
+      />
     </div>
   </div>
 </template>
@@ -82,7 +59,8 @@ import {
   getDeviceTypeStatusCount,
 } from "@/services/waterSupplyService";
 
-import { ref, onMounted, inject, type Ref } from "vue";
+import { ref, onMounted, inject, computed, type Ref } from "vue";
+import CommonTable from '@/components/CommonTable.vue';
 
 const switchToMonitorMode = inject<Ref<(() => void) | null>>('switchToMonitorMode', ref(null));
 
@@ -107,6 +85,16 @@ const getDeviceTypeRate = async () => {
   const res = await getDeviceStatusRate({ Sszx: "csaqzx_rq" });
   topStats.value.onlineRate =
     (res as Array<any>).find((item) => item.name === "在线率")?.value || "-";
+
+  const rateMap: Record<string, string> = {
+    在线率: "online",
+    故障率: "fault",
+    离线率: "offline",
+  };
+  monitoringRate.value = (res as Array<any>).map((item) => ({
+    ...item,
+    type: rateMap[item.name] || "",
+  }));
 };
 
 //获取设备情况并更新分类统计
@@ -189,6 +177,9 @@ const initMonitoringCount = async () => {
   }
 };
 
+// 在线率概览数据
+const monitoringRate = ref<any[]>([]);
+
 // 顶部统计数据
 const topStats = ref({
   total: 0,
@@ -204,6 +195,24 @@ const deviceCategories = ref<
     devices: Array<{ name: string; onlineNum: number; offlineNum: number }>;
   }>
 >([]);
+
+// 展平的设备列表
+const flatDeviceList = computed(() =>
+  deviceCategories.value.flatMap((cat) =>
+    cat.devices.map((d) => ({
+      name: jcsblxMap.value[d.name] || d.name,
+      onlineNum: d.onlineNum,
+      offlineNum: d.offlineNum,
+    }))
+  )
+);
+
+// 表格列配置
+const deviceTableColumns = computed(() => [
+  { key: 'name', title: '类型', width: '2fr' },
+  { key: 'onlineNum', title: '在线', width: '1fr' },
+  { key: 'offlineNum', title: '离线', width: '1fr' },
+]);
 </script>
 
 <style lang="scss" scoped>
@@ -215,6 +224,7 @@ const deviceCategories = ref<
   // 顶部统计卡片
   .top-stats {
     display: flex;
+    justify-content: center;
     background-image: url("@/assets/img/gasModule/device_bg.webp");
     background-size: 100% 100%;
     width: 100%;
@@ -292,88 +302,74 @@ const deviceCategories = ref<
     }
   }
 
-  // 设备分类统计
-  .device-categories {
+  // 在线率概览区域
+  .overview-section {
     display: flex;
-    gap: 20px;
-    width: 100%;
+    justify-content: space-around;
+    padding: 8px 0;
 
-    .category-column {
-      background-image: url("@/assets/img/gasModule/device_item.webp");
-      width: 33.3%;
-      height: 300px;
+    .overview-item {
+      display: flex;
+      justify-content: center;
+    }
 
-      .category-header {
-        height: 70px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 15px;
-        position: relative;
+    .rate-badge {
+      width: 112px;
+      height: 139px;
+      border-radius: 50%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      position: relative;
+      background-size: 100% 100%;
+      background-position: center;
+      background-repeat: no-repeat;
 
-        .header-title {
-          font-family: SourceHanSansSC, SourceHanSansSC;
-          font-weight: var(--font-weight-bold);
-          font-size: var(--font-size-heading);
-          color: #effaff;
-          line-height: calc(var(--font-size-body) * 1.458);
-          text-align: center;
-          font-style: normal;
-          margin-top: 6px;
+      &.rate-online {
+        background-image: url("@/assets/img/waterSupply/online_rate.png");
+
+        .rate-value {
+          background: linear-gradient(180deg, #FFFFFF 0%, #10ADC0 100%);
         }
       }
 
-      .category-items {
-        .device-row {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          height: 70px;
-          padding: 12px 8px 0;
-          // margin-bottom: 8px;
+      &.rate-offline {
+        background-image: url("@/assets/img/waterSupply/offline_rate.png");
 
-          .device-name {
-            font-family: SourceHanSansSC, SourceHanSansSC;
-            font-weight: var(--font-weight-normal);
-            font-size: var(--font-size-body);
-            color: #effaff;
-            line-height: calc(var(--font-size-caption) * 1.813);
-            text-align: left;
-            font-style: normal;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-            width: 150px;
-          }
-
-          .device-count {
-            display: flex;
-            align-items: baseline;
-            gap: 2px;
-
-            > span {
-              font-family: YouSheBiaoTiHei;
-              font-size: var(--font-size-caption);
-              color: #ffffff;
-              line-height: calc(var(--font-size-caption) * 1.625);
-              font-style: normal;
-            }
-
-            .online {
-              background: linear-gradient(180deg, #FFFFFF 0%, #10ADC0 100%);
-            }
-
-            .separator {
-              color: #fff;
-            }
-
-            .offline {
-              background: linear-gradient(90deg, #ffe9da 0%, #ce5a0d 100%);
-            }
-          }
+        .rate-value {
+          background: linear-gradient(90deg, #fffeed 0%, #cdab06 100%);
         }
+      }
+
+      &.rate-fault {
+        background-image: url("@/assets/img/waterSupply/fault_rate.png");
+
+        .rate-value {
+          background: linear-gradient(90deg, #fffeed 0%, #cdab06 100%);
+        }
+      }
+
+      .rate-value {
+        font-family: YouSheBiaoTiHei;
+        font-size: var(--font-size-title);
+        color: #ffffff;
+        line-height: 52px;
+        text-align: center;
+        font-style: normal;
+      }
+
+      .rate-name {
+        font-family: SourceHanSansSC, SourceHanSansSC;
+        font-weight: 400;
+        font-size: var(--font-size-heading);
+        color: #e4f3ff;
+        line-height: 35px;
+        text-align: center;
+        font-style: normal;
+        margin-top: 8px;
       }
     }
   }
+
 }
 </style>

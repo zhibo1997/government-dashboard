@@ -1,5 +1,5 @@
 <template>
-  <div class="common-table-container">
+  <div class="common-table-container" :style="containerStyle">
     <!-- 表格标题（可选） -->
     <div v-if="title" class="table-header">
       <span class="table-title gradient-text">{{ title }}</span>
@@ -107,11 +107,25 @@ const props = withDefaults(defineProps<Props>(), {
 const tableBodyStyle = computed(() => {
   const style: Record<string, string> = {}
   if (props.maxHeight) {
-    style.maxHeight = typeof props.maxHeight === 'number' 
-      ? `${props.maxHeight}px` 
+    style.maxHeight = typeof props.maxHeight === 'number'
+      ? `${props.maxHeight}px`
       : props.maxHeight
+    style.overflowY = 'auto'
   }
   return style
+})
+
+// 容器样式：有 maxHeight 时不撑满父容器
+const containerStyle = computed(() => {
+  if (props.maxHeight) {
+    return {
+      height: 'auto',
+      maxHeight: typeof props.maxHeight === 'number'
+        ? `${props.maxHeight + 62}px`
+        : props.maxHeight,
+    }
+  }
+  return {}
 })
 const gridTemplate = computed(() => {
   if (props.gridTemplate) return props.gridTemplate
@@ -152,7 +166,6 @@ const getCellTitle = (row: TableRow, column: TableColumn): string => {
 <style lang="scss" scoped>
 .common-table-container {
   width: 100%;
-  height: 100%;
   display: flex;
   flex-direction: column;
   
@@ -224,7 +237,6 @@ const getCellTitle = (row: TableRow, column: TableColumn): string => {
   
   // 表体样式
   .table-body {
-    flex: 1;
     overflow-y: auto;
     background: rgba(13, 35, 42, 0.3);
     

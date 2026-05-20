@@ -481,6 +481,8 @@ onBeforeUnmount(() => {
 
 <style lang="scss" scoped>
 .gas-pipeline-module {
+  flex: 1;
+
   .module-content {
     gap: 25px;
   }

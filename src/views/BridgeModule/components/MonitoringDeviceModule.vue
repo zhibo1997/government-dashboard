@@ -43,6 +43,16 @@
         </div>
       </div>
 
+      <!-- 在线率概览 -->
+      <div class="overview-section">
+        <div class="overview-item" v-for="item in monitoringRate" :key="item.type">
+          <div class="rate-badge" :class="`rate-${item.type}`">
+            <div class="rate-value gradient-text">{{ item.value }}</div>
+            <div class="rate-name">{{ item.name }}</div>
+          </div>
+        </div>
+      </div>
+
       <!-- 预警类型统计区域 -->
       <div class="warning-statistics">
         <CommonTable
@@ -60,9 +70,26 @@
 
 <script setup lang="ts">
 import { getBridgeEquipmentOnlineCount, getBridgeEquipmentRunStatusList } from "@/services/bridgeService";
-import { getEquipmentPageList } from "@/services/gasService";
+import { getDeviceStatusRate } from "@/services/waterSupplyService";
 import { ref, computed, onMounted } from "vue";
 import CommonTable from '@/components/CommonTable.vue';
+
+// 在线率概览数据
+const monitoringRate = ref<any[]>([]);
+
+// 获取设备运行状态比率
+const getDeviceTypeRate = async () => {
+  const res = await getDeviceStatusRate({ Sszx: "csaqzx_ql" });
+  const rateMap: Record<string, string> = {
+    在线率: "online",
+    故障率: "fault",
+    离线率: "offline",
+  };
+  monitoringRate.value = (res as Array<any>).map((item) => ({
+    ...item,
+    type: rateMap[item.name] || "",
+  }));
+};
 
 // 顶部统计数据
 const topStats = ref({
@@ -100,6 +127,7 @@ const tableData = computed(() => {
 onMounted(async () => {
   await initMonitoringCount();
   await initWarningStatistics();
+  await getDeviceTypeRate();
 });
 
 // 获取监测设备统计数据
@@ -219,6 +247,75 @@ const initWarningStatistics = async () => {
           }
 
         }
+      }
+    }
+  }
+
+  // 在线率概览区域
+  .overview-section {
+    display: flex;
+    justify-content: space-around;
+    padding: 8px 0;
+
+    .overview-item {
+      display: flex;
+      justify-content: center;
+    }
+
+    .rate-badge {
+      width: 112px;
+      height: 139px;
+      border-radius: 50%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      position: relative;
+      background-size: 100% 100%;
+      background-position: center;
+      background-repeat: no-repeat;
+
+      &.rate-online {
+        background-image: url("@/assets/img/waterSupply/online_rate.png");
+
+        .rate-value {
+          background: linear-gradient(180deg, #FFFFFF 0%, #10ADC0 100%);
+        }
+      }
+
+      &.rate-offline {
+        background-image: url("@/assets/img/waterSupply/offline_rate.png");
+
+        .rate-value {
+          background: linear-gradient(90deg, #fffeed 0%, #cdab06 100%);
+        }
+      }
+
+      &.rate-fault {
+        background-image: url("@/assets/img/waterSupply/fault_rate.png");
+
+        .rate-value {
+          background: linear-gradient(90deg, #fffeed 0%, #cdab06 100%);
+        }
+      }
+
+      .rate-value {
+        font-family: YouSheBiaoTiHei;
+        font-size: var(--font-size-title);
+        color: #ffffff;
+        line-height: 52px;
+        text-align: center;
+        font-style: normal;
+      }
+
+      .rate-name {
+        font-family: SourceHanSansSC, SourceHanSansSC;
+        font-weight: 400;
+        font-size: var(--font-size-heading);
+        color: #e4f3ff;
+        line-height: 35px;
+        text-align: center;
+        font-style: normal;
+        margin-top: 8px;
       }
     }
   }

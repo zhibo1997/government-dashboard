@@ -206,9 +206,7 @@ httpInstance.interceptors.response.use(
         }
         break
       case 500:
-        localStorage.removeItem('token')
-        router.push('/login')
-        showMessageOnce('登录已过期，请重新登录')
+        showMessageOnce('服务器异常，请稍后重试')
         break
       case 403:
         showMessageOnce('没有权限访问该资源')
