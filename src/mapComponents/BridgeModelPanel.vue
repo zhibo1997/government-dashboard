@@ -78,7 +78,7 @@ const bridgeList: BridgeModel[] = [
     image: `${baseUrl}/images/bridgeImages/陵园大道立交桥.png`,
     equipment: {
       id: "aa50cee7-c4f6-4315-bcb1-f89aea7c00c0",
-      url: "http://webres.cityfun.com.cn/CSSMX/model/LYDDLJQ_JCSB/tileset.json",
+      url: "http://webres.cityfun.com.cn/CSSMX/model/LYDDLJQ_SB/tileset.json",
     },
   },
   {

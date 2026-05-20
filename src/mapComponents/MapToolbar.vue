@@ -93,6 +93,11 @@
           <img src="@/assets/map/white_membrane.webp" alt="" />
         </div>
       </div>
+      <div class="toolbar-item model-tool" :class="{ active: showRiskPointPanel }" @click="toggleRiskPointPanel" title="风险点">
+        <div class="tool-icon">
+          <img src="@/assets/map/风险点.webp" alt="" />
+        </div>
+      </div>
     </template>
 
     <!-- 桥梁模型面板（独立定位） -->
@@ -118,6 +123,13 @@
       </div>
     </transition>
 
+    <!-- 风险点面板（独立定位） -->
+    <transition name="slide-left">
+      <div v-show="showRiskPointPanel" class="risk-point-panel-wrapper" @click.stop>
+        <RiskPointPanel />
+      </div>
+    </transition>
+
   </div>
 </template>
 
@@ -126,6 +138,7 @@ import { ref, inject } from "vue";
 import OptimizedLayerTree from "./OptimizedLayerTree.vue";
 import BridgeModelPanel from "./BridgeModelPanel.vue";
 import GasModelPanel from "./GasModelPanel.vue";
+import RiskPointPanel from "./RiskPointPanel.vue";
 import { useMapHooks } from "@/hook/useMapHooks";
 
 const cesiumUtils = useMapHooks();
@@ -160,6 +173,7 @@ const showLayerTreePanel = ref(false);
 const showBaseMapPanel = ref(false);
 const showBridgePanel = ref(false);
 const showGasPanel = ref(false);
+const showRiskPointPanel = ref(false);
 const showEquipmentDialog = ref(false);
 const activeEquipmentBridge = ref<any>({});
 const layerTreeRef = ref<any>(null);
@@ -184,6 +198,7 @@ const toggleCollapse = () => {
     showBaseMapPanel.value = false;
     showBridgePanel.value = false;
     showGasPanel.value = false;
+    showRiskPointPanel.value = false;
   }
 };
 
@@ -194,6 +209,7 @@ const toggleLayerTreePanel = () => {
     showBaseMapPanel.value = false;
     showBridgePanel.value = false;
     showGasPanel.value = false;
+    showRiskPointPanel.value = false;
   }
 };
 
@@ -204,6 +220,7 @@ const toggleBaseMapPanel = () => {
     showLayerTreePanel.value = false;
     showBridgePanel.value = false;
     showGasPanel.value = false;
+    showRiskPointPanel.value = false;
   }
 };
 
@@ -214,6 +231,7 @@ const toggleBridgePanel = () => {
     showLayerTreePanel.value = false;
     showBaseMapPanel.value = false;
     showGasPanel.value = false;
+    showRiskPointPanel.value = false;
   }
 };
 
@@ -224,6 +242,18 @@ const toggleGasPanel = () => {
     showLayerTreePanel.value = false;
     showBaseMapPanel.value = false;
     showBridgePanel.value = false;
+    showRiskPointPanel.value = false;
+  }
+};
+
+// 切换风险点面板
+const toggleRiskPointPanel = () => {
+  showRiskPointPanel.value = !showRiskPointPanel.value;
+  if (showRiskPointPanel.value) {
+    showLayerTreePanel.value = false;
+    showBaseMapPanel.value = false;
+    showBridgePanel.value = false;
+    showGasPanel.value = false;
   }
 };
 
@@ -282,6 +312,36 @@ const handleLoad3DTiles = async (url: string, layerId: string, options?: { flyTo
     loadedLayers.value.set(layerId, { type: "3dtiles", instance: tileset });
 
     console.log(`✅ 3D Tiles图层加载成功: ${layerId}`);
+
+    // 调试：遍历 tileset 内部子模型结构
+    if (layerId.includes('-') && layerId.length > 30) {
+      try {
+        const Cesium = (window as any).Cesium;
+        const root = tileset.root;
+        const traverse = (tile: any, depth = 0) => {
+          const indent = '  '.repeat(depth);
+          const bs = tile.boundingSphere;
+          const center = bs ? Cesium.Cartographic.fromCartesian(bs.center) : null;
+          const lat = center ? Cesium.Math.toDegrees(center.latitude).toFixed(6) : '?';
+          const lon = center ? Cesium.Math.toDegrees(center.longitude).toFixed(6) : '?';
+          const height = center ? center.height.toFixed(2) : '?';
+          const content = tile.content;
+          const featuresCount = content?.featuresLength ?? content?.innerContents?.length ?? 0;
+          const childrenCount = tile.children?.length ?? 0;
+          console.log(`${indent}Tile: center=[${lon}, ${lat}, ${height}] radius=${bs?.radius?.toFixed(2) ?? '?'} features=${featuresCount} children=${childrenCount}`);
+          if (tile.children) {
+            for (const child of tile.children) {
+              traverse(child, depth + 1);
+            }
+          }
+        };
+        console.log(`--- Tileset ${layerId} 结构 ---`);
+        traverse(root);
+        console.log(`--- 遍历结束 ---`);
+      } catch (e) {
+        console.log('遍历tileset失败:', e);
+      }
+    }
   } catch (error: any) {
     const errorMessage = error?.message || error;
     console.error(`❌ 3D Tiles图层加载失败: ${layerId}`, errorMessage);
@@ -533,12 +593,8 @@ defineExpose({
         margin-bottom: 0;
       }
     }
-    .model-tool .tool-icon {
-      width: 90%;
-      height: 90%;
-    }
   }
-
+  
   .toolbar-item {
     position: relative;
     width: 80px;
@@ -553,6 +609,10 @@ defineExpose({
     background-image: url("@/assets/map/tools_bg.webp");
     background-size: 100% 100%;
 
+      &.model-tool .tool-icon {
+        width: 90%;
+        height: 90%;
+      }
 
     &.active {
       border-color: #1677ff;
@@ -697,6 +757,22 @@ defineExpose({
     margin-right: 16px;
     width: 1100px;
     height: 240px;
+    background: rgba(11, 28, 45, 0.65);
+    backdrop-filter: blur(10px);
+    border: 2px solid rgba(22, 119, 255, 0.3);
+    border-radius: 12px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+    overflow: hidden;
+  }
+
+  // 风险点面板
+  > .risk-point-panel-wrapper {
+    position: absolute;
+    right: 100%;
+    bottom: 0;
+    margin-right: 16px;
+    width: 800px;
+    height: 460px;
     background: rgba(11, 28, 45, 0.65);
     backdrop-filter: blur(10px);
     border: 2px solid rgba(22, 119, 255, 0.3);

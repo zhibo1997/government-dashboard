@@ -51,6 +51,8 @@
 
       <!-- 分页 -->
       <div class="pagination">
+        <span class="page-info">共 {{ total }} 条</span>
+        <span style="flex:1"></span>
         <button class="page-btn" @click="prevPage" :disabled="currentPage === 1">&lt;</button>
         <span class="page-numbers">
           <button
