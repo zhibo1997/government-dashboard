@@ -302,9 +302,9 @@ onBeforeUnmount(() => {
     .dialog-title {
       font-family: SourceHanSansSC, SourceHanSansSC;
       font-weight: var(--font-weight-medium);
-      font-size: var(--font-size-2xl);
+      font-size: var(--font-size-heading);
       color: #e4f3ff;
-      line-height: calc(var(--font-size-2xl) * 1.464);
+      line-height: calc(var(--font-size-heading) * 1.464);
     }
   }
 
@@ -363,8 +363,8 @@ onBeforeUnmount(() => {
           border-radius: 8px;
           font-family: SourceHanSansSC, SourceHanSansSC;
           font-weight: var(--font-weight-medium);
-          font-size: var(--font-size-2xl);
-          line-height: calc(var(--font-size-2xl) * 1.4);
+          font-size: var(--font-size-heading);
+          line-height: calc(var(--font-size-heading) * 1.4);
 
           &.badge-type {
             background: #313d56;
@@ -400,8 +400,8 @@ onBeforeUnmount(() => {
         display: flex;
         align-items: center;
         gap: 16px;
-        font-size: var(--font-size-3xl);
-        line-height: calc(var(--font-size-3xl) * 1.4);
+        font-size: var(--font-size-heading);
+        line-height: calc(var(--font-size-heading) * 1.4);
         color: #e4f3ff;
 
         label {
@@ -445,9 +445,9 @@ onBeforeUnmount(() => {
 
         font-family: SourceHanSansSC, SourceHanSansSC;
         font-weight: var(--font-weight-medium);
-        font-size: var(--font-size-3xl);
+        font-size: var(--font-size-heading);
         color: #ffffff;
-        line-height: calc(var(--font-size-3xl) * var(--line-height-normal));
+        line-height: calc(var(--font-size-heading) * var(--line-height-normal));
         text-align: left;
         font-style: normal;
         background: linear-gradient(180deg, #FFFFFF 0%, #10ADC0 100%);;

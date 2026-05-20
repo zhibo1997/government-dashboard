@@ -361,7 +361,7 @@ export const getMonitoringAlarmChartOption = (
       itemGap: 24,
       textStyle: {
         fontFamily: "SourceHanSansSC",
-        fontSize: 24,
+        fontSize: FONT_SIZE.body,
         color: "#D3EAF1",
       },
     },
@@ -409,7 +409,7 @@ export const getMonitoringDonutChartOption = (
           position: "outside",
           formatter: "{b}: {c}",
           color: "#D3EAF1",
-          fontSize: 24,
+          fontSize: FONT_SIZE.body,
           fontFamily: "SourceHanSansSC",
         },
         labelLine: {
@@ -456,7 +456,7 @@ export const getMonitoringEarlyWarningChartOption = (
       itemGap: 24,
       textStyle: {
         fontFamily: "SourceHanSansSC",
-        fontSize: 24,
+        fontSize: FONT_SIZE.body,
         color: "#D3EAF1",
       },
     },

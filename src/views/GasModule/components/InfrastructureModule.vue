@@ -253,8 +253,8 @@ onMounted(async () => {
 
       .gradient-text {
         font-family: YouSheBiaoTiHei;
-        font-size: var(--font-size-4xl);
-        line-height: calc(var(--font-size-4xl) * 1.306);
+        font-size: var(--font-size-subtitle);
+        line-height: calc(var(--font-size-subtitle) * 1.306);
         background: linear-gradient(180deg, #FFFFFF 0%, #10ADC0 100%);;
       }
 
@@ -288,12 +288,12 @@ onMounted(async () => {
 
       .stat-label {
         text-align: center;
-        line-height: calc(var(--font-size-xl) * 3);
+        line-height: calc(var(--font-size-body) * 3);
         width: 100%;
         height: 60px;
         font-family: SourceHanSansSC, SourceHanSansSC;
         font-weight: var(--font-weight-bold);
-        font-size: var(--font-size-2xl);
+        font-size: var(--font-size-heading);
         color: #E4F3FF;
         font-style: normal;
         background: linear-gradient(90deg, rgba(30, 94, 88, 0.5) 0%, rgba(10, 14, 15, 0.5) 100%);
@@ -308,9 +308,9 @@ onMounted(async () => {
 
         .number {
           font-family: YouSheBiaoTiHei;
-          font-size: var(--font-size-3xl);
+          font-size: var(--font-size-heading);
           color: #FFFFFF;
-          line-height: calc(var(--font-size-xl) * 1.292);
+          line-height: calc(var(--font-size-body) * 1.292);
           text-align: center;
           font-style: normal;
           background: linear-gradient(180deg, #FFFFFF 0%, #10ADC0 100%);
@@ -318,7 +318,7 @@ onMounted(async () => {
 
         .unit {
           font-family: SourceHanSansSC, SourceHanSansSC;
-          font-size: var(--font-size-lg);
+          font-size: var(--font-size-caption);
           color: #9ec3e8;
         }
       }

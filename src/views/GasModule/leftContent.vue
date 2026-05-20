@@ -6,15 +6,15 @@
     <!-- 燃气管网模块 -->
     <GasPipelineModule />
 
-    <!-- 监测设备模块 -->
-    <MonitoringDeviceModule />
+    <!-- 应急资源模块（从右下移过来） -->
+    <EmergencyResourceModule />
   </div>
 </template>
 
 <script setup>
 import InfrastructureModule from './components/InfrastructureModule.vue';
 import GasPipelineModule from './components/GasPipelineModule.vue';
-import MonitoringDeviceModule from './components/MonitoringDeviceModule.vue';
+import EmergencyResourceModule from './components/EmergencyResourceModule.vue';
 </script>
 
 <style lang="scss" scoped>

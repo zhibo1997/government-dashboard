@@ -449,7 +449,7 @@ const goToPage = (page: number) => {
         writing-mode: vertical-lr;
         text-orientation: mixed;
         margin: 0;
-        font-size: 18px;
+        font-size: var(--font-size-caption);
       }
     }
   }
@@ -490,7 +490,7 @@ const goToPage = (page: number) => {
       .text {
         font-family: SourceHanSansSC, SourceHanSansSC;
         font-weight: var(--font-weight-medium);
-        font-size: var(--font-size-3xl);
+        font-size: var(--font-size-heading);
         color: #3fffff;
         letter-spacing: 1px;
         text-align: center;
@@ -532,9 +532,9 @@ const goToPage = (page: number) => {
         .title-text {
           font-family: SourceHanSansSC, SourceHanSansSC;
           font-weight: var(--font-weight-medium);
-          font-size: var(--font-size-4xl);
+          font-size: var(--font-size-subtitle);
           color: #FFFFFF;
-          line-height: calc(var(--font-size-3xl) * 1.467);
+          line-height: calc(var(--font-size-heading) * 1.467);
           text-align: center;
           font-style: normal;
           margin-right: 10px;
@@ -568,7 +568,7 @@ const goToPage = (page: number) => {
           padding: 14px 20px;
           font-family: SourceHanSansSC, SourceHanSansSC;
           font-weight: var(--font-weight-normal);
-          font-size: var(--font-size-xl);
+          font-size: var(--font-size-body);
           color: #E4F3FF;
           cursor: pointer;
           transition: all 0.2s ease;
@@ -634,7 +634,7 @@ const goToPage = (page: number) => {
           border-radius: 8px;
           border: 2px solid #3FFFFF;
           font-weight: var(--font-weight-medium);
-          font-size: 24px;
+          font-size: var(--font-size-body);
           color: #FFFFFF;
           line-height: 1.4;
           text-align: center;
@@ -667,7 +667,7 @@ const goToPage = (page: number) => {
       .filter-input {
         flex: 1;
 
-        font-size: 28px;
+        font-size: var(--font-size-heading);
         font-family: SourceHanSansSC, SourceHanSansSC;
         font-weight: var(--font-weight-normal);
         line-height: 1.4;
@@ -679,7 +679,7 @@ const goToPage = (page: number) => {
         border: none;
 
         &::placeholder {
-          font-size: 28px;
+          font-size: var(--font-size-heading);
           color: #E4F3FF;
         }
 
@@ -697,7 +697,7 @@ const goToPage = (page: number) => {
           --n-color:transparent !important;
           --n-color-active: transparent !important;
           --n-text-color: #E4F3FF !important;
-          --n-font-size: 28px !important;
+          --n-font-size: var(--font-size-heading) !important;
           --n-padding-single: 0px !important;
           --n-border: none !important;
           --n-border-active: none !important;
@@ -723,9 +723,9 @@ const goToPage = (page: number) => {
       .count-text {
         font-family: SourceHanSansSC, SourceHanSansSC;
         font-weight: var(--font-weight-normal);
-        font-size: var(--font-size-lg);
+        font-size: var(--font-size-caption);
         color: #FFFFFF;
-        line-height: calc(var(--font-size-lg) * 1.45);
+        line-height: calc(var(--font-size-caption) * 1.45);
       }
     }
 
@@ -781,8 +781,8 @@ const goToPage = (page: number) => {
           border-radius: 8px;
           font-family: SourceHanSansSC, SourceHanSansSC;
           font-weight: var(--font-weight-medium);
-          font-size: var(--font-size-lg);
-          line-height: calc(var(--font-size-lg) * 1.45);
+          font-size: var(--font-size-caption);
+          line-height: calc(var(--font-size-caption) * 1.45);
 
           &.badge-type {
             background: #313D56;
@@ -790,7 +790,7 @@ const goToPage = (page: number) => {
             border: 2px solid #15779D;
 
             color: #E4F3FF;
-            line-height: calc(var(--font-size-lg) * 1.45);
+            line-height: calc(var(--font-size-caption) * 1.45);
           }
 
           &.badge-status {
@@ -814,9 +814,9 @@ const goToPage = (page: number) => {
         .station-name {
           font-family: SourceHanSansCNVF, SourceHanSansCNVF;
           font-weight: var(--font-weight-semibold);
-          font-size: var(--font-size-3xl);
+          font-size: var(--font-size-heading);
           color: #E4F3FF;
-          line-height: calc(var(--font-size-3xl) * 1.467);
+          line-height: calc(var(--font-size-heading) * 1.467);
           text-align: left;
           font-style: normal;
         }
@@ -824,9 +824,9 @@ const goToPage = (page: number) => {
         .station-address {
           font-family: SourceHanSansCNVF, SourceHanSansCNVF;
           font-weight: var(--font-weight-normal);
-          font-size: var(--font-size-2xl);
+          font-size: var(--font-size-heading);
           color: #BFC5C0;
-          line-height: calc(var(--font-size-md) * 1.444);
+          line-height: calc(var(--font-size-caption) * 1.444);
           text-align: left;
           font-style: normal;
           margin-top: 8px;
@@ -853,7 +853,7 @@ const goToPage = (page: number) => {
         border-radius: 6px;
         font-family: SourceHanSansSC, SourceHanSansSC;
         font-weight: var(--font-weight-normal);
-        font-size: 24px;
+        font-size: var(--font-size-body);
         color: #FFFFFF;
         cursor: pointer;
         transition: all 0.2s ease;
@@ -881,7 +881,7 @@ const goToPage = (page: number) => {
       }
 
       .page-ellipsis {
-        font-size: 24px;
+        font-size: var(--font-size-body);
         color: #FFFFFF;
         line-height: 48px;
         padding: 0 4px;
@@ -891,7 +891,7 @@ const goToPage = (page: number) => {
         margin-left: 8px;
         font-family: SourceHanSansSC, SourceHanSansSC;
         font-weight: var(--font-weight-normal);
-        font-size: 24px;
+        font-size: var(--font-size-body);
         color: #FFFFFF;
         line-height: 1.4;
       }

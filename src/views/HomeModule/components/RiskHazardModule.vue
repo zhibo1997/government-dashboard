@@ -347,7 +347,7 @@ onMounted(async () => {
 
       .header-title {
         font-family: YouSheBiaoTiHei;
-        font-size: 36px;
+        font-size: var(--font-size-subtitle);
         color: #FFFFFF;
         line-height: 47px;
         text-align: left;

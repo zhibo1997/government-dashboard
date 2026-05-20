@@ -85,6 +85,6 @@ onMounted(async () => {
   width: 100%;
   height: 100%;
   color: rgba(255, 255, 255, 0.6);
-  font-size: 16px;
+  font-size: var(--font-size-caption);
 }
 </style>

@@ -504,18 +504,18 @@ onBeforeUnmount(() => {
       .stat-label {
         font-family: SourceHanSansSC, SourceHanSansSC;
         font-weight: var(--font-weight-bold);
-        font-size: var(--font-size-3xl);
+        font-size: var(--font-size-heading);
         color: #effaff;
-        line-height: calc(var(--font-size-2xl) * 1.423);
+        line-height: calc(var(--font-size-heading) * 1.423);
         text-align: center;
         font-style: normal;
       }
 
       .stat-value {
         font-family: YouSheBiaoTiHei;
-        font-size: var(--font-size-2xl);
+        font-size: var(--font-size-heading);
         color: #ffffff;
-        line-height: calc(var(--font-size-2xl) * 1.214);
+        line-height: calc(var(--font-size-heading) * 1.214);
         text-align: center;
         font-style: normal;
         background: linear-gradient(180deg, #FFFFFF 0%, #10ADC0 100%);
@@ -564,9 +564,9 @@ onBeforeUnmount(() => {
       .total-label {
         font-family: SourceHanSansSC, SourceHanSansSC;
         font-weight: var(--font-weight-bold);
-        font-size: var(--font-size-3xl);
+        font-size: var(--font-size-heading);
         color: #effaff;
-        line-height: calc(var(--font-size-2xl) * 1.423);
+        line-height: calc(var(--font-size-heading) * 1.423);
         text-align: center;
         font-style: normal;
         margin-bottom: 12px;
@@ -574,9 +574,9 @@ onBeforeUnmount(() => {
 
       .total-value {
         font-family: YouSheBiaoTiHei;
-        font-size: var(--font-size-3xl);
+        font-size: var(--font-size-heading);
         color: #ffffff;
-        line-height: calc(var(--font-size-3xl) * 1.3);
+        line-height: calc(var(--font-size-heading) * 1.3);
         text-align: center;
         font-style: normal;
         background: linear-gradient(180deg, #FFFFFF 0%, #10ADC0 100%);
@@ -597,9 +597,9 @@ onBeforeUnmount(() => {
         .well-label {
           font-family: SourceHanSansSC, SourceHanSansSC;
           font-weight: var(--font-weight-normal);
-          font-size: var(--font-size-lg);
+          font-size: var(--font-size-caption);
           color: #e4f3ff;
-          line-height: calc(var(--font-size-lg) * 1.45);
+          line-height: calc(var(--font-size-caption) * 1.45);
           text-align: right;
           font-style: normal;
           width: 120px;
@@ -637,7 +637,7 @@ onBeforeUnmount(() => {
           .well-value {
             width: 120px;
             font-family: YouSheBiaoTiHei;
-            font-size: var(--font-size-4xl);
+            font-size: var(--font-size-subtitle);
             text-align: right;
 
             .normal-text {
@@ -684,7 +684,7 @@ onBeforeUnmount(() => {
         .legend-text {
           font-family: SourceHanSansSC, SourceHanSansSC;
           font-weight: var(--font-weight-normal);
-          font-size: var(--font-size-xl);
+          font-size: var(--font-size-body);
           color: #e4f3ff;
         }
       }

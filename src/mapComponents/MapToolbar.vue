@@ -636,7 +636,7 @@ defineExpose({
       }
 
       .icon-placeholder {
-        font-size: 32px;
+        font-size: var(--font-size-subtitle);
         color: #ddd;
         text-shadow: 0 2px 8px rgba(22, 119, 255, 0.5);
         svg {
@@ -680,7 +680,7 @@ defineExpose({
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
 
     .panel-title {
-      font-size: 32px;
+      font-size: var(--font-size-subtitle);
       font-weight: 700;
       color: #ffffff;
       margin-bottom: 16px;
@@ -721,11 +721,11 @@ defineExpose({
         }
 
         .option-icon {
-          font-size: 36px;
+          font-size: var(--font-size-subtitle);
         }
 
         .option-label {
-          font-size: 28px;
+          font-size: var(--font-size-heading);
           color: #ffffff;
           flex: 1;
         }

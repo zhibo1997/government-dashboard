@@ -2,11 +2,11 @@
   <div class="risk-point-panel">
     <div class="panel-title">{{ moduleName }}风险点</div>
     <div class="panel-body">
-      <div class="risk-total-row">
+      <!-- <div class="risk-total-row">
         <span class="risk-total-label">风险总数</span>
         <span class="risk-total-value gradient-text">{{ totalRisk }}</span>
         <span class="risk-total-unit">个</span>
-      </div>
+      </div> -->
       <div class="chart-area">
         <RiskLevelChart
           :chart-id="chartId"
@@ -56,7 +56,7 @@ const onDataLoaded = (data: { name: string; color: string; value: number }[]) =>
   padding: 24px;
 
   .panel-title {
-    font-size: 32px;
+    font-size: var(--font-size-subtitle);
     font-weight: 700;
     color: #ffffff;
     margin-bottom: 16px;
@@ -75,20 +75,20 @@ const onDataLoaded = (data: { name: string; color: string; value: number }[]) =>
       .risk-total-label {
         font-family: SourceHanSansSC, SourceHanSansSC;
         font-weight: var(--font-weight-bold);
-        font-size: var(--font-size-3xl);
+        font-size: var(--font-size-heading);
         color: #d3eaf1;
       }
 
       .risk-total-value {
         font-family: YouSheBiaoTiHei;
-        font-size: 36px;
+        font-size: var(--font-size-subtitle);
         background: linear-gradient(0deg, #f75e04 0%, #feac04 100%);
       }
 
       .risk-total-unit {
         font-family: SourceHanSansSC, SourceHanSansSC;
         font-weight: var(--font-weight-bold);
-        font-size: var(--font-size-3xl);
+        font-size: var(--font-size-heading);
         color: #d3eaf1;
       }
     }

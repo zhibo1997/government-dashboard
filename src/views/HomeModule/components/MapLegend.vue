@@ -65,7 +65,7 @@ const legendItems = computed<LegendItem[]>(() => {
     .title {
       font-family: SourceHanSansSC, SourceHanSansSC;
       font-weight: bold;
-      font-size: 40px;
+      font-size: var(--font-size-title);
       color: #E4F3FF;
       line-height: 58px;
       text-align: left;
@@ -100,7 +100,7 @@ const legendItems = computed<LegendItem[]>(() => {
         word-break: break-all;
         font-family: SourceHanSansSC, SourceHanSansSC;
         font-weight: 500;
-        font-size: 36px;
+        font-size: var(--font-size-subtitle);
         color: #E4F3FF;
         line-height: 50px;
         text-align: left;

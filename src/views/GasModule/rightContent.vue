@@ -1,20 +1,16 @@
 <template>
   <div class="right-content">
-    <!-- 风险隐患模块 -->
-    <RiskHazardModule />
+    <!-- 监测设备模块（从左移过来） -->
+    <MonitoringDeviceModule />
 
     <!-- 预警报警模块 -->
     <WarningAlarmModule />
-
-    <!-- 应急资源模块 -->
-    <EmergencyResourceModule />
   </div>
 </template>
 
 <script setup>
-import RiskHazardModule from './components/RiskHazardModule.vue';
+import MonitoringDeviceModule from './components/MonitoringDeviceModule.vue';
 import WarningAlarmModule from './components/WarningAlarmModule.vue';
-import EmergencyResourceModule from './components/EmergencyResourceModule.vue';
 </script>
 
 <style lang="scss" scoped>

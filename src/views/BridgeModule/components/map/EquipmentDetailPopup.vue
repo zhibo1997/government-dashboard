@@ -272,7 +272,7 @@ const initLineChart = (rawData: any[]) => {
       trigger: "axis",
       backgroundColor: "rgba(0, 20, 40, 0.9)",
       borderColor: "rgba(13, 165, 190, 0.5)",
-      textStyle: { color: "#e4f3ff", fontSize: 14 },
+      textStyle: { color: "#e4f3ff", fontSize: FONT_SIZE.mini },
       formatter: (params: any) => {
         if (!Array.isArray(params)) return '';
         let html = `<div style="margin-bottom:4px;color:#9ec3e8">${params[0].axisValue}</div>`;
@@ -288,7 +288,7 @@ const initLineChart = (rawData: any[]) => {
     legend: {
       data: indicators,
       top: 0,
-      textStyle: { color: "#9ec3e8", fontSize: 13 },
+      textStyle: { color: "#9ec3e8", fontSize: FONT_SIZE.mini },
       itemWidth: 16,
       itemHeight: 8,
     },
@@ -448,9 +448,9 @@ onBeforeUnmount(() => {
     .dialog-title {
       font-family: SourceHanSansSC, SourceHanSansSC;
       font-weight: var(--font-weight-medium);
-      font-size: var(--font-size-2xl);
+      font-size: var(--font-size-heading);
       color: #e4f3ff;
-      line-height: calc(var(--font-size-2xl) * 1.464);
+      line-height: calc(var(--font-size-heading) * 1.464);
     }
   }
 
@@ -494,8 +494,8 @@ onBeforeUnmount(() => {
           border-radius: 6px;
           font-family: SourceHanSansSC, SourceHanSansSC;
           font-weight: var(--font-weight-medium);
-          font-size: var(--font-size-lg);
-          line-height: calc(var(--font-size-lg) * 1.4);
+          font-size: var(--font-size-caption);
+          line-height: calc(var(--font-size-caption) * 1.4);
 
           &.badge-type {
             background: #313d56;
@@ -527,8 +527,8 @@ onBeforeUnmount(() => {
           display: flex;
           align-items: center;
           gap: 16px;
-          font-size: var(--font-size-3xl);
-          line-height: calc(var(--font-size-3xl) * 1.4);
+          font-size: var(--font-size-heading);
+          line-height: calc(var(--font-size-heading) * 1.4);
           color: #e4f3ff;
 
           label {
@@ -560,7 +560,7 @@ onBeforeUnmount(() => {
         .monitor-title {
           font-family: SourceHanSansSC, SourceHanSansSC;
           font-weight: var(--font-weight-medium);
-          font-size: var(--font-size-xl);
+          font-size: var(--font-size-body);
           color: #10adc0;
           margin-bottom: 12px;
         }
@@ -579,14 +579,14 @@ onBeforeUnmount(() => {
 
             .monitor-value {
               font-family: YouSheBiaoTiHei;
-              font-size: var(--font-size-3xl);
+              font-size: var(--font-size-heading);
               color: #10adc0;
               background: transparent;
               line-height: 1.2;
 
               .monitor-unit {
                 font-family: SourceHanSansSC, SourceHanSansSC;
-                font-size: var(--font-size-sm);
+                font-size: var(--font-size-mini);
                 color: #6ba8c4;
                 margin-left: 4px;
                 background: transparent;
@@ -595,7 +595,7 @@ onBeforeUnmount(() => {
 
             .monitor-label {
               font-family: SourceHanSansSC, SourceHanSansSC;
-              font-size: var(--font-size-lg);
+              font-size: var(--font-size-caption);
               color: #6ba8c4;
               margin-top: 6px;
             }
@@ -611,7 +611,7 @@ onBeforeUnmount(() => {
         .monitor-title {
           font-family: SourceHanSansSC, SourceHanSansSC;
           font-weight: var(--font-weight-medium);
-          font-size: var(--font-size-xl);
+          font-size: var(--font-size-body);
           color: #10adc0;
           margin-bottom: 12px;
         }

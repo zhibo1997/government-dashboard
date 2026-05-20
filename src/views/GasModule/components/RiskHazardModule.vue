@@ -400,8 +400,8 @@ const onDataLoaded = (data: { name: string; color: string; value: number }[]) =>
 
       .total-value {
         font-family: YouSheBiaoTiHei;
-        font-size: var(--font-size-4xl);
-        line-height: calc(var(--font-size-4xl) * 1.3);
+        font-size: var(--font-size-subtitle);
+        line-height: calc(var(--font-size-subtitle) * 1.3);
         text-align: right;
         font-style: normal;
         background: linear-gradient(0deg, #3ffefd 0%, #fff407 100%);
@@ -429,7 +429,7 @@ const onDataLoaded = (data: { name: string; color: string; value: number }[]) =>
         }
 
         .type-value {
-          font-size: var(--font-size-4xl);
+          font-size: var(--font-size-subtitle);
           font-weight: var(--font-weight-bold);
           font-family: YouSheBiaoTiHei;
           line-height: 1;
@@ -437,7 +437,7 @@ const onDataLoaded = (data: { name: string; color: string; value: number }[]) =>
         }
 
         .type-label {
-          font-size: var(--font-size-3xl);
+          font-size: var(--font-size-heading);
           color: rgba(255, 255, 255, 0.85);
           font-family: SourceHanSansSC, SourceHanSansSC;
         }
@@ -494,14 +494,14 @@ const onDataLoaded = (data: { name: string; color: string; value: number }[]) =>
         .rectification-item-title {
           font-family: SourceHanSansSC, SourceHanSansSC;
           font-weight: var(--font-weight-normal);
-          font-size: var(--font-size-xl);
+          font-size: var(--font-size-body);
           color: #d3eaf1;
         }
 
         .rectification-item-value {
           .value {
             font-family: YouSheBiaoTiHei;
-            font-size: var(--font-size-40);
+            font-size: var(--font-size-title);
             color: #ffffff;
             line-height: 1;
 
@@ -526,7 +526,7 @@ const onDataLoaded = (data: { name: string; color: string; value: number }[]) =>
             margin-left: 5px;
             font-family: SourceHanSansSC, SourceHanSansSC;
             font-weight: var(--font-weight-normal);
-            font-size: var(--font-size-sm);
+            font-size: var(--font-size-mini);
             color: #d3eaf1;
             background: transparent !important;
           }

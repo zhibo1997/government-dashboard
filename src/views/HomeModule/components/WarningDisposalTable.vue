@@ -223,7 +223,7 @@ watch(() => props.data, () => {
 
     .table-title {
       font-family: YouSheBiaoTiHei;
-      font-size: 36px;
+      font-size: var(--font-size-subtitle);
       color: #FFFFFF;
       line-height: 47px;
       text-align: left;
@@ -257,7 +257,7 @@ watch(() => props.data, () => {
       padding-left: 8px;
       font-family: SourceHanSansSC, SourceHanSansSC;
       font-weight: bold;
-      font-size: 28px;
+      font-size: var(--font-size-heading);
       color: #E4F3FF;
       line-height: 40px;
       text-align: left;
@@ -314,7 +314,7 @@ watch(() => props.data, () => {
         justify-content: center;
         height: 120px;
         font-family: SourceHanSansSC, SourceHanSansSC;
-        font-size: 24px;
+        font-size: var(--font-size-body);
         color: rgba(255, 255, 255, 0.5);
         grid-column: 1 / -1;
       }
@@ -326,7 +326,7 @@ watch(() => props.data, () => {
     padding-left: 12px;
     font-family: SourceHanSansSC, SourceHanSansSC;
     font-weight: 400;
-    font-size: 30px;
+    font-size: var(--font-size-heading);
     color: #E4F3FF;
     line-height: 58px;
     text-align: left;

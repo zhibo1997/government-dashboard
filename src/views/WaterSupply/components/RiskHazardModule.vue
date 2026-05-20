@@ -296,7 +296,7 @@ onMounted(async () => {
         .legend-name {
           font-family: SourceHanSansSC, SourceHanSansSC;
           font-weight: 400;
-          font-size: var(--font-size-2xl);
+          font-size: var(--font-size-heading);
           color: #d3eaf1;
           display: flex;
           align-items: center;
@@ -312,14 +312,14 @@ onMounted(async () => {
 
         .legend-value {
           font-family: YouSheBiaoTiHei;
-          font-size: var(--font-size-3xl);
+          font-size: var(--font-size-heading);
           color: #ffffff;
           background: linear-gradient(180deg, #FFFFFF 0%, #10ADC0 100%);
 
           .unit {
             font-family: SourceHanSansSC, SourceHanSansSC;
             font-weight: 400;
-            font-size: 14px;
+            font-size: var(--font-size-mini);
             color: #d3eaf1;
             margin-left: 5px;
             background: transparent !important;
@@ -369,7 +369,7 @@ onMounted(async () => {
   .rectification-item-title {
     font-family: SourceHanSansSC, SourceHanSansSC;
     font-weight: 400;
-    font-size: var(--font-size-3xl);
+    font-size: var(--font-size-heading);
     color: #d3eaf1;
     line-height: 29px;
     letter-spacing: 1px;
@@ -380,7 +380,7 @@ onMounted(async () => {
   .rectification-item-value {
     .value {
       font-family: YouSheBiaoTiHei;
-      font-size: 40px;
+      font-size: var(--font-size-title);
       color: #ffffff;
       line-height: 52px;
       text-align: right;
@@ -407,7 +407,7 @@ onMounted(async () => {
       margin-left: 5px;
       font-family: SourceHanSansSC, SourceHanSansSC;
       font-weight: 400;
-      font-size: 14px;
+      font-size: var(--font-size-mini);
       color: #d3eaf1;
       line-height: 20px;
       letter-spacing: 1px;

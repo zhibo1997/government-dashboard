@@ -181,7 +181,7 @@ onMounted(() => {
 
     .stat-label {
       font-weight: var(--font-weight-normal);
-      font-size: var(--font-size-3xl);
+      font-size: var(--font-size-heading);
       color: #E4F3FF;
       white-space: nowrap;
     }
@@ -203,7 +203,7 @@ onMounted(() => {
 
       .stat-value {
         font-weight: var(--font-weight-medium);
-        font-size: var(--font-size-3xl);
+        font-size: var(--font-size-heading);
         color: #ffffff;
         white-space: nowrap;
         
@@ -260,9 +260,9 @@ onMounted(() => {
     .ring-text {
       font-family: SourceHanSansSC, SourceHanSansSC;
       font-weight: var(--font-weight-bold);
-      font-size: var(--font-size-2xl);
+      font-size: var(--font-size-heading);
       color: #effaff;
-      line-height: calc(var(--font-size-2xl) * 1.321);
+      line-height: calc(var(--font-size-heading) * 1.321);
       text-align: center;
       font-style: normal;
     }

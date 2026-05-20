@@ -295,7 +295,7 @@ const handleViewEquipment = (equipment: any) => {
 
     .dialog-title {
       font-family: YouSheBiaoTiHei;
-      font-size: 44px;
+      font-size: var(--font-size-hero);
       color: #FFFFFF;
       line-height: 57px;
       text-align: left;
@@ -352,12 +352,12 @@ const handleViewEquipment = (equipment: any) => {
           background: transparent;
           border: none;
           color: #ffffff;
-          font-size: var(--font-size-3xl);
+          font-size: var(--font-size-heading);
           font-family: SourceHanSansSC, SourceHanSansSC;
 
           &::placeholder {
             color: rgba(255, 255, 255, 0.65);
-            font-size: var(--font-size-3xl);
+            font-size: var(--font-size-heading);
           }
 
           &:focus {
@@ -399,13 +399,13 @@ const handleViewEquipment = (equipment: any) => {
 
       .status-text {
         color: #ffffff;
-        font-size: var(--font-size-2xl);
+        font-size: var(--font-size-heading);
       }
 
       .view-btn {
         font-family: SourceHanSansSC, SourceHanSansSC;
         font-weight: 400;
-        font-size: 30px;
+        font-size: var(--font-size-heading);
         color: #3FFFFF;
         line-height: 60px;
         text-align: left;
@@ -429,7 +429,7 @@ const handleViewEquipment = (equipment: any) => {
         border-radius: 6px;
         color: rgba(255, 255, 255, 0.7);
         cursor: pointer;
-        font-size: var(--font-size-3xl);
+        font-size: var(--font-size-heading);
         transition: all 0.3s ease;
         display: flex;
         align-items: center;
@@ -461,7 +461,7 @@ const handleViewEquipment = (equipment: any) => {
           border-radius: 6px;
           color: rgba(255, 255, 255, 0.7);
           cursor: pointer;
-          font-size: var(--font-size-3xl);
+          font-size: var(--font-size-heading);
           transition: all 0.3s ease;
           display: flex;
           align-items: center;
@@ -484,7 +484,7 @@ const handleViewEquipment = (equipment: any) => {
 
       .page-info {
         margin-left: 12px;
-        font-size: var(--font-size-3xl);
+        font-size: var(--font-size-heading);
         color: rgba(255, 255, 255, 0.5);
         font-family: SourceHanSansSC, SourceHanSansSC;
       }

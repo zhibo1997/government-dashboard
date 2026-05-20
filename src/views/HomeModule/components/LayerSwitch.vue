@@ -121,12 +121,12 @@ const handleToggle = async (sszx: string, event: Event) => {
 }
 
 .switch-icon {
-  font-size: 16px;
+  font-size: var(--font-size-caption);
   filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
 }
 
 .switch-title {
-  font-size: 14px;
+  font-size: var(--font-size-mini);
   font-weight: 600;
   color: #10adc0;
   letter-spacing: 0.5px;
@@ -166,12 +166,12 @@ const handleToggle = async (sszx: string, event: Event) => {
 }
 
 .item-icon {
-  font-size: 16px;
+  font-size: var(--font-size-caption);
   filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
 }
 
 .item-label {
-  font-size: 13px;
+  font-size: var(--font-size-mini);
   color: rgba(255, 255, 255, 0.85);
   font-weight: 500;
 }

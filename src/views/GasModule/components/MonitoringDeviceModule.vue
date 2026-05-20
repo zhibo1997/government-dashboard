@@ -247,9 +247,9 @@ const deviceCategories = ref<
         .stat-label {
           font-family: SourceHanSansSC, SourceHanSansSC;
           font-weight: var(--font-weight-medium);
-          font-size: var(--font-size-32);
+          font-size: var(--font-size-subtitle);
           color: #effaff;
-          line-height: calc(var(--font-size-4xl) * 1.438);
+          line-height: calc(var(--font-size-subtitle) * 1.438);
           text-align: center;
           font-style: normal;
         }
@@ -261,9 +261,9 @@ const deviceCategories = ref<
 
           > span {
             font-family: YouSheBiaoTiHei;
-            font-size: var(--font-size-32);
+            font-size: var(--font-size-subtitle);
             color: #ffffff;
-            line-height: calc(var(--font-size-4xl) * 1.313);
+            line-height: calc(var(--font-size-subtitle) * 1.313);
             text-align: center;
             font-style: normal;
           }
@@ -314,9 +314,9 @@ const deviceCategories = ref<
         .header-title {
           font-family: SourceHanSansSC, SourceHanSansSC;
           font-weight: var(--font-weight-bold);
-          font-size: var(--font-size-3xl);
+          font-size: var(--font-size-heading);
           color: #effaff;
-          line-height: calc(var(--font-size-xl) * 1.458);
+          line-height: calc(var(--font-size-body) * 1.458);
           text-align: center;
           font-style: normal;
           margin-top: 6px;
@@ -335,9 +335,9 @@ const deviceCategories = ref<
           .device-name {
             font-family: SourceHanSansSC, SourceHanSansSC;
             font-weight: var(--font-weight-normal);
-            font-size: var(--font-size-xl);
+            font-size: var(--font-size-body);
             color: #effaff;
-            line-height: calc(var(--font-size-base) * 1.813);
+            line-height: calc(var(--font-size-caption) * 1.813);
             text-align: left;
             font-style: normal;
             overflow: hidden;
@@ -353,9 +353,9 @@ const deviceCategories = ref<
 
             > span {
               font-family: YouSheBiaoTiHei;
-              font-size: var(--font-size-lg);
+              font-size: var(--font-size-caption);
               color: #ffffff;
-              line-height: calc(var(--font-size-base) * 1.625);
+              line-height: calc(var(--font-size-caption) * 1.625);
               font-style: normal;
             }
 

@@ -287,7 +287,7 @@ const visiblePages = computed(() => {
 
     .dialog-title {
       font-family: YouSheBiaoTiHei;
-      font-size: 44px;
+      font-size: var(--font-size-hero);
       color: #FFFFFF;
       line-height: 57px;
       text-align: left;
@@ -326,12 +326,12 @@ const visiblePages = computed(() => {
           background: transparent;
           border: none;
           color: #ffffff;
-          font-size: var(--font-size-3xl);
+          font-size: var(--font-size-heading);
           font-family: SourceHanSansSC, SourceHanSansSC;
 
           &::placeholder {
             color: rgba(255, 255, 255, 0.65);
-            font-size: var(--font-size-3xl);
+            font-size: var(--font-size-heading);
           }
 
           &:focus {
@@ -377,7 +377,7 @@ const visiblePages = computed(() => {
             --n-color: transparent !important;
             --n-color-active: transparent !important;
             --n-text-color: #E4F3FF !important;
-            --n-font-size: 28px !important;
+            --n-font-size: var(--font-size-heading) !important;
             --n-padding-single: 0 16px !important;
             --n-border: 1px solid rgba(255, 255, 255, 0.15) !important;
             --n-border-active: 1px solid rgba(22, 119, 255, 0.5) !important;
@@ -406,7 +406,7 @@ const visiblePages = computed(() => {
         border-radius: 12px;
         color: white;
         font-weight: 500;
-        font-size: var(--font-size-sm);
+        font-size: var(--font-size-mini);
       }
       
       .station-id {
@@ -436,7 +436,7 @@ const visiblePages = computed(() => {
       .status-text {
         padding: 4px 12px;
         border-radius: 12px;
-        font-size: var(--font-size-sm);
+        font-size: var(--font-size-mini);
         font-weight: 500;
 
         &.status-online {
@@ -467,7 +467,7 @@ const visiblePages = computed(() => {
         border-radius: 6px;
         color: rgba(255, 255, 255, 0.7);
         cursor: pointer;
-        font-size: var(--font-size-3xl);
+        font-size: var(--font-size-heading);
         transition: all 0.3s ease;
         display: flex;
         align-items: center;
@@ -499,7 +499,7 @@ const visiblePages = computed(() => {
           border-radius: 6px;
           color: rgba(255, 255, 255, 0.7);
           cursor: pointer;
-          font-size: var(--font-size-3xl);
+          font-size: var(--font-size-heading);
           transition: all 0.3s ease;
           display: flex;
           align-items: center;
@@ -522,13 +522,13 @@ const visiblePages = computed(() => {
         .page-dots {
           color: rgba(255, 255, 255, 0.4);
           padding: 0 4px;
-          font-size: var(--font-size-3xl);
+          font-size: var(--font-size-heading);
         }
       }
 
       .page-info {
         margin-left: 12px;
-        font-size: var(--font-size-3xl);
+        font-size: var(--font-size-heading);
         color: rgba(255, 255, 255, 0.5);
         font-family: SourceHanSansSC, SourceHanSansSC;
       }

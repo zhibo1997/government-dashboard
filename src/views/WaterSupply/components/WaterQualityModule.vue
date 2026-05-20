@@ -132,7 +132,7 @@ const waterPlants = ref([]);
       border-radius: 8px;
       height: 56px;
       font-family: SourceHanSansSC, SourceHanSansSC;
-      font-size: 28px;
+      font-size: var(--font-size-heading);
       color: #ffffff;
       padding: 6px 20px;
 
@@ -147,7 +147,7 @@ const waterPlants = ref([]);
 
       .n-input__input-el {
         color: #ffffff;
-        font-size: 28px;
+        font-size: var(--font-size-heading);
         caret-color: #1677ff;
       }
 
@@ -159,7 +159,7 @@ const waterPlants = ref([]);
       .n-input__prefix {
         .n-base-icon {
           color: rgba(255, 255, 255, 0.6);
-          font-size: 24px;
+          font-size: var(--font-size-body);
         }
       }
 
@@ -187,7 +187,7 @@ const waterPlants = ref([]);
 
   .empty-text {
     font-family: SourceHanSansSC, SourceHanSansSC;
-    font-size: 32px;
+    font-size: var(--font-size-subtitle);
     color: rgba(255, 255, 255, 0.4);
     text-align: center;
   }
@@ -215,7 +215,7 @@ const waterPlants = ref([]);
     background-size: 100% 100%;
     font-family: SourceHanSansSC, SourceHanSansSC;
     font-weight: 400;
-    font-size: 36px;
+    font-size: var(--font-size-subtitle);
     color: #effaff;
     text-align: center;
     font-style: normal;
@@ -251,7 +251,7 @@ const waterPlants = ref([]);
         position: absolute;
         top: -30px;
         font-family: YouSheBiaoTiHei;
-        font-size: 40px;
+        font-size: var(--font-size-title);
         color: #ffffff;
         line-height: 52px;
         text-align: center;
@@ -262,14 +262,14 @@ const waterPlants = ref([]);
     .parameter-title {
       font-family: SourceHanSansSC, SourceHanSansSC;
       font-weight: 400;
-      font-size: 30px;
+      font-size: var(--font-size-heading);
       color: #e4f3ff;
       line-height: 44px;
       text-align: center;
       font-style: normal;
 
       .parameter-unit {
-        font-size: 24px;
+        font-size: var(--font-size-body);
         color: rgba(228, 243, 255, 0.7);
         margin-left: 4px;
       }

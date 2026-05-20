@@ -263,7 +263,7 @@ function toggleEquipment(bridge: BridgeModel, checked: boolean) {
 .bridge-name {
   position: absolute;
   bottom: 4px;
-  font-size: 28px;
+  font-size: var(--font-size-heading);
   font-weight: 700;
   color: #ffffff;
   line-height: 1.3;
@@ -304,7 +304,7 @@ function toggleEquipment(bridge: BridgeModel, checked: boolean) {
 
   :deep(.n-checkbox-box .n-checkbox-icon) {
     color: #fff;
-    font-size: 26px;
+    font-size: var(--font-size-body);
   }
 }
 
@@ -312,7 +312,7 @@ function toggleEquipment(bridge: BridgeModel, checked: boolean) {
   position: absolute;
   top: 12px;
   left: 12px;
-  font-size: 28px;
+  font-size: var(--font-size-heading);
   font-weight: 400;
   color: #ffffff;
   line-height: 1.3;

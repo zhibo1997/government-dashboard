@@ -10,7 +10,7 @@
         <div class="warning-total-card">
           <div class="total-ring">
             <div class="ring-value gradient-text">{{ warningTotal }}</div>
-            <span class="total-label">预警<br />总数</span>
+            <span class="total-label">预警</span>
           </div>
           <div class="right-content">
             <!-- 状态统计 -->
@@ -38,7 +38,7 @@
         <div class="warning-total-card alarm-card">
           <div class="total-ring alarm">
             <div class="ring-value gradient-text">{{ alarmTotal }}</div>
-            <span class="total-label">报警<br />总数</span>
+            <span class="total-label">报警</span>
           </div>
           <div class="right-content">
             <!-- 状态统计 -->
@@ -63,23 +63,14 @@
         </div>
       </div>
 
-      <!-- 下方切换Tab和表格 -->
-      <div class="table-section">
-        <!-- Tab切换 -->
+      <!-- 下方切换Tab和表格（暂时隐藏） -->
+      <!-- <div class="table-section">
         <div class="tab-buttons">
           <div class="tab-btn" :class="{ active: activeTab === 'warning' }" @click="activeTab = 'warning'">
             <span class="gradient-text">预警</span>
           </div>
-          <!-- <div
-            class="tab-btn"
-            :class="{ active: activeTab === 'alarm' }"
-            @click="activeTab = 'alarm'"
-          >
-            <span class="gradient-text">报警</span>
-          </div> -->
         </div>
 
-        <!-- 数据表格 -->
         <CommonTable
           :columns="tableColumns"
           :data="currentTableData"
@@ -88,7 +79,7 @@
           :max-height="260"
           grid-template="1.8fr 1fr 1fr 1fr 1fr 1fr 1fr"
         />
-      </div>
+      </div> -->
     </div>
 
     <!-- 监测弹窗 -->
@@ -282,7 +273,7 @@ onMounted(() => {
 
 <style lang="scss" scoped>
 .warning-alarm-module {
-  flex: 1.3;
+  flex: 1;
   background-image: url("@/assets/img/gasModule/warning_alarm_bg.webp");
 
 

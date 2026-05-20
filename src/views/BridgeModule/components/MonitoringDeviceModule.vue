@@ -188,7 +188,7 @@ const initWarningStatistics = async () => {
         .stat-label {
           font-family: SourceHanSansSC, SourceHanSansSC;
           font-weight: 500;
-          font-size: var(--font-size-32);
+          font-size: var(--font-size-subtitle);
           color: #EFFAFF;
           line-height: 44px;
           text-align: left;
@@ -203,7 +203,7 @@ const initWarningStatistics = async () => {
 
           >span {
             font-family: YouSheBiaoTiHei;
-            font-size: 30px;
+            font-size: var(--font-size-heading);
             color: #FFFFFF;
             line-height: 39px;
             text-align: right;

@@ -210,7 +210,7 @@ onMounted(async () => {
 
   .module-title {
     font-family: YouSheBiaoTiHei;
-    font-size: 44px;
+    font-size: var(--font-size-hero);
     color: #ffffff;
     text-align: left;
     font-style: normal;
@@ -243,7 +243,7 @@ onMounted(async () => {
 
     .card-value {
       font-family: YouSheBiaoTiHei;
-      font-size: 32px;
+      font-size: var(--font-size-subtitle);
       color: #FFFFFF;
       line-height: 42px;
       text-align: center;
@@ -252,7 +252,7 @@ onMounted(async () => {
     }
 
     .unit {
-      font-size: 14px;
+      font-size: var(--font-size-mini);
       color: #F5FCFF;
       line-height: 21px;
       margin-left: 6px;
@@ -264,7 +264,7 @@ onMounted(async () => {
       top: 20px;
       font-family: SourceHanSansSC, SourceHanSansSC;
       font-weight: 500;
-      font-size: var(--font-size-3xl);
+      font-size: var(--font-size-heading);
       color: #EFFAFF;
       line-height: 35px;
       text-align: center;
@@ -277,17 +277,17 @@ onMounted(async () => {
       background-image: url("@/assets/img/bridgeModule/total_bridges.webp");
 
       .card-value {
-        font-size: 40px;
+        font-size: var(--font-size-title);
         line-height: 52px;
         background: linear-gradient(180deg, #FFFFFF 0%, #10ADC0 100%);
       }
 
       .unit {
-        font-size: 18px;
+        font-size: var(--font-size-caption);
         line-height: 26px;
       }
       .card-label {
-        font-size: var(--font-size-40);
+        font-size: var(--font-size-title);
         font-weight: var(--font-weight-bold);
         line-height: 42px;
         background: linear-gradient(180deg, #FFFFFF 0%, #10ADC0 100%);
@@ -367,7 +367,7 @@ onMounted(async () => {
 //   display: flex;
 //   align-items: center;
 //   gap: 8px;
-//   font-size: 12px;
+//   font-size: var(--font-size-mini);
 //   color: #a0bfc9;
 
 //   .legend-color {
