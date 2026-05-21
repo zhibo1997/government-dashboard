@@ -8,14 +8,12 @@
 <template>
   <div class="right-content">
     <MonitoringEquipmentModule />
-    <RiskHazardModule />
     <EarlyWarningModule />
   </div>
 </template>
 
 <script setup>
 import MonitoringEquipmentModule from './components/MonitoringEquipmentModule.vue';
-import RiskHazardModule from './components/RiskHazardModule.vue';
 import EarlyWarningModule from './components/EarlyWarningModule.vue';
 </script>
 

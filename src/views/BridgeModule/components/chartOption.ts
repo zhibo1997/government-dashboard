@@ -121,12 +121,12 @@ export const createChartOption = (chart: any, chartIndex: number): echarts.EChar
       },
       textStyle: {
         color: "#f5fcff",
-        fontSize: FONT_SIZE.caption,
+        fontSize: FONT_SIZE.heading,
         fontFamily: "SourceHanSansCNVF, SourceHanSansCNVF",
         rich: {
           name: {
             color: "#f5fcff",
-            fontSize: FONT_SIZE.caption,
+            fontSize: FONT_SIZE.heading,
           },
         },
       },
@@ -144,7 +144,7 @@ export const createChartOption = (chart: any, chartIndex: number): echarts.EChar
           show: true,
           position: "center",
           formatter: "{a}",
-          fontSize: FONT_SIZE.body,
+          fontSize: FONT_SIZE.heading,
           fontWeight: "bold",
           color: "#effaff",
         },

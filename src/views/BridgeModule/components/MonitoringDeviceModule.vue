@@ -8,36 +8,14 @@
       <div class="top-stats">
         <div class="stat-card">
           <div class="stat-icon">
-            <img src="@/assets/img/bridgeModule/device_online.webp" alt="">
+            <img src="@/assets/img/device_count.webp" alt="监测设备" />
           </div>
           <div class="stat-info">
-            <div class="stat-label">在线数</div>
+            <div class="stat-label">监测设备</div>
             <div class="stat-value">
-              <span class="value-online gradient-text">{{ topStats.online }}</span>
-            </div>
-          </div>
-        </div>
-
-        <div class="stat-card">
-          <div class="stat-icon">
-            <img src="@/assets/img/bridgeModule/device_offline.webp" alt="">
-          </div>
-          <div class="stat-info">
-            <div class="stat-label">离线数</div>
-            <div class="stat-value">
+              <span class="value-total gradient-text">{{ topStats.online }}</span>
+              <span class="value-separator">/</span>
               <span class="value-offline gradient-text">{{ topStats.offline }}</span>
-            </div>
-          </div>
-        </div>
-
-        <div class="stat-card">
-          <div class="stat-icon">
-            <img src="@/assets/img/bridgeModule/device_fault.webp" alt="">
-          </div>
-          <div class="stat-info">
-            <div class="stat-label">故障数</div>
-            <div class="stat-value">
-              <span class="value-fault gradient-text">0</span>
             </div>
           </div>
         </div>
@@ -60,7 +38,7 @@
           :data="tableData"
           row-key="sblxmc"
           empty-text="暂无设备数据"
-          :max-height="300"
+          :max-height="640"
           grid-template="2fr 1fr 1fr 1fr"
         />
       </div>
@@ -176,27 +154,29 @@ const initWarningStatistics = async () => {
 </script>
 
 <style lang="scss" scoped>
+.module-content {
+  gap:24px;
+}
 .monitoring-device-module {
 
   // 顶部统计卡片
   .top-stats {
     display: flex;
+    justify-content: center;
+    background-image: url("@/assets/img/gasModule/device_bg.webp");
+    background-size: 100% 100%;
     width: 100%;
-    gap: 20px;
-    margin-bottom: 20px;
 
     .stat-card {
-      flex: 1;
       border-radius: 8px;
+      padding: 20px 25px 20px 0;
       display: flex;
-      flex-direction: row;
       align-items: center;
-      justify-content: center;
-      gap: 10px;
+      gap: 20px;
 
       .stat-icon {
-        width: 80px;
-        height: 80px;
+        width: 114px;
+        height: 91px;
         display: flex;
         align-items: center;
         justify-content: center;
@@ -210,16 +190,15 @@ const initWarningStatistics = async () => {
       }
 
       .stat-info {
-        text-align: center;
-        margin-left: 10px;
+        flex: 1;
 
         .stat-label {
           font-family: SourceHanSansSC, SourceHanSansSC;
-          font-weight: 500;
+          font-weight: var(--font-weight-medium);
           font-size: var(--font-size-subtitle);
-          color: #EFFAFF;
-          line-height: 44px;
-          text-align: left;
+          color: #effaff;
+          line-height: calc(var(--font-size-subtitle) * 1.438);
+          text-align: center;
           font-style: normal;
         }
 
@@ -227,25 +206,27 @@ const initWarningStatistics = async () => {
           display: flex;
           align-items: baseline;
           gap: 8px;
-          // justify-content: center;
 
-          >span {
+          > span {
             font-family: YouSheBiaoTiHei;
-            font-size: var(--font-size-heading);
-            color: #FFFFFF;
-            line-height: 39px;
-            text-align: right;
+            font-size: var(--font-size-subtitle);
+            color: #ffffff;
+            line-height: calc(var(--font-size-subtitle) * 1.313);
+            text-align: center;
             font-style: normal;
           }
 
-          .value-online {
+          .value-total {
             background: linear-gradient(90deg, #ffffff 0%, #1677ff 100%);
           }
 
-          .value-offline {
-            background: linear-gradient(0deg, #F75E04 0%, #FEAC04 100%);
+          .value-separator {
+            color: #fff;
           }
 
+          .value-offline {
+            background: linear-gradient(90deg, #ffe9da 0%, #ce5a0d 100%);
+          }
         }
       }
     }

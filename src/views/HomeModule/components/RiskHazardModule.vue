@@ -347,9 +347,9 @@ onMounted(async () => {
 
       .header-title {
         font-family: YouSheBiaoTiHei;
-        font-size: var(--font-size-subtitle);
+        font-size: var(--font-size-title);
         color: #FFFFFF;
-        line-height: 47px;
+        line-height: 59px;
         text-align: left;
         font-style: normal;
         background: linear-gradient(0deg, #F75E04 0%, #FEAC04 100%);

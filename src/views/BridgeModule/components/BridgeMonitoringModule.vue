@@ -36,21 +36,25 @@
 
       <!-- 下方：轮播图区域 -->
       <div class="carousel-container">
-        <n-carousel ref="carouselRef" :slides-per-view="3" :space-between="0" :loop="true" :autoplay="false"
-          :autoplay-speed="3000" :transition-duration="500" :show-dots="false" :show-arrow="false"
-          @mouseenter="handleCarouselMouseEnter" @mouseleave="handleCarouselMouseLeave">
-          <n-carousel-item v-for="(item, index) in bridgeCarouselList" :key="index">
-            <div class="carousel-item-wrapper">
-              <div class="carousel-item">
-                <img class="carousel-image" :src="getImagePath(item.filename)" alt="bridge" />
-                <span class="carousel-label">{{ item.name }}</span>
-              </div>
+        <n-carousel
+          ref="carouselRef"
+          effect="card"
+          :loop="true"
+          :autoplay="false"
+          :autoplay-speed="3000"
+          :transition-duration="500"
+          :show-dots="false"
+          :show-arrow="false"
+          prev-slide-style="transform: translateX(-150%) translateZ(-800px) translateY(-20px);"
+          next-slide-style="transform: translateX(50%) translateZ(-800px) translateY(-20px);"
+        >
+          <n-carousel-item v-for="(item, index) in bridgeCarouselList" :key="index" :style="{ width: '65%' }">
+            <div class="carousel-item">
+              <img class="carousel-image" :src="getImagePath(item.filename)" alt="bridge" />
+              <span class="carousel-label">{{ item.name }}</span>
             </div>
           </n-carousel-item>
         </n-carousel>
-
-        <button class="carousel-btn prev-btn" @click="handlePrevClick"></button>
-        <button class="carousel-btn next-btn" @click="handleNextClick"></button>
       </div>
     </div>
   </div>
@@ -175,60 +179,7 @@ const getImagePath = (filename: string) => {
   return `${baseUrl}/images/bridgeImages/${filename}`;
 };
 
-// ==================== 轮播引用和状态 ====================
 const carouselRef = ref<any>(null);
-let isAutoPlayEnabled = true;
-
-// ==================== 轮播控制函数 ====================
-/**
- * 处理上一个按钮点击
- */
-const handlePrevClick = () => {
-  if (carouselRef.value) {
-    carouselRef.value.prev();
-    resetAutoPlay();
-  }
-};
-
-/**
- * 处理下一个按钮点击
- */
-const handleNextClick = () => {
-  if (carouselRef.value) {
-    carouselRef.value.next();
-    resetAutoPlay();
-  }
-};
-
-/**
- * 鼠标进入轮播区域，暂停自动播放
- */
-const handleCarouselMouseEnter = () => {
-  if (carouselRef.value) {
-    isAutoPlayEnabled = false;
-    carouselRef.value.stopAutoplay?.();
-  }
-};
-
-/**
- * 鼠标离开轮播区域，恢复自动播放
- */
-const handleCarouselMouseLeave = () => {
-  if (carouselRef.value) {
-    isAutoPlayEnabled = true;
-    carouselRef.value.startAutoplay?.();
-  }
-};
-
-/**
- * 重置自动播放（用户交互后重新启动）
- */
-const resetAutoPlay = () => {
-  if (carouselRef.value && isAutoPlayEnabled) {
-    carouselRef.value.stopAutoplay?.();
-    carouselRef.value.startAutoplay?.();
-  }
-};
 
 defineOptions({
   name: "BridgeMonitoringModule"
@@ -239,14 +190,13 @@ defineOptions({
 .bridge-monitoring-module {
   flex: 1;
 }
-
-
 // 顶部统计卡片
 .top-stats {
   display: flex;
   background-image: url("@/assets/img/gasModule/device_bg.webp");
   background-size: 100% 100%;
   width: 100%;
+  margin-bottom: 24px;
 
   .stat-card {
     border-radius: 8px;
@@ -327,128 +277,59 @@ defineOptions({
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 10px;
   position: relative;
 
   :deep(.n-carousel) {
-    width: 630px;
+    width: 100%;
   }
 
   :deep(.n-carousel__slides) {
-    margin-top: 60px;
-  }
-  :deep(.n-carousel__slide-item) {
-    display: flex !important;
-    justify-content: center;
-    align-items: flex-end;
-  }
-}
-
-.carousel-item-wrapper {
-  display: flex;
-  justify-content: center;
-  align-items: flex-end;
-  width: 100%;
-}
-
-.carousel-btn {
-  width: 48px;
-  height: 48px;
-  cursor: pointer;
-  border-radius: 50%;
-  background: rgba(0, 150, 150, 0.6);
-  border: 2px solid rgba(0, 212, 212, 0.5);
-  color: #FFFFFF;
-  font-size: var(--font-size-body);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.3s ease;
-  flex-shrink: 0;
-  position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
-  z-index: 10;
-
-  &:hover {
-    background: rgba(0, 180, 180, 0.8);
-    border-color: #00D4D4;
-    box-shadow: 0 0 16px rgba(0, 212, 212, 0.4);
-  }
-
-  &::before {
-    content: '';
-    display: block;
-    width: 0;
-    height: 0;
-  }
-}
-
-.prev-btn {
-  left: 10px;
-
-  &::before {
-    border-right: 8px solid currentColor;
-    border-top: 6px solid transparent;
-    border-bottom: 6px solid transparent;
-  }
-}
-
-.next-btn {
-  right: 10px;
-
-  &::before {
-    border-left: 8px solid currentColor;
-    border-top: 6px solid transparent;
-    border-bottom: 6px solid transparent;
+    perspective: 1200px;
   }
 }
 
 .carousel-item {
-  width: 195px;
   display: flex;
   flex-direction: column;
+  align-items: center;
   gap: 6px;
-  transition: all 0.3s ease;
 
   .carousel-image {
     width: 100%;
-    height: 170px;
+    height: 320px;
     object-fit: cover;
     border-radius: 8px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
     border: 2px solid rgba(0, 212, 212, 0.2);
-    transition: all 0.3s ease;
+    transition: all 0.5s ease;
   }
 
   .carousel-label {
-    margin-top: 6px;
     width: 100%;
     min-height: 50px;
     background: linear-gradient(90deg, rgba(12, 59, 58, 0) 0%, #0C3B3A 53%, rgba(12, 59, 58, 0) 100%);
     font-family: SourceHanSansSC, SourceHanSansSC;
     font-weight: 400;
-    font-size: var(--font-size-heading);
+    font-size: var(--font-size-subtitle);
     color: #EFFAFF;
     line-height: 26px;
     font-style: normal;
     text-align: center;
-    transition: all 0.3s ease;
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 12px 0;
+    padding: 24px 0;
     box-sizing: border-box;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 }
 
-// Naive UI carousel 中间项为活跃状态的样式
-:deep(.n-carousel__slide-item--active) {
+// Naive UI card effect - 中间活跃项样式
+:deep(.n-carousel__slide-item--current) {
   .carousel-item .carousel-image {
-    border: 2px solid #00D4D4;
-    box-shadow: 0 0 20px rgba(0, 212, 212, 0.4);
+    border-color: rgba(0, 212, 212, 0.6);
+    box-shadow: 0 0 20px rgba(0, 212, 212, 0.3);
   }
 
   .carousel-item .carousel-label {

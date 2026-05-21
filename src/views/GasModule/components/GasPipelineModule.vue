@@ -254,8 +254,9 @@ function get3DPieOption(pieData) {
     label: {
       opacity: 1,
       position: "outside",
-      fontSize: FONT_SIZE.caption,
+      fontSize: FONT_SIZE.body,
       lineHeight: 20,
+      fontWeight: "normal",
       formatter: "{b} {d}%",
       color: "#E4F3FF",
     },
@@ -484,7 +485,7 @@ onBeforeUnmount(() => {
   flex: 1;
 
   .module-content {
-    gap: 25px;
+    gap: 30px;
   }
 
   // 顶部统计卡片
@@ -543,7 +544,7 @@ onBeforeUnmount(() => {
 
       .chart-3d {
         width: 320px;
-        height: 240px;
+        height: 280px;
       }
     }
   }
@@ -599,9 +600,9 @@ onBeforeUnmount(() => {
         .well-label {
           font-family: SourceHanSansSC, SourceHanSansSC;
           font-weight: var(--font-weight-normal);
-          font-size: var(--font-size-caption);
+          font-size: var(--font-size-heading);
           color: #e4f3ff;
-          line-height: calc(var(--font-size-caption) * 1.45);
+          line-height: calc(var(--font-size-heading) * 1.45);
           text-align: right;
           font-style: normal;
           width: 120px;

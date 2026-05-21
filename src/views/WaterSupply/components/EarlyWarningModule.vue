@@ -173,6 +173,10 @@ watch(monthlyData, (newData) => {
 </script>
 
 <style lang="scss" scoped>
+.early-warning-module {
+  flex: 0.75;
+}
+
 .module-header {
   display: flex;
   flex-direction: row;

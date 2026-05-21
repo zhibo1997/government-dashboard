@@ -14,7 +14,7 @@ import { NMessageProvider, NDialogProvider, NConfigProvider, zhCN, dateZhCN } fr
     <n-dialog-provider>
       <n-message-provider>
         <!-- 路由出口：布局逻辑由嵌套路由管理，无需 keep-alive -->
-        <router-view />
+        <router-view />=
       </n-message-provider>
     </n-dialog-provider>
   </n-config-provider>
@@ -37,7 +37,7 @@ import { NMessageProvider, NDialogProvider, NConfigProvider, zhCN, dateZhCN } fr
     height: 100%;
     display: flex;
     flex-direction: column;
-    gap: 18px;
+    gap: 36px;
     z-index: 10;
     margin: 0 0 22px 22px;
     box-sizing: border-box;
@@ -50,7 +50,7 @@ import { NMessageProvider, NDialogProvider, NConfigProvider, zhCN, dateZhCN } fr
     height: 100%;
     display: flex;
     flex-direction: column;
-    gap: 18px;
+    gap: 36px;
     z-index: 10;
     margin: 0 22px 22px 0;
     box-sizing: border-box;

@@ -118,6 +118,8 @@ onMounted(() => {
 <style lang="scss" scoped>
 .module-content{
   padding: 0 30px 15px;
+  display: flex;
+  justify-content: center;
 }
 .emergency-resource-module {
   flex: 1;
@@ -134,7 +136,7 @@ onMounted(() => {
     background: url("@/assets/img/gasModule/emergency_list.webp") no-repeat center center;
     background-size: contain;
     background-position: center;
-    height: 100%;
+    height: 80%;
     width: 100%;
   }
 
@@ -181,7 +183,7 @@ onMounted(() => {
 
     .stat-label {
       font-weight: var(--font-weight-normal);
-      font-size: var(--font-size-heading);
+      font-size: var(--font-size-subtitle);
       color: #E4F3FF;
       white-space: nowrap;
     }
@@ -200,10 +202,14 @@ onMounted(() => {
       font-family: SourceHanSansSC, SourceHanSansSC;
       background-image: url("@/assets/img/gasModule/resource_left.webp");
 
-
+      img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+      }
       .stat-value {
         font-weight: var(--font-weight-medium);
-        font-size: var(--font-size-heading);
+        font-size: var(--font-size-subtitle);
         color: #ffffff;
         white-space: nowrap;
         
@@ -256,7 +262,7 @@ onMounted(() => {
     justify-content: center;
     align-self: center;
     position: relative;
-    top: 60px;
+    top: calc(50% + 36px);
     .ring-text {
       font-family: SourceHanSansSC, SourceHanSansSC;
       font-weight: var(--font-weight-bold);

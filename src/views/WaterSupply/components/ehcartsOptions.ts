@@ -105,9 +105,9 @@ export const dangerBarOption: echarts.EChartsOption = {
     textStyle: { color: '#e4f3ff', fontSize: FONT_SIZE.body },
   },
   grid: {
-    left: 10,
+    left: 40,
     right: 10,
-    top: 20,
+    top: 30,
     bottom: 10,
     containLabel: true,
   },
@@ -118,7 +118,7 @@ export const dangerBarOption: echarts.EChartsOption = {
       color: '#e4f3ff',
       fontSize: FONT_SIZE.body,
       fontFamily: 'SourceHanSansSC',
-      rotate: 30,
+      rotate: 40,
       interval: 'auto',
     },
     axisLine: {
@@ -130,7 +130,7 @@ export const dangerBarOption: echarts.EChartsOption = {
     type: 'value',
     axisLabel: {
       color: 'rgba(228, 243, 255, 0.7)',
-      fontSize: FONT_SIZE.caption,
+      fontSize: FONT_SIZE.subtitle,
       fontFamily: 'SourceHanSansSC',
     },
     axisLine: { show: false },
@@ -151,7 +151,7 @@ export const dangerBarOption: echarts.EChartsOption = {
         show: true,
         position: 'top',
         color: '#e4f3ff',
-        fontSize: FONT_SIZE.body,
+        fontSize: FONT_SIZE.subtitle,
         fontFamily: 'SourceHanSansSC',
       },
       emphasis: {
@@ -367,7 +367,7 @@ export const handledOption = {
     data: ["未处置", "已处置", "处置率"],
     textStyle: {
       color: "#fff",
-      fontSize: FONT_SIZE.body,
+      fontSize: FONT_SIZE.heading,
     },
     top: "0%",
     left: "center",
@@ -375,15 +375,15 @@ export const handledOption = {
   grid: {
     left: 2,
     right: 2,
-    top: 40,
-    bottom: "20%",
+    top: 80,
+    bottom: 80,
   },
   xAxis: {
     type: "category",
     data: [],
     axisLabel: {
       color: "#fff",
-      fontSize: FONT_SIZE.body,
+      fontSize: FONT_SIZE.subtitle,
     },
     axisLine: {
       lineStyle: {
@@ -400,14 +400,12 @@ export const handledOption = {
       name: "单位：个",
       nameTextStyle: {
         color: "#fff",
-        fontSize: FONT_SIZE.body,
+        fontSize: FONT_SIZE.subtitle,
       },
       min: 0,
-      max: 50,
-      interval: 10,
       axisLabel: {
         color: "#fff",
-        fontSize: FONT_SIZE.body,
+        fontSize: FONT_SIZE.subtitle,
       },
       axisLine: {
         lineStyle: {
@@ -415,10 +413,7 @@ export const handledOption = {
         },
       },
       splitLine: {
-        lineStyle: {
-          color: "#00bfff",
-          opacity: 0.3,
-        },
+        show: false,
       },
     },
     {
@@ -426,14 +421,14 @@ export const handledOption = {
       name: "单位：% ",
       nameTextStyle: {
         color: "#fff",
-        fontSize: FONT_SIZE.body,
+        fontSize: FONT_SIZE.subtitle,
       },
       min: 0,
       max: 100,
       interval: 20,
       axisLabel: {
         color: "#fff",
-        fontSize: FONT_SIZE.body,
+        fontSize: FONT_SIZE.subtitle,
         formatter: '{value} %',
       },
       axisLine: {

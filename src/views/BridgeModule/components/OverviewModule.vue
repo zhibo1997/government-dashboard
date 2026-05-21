@@ -223,7 +223,7 @@ onMounted(async () => {
 .stats-cards-container {
   display: flex;
   gap: 30px;
-  margin-bottom: 20px;
+  margin-bottom: 40px;
   flex: 0 0 auto;
 }
 
@@ -252,7 +252,7 @@ onMounted(async () => {
     }
 
     .unit {
-      font-size: var(--font-size-mini);
+      font-size: var(--font-size-body);
       color: #F5FCFF;
       line-height: 21px;
       margin-left: 6px;
@@ -264,7 +264,7 @@ onMounted(async () => {
       top: 20px;
       font-family: SourceHanSansSC, SourceHanSansSC;
       font-weight: 500;
-      font-size: var(--font-size-heading);
+      font-size: var(--font-size-subtitle);
       color: #EFFAFF;
       line-height: 35px;
       text-align: center;
@@ -283,7 +283,7 @@ onMounted(async () => {
       }
 
       .unit {
-        font-size: var(--font-size-caption);
+        font-size: var(--font-size-heading);
         line-height: 26px;
       }
       .card-label {

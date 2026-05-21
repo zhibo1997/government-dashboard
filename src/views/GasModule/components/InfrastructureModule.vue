@@ -31,7 +31,7 @@
         :data="currentTable.data"
         row-key="id"
         empty-text="暂无数据"
-        :max-height="280"
+        :max-height="320"
       />
     </div>
   </div>
@@ -240,7 +240,7 @@ onMounted(async () => {
 
     .tab-item {
       width: 160px;
-      height: 60px;
+      height: 66px;
       background-image: url('@/assets/img/gasModule/tab.webp');
       border-radius: 8px;
       display: flex;
@@ -305,10 +305,11 @@ onMounted(async () => {
         justify-content: center;
         flex-direction: column;
         gap: 4px;
+        padding: 12px 0;
 
         .number {
           font-family: YouSheBiaoTiHei;
-          font-size: var(--font-size-heading);
+          font-size: var(--font-size-subtitle);
           color: #FFFFFF;
           line-height: calc(var(--font-size-body) * 1.292);
           text-align: center;
@@ -318,7 +319,7 @@ onMounted(async () => {
 
         .unit {
           font-family: SourceHanSansSC, SourceHanSansSC;
-          font-size: var(--font-size-caption);
+          font-size: var(--font-size-body);
           color: #9ec3e8;
         }
       }

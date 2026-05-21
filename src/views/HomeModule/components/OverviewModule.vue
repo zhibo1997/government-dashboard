@@ -67,7 +67,7 @@ const designData = {
     {
       "f_ItemName": "供水管网",
       "f_ItemValue": "jcssdstj0501",
-      "f_Description": "公里"
+      "f_Description": "km"
     },
     {
       "f_ItemName": "水源地",
@@ -276,7 +276,7 @@ onMounted(() => {
         justify-content: center;
         align-items: center;
         position: absolute;
-        top: 12px;
+        top: 18px;
 
         img {
           width: 100%;
@@ -290,20 +290,20 @@ onMounted(() => {
         font-weight: 500;
         font-size: var(--font-size-heading);
         color: #EFFAFF;
-        line-height: 40px;
+        line-height: 47px;
         text-align: center;
-        font-style: normal;
+        font-style: bold;
       }
     }
 
     .category-items {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 8px 20px;
+      gap: 4px 20px;
       padding-top: 6px;
       padding-left: 20px;
       flex: 1;
-      height: 100px;
+      height: 115px;
       overflow-y: auto;
       background-size: 100% 100%;
       background-image: url("@/assets/img/homeModule/overview_item_bg.webp");
@@ -317,9 +317,9 @@ onMounted(() => {
       span {
         font-family: SourceHanSansCNVF, SourceHanSansCNVF;
         font-weight: 400;
-        font-size: var(--font-size-body);
+        font-size: var(--font-size-heading);
         color: #F5FCFF;
-        line-height: 37px;
+        line-height: 43px;
         text-align: left;
         font-style: normal;
         margin-right: 12px;
@@ -336,10 +336,10 @@ onMounted(() => {
           content: '';
           display: inline-block;
           border-radius: 50%;
-          width: 12px;
-          height: 12px;
+          width: 14px;
+          height: 14px;
           margin-right: 12px;
-          margin-bottom: 5px;
+          margin-bottom: 7px;
           flex-shrink: 0;
         }
         &.csaqzx_rq::before {

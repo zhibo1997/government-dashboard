@@ -55,9 +55,9 @@ const CHART_GRID_CONFIG = {
 const AXIS_LABEL_STYLE = {
   fontFamily: "SourceHanSansSC, SourceHanSansSC",
   fontWeight: 400,
-  fontSize: FONT_SIZE.body,
+  fontSize: FONT_SIZE.heading,
   color: "#FFFFFF",
-  lineHeight: 35,
+  lineHeight: 41,
 };
 
 /**
@@ -112,7 +112,7 @@ const LEGEND_CONFIG = {
   itemGap: 24, // 增加图例项之间的间隔
   textStyle: {
     fontFamily: "SourceHanSansSC",
-    fontSize: FONT_SIZE.body,
+    fontSize: FONT_SIZE.heading,
     color: "#D3EAF1",
   },
 };
@@ -361,7 +361,7 @@ export const getMonitoringAlarmChartOption = (
       itemGap: 24,
       textStyle: {
         fontFamily: "SourceHanSansSC",
-        fontSize: FONT_SIZE.body,
+        fontSize: FONT_SIZE.heading,
         color: "#D3EAF1",
       },
     },
@@ -409,7 +409,7 @@ export const getMonitoringDonutChartOption = (
           position: "outside",
           formatter: "{b}: {c}",
           color: "#D3EAF1",
-          fontSize: FONT_SIZE.body,
+          fontSize: FONT_SIZE.heading,
           fontFamily: "SourceHanSansSC",
         },
         labelLine: {
@@ -456,7 +456,7 @@ export const getMonitoringEarlyWarningChartOption = (
       itemGap: 24,
       textStyle: {
         fontFamily: "SourceHanSansSC",
-        fontSize: FONT_SIZE.body,
+        fontSize: FONT_SIZE.heading,
         color: "#D3EAF1",
       },
     },

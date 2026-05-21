@@ -10,7 +10,7 @@
         <div class="warning-total-card">
           <div class="total-ring">
             <div class="ring-value gradient-text">{{ warningTotal }}</div>
-            <span class="total-label">预警<br />总数</span>
+            <span class="total-label">预警</span>
           </div>
           <div class="right-content">
             <!-- 状态统计 -->
@@ -46,7 +46,7 @@
         <div class="warning-total-card alarm-card">
           <div class="total-ring alarm">
             <div class="ring-value gradient-text">{{ alarmTotal }}</div>
-            <span class="total-label">报警<br />总数</span>
+            <span class="total-label">报警</span>
           </div>
           <div class="right-content">
             <!-- 状态统计 -->
@@ -345,9 +345,9 @@ onMounted(() => {
 
       .ring-value {
         font-family: YouSheBiaoTiHei;
-        font-size: var(--font-size-title);
+        font-size: var(--font-size-subtitle);
         color: #ffffff;
-        line-height: calc(var(--font-size-subtitle) * 1.294);
+        line-height: calc(var(--font-size-heading) * 1.294);
         text-align: center;
         font-style: normal;
         background: linear-gradient(0deg, #f75e04 0%, #feac04 100%);
@@ -360,9 +360,9 @@ onMounted(() => {
     .total-label {
       font-family: SourceHanSansSC, SourceHanSansSC;
       font-weight: var(--font-weight-bold);
-      font-size: var(--font-size-title);
+      font-size: var(--font-size-subtitle);
       color: #d3eaf1;
-      line-height: calc(var(--font-size-body) * 1.458);
+      line-height: calc(var(--font-size-caption) * 1.458);
       text-align: center;
       font-style: normal;
     }
@@ -401,9 +401,9 @@ onMounted(() => {
 
           .ring-num {
             font-family: YouSheBiaoTiHei;
-            font-size: var(--font-size-title);
+            font-size: var(--font-size-subtitle);
             color: #ffffff;
-            line-height: calc(var(--font-size-heading) * 1.292);
+            line-height: calc(var(--font-size-body) * 1.292);
             text-align: center;
             font-style: normal;
             background: linear-gradient(180deg, #FFFFFF 0%, #10ADC0 100%);
@@ -411,7 +411,7 @@ onMounted(() => {
         }
 
         .status-label {
-          font-size: var(--font-size-title);
+          font-size: var(--font-size-subtitle);
           color: rgba(255, 255, 255, 0.75);
         }
       }
@@ -467,9 +467,9 @@ onMounted(() => {
 
           >span {
             font-family: YouSheBiaoTiHei;
-            font-size: var(--font-size-title);
+            font-size: var(--font-size-subtitle);
             color: #ffffff;
-            line-height: calc(var(--font-size-body) * 1.292);
+            line-height: calc(var(--font-size-caption) * 1.292);
             text-align: center;
             font-style: normal;
           }
@@ -478,7 +478,7 @@ onMounted(() => {
         .level-label {
           font-family: SourceHanSansSC, SourceHanSansSC;
           font-weight: var(--font-weight-normal);
-          font-size: var(--font-size-title);
+          font-size: var(--font-size-subtitle);
           color: #d3eaf1;
           line-height: calc(var(--font-size-mini) * 1.5);
           text-align: center;
@@ -515,9 +515,9 @@ onMounted(() => {
 
       span {
         font-family: YouSheBiaoTiHei;
-        font-size: var(--font-size-title);
+        font-size: var(--font-size-subtitle);
         color: #e74040;
-        line-height: calc(var(--font-size-heading) * 1.306);
+        line-height: calc(var(--font-size-body) * 1.306);
         text-align: left;
         font-style: normal;
         background: linear-gradient(180deg, #FFFFFF 0%, #10ADC0 100%);;
@@ -562,9 +562,9 @@ onMounted(() => {
 
       span {
         font-family: YouSheBiaoTiHei;
-        font-size: var(--font-size-title);
+        font-size: var(--font-size-subtitle);
         color: #e74040;
-        line-height: calc(var(--font-size-heading) * 1.306);
+        line-height: calc(var(--font-size-body) * 1.306);
         text-align: left;
         font-style: normal;
         background: linear-gradient(180deg, #FFFFFF 0%, #10ADC0 100%);;

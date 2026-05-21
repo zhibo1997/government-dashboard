@@ -57,7 +57,7 @@ const initHiddenDangerTypes = async () => {
 
   dangerCount.value = (riskData as any[]).reduce((total, item) => total + item.count, 0);
 
-  const sortedRiskRes = [...(riskData as any[])].sort((a, b) => b.count - a.count);
+  const sortedRiskRes = [...(riskData as any[])].sort((a, b) => a.count - b.count);
 
   nextTick(() => {
     (dangerBarOption as any).xAxis.data = sortedRiskRes.map((item: any) =>
@@ -120,7 +120,7 @@ const initChart = () => { };
     .danger-text {
       font-family: SourceHanSansSC, SourceHanSansSC;
       font-weight: 400;
-      font-size: var(--font-size-body);
+      font-size: var(--font-size-subtitle);
       line-height: 44px;
       font-style: normal;
       color: rgba(228, 243, 255, 0.8);

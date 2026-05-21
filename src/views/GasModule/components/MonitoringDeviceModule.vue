@@ -44,8 +44,6 @@
         :data="flatDeviceList"
         row-key="name"
         empty-text="暂无数据"
-        :max-height="260"
-        grid-template="2fr 1fr 1fr"
       />
     </div>
   </div>
@@ -200,6 +198,7 @@ const deviceCategories = ref<
 const flatDeviceList = computed(() =>
   deviceCategories.value.flatMap((cat) =>
     cat.devices.map((d) => ({
+      bigType: cat.title,
       name: jcsblxMap.value[d.name] || d.name,
       onlineNum: d.onlineNum,
       offlineNum: d.offlineNum,
@@ -209,16 +208,18 @@ const flatDeviceList = computed(() =>
 
 // 表格列配置
 const deviceTableColumns = computed(() => [
-  { key: 'name', title: '类型', width: '2fr' },
-  { key: 'onlineNum', title: '在线', width: '1fr' },
-  { key: 'offlineNum', title: '离线', width: '1fr' },
+  { key: 'bigType', title: '分类', width: '1fr' },
+  { key: 'name', title: '设备', width: '2.4fr' },
+  { key: 'onlineNum', title: '在线', width: '0.6fr' },
+  { key: 'offlineNum', title: '离线', width: '0.6fr' },
 ]);
 </script>
 
 <style lang="scss" scoped>
 .monitoring-device-module {
   .module-content{
-    justify-content: space-around;
+    // justify-content: space-around;
+    gap: 32px;
   }
 
   // 顶部统计卡片
@@ -231,7 +232,7 @@ const deviceTableColumns = computed(() => [
 
     .stat-card {
       border-radius: 8px;
-      padding: 20px 25px;
+      padding: 20px 25px 20px 0;
       display: flex;
       align-items: center;
       gap: 20px;

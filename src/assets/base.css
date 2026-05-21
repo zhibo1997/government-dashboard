@@ -38,8 +38,8 @@
   /* 字体尺寸 - 7 级统一系统 */
   --font-size-hero: 48px;        /* L1 突出数字/KPI */
   --font-size-title: 40px;       /* L2 模块标题 */
-  --font-size-subtitle: 32px;    /* L3 子标题/区块头 */
-  --font-size-heading: 28px;     /* L4 表头/分类标签 */
+  --font-size-subtitle: 34px;    /* L3 子标题/区块头 */
+  --font-size-heading: 30px;     /* L4 表头/分类标签 */
   --font-size-body: 24px;        /* L5 正文/表格内容 */
   --font-size-caption: 18px;     /* L6 说明文字/单位 */
   --font-size-mini: 14px;        /* L7 辅助信息/元数据 */
@@ -77,8 +77,8 @@
     /* 字体尺寸 - 7 级统一系统（暗色模式保持一致） */
     --font-size-hero: 48px;
     --font-size-title: 40px;
-    --font-size-subtitle: 32px;
-    --font-size-heading: 28px;
+    --font-size-subtitle: 34px;
+    --font-size-heading: 30px;
     --font-size-body: 24px;
     --font-size-caption: 18px;
     --font-size-mini: 14px;

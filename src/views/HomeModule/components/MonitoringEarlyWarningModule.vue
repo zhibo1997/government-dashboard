@@ -350,9 +350,10 @@ async function fetchTableData() {
   background-image: url('@/assets/img/homeModule/module_double_bg.webp');
 
   .status-counts {
-    height: 70%;
+    height: 55%;
     display: flex;
     flex-direction: column;
+    margin-bottom: 40px;
   }
 
   // 上方处置状态区域
