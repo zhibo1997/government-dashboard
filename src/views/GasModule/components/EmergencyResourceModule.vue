@@ -1,6 +1,6 @@
 <template>
   <div class="data-module emergency-resource-module">
-    <div class="module-header"></div>
+    <div class="module-header"><div class="module-title">应急资源</div></div>
     <div class="module-content">
       <div class="emergency-content">
         <!-- 资源统计 -->
@@ -123,8 +123,6 @@ onMounted(() => {
 }
 .emergency-resource-module {
   flex: 1;
-  background-image: url("@/assets/img/gasModule/emergency_resource_bg.webp");
-
 
   .emergency-content {
     display: grid;

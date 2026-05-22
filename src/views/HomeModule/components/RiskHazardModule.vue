@@ -306,7 +306,6 @@ onMounted(async () => {
 .risk-hazard-module {
   flex: 0 0 calc(66.667% - 8px);
   overflow: hidden;
-  background-image: url('@/assets/img/homeModule/module_double_bg.webp');
 
   .module-content {
     display: flex;

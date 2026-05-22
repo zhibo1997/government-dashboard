@@ -300,8 +300,6 @@ onMounted(() => {
 <style lang="scss" scoped>
 .warning-alarm-module {
   flex: 0.8;
-  background-image: url("@/assets/img/gasModule/warning_alarm_bg.webp");
-
 
   // 上方统计卡片区域
   .stats-section {

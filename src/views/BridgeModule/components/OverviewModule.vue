@@ -203,22 +203,6 @@ onMounted(async () => {
   flex-direction: column;
 }
 
-.module-header {
-  height: 90px;
-  display: flex;
-  align-items: center;
-
-  .module-title {
-    font-family: YouSheBiaoTiHei;
-    font-size: var(--font-size-hero);
-    color: #ffffff;
-    text-align: left;
-    font-style: normal;
-    padding-left: 140px;
-    margin-top: 10px;
-  }
-}
-
 // ==================== 统计卡片 ====================
 .stats-cards-container {
   display: flex;

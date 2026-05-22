@@ -120,7 +120,6 @@ const waterPlants = ref([]);
 <style lang="scss" scoped>
 .water-quality-module {
   .module-header {
-    display: flex;
     justify-content: space-between;
   }
 

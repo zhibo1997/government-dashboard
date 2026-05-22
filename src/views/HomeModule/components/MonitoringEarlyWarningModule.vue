@@ -347,7 +347,6 @@ async function fetchTableData() {
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  background-image: url('@/assets/img/homeModule/module_double_bg.webp');
 
   .status-counts {
     height: 55%;

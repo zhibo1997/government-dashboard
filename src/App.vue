@@ -70,7 +70,6 @@ import { NMessageProvider, NDialogProvider, NConfigProvider, zhCN, dateZhCN } fr
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
   transition: all 0.3s ease;
   background-size: 100% 100%;
-  background-image: url("@/assets/img/title-bg.webp");
 
   &:hover {
     transform: translateY(-2px);
@@ -81,7 +80,10 @@ import { NMessageProvider, NDialogProvider, NConfigProvider, zhCN, dateZhCN } fr
   .module-header {
     height: 100px;
     display: flex;
-    align-items: center;
+    align-items: baseline;
+    background-image: url("@/assets/img/title-header.webp");
+    background-size: 836px 114px;
+    background-position: -18px -18px;
 
     .module-title {
       font-family: YouSheBiaoTiHei;
@@ -89,8 +91,8 @@ import { NMessageProvider, NDialogProvider, NConfigProvider, zhCN, dateZhCN } fr
       color: #ffffff;
       text-align: left;
       font-style: normal;
-      padding-left: 155px;
-      margin-top: 12px;
+      position: absolute;
+      left: 132px;
     }
   }
 
@@ -98,6 +100,8 @@ import { NMessageProvider, NDialogProvider, NConfigProvider, zhCN, dateZhCN } fr
     flex: 1;
     padding: 20px 30px;
     height: calc(100% - 100px);
+    background-image: url("@/assets/img/bg-frame.webp");
+    background-size: 100% 100%;
     display: flex;
     flex-direction: column;
     border-radius: 8px;

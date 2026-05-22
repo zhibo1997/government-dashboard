@@ -1,5 +1,5 @@
 <template>
-  <div class="bridge-list-panel">
+  <div class="bridge-list-panel" :class="{ collapsed: isCollapsed }">
     <!-- 头部工具栏 -->
     <div class="panel-header">
       <button class="search-icon-btn btn" @click="toggleSearch">
@@ -311,25 +311,8 @@ const nextPage = () => {
   pointer-events: auto;
 
   &.collapsed {
-    width: 120px;
+    pointer-events: none;
 
-    .panel-header {
-      flex-direction: column;
-      align-items: center;
-
-      .toggle-btn {
-        width: 60px;
-        padding: 0;
-        justify-content: center;
-      }
-
-      .text {
-        writing-mode: vertical-lr;
-        text-orientation: mixed;
-        margin: 0;
-        font-size: var(--font-size-caption);
-      }
-    }
   }
 
   .panel-header {
@@ -338,6 +321,7 @@ const nextPage = () => {
     gap: 10px;
     border-bottom: 1px solid rgba(0, 255, 255, 0.2);
     flex-shrink: 0;
+    pointer-events: auto;
 
     .icon {
       width: 32px;

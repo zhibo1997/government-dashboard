@@ -25,6 +25,7 @@
             </svg>
           </button>
         </div>
+        <button class="reset-btn" @click="handleReset">重置</button>
       </div>
 
       <!-- 数据表格 -->
@@ -203,6 +204,12 @@ const handleClose = () => {
 }
 
 const handleSearch = () => {
+  currentPage.value = 1
+  fetchData()
+}
+
+const handleReset = () => {
+  searchKeyword.value = ''
   currentPage.value = 1
   fetchData()
 }
@@ -388,6 +395,23 @@ const handleViewEquipment = (equipment: any) => {
             width: 30px;
             height: 30px;
           }
+        }
+      }
+
+      .reset-btn {
+        height: 60px;
+        padding: 0 24px;
+        background: rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 6px;
+        color: #ffffff;
+        font-size: var(--font-size-heading);
+        font-family: SourceHanSansSC, SourceHanSansSC;
+        cursor: pointer;
+        transition: all 0.3s ease;
+
+        &:hover {
+          background: rgba(255, 255, 255, 0.2);
         }
       }
     }

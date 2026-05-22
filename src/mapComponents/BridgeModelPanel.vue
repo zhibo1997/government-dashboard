@@ -62,7 +62,7 @@ const bridgeList: BridgeModel[] = [
   {
     name: "莲花湖大桥",
     id: "06ad0be1-f8fd-44fb-92ec-be82de6f8f38",
-    qlbh: "LHQ",
+    qlbh: "LHHDQ",
     url: "https://webres.cityfun.com.cn/CSSMX/model/LHQ/tileset.json",
     image: `${baseUrl}/images/bridgeImages/莲花湖大桥（莲花湖一号桥主桥）.png`,
     equipment: {
