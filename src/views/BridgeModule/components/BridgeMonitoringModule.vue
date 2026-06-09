@@ -1,7 +1,7 @@
 <template>
   <div class="data-module bridge-monitoring-module">
     <div class="module-header">
-      <div class="module-title">桥梁监控</div>
+      <div class="module-title" @click="handleHeaderClick">桥梁监控</div>
     </div>
     <div class="module-content">
       <!-- 顶部统计卡片 -->
@@ -34,6 +34,28 @@
         </div>
       </div>
 
+      <!-- 视频弹窗（Teleport 到 body，按缩放比计算尺寸） -->
+      <Teleport to="body">
+        <div v-if="currentVideoUrl" class="video-overlay" @click.self="closeVideo">
+          <div class="video-popup" :style="popupStyle">
+            <div class="video-popup-bg">
+              <img src="@/assets/img/video_popup.webp" alt="" />
+            </div>
+            <div class="video-popup-content">
+              <span class="video-close" @click="closeVideo">✕</span>
+              <video
+                class="video-player"
+                :src="currentVideoUrl"
+                controls
+                autoplay
+                muted
+                @error="onVideoError"
+              ></video>
+            </div>
+          </div>
+        </div>
+      </Teleport>
+
       <!-- 下方：轮播图区域 -->
       <div class="carousel-container">
         <n-carousel
@@ -61,9 +83,18 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue";
+import { ref, inject, computed } from "vue";
 import { NCarousel, NCarouselItem } from "naive-ui";
-// 移除旧的图片导入语句，使用动态导入方式处理图片
+import { getCameraList, getCameraPreviewUrl } from "@/services/hikvisionService";
+
+// 注入 ResponsiveWrapper 提供的缩放比例
+const scaleRatio = inject<number>('responsiveScale', 1)
+
+// 视频弹窗尺寸（基准 4096 设计空间下的值，乘以缩放比得到实际屏幕像素）
+const popupStyle = computed(() => ({
+  width: `${Math.round(1600 * scaleRatio)}px`,
+  height: `${Math.round(900 * scaleRatio)}px`,
+}))
 
 interface BridgeItem {
   name: string;
@@ -72,114 +103,93 @@ interface BridgeItem {
 }
 
 const bridgeCarouselList: BridgeItem[] = [
-  {
-    "name": "下稚大道桥",
-    "filename": "下稚大道桥.png",
-    "type": "image"
-  },
-  {
-    "name": "中百天桥",
-    "filename": "中百天桥.png",
-    "type": "image"
-  },
-  {
-    "name": "光谷天桥",
-    "filename": "光谷天桥.png",
-    "type": "image"
-  },
-  {
-    "name": "兴富大道1号桥",
-    "filename": "兴富大道1号桥.png",
-    "type": "image"
-  },
-  {
-    "name": "兴富大道2号桥",
-    "filename": "兴富大道2号桥.png",
-    "type": "image"
-  },
-  {
-    "name": "兴富大道3号桥",
-    "filename": "兴富大道3号桥.png",
-    "type": "image"
-  },
-  {
-    "name": "南河桥",
-    "filename": "南河桥.png",
-    "type": "image"
-  },
-  {
-    "name": "富川小学人人行天桥",
-    "filename": "富川小学人人行天桥.png",
-    "type": "image"
-  },
-  {
-    "name": "富阳路桥",
-    "filename": "富阳路桥.png",
-    "type": "image"
-  },
-  {
-    "name": "明月湾大桥（跨莲花湖二号桥）",
-    "filename": "明月湾大桥（跨莲花湖二号桥）.png",
-    "type": "image"
-  },
-  {
-    "name": "林峰路上跨桥",
-    "filename": "林峰路上跨桥.png",
-    "type": "image"
-  },
-  {
-    "name": "独山湖大桥",
-    "filename": "独山湖大桥.jpg",
-    "type": "image"
-  },
-  {
-    "name": "纬八路跨1号",
-    "filename": "纬八路跨1号.png",
-    "type": "image"
-  },
-  {
-    "name": "纬八路跨2号排洪渠桥",
-    "filename": "纬八路跨2号排洪渠桥.png",
-    "type": "image"
-  },
-  {
-    "name": "纬六路跨1号",
-    "filename": "纬六路跨1号.png",
-    "type": "image"
-  },
-  {
-    "name": "纬六路跨2号排洪渠桥",
-    "filename": "纬六路跨2号排洪渠桥.png",
-    "type": "image"
-  },
-  {
-    "name": "莲花湖大桥（莲花湖一号桥主桥）",
-    "filename": "莲花湖大桥（莲花湖一号桥主桥）.png",
-    "type": "image"
-  },
-  {
-    "name": "阳新大道1号桥",
-    "filename": "阳新大道1号桥.png",
-    "type": "image"
-  },
-  {
-    "name": "陵园大道立交桥",
-    "filename": "陵园大道立交桥.png",
-    "type": "image"
-  }
-]
+  { "name": "下稚大道桥", "filename": "下稚大道桥.png", "type": "image" },
+  { "name": "中百天桥", "filename": "中百天桥.png", "type": "image" },
+  { "name": "光谷天桥", "filename": "光谷天桥.png", "type": "image" },
+  { "name": "兴富大道1号桥", "filename": "兴富大道1号桥.png", "type": "image" },
+  { "name": "兴富大道2号桥", "filename": "兴富大道2号桥.png", "type": "image" },
+  { "name": "兴富大道3号桥", "filename": "兴富大道3号桥.png", "type": "image" },
+  { "name": "南河桥", "filename": "南河桥.png", "type": "image" },
+  { "name": "富川小学人人行天桥", "filename": "富川小学人人行天桥.png", "type": "image" },
+  { "name": "富阳路桥", "filename": "富阳路桥.png", "type": "image" },
+  { "name": "明月湾大桥（跨莲花湖二号桥）", "filename": "明月湾大桥（跨莲花湖二号桥）.png", "type": "image" },
+  { "name": "林峰路上跨桥", "filename": "林峰路上跨桥.png", "type": "image" },
+  { "name": "独山湖大桥", "filename": "独山湖大桥.jpg", "type": "image" },
+  { "name": "纬八路跨1号", "filename": "纬八路跨1号.png", "type": "image" },
+  { "name": "纬八路跨2号排洪渠桥", "filename": "纬八路跨2号排洪渠桥.png", "type": "image" },
+  { "name": "纬六路跨1号", "filename": "纬六路跨1号.png", "type": "image" },
+  { "name": "纬六路跨2号排洪渠桥", "filename": "纬六路跨2号排洪渠桥.png", "type": "image" },
+  { "name": "莲花湖大桥（莲花湖一号桥主桥）", "filename": "莲花湖大桥（莲花湖一号桥主桥）.png", "type": "image" },
+  { "name": "阳新大道1号桥", "filename": "阳新大道1号桥.png", "type": "image" },
+  { "name": "陵园大道立交桥", "filename": "陵园大道立交桥.png", "type": "image" }
+];
 
-/**
- * 根据文件名生成图片路径
- * @param filename 图片文件名
- * @returns 完整的图片路径
- */
 const baseUrl = import.meta.env.VITE_BASE_URL;
 const getImagePath = (filename: string) => {
   return `${baseUrl}/images/bridgeImages/${filename}`;
 };
 
 const carouselRef = ref<any>(null);
+const videoRef = ref<HTMLVideoElement | null>(null);
+
+// 视频播放状态
+const currentVideoUrl = ref('');
+const currentCameraName = ref('');
+
+/**
+ * 点击标题：请求摄像头列表 → 随机选一个 → 获取视频流
+ */
+async function handleHeaderClick() {
+  try {
+    // 1. 获取摄像头列表
+    const listRes: any = await getCameraList({ pageNo: 1, pageSize: 45 });
+    console.log('📺 海康摄像头列表完整响应:', JSON.stringify(listRes, null, 2));
+
+    // 兼容多种数据结构：{ data: { list } } / { data: { rows } } / { data: [...] } / [...]
+    const raw = listRes?.data || listRes;
+    const cameras = raw?.list || raw?.rows || raw?.records || (Array.isArray(raw) ? raw : []);
+    console.log(`📺 解析到摄像头数量: ${cameras.length}`, cameras);    if (cameras.length === 0) {
+      console.warn('⚠️ 没有可用的摄像头');
+      return;
+    }
+
+    // 2. 随机选一个摄像头
+    const randomIndex = Math.floor(Math.random() * cameras.length);
+    const camera = cameras[randomIndex];
+    console.log(`🎯 随机选中摄像头 [${randomIndex}]:`, camera);
+
+    // 3. 获取视频流地址
+    const previewRes: any = await getCameraPreviewUrl({
+      cameraIndexCode: camera.cameraIndexCode,
+      streamType: 0,
+      protocol: 'hls',
+    });
+    console.log('🎬 视频流完整响应:', previewRes);
+
+    const videoUrl = previewRes?.url || previewRes?.data?.url;
+    if (!videoUrl) {
+      console.warn('⚠️ 未获取到视频流地址');
+      return;
+    }
+    console.log('🎬 视频流地址:', videoUrl);
+
+    // 4. 播放视频
+    currentCameraName.value = camera.cameraName || '未知摄像头';
+    currentVideoUrl.value = videoUrl;
+  } catch (error) {
+    console.error('❌ 操作失败:', error);
+  }
+}
+
+/** 关闭视频，回到轮播 */
+function closeVideo() {
+  currentVideoUrl.value = '';
+  currentCameraName.value = '';
+}
+
+function onVideoError(e: Event) {
+  console.error('❌ 视频播放错误:', e);
+}
 
 defineOptions({
   name: "BridgeMonitoringModule"
@@ -190,6 +200,13 @@ defineOptions({
 .bridge-monitoring-module {
   flex: 1;
 }
+
+.module-header {
+  .module-title {
+    cursor: pointer;
+  }
+}
+
 // 顶部统计卡片
 .top-stats {
   display: flex;
@@ -268,6 +285,66 @@ defineOptions({
         }
       }
     }
+  }
+}
+
+// ==================== 视频弹窗 ====================
+.video-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.6);
+}
+
+.video-popup {
+  position: relative;
+  width: 1600px;
+  height: 900px;
+  // 实际尺寸由 popupStyle 动态设置，覆盖这里
+
+  .video-popup-bg {
+    position: absolute;
+    inset: 0;
+
+    img {
+      width: 100%;
+      height: 100%;
+      object-fit: fill;
+    }
+  }
+
+  .video-popup-content {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    padding: 20px;
+    box-sizing: border-box;
+  }
+
+  .video-close {
+    position: absolute;
+    top: 12px;
+    right: 16px;
+    z-index: 2;
+    font-size: 24px;
+    color: rgba(255, 255, 255, 0.7);
+    cursor: pointer;
+
+    &:hover {
+      color: #fff;
+    }
+  }
+
+  .video-player {
+    flex: 1;
+    width: 100%;
+    background: #000;
+    border-radius: 4px;
   }
 }
 

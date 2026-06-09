@@ -92,6 +92,8 @@ import { ref, onMounted, onBeforeUnmount, computed, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { VcCamera ,VcColor} from 'vue-cesium/lib/utils/types.js'
 import mapConfig from '@/config/mapConfig'
+import { DEFAULT_BUILDING_LAYER_ID } from '@/config/layerConfig'
+import { useMapStore } from '@/stores/mapStore'
 import MeasureTool from './MeasureTool.vue'
 import MapToolbar from './MapToolbar.vue'
 import EquipmentDialog from '@/views/BridgeModule/components/map/EquipmentDialog.vue'
@@ -139,29 +141,93 @@ const basemapLayer = ref(null)
 // 工具栏引用
 const toolbarRef = ref<any>(null)
 
+// scenetree 设备坐标数据（按 qlbh 缓存）
+const scenetreeCache = ref<Record<string, Awaited<ReturnType<typeof loadScenetreeForBridge>>>>({})
+
 // 桥梁设备弹窗状态
 const equipmentDialogVisible = ref(false)
 const equipmentBridgeData = ref<any>({})
+const currentEquipUrl = ref('')
+
+// 模仿 demo.html: 从 equipUrl 推导 scenetree.json，解析设备坐标
+async function loadScenetreeForBridge(equipUrl: string) {
+  if (!equipUrl) return []
+  const Cesium = (window as any).Cesium
+  if (!Cesium) return []
+
+  const isProduction = import.meta.env.PROD || import.meta.env.MODE === 'production'
+  let scenetreeUrl = equipUrl.replace('tileset.json', 'scenetree.json')
+  if (isProduction && scenetreeUrl.startsWith('http://')) {
+    scenetreeUrl = scenetreeUrl.replace('http://', 'https://')
+  }
+
+  try {
+    const res = await fetch(scenetreeUrl)
+    if (!res.ok) return []
+    const data = await res.json()
+    const scene = data.scenes?.[0]
+    if (!scene?.children) return []
+
+    const devices: Array<{ sbbh: string; lng: number; lat: number; height: number }> = []
+    for (const el of scene.children) {
+      if (el.type !== 'element' || !el.sphere || el.sphere.length < 3) continue
+      const pos = new Cesium.Cartesian3(el.sphere[0], el.sphere[1], el.sphere[2])
+      const carto = Cesium.Cartographic.fromCartesian(pos)
+      devices.push({
+        sbbh: el.name,
+        lng: Cesium.Math.toDegrees(carto.longitude),
+        lat: Cesium.Math.toDegrees(carto.latitude),
+        height: carto.height,
+      })
+    }
+    return devices
+  } catch (e) {
+    console.warn('scenetree 加载失败:', e)
+    return []
+  }
+}
 
 const handleEquipmentActivate = (bridge: any, active: boolean) => {
   equipmentBridgeData.value = active ? { qlbh: bridge.qlbh, llmc: bridge.name } : {}
   equipmentDialogVisible.value = active
+
+  // 激活时预加载 scenetree 坐标
+  if (active && bridge.equipment?.url) {
+    currentEquipUrl.value = bridge.equipment.url
+    const qlbh = bridge.qlbh
+    if (!scenetreeCache.value[qlbh]) {
+      loadScenetreeForBridge(bridge.equipment.url).then(devices => {
+        scenetreeCache.value[qlbh] = devices
+        console.log(`✅ ${bridge.name} scenetree 设备: ${devices.length} 个`)
+      })
+    }
+  }
 }
 
 const handleEquipmentView = (equipment: any) => {
-  const pointInfo = equipment?.pointInfo
-  if (!pointInfo?.jd || !pointInfo?.wd || !viewerInstance.value) return
+  if (!equipment?.sbbh || !viewerInstance.value) return
 
   const Cesium = (window as any).Cesium
   if (!Cesium) return
 
-  const camera = viewerInstance.value.camera
+  // 从缓存中查找设备坐标
+  const qlbh = equipmentBridgeData.value?.qlbh
+  const cached = scenetreeCache.value[qlbh]
+  if (!cached) return
+
+  const device = cached.find(d => d.sbbh === equipment.sbbh)
+  if (!device) {
+    console.warn('未在 scenetree 中找到设备:', equipment.sbbh)
+    return
+  }
+
+  // 模仿 demo.html flyToDevice: 正上方俯视
   viewerInstance.value.camera.flyTo({
-    destination: Cesium.Cartesian3.fromDegrees(pointInfo.jd, pointInfo.wd, 50),
+    destination: Cesium.Cartesian3.fromDegrees(device.lng, device.lat, device.height + 2),
     orientation: {
-      heading: camera.heading,
-      pitch: camera.pitch,
-      roll: camera.roll,
+      heading: Cesium.Math.toRadians(0),
+      pitch: Cesium.Math.toRadians(-90),
+      roll: 0,
     },
     duration: 1.5,
   })
@@ -267,7 +333,13 @@ let clickQueryCleanup: (() => void) | null = null
 const yangxinGeoJSON = ref<any>(null)
 
 // 默认3D Tiles URL
-const default3DTilesUrl = 'https://webres.cityfun.com.cn/CSSMX/model/JC_JGZW_JZW_P/tileset.json'
+const mapStore = useMapStore()
+
+// 建筑群模型 URL — 从 store 中按 ID 动态查找，接口无数据时 fallback
+const default3DTilesUrl = computed(() => {
+  const layer = mapStore.findLayerById(DEFAULT_BUILDING_LAYER_ID)
+  return layer?.url || ''
+})
 
 // 切换距离测量
 const toggleDistance = () => {

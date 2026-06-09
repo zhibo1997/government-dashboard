@@ -31,8 +31,10 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive } from "vue";
+import { ref, reactive, computed } from "vue";
 import { NCheckbox } from "naive-ui";
+import { useMapStore } from "@/stores/mapStore";
+import { BRIDGE_LAYER_CONFIG } from "@/config/layerConfig";
 
 interface BridgeModel {
   name: string;
@@ -54,56 +56,32 @@ const emit = defineEmits<{
   "load-3dtiles": [url: string, layerId: string, options?: { flyTo?: boolean }];
   "layer-toggle": [layerId: string, visible: boolean, layerData: any];
   "equipment-activate": [bridge: BridgeModel, active: boolean];
+  "close-panel": [];
 }>();
 
+const mapStore = useMapStore();
 const baseUrl = import.meta.env.VITE_BASE_URL || '';
 
-const bridgeList: BridgeModel[] = [
-  {
-    name: "莲花湖大桥",
-    id: "06ad0be1-f8fd-44fb-92ec-be82de6f8f38",
-    qlbh: "LHHDQ",
-    url: "https://webres.cityfun.com.cn/CSSMX/model/LHQ/tileset.json",
-    image: `${baseUrl}/images/bridgeImages/莲花湖大桥（莲花湖一号桥主桥）.png`,
-    equipment: {
-      id: "ad960df4-4bd4-414c-a69c-6257d86982b2",
-      url: "http://webres.cityfun.com.cn/CSSMX/model/LHQ_SB/tileset.json",
-    },
-  },
-  {
-    name: "陵园大道立交桥",
-    id: "919829ed-9c4d-43ae-9a94-1ff0cef22a3f",
-    qlbh: "LYDDLJQ",
-    url: "https://webres.cityfun.com.cn/CSSMX/model/LYDDLJQ/tileset.json",
-    image: `${baseUrl}/images/bridgeImages/陵园大道立交桥.png`,
-    equipment: {
-      id: "aa50cee7-c4f6-4315-bcb1-f89aea7c00c0",
-      url: "http://webres.cityfun.com.cn/CSSMX/model/LYDDLJQ_SB/tileset.json",
-    },
-  },
-  {
-    name: "明月湾大桥",
-    id: "ecb4e7b6-6a2e-4948-85b0-0c5975816e07",
-    qlbh: "MYWDQ",
-    url: "https://webres.cityfun.com.cn/CSSMX/model/MYWDQ/tileset.json",
-    image: `${baseUrl}/images/bridgeImages/明月湾大桥（跨莲花湖二号桥）.png`,
-    equipment: {
-      id: "19e96888-190a-45fa-bcc1-c8f90ed6765a",
-      url: "http://webres.cityfun.com.cn/CSSMX/model/MYWDQ_SB/tileset.json",
-    },
-  },
-  {
-    name: "独山湖大桥",
-    id: "b4cc6305-bfce-4f60-926c-0dff3e7a7a78",
-    qlbh: "DSHDQ",
-    url: "http://webres.cityfun.com.cn/CSSMX/model/DSHDQ/tileset.json",
-    image: `${baseUrl}/images/bridgeImages/独山湖大桥.jpg`,
-    equipment: {
-      id: "430c03ed-dce2-463a-8ce0-02b310b2685c",
-      url: "http://webres.cityfun.com.cn/CSSMX/model/DSHDQ_SB/tileset.json",
-    },
-  },
-];
+// 从 store 中按 ID 查找图层数据，组合配置生成运行时 bridgeList
+const bridgeList = computed<BridgeModel[]>(() => {
+  if (!mapStore.layerTreeLoaded) return [];
+
+  return BRIDGE_LAYER_CONFIG.map((cfg) => {
+    const mainLayer = mapStore.findLayerById(cfg.id);
+    const equipLayer = cfg.equipmentId ? mapStore.findLayerById(cfg.equipmentId) : null;
+
+    return {
+      name: mainLayer?.name || '',
+      id: cfg.id,
+      qlbh: cfg.qlbh,
+      url: mainLayer?.url || '',
+      image: `${baseUrl}/images/bridgeImages/${cfg.image}`,
+      equipment: equipLayer
+        ? { id: equipLayer.id, url: equipLayer.url || '' }
+        : undefined,
+    };
+  }).filter(b => b.url); // 过滤掉未找到的图层
+});
 
 const activeBridgeIds = reactive(new Set<string>());
 const hoveredEquipmentId = ref("");
@@ -162,6 +140,7 @@ function toggleEquipment(bridge: BridgeModel, checked: boolean) {
     activeBridgeIds.add(bridge.equipment.id);
     emit("load-3dtiles", url, bridge.equipment.id, { flyTo: false });
     emit("equipment-activate", bridge, true);
+    emit("close-panel");
   } else {
     activeBridgeIds.delete(bridge.equipment.id);
     emit("layer-toggle", bridge.equipment.id, false, { type: "3dTile", url });

@@ -17,7 +17,9 @@
 </template>
 
 <script setup lang="ts">
-import { reactive } from "vue";
+import { reactive, computed } from "vue";
+import { useMapStore } from "@/stores/mapStore";
+import { GAS_LAYER_PARENT_ID } from "@/config/layerConfig";
 
 interface GasModel {
   name: string;
@@ -34,28 +36,23 @@ const emit = defineEmits<{
   "layer-toggle": [layerId: string, visible: boolean, layerData: any];
 }>();
 
-const gasList: GasModel[] = [
-  {
-    name: "燃气接头",
-    id: "3d950e5e-967a-41cb-81bd-71d195ad7576",
-    url: "http://webres.cityfun.com.cn/CSSMX/model/RQ_TR_RQJT/tileset.json",
-  },
-  {
-    name: "燃气井",
-    id: "a0a68eaf-a734-4bbf-a3da-766e31bf9eae",
-    url: "http://webres.cityfun.com.cn/CSSMX/model/RQ_TR_RQJ/tileset.json",
-  },
-  {
-    name: "燃气可燃气体检测设备",
-    id: "389bf6c1-16bd-4ec3-a7c6-7e2e0cc0e4fa",
-    url: "http://webres.cityfun.com.cn/CSSMX/model/RQ_TR_KRQTJCSB/tileset.json",
-  },
-  {
-    name: "燃气中压管道",
-    id: "f155d789-ffa5-4a71-a49a-0c12381bfc61",
-    url: "http://webres.cityfun.com.cn/CSSMX/model/RQ_TR_ZYGX/tileset.json",
-  },
-];
+const mapStore = useMapStore();
+
+// 从 store 中查找燃气专项分组，筛选 type=3dTile 的子节点
+const gasList = computed<GasModel[]>(() => {
+  if (!mapStore.layerTreeLoaded) return [];
+
+  const gasGroup = mapStore.findLayerById(GAS_LAYER_PARENT_ID);
+  if (!gasGroup?.child) return [];
+
+  return gasGroup.child
+    .filter((node: any) => node.type === '3dTile' && node.url)
+    .map((node: any) => ({
+      name: node.name,
+      id: node.id,
+      url: node.url,
+    }));
+});
 
 const activeIds = reactive(new Set<string>());
 

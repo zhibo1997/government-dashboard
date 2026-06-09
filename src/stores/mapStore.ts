@@ -1,15 +1,16 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
-import type { 
-  MapState, 
-  LayerState, 
-  MeasureState, 
-  POIState, 
+import type {
+  MapState,
+  LayerState,
+  MeasureState,
+  POIState,
   GeoJsonState,
   LayerTreeState,
   POIMarker,
   MeasureResult
 } from '@/types'
+import { getLayerTree } from '@/services/commonService'
 
 /**
  * 地图状态管理 Store
@@ -18,6 +19,10 @@ import type {
 export const useMapStore = defineStore('map', () => {
   // Cesium Viewer 实例
   const map = ref<any>(null)
+
+  // 图层树加载状态
+  const layerTreeLoading = ref(false)
+  const layerTreeLoaded = ref(false)
 
   // 地图状态
   const mapState = ref<MapState>({
@@ -317,6 +322,54 @@ export const useMapStore = defineStore('map', () => {
     }
   }
 
+  /**
+   * 从接口获取图层树数据并缓存到 store
+   * 防止重复请求，已加载过则直接返回
+   */
+  const fetchLayerTree = async (): Promise<void> => {
+    if (layerTreeLoaded.value || layerTreeLoading.value) return
+
+    layerTreeLoading.value = true
+    try {
+      const response = await getLayerTree({ SszxCode: '' })
+      if (response) {
+        setLayerTree(response)
+        layerTreeLoaded.value = true
+        console.log('✅ 图层树数据已加载到 store')
+      }
+    } catch (error) {
+      console.error('❌ 加载图层树数据失败:', error)
+    } finally {
+      layerTreeLoading.value = false
+    }
+  }
+
+  /**
+   * 递归查找图层节点（按 ID）
+   * 用于 BridgeModelPanel / GasModelPanel 等组件按 ID 查找 URL
+   */
+  const findLayerById = (id: string): any | null => {
+    const search = (nodes: any[]): any | null => {
+      for (const node of nodes) {
+        if (node.id === id) return node
+        if (node.child && Array.isArray(node.child)) {
+          const found = search(node.child)
+          if (found) return found
+        }
+      }
+      return null
+    }
+    return search(layerTreeState.value.tree)
+  }
+
+  /**
+   * 清理图层树数据（登出时调用）
+   */
+  const clearLayerTree = (): void => {
+    resetLayerTreeState()
+    layerTreeLoaded.value = false
+  }
+
   const resetMeasureState = (): void => {
     measureState.value = {
       isActive: false,
@@ -338,6 +391,8 @@ export const useMapStore = defineStore('map', () => {
   return {
     // State
     map,
+    layerTreeLoading,
+    layerTreeLoaded,
     mapState,
     layerState,
     layerTreeState,
@@ -395,6 +450,9 @@ export const useMapStore = defineStore('map', () => {
     updateCustomLayerVisibility,
     updateCustomLayerOpacity,
     clearCustomLayers,
-    resetLayerTreeState
+    resetLayerTreeState,
+    fetchLayerTree,
+    findLayerById,
+    clearLayerTree
   }
 })

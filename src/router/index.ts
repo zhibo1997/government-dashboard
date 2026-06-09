@@ -1,5 +1,6 @@
 import { createRouter, createWebHashHistory, RouteRecordRaw } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
+import { useMapStore } from '../stores/mapStore'
 
 // 独立布局页面
 import LoginView from '../views/LoginView.vue'
@@ -129,6 +130,12 @@ router.beforeEach(async (to, from, next) => {
       authStore.logout()
       next({ name: 'Login', query: { redirect: to.fullPath } })
       return
+    }
+
+    // 页面刷新时提前加载图层树数据
+    const mapStore = useMapStore()
+    if (!mapStore.layerTreeLoaded) {
+      await mapStore.fetchLayerTree()
     }
   } else {
     // 已登录用户访问登录页，跳转到首页

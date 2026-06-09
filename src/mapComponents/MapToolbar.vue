@@ -108,6 +108,7 @@
           @load-3dtiles="handleLoad3DTiles"
           @layer-toggle="handleLayerToggle"
           @equipment-activate="handleEquipmentActivate"
+          @close-panel="showBridgePanel = false"
         />
       </div>
     </transition>
@@ -417,7 +418,7 @@ const handleEquipmentActivate = (bridge: any, active: boolean) => {
       const bridgeLayer = loadedLayers.value.get(bridge.id);
       if (bridgeLayer?.type === "3dtiles" && bridgeLayer.instance) {
         cesiumUtils.set3DTilesStyle(bridgeLayer.instance, {
-          color: `color('white', 0.7)`,
+          color: `color('white', 0.45)`,
         });
       }
       // 设备模型高亮

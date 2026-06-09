@@ -4,24 +4,41 @@
       <div class="module-title">监测设备</div>
     </div>
     <div class="module-content">
-      <!-- 顶部统计卡片 -->
+      <!-- 设备总数统计 -->
+      <div class="total-stats">
+        <img src="@/assets/img/monitoring_equipment.webp" alt="监测设备" class="total-icon" />
+        <span class="total-label">监测设备总数：</span>
+        <span class="total-online gradient-text">在线{{ topStats.online }}</span>
+        <span class="total-separator">/</span>
+        <span class="total-offline gradient-text">离线{{ topStats.offline }}</span>
+      </div>
+
+      <!-- 顶部统计卡片（3个矩形卡片） -->
       <div class="top-stats">
         <div class="stat-card">
-          <div class="stat-icon">
-            <img src="@/assets/img/device_count.webp" alt="监测设备" />
-          </div>
+          <img src="@/assets/img/bridgeModule/device_online.webp" alt="在线" class="stat-icon" />
           <div class="stat-info">
-            <div class="stat-label">监测设备</div>
-            <div class="stat-value">
-              <span class="value-total gradient-text">{{ topStats.online }}</span>
-              <span class="value-separator">/</span>
-              <span class="value-offline gradient-text">{{ topStats.offline }}</span>
-            </div>
+            <div class="stat-label">在线总数</div>
+            <div class="stat-value online-value">{{ topStats.online }}</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <img src="@/assets/img/bridgeModule/device_offline.webp" alt="离线" class="stat-icon" />
+          <div class="stat-info">
+            <div class="stat-label">离线总数</div>
+            <div class="stat-value offline-value">{{ topStats.offline }}</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <img src="@/assets/img/bridgeModule/device_fault.webp" alt="故障" class="stat-icon" />
+          <div class="stat-info">
+            <div class="stat-label">故障总数</div>
+            <div class="stat-value fault-value">{{ topStats.fault }}</div>
           </div>
         </div>
       </div>
 
-      <!-- 在线率概览 -->
+      <!-- 在线率概览（3个圆形卡片） -->
       <div class="overview-section">
         <div class="overview-item" v-for="item in monitoringRate" :key="item.type">
           <div class="rate-badge" :class="`rate-${item.type}`">
@@ -32,14 +49,15 @@
       </div>
 
       <!-- 设备列表 -->
-      <CommonTable
-        :columns="deviceTableColumns"
-        :data="monitoringData"
-        row-key="name"
-        empty-text="暂无设备数据"
-        :max-height="760"
-        grid-template="2fr 1fr 1fr"
-      />
+      <div class="table-wrapper">
+        <CommonTable
+          :columns="deviceTableColumns"
+          :data="monitoringData"
+          row-key="name"
+          empty-text="暂无设备数据"
+          grid-template="60px 2fr 1fr 1fr 1fr"
+        />
+      </div>
     </div>
   </div>
 </template>
@@ -69,6 +87,7 @@ const topStats = ref({
   total: 0,
   online: 0,
   offline: 0,
+  fault: 0,
 });
 
 // 初始化监控设备数据
@@ -84,24 +103,32 @@ const initMonitoringData = async () => {
 
   let online = 0;
   let offline = 0;
+  let fault = 0;
+  let index = 0;
 
   nextTick(() => {
     monitoringData.value = res.map((item) => {
       const itemOnline = item.statusCounts.find((s: any) => s.status === "sbyxzt001")?.count || 0;
       const itemOffline = item.statusCounts.find((s: any) => s.status === "sbyxzt002")?.count || 0;
+      const itemFault = item.statusCounts.find((s: any) => s.status === "sbyxzt003")?.count || 0;
 
       online += itemOnline;
       offline += itemOffline;
+      fault += itemFault;
+      index++;
 
       return {
+        index,
         name: csblxMap.value[item.deviceType],
         online: itemOnline,
         offline: itemOffline,
+        fault: itemFault,
       };
     });
 
     topStats.value.online = online;
     topStats.value.offline = offline;
+    topStats.value.fault = fault;
   });
 };
 
@@ -122,9 +149,11 @@ const getDeviceTypeRate = async () => {
 
 // 表格列配置
 const deviceTableColumns = [
-  { key: 'name', title: '类型', width: '2fr' },
+  { key: 'index', title: '序号', width: '60px' },
+  { key: 'name', title: '设备类型', width: '2fr' },
   { key: 'online', title: '在线', width: '1fr' },
   { key: 'offline', title: '离线', width: '1fr' },
+  { key: 'fault', title: '故障', width: '1fr' },
 ];
 
 onMounted(() => {
@@ -136,90 +165,148 @@ onMounted(() => {
 <style lang="scss" scoped>
 .monitoring-equipment-module {
   flex: 1.5;
+  display: flex;
+  flex-direction: column;
 
-  .module-content {
-    gap: 24px;
+  .module-header {
+    flex-shrink: 0;
+
+    .module-title {
+      font-size: var(--font-size-subtitle);
+      font-weight: var(--font-weight-medium);
+      color: #effaff;
+    }
   }
 
-  // 顶部统计卡片
-  .top-stats {
+  .module-content {
+    flex: 1;
     display: flex;
+    flex-direction: column;
+    gap: 20px;
+    overflow: hidden;
+  }
+
+  // 设备总数统计行
+  .total-stats {
+    display: flex;
+    align-items: center;
     justify-content: center;
+    gap: 12px;
+    padding: 20px 25px;
     background-image: url("@/assets/img/gasModule/device_bg.webp");
     background-size: 100% 100%;
     width: 100%;
+    flex-shrink: 0;
+
+    .total-icon {
+      width: 114px;
+      height: 91px;
+      object-fit: contain;
+    }
+
+    .total-label {
+      font-family: SourceHanSansSC, SourceHanSansSC;
+      font-weight: var(--font-weight-medium);
+      font-size: var(--font-size-subtitle);
+      color: #effaff;
+      line-height: calc(var(--font-size-subtitle) * 1.438);
+    }
+
+    .total-online {
+      font-family: YouSheBiaoTiHei;
+      font-size: var(--font-size-subtitle);
+      color: #ffffff;
+      line-height: calc(var(--font-size-subtitle) * 1.313);
+      background: linear-gradient(90deg, #ffffff 0%, #1677ff 100%);
+    }
+
+    .total-separator {
+      font-family: YouSheBiaoTiHei;
+      font-size: var(--font-size-subtitle);
+      color: #fff;
+      line-height: calc(var(--font-size-subtitle) * 1.313);
+    }
+
+    .total-offline {
+      font-family: YouSheBiaoTiHei;
+      font-size: var(--font-size-subtitle);
+      color: #ffffff;
+      line-height: calc(var(--font-size-subtitle) * 1.313);
+      background: linear-gradient(90deg, #ffe9da 0%, #ce5a0d 100%);
+    }
+  }
+
+  // 顶部统计卡片（3个矩形卡片）
+  .top-stats {
+    display: flex;
+    justify-content: space-around;
+    width: 100%;
+    flex-shrink: 0;
 
     .stat-card {
-      border-radius: 8px;
-      padding: 20px 25px 20px 0;
       display: flex;
+      flex-direction: column;
       align-items: center;
-      gap: 20px;
+      gap: 8px;
 
       .stat-icon {
-        width: 114px;
-        height: 91px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        position: relative;
-
-        img {
-          width: 100%;
-          height: 100%;
-          object-fit: contain;
-        }
+        width: 80px;
+        height: 80px;
+        object-fit: contain;
       }
 
       .stat-info {
-        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 4px;
 
         .stat-label {
           font-family: SourceHanSansSC, SourceHanSansSC;
           font-weight: var(--font-weight-medium);
-          font-size: var(--font-size-subtitle);
+          font-size: 32px;
           color: #effaff;
-          line-height: calc(var(--font-size-subtitle) * 1.438);
-          text-align: center;
-          font-style: normal;
+          white-space: nowrap;
         }
 
         .stat-value {
-          display: flex;
-          align-items: baseline;
-          gap: 8px;
+          font-family: YouSheBiaoTiHei;
+          font-size: var(--font-size-title);
+          font-weight: bold;
+          line-height: 1.2;
+        }
 
-          > span {
-            font-family: YouSheBiaoTiHei;
-            font-size: var(--font-size-subtitle);
-            color: #ffffff;
-            line-height: calc(var(--font-size-subtitle) * 1.313);
-            text-align: center;
-            font-style: normal;
-          }
+        .online-value {
+          background: linear-gradient(0deg, #3FFEFD 0%, #FFF407 100%);
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+          background-clip: text;
+        }
 
-          .value-total {
-            background: linear-gradient(90deg, #ffffff 0%, #1677ff 100%);
-          }
+        .offline-value {
+          background: linear-gradient(0deg, #F75E04 0%, #FEAC04 100%);
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+          background-clip: text;
+        }
 
-          .value-separator {
-            color: #fff;
-          }
-
-          .value-offline {
-            background: linear-gradient(90deg, #ffe9da 0%, #ce5a0d 100%);
-          }
+        .fault-value {
+          background: linear-gradient(0deg, #FF1D1D 0%, #FD8837 100%);
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+          background-clip: text;
         }
       }
     }
   }
 
-  // 在线率概览区域
+  // 在线率概览区域（3个圆形卡片）
   .overview-section {
     display: flex;
     justify-content: space-around;
     width: 100%;
     padding: 8px 0;
+    flex-shrink: 0;
 
     .overview-item {
       display: flex;
@@ -233,6 +320,7 @@ onMounted(() => {
       display: flex;
       flex-direction: column;
       align-items: center;
+      justify-content: center;
       position: relative;
       background-size: 100% 100%;
       background-position: center;
@@ -282,6 +370,13 @@ onMounted(() => {
         margin-top: 8px;
       }
     }
+  }
+
+  // 表格区域 — flex: 1 撑满剩余空间，内部滚动
+  .table-wrapper {
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
   }
 }
 </style>

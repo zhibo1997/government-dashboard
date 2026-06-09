@@ -72,6 +72,7 @@ import { useRoute } from "vue-router";
 import { NTree, NSpin, NIcon, NInput, NCheckbox } from "naive-ui";
 import { SearchOutline } from "@vicons/ionicons5";
 import { getLayerTree } from "@/services/commonService";
+import { useMapStore } from "@/stores/mapStore";
 
 // Props
 interface Props {
@@ -138,24 +139,34 @@ const layerStates = ref<
   >
 >(new Map());
 
+const mapStore = useMapStore();
+
 /**
  * 从API获取图层树数据
+ * 优先从 mapStore 读取（登录时已加载），否则自行请求
  */
 async function fetchLayerTree() {
   loading.value = true;
   try {
     const moduleCode = getModuleCodeByRoute();
 
-    // 优先读取缓存
-    if (layerTreeCache.has(moduleCode)) {
+    // 优先从 mapStore 读取（登录/刷新时已加载）
+    if (mapStore.layerTreeLoaded && mapStore.layerTreeNodes.length > 0) {
+      rawLayerData.value = mapStore.layerTreeNodes;
+      console.log("✅ 图层树数据从 store 读取");
+    }
+    // 其次读取组件级缓存
+    else if (layerTreeCache.has(moduleCode)) {
       rawLayerData.value = layerTreeCache.get(moduleCode)!;
-      console.log("✅ 图层树数据命中缓存:", moduleCode);
-    } else {
+      console.log("✅ 图层树数据命中组件缓存:", moduleCode);
+    }
+    // 最后自行请求
+    else {
       const response = await getLayerTree({ SszxCode: moduleCode });
       if (response) {
         rawLayerData.value = response;
         layerTreeCache.set(moduleCode, response);
-        console.log("✅ 图层树数据加载并缓存:", moduleCode);
+        console.log("✅ 图层树数据从 API 加载:", moduleCode);
       } else {
         console.warn("⚠️ 图层树数据为空");
         rawLayerData.value = [];

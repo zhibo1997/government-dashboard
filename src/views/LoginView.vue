@@ -12,12 +12,14 @@
         <n-form ref="formRef" :show-require-mark="false" label-placement="left" :model="formData" :rules="rules"
           class="login-form">
           <n-form-item path="username" :show-feedback="false" label="账号：" class="form-item">
-            <n-input v-model:value="formData.username" placeholder="请输入账号" size="large" class="login-input">
+            <n-input v-model:value="formData.username" placeholder="请输入账号" size="large" class="login-input"
+              @keyup.enter="handleLogin">
             </n-input>
           </n-form-item>
 
           <n-form-item path="password" :show-feedback="false" label="密码：" class="form-item">
-            <n-input v-model:value="formData.password" type="password" placeholder="请输入密码" size="large" class="login-input">
+            <n-input v-model:value="formData.password" type="password" placeholder="请输入密码" size="large" class="login-input"
+              @keyup.enter="handleLogin">
             </n-input>
           </n-form-item>
         </n-form>
@@ -38,6 +40,7 @@ import { useRouter } from "vue-router";
 import { useAuthStore } from "../stores/auth";
 import { loginService } from "@/services/loginService";
 import { resetTokenExpiredFlag } from "@/services/httpClient";
+import { useMapStore } from "@/stores/mapStore";
 import ResponsiveWrapper from "@/components/ResponsiveWrapper.vue";
 
 const { message } = createDiscreteApi(["message"]);
@@ -86,6 +89,10 @@ const handleLogin = async () => {
 
       // 重置 token 失效处理标志，以便下次失效时能够再次提示
       resetTokenExpiredFlag();
+
+      // 提前加载图层树数据到 store
+      const mapStore = useMapStore();
+      await mapStore.fetchLayerTree();
 
       message.success("登录成功！");
 
@@ -250,6 +257,7 @@ const handleLogin = async () => {
         outline: none !important;
         background-color: transparent;
         color: #fff;
+        caret-color: #fff;
         width: 320px;
         font-size: var(--font-size-subtitle);
 

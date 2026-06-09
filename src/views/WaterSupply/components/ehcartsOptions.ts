@@ -451,7 +451,10 @@ export const handledOption = {
       type: "bar",
       barWidth: "20%",
       itemStyle: {
-        color: "#f5a623",
+        color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+          { offset: 0, color: "#AC9307" },
+          { offset: 1, color: "rgba(254,172,4,0)" },
+        ]),
       },
       data: [],
     },
@@ -460,7 +463,10 @@ export const handledOption = {
       type: "bar",
       barWidth: "20%",
       itemStyle: {
-        color: "#007aff",
+        color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+          { offset: 0, color: "#1279B9" },
+          { offset: 1, color: "rgba(21,127,146,0)" },
+        ]),
       },
       data: [],
     },
