@@ -16,6 +16,14 @@ html, body {
   user-select: none;
 }
 
+input,
+textarea,
+[contenteditable='true'] {
+  -webkit-user-select: text;
+  user-select: text;
+  caret-color: currentColor;
+}
+
 #app {
   width: 100vw;
   height: 100vh;
