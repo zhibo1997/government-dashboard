@@ -38,7 +38,7 @@ export interface CameraListResult {
 export interface CameraPreviewParams {
   cameraIndexCode: string  // 摄像头唯一编码
   streamType: number       // 流类型：0-主码流，1-子码流
-  protocol: string         // 协议：hls / rtsp / rtmp 等
+  protocol: string         // 协议：wss（H5player）/ hls / rtsp / rtmp 等
   transmode?: number       // 传输模式：0-UDP，1-TCP
 }
 

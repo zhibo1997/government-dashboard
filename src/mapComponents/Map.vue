@@ -522,6 +522,11 @@ function optimizeCesiumPerformance(viewer: any, Cesium: any) {
   viewer.scene.requestRenderMode = true
   viewer.scene.maximumRenderTimeChange = Infinity
 
+  // 实体变化时自动请求渲染（解决移除实体后地图不刷新的问题）
+  viewer.entities.collectionChanged.addEventListener(() => {
+    viewer.scene.requestRender()
+  })
+
   // 禁用阴影
   viewer.shadows = false
 

@@ -194,10 +194,11 @@ const handleWatchVideo = async () => {
     const res: any = await getCameraPreviewUrl({
       cameraIndexCode: props.cameraData.spbh,
       streamType: 0,
-      protocol: 'hls',
+      protocol: 'wss',
       transmode: 1,
     });
     const videoUrl = res?.url || res?.data?.url;
+    console.log('📹 视频流地址:', videoUrl);
     if (videoUrl) {
       emit("watch-video", videoUrl, props.cameraData?.spmc || '');
     } else {

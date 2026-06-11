@@ -408,6 +408,9 @@ const handleLayerToggle = (
       }
     }
   }
+
+  // 图层显隐变化后请求渲染
+  props.viewerInstance?.scene?.requestRender();
 };
 
 // 处理监测设备激活/取消
@@ -504,8 +507,9 @@ const handleToggleDeviceType = async (sblx: string, visible: boolean) => {
     
     // 调用 Hook 的设备类型切换方法
     await monitoringPointsHook.value.toggleDeviceType(sblx, visible);
-    
+
     console.log('✅ specialLayer 设备类型切换成功');
+    props.viewerInstance?.scene?.requestRender();
   } catch (error) {
     console.error('❌ specialLayer 设备类型切换失败:', error);
   }

@@ -8,14 +8,12 @@
         <div class="video-popup-content">
           <div class="video-close-area" @click="handleClose"></div>
           <div class="video-title">{{ cameraName }}</div>
-          <video
-            class="video-player"
-            :src="videoUrl"
-            controls
-            autoplay
-            muted
-            @error="onVideoError"
-          ></video>
+          <div class="video-player-wrapper">
+            <HikvisionPlayer
+              ref="playerRef"
+              container-id="hikvision-video-popup"
+            />
+          </div>
         </div>
       </div>
     </div>
@@ -23,7 +21,8 @@
 </template>
 
 <script setup lang="ts">
-import { computed, inject, ref } from 'vue'
+import { computed, inject, ref, watch } from 'vue'
+import HikvisionPlayer from '@/components/HikvisionPlayer.vue'
 
 const props = defineProps({
   visible: {
@@ -43,17 +42,28 @@ const props = defineProps({
 const emit = defineEmits(['update:visible'])
 
 const scaleRatio = inject<any>('responsiveScale', ref(1))
+const playerRef = ref<InstanceType<typeof HikvisionPlayer> | null>(null)
 
 const popupStyle = computed(() => ({
   transform: `scale(${scaleRatio.value})`,
 }))
 
-const handleClose = () => {
-  emit('update:visible', false)
-}
+// 弹窗显示时播放视频
+watch(
+  () => props.visible,
+  async (val) => {
+    if (val && props.videoUrl) {
+      // 延迟一下等 DOM 渲染完成
+      setTimeout(() => {
+        playerRef.value?.play(props.videoUrl)
+      }, 100)
+    }
+  },
+)
 
-function onVideoError(e: Event) {
-  console.error('视频播放错误:', e)
+const handleClose = () => {
+  playerRef.value?.stop()
+  emit('update:visible', false)
 }
 </script>
 
@@ -91,7 +101,7 @@ function onVideoError(e: Event) {
     display: flex;
     flex-direction: column;
     height: 100%;
-    padding: 60px 10px 10px;
+    padding: 60px 30px 30px;
     box-sizing: border-box;
   }
 
@@ -111,15 +121,14 @@ function onVideoError(e: Event) {
     left: 30px;
     font-family: SourceHanSansSC, SourceHanSansSC;
     font-weight: 500;
-    font-size: 18px;
+    font-size: var(--font-size-title);
     color: #e4f3ff;
     z-index: 2;
   }
 
-  .video-player {
+  .video-player-wrapper {
     flex: 1;
-    width: 100%;
-    background: #000;
+    overflow: hidden;
     border-radius: 4px;
   }
 }
