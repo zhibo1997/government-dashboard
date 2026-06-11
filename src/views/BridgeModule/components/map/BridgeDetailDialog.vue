@@ -49,6 +49,9 @@
         <button class="action-btn btn-monitoring" @click="handleShowEquipment">
           监测设备
         </button>
+        <button class="action-btn btn-camera" @click="handleShowCamera">
+          监控设备
+        </button>
       </div>
     </div>
   </div>
@@ -60,6 +63,7 @@ import { useVueCesium } from "vue-cesium";
 import { NButton, NIcon } from "naive-ui";
 import { Close } from "@vicons/ionicons5";
 import BridgeMarkerIcon from "@/assets/img/bridgeModule/bridge_marker.webp";
+import { getSurveillanceVideoPage } from "@/services/surveillanceVideoService";
 
 const viewer = ref<Cesium.Viewer | null>(null);
 
@@ -92,11 +96,36 @@ onMounted(async () => {
   viewer.value = readyObj.viewer;
 });
 
-const emit = defineEmits(["update:visible", "show-equipment"]);
+const emit = defineEmits(["update:visible", "show-equipment", "show-camera"]);
 
 // 显示监测设备弹窗
 const handleShowEquipment = () => {
   emit("show-equipment");
+};
+
+// 监控设备列表
+const cameraList = ref<any[]>([]);
+const cameraLoading = ref(false);
+
+// 获取监控设备列表
+const handleShowCamera = async () => {
+  if (!props.bridgeData?.llmc) return;
+  cameraLoading.value = true;
+  try {
+    const result = await getSurveillanceVideoPage({
+      page: '1',
+      rows: '100',
+      spszwz: props.bridgeData.llmc,
+      sszx: 'csaqzx_ql',
+    });
+    cameraList.value = result?.rows || [];
+    emit("show-camera", cameraList.value);
+  } catch (error) {
+    console.error("获取监控视频列表失败:", error);
+    cameraList.value = [];
+  } finally {
+    cameraLoading.value = false;
+  }
 };
 
 // 桥梁字段定义
@@ -208,6 +237,19 @@ watch(
     }
   },
   { deep: true }
+);
+
+// 监听 visible 变化，关闭时清除标记
+watch(
+  () => props.visible,
+  (val) => {
+    if (!val) {
+      stopPositionTracking();
+      if (viewer.value) {
+        removeExistingMarkers(viewer.value);
+      }
+    }
+  }
 );
 
 // 在地图上添加标记点
@@ -512,6 +554,18 @@ onBeforeUnmount(() => {
             background: rgba(13, 165, 190, 0.4);
             border-color: #3fffff;
             box-shadow: 0 0 16px rgba(13, 165, 190, 0.5);
+          }
+        }
+
+        &.btn-camera {
+          background: rgba(60, 40, 0, 0.6);
+          border: 2px solid #be8b0d;
+          border-radius: 6px;
+
+          &:hover {
+            background: rgba(190, 139, 13, 0.4);
+            border-color: #ffdc3f;
+            box-shadow: 0 0 16px rgba(190, 139, 13, 0.5);
           }
         }
       }
