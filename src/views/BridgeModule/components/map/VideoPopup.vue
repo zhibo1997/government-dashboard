@@ -8,12 +8,13 @@
         <div class="video-popup-content">
           <div class="video-close-area" @click="handleClose"></div>
           <div class="video-title">{{ cameraName }}</div>
-          <div class="video-player-wrapper">
-            <HikvisionPlayer
-              ref="playerRef"
-              container-id="hikvision-video-popup"
-            />
-          </div>
+          <video
+            ref="videoRef"
+            class="video-player"
+            controls
+            autoplay
+            muted
+          ></video>
         </div>
       </div>
     </div>
@@ -21,8 +22,8 @@
 </template>
 
 <script setup lang="ts">
-import { computed, inject, ref, watch } from 'vue'
-import HikvisionPlayer from '@/components/HikvisionPlayer.vue'
+import { computed, inject, ref, watch, nextTick, onBeforeUnmount } from 'vue'
+import Hls from 'hls.js'
 
 const props = defineProps({
   visible: {
@@ -42,7 +43,8 @@ const props = defineProps({
 const emit = defineEmits(['update:visible'])
 
 const scaleRatio = inject<any>('responsiveScale', ref(1))
-const playerRef = ref<InstanceType<typeof HikvisionPlayer> | null>(null)
+const videoRef = ref<HTMLVideoElement | null>(null)
+let hlsInstance: Hls | null = null
 
 const popupStyle = computed(() => ({
   transform: `scale(${scaleRatio.value})`,
@@ -53,18 +55,56 @@ watch(
   () => props.visible,
   async (val) => {
     if (val && props.videoUrl) {
-      // 延迟一下等 DOM 渲染完成
-      setTimeout(() => {
-        playerRef.value?.play(props.videoUrl)
-      }, 100)
+      await nextTick()
+      initVideo(props.videoUrl)
     }
   },
 )
 
+function initVideo(url: string) {
+  destroyHls()
+  const video = videoRef.value
+  if (!video) return
+
+  if (url.includes('.m3u8') && Hls.isSupported()) {
+    const hls = new Hls()
+    hls.loadSource(url)
+    hls.attachMedia(video)
+    hls.on(Hls.Events.MANIFEST_PARSED, () => {
+      video.play().catch(() => {})
+    })
+    hls.on(Hls.Events.ERROR, (_event, data) => {
+      if (data.fatal) {
+        console.error('[HLS] 播放错误:', data)
+        destroyHls()
+      }
+    })
+    hlsInstance = hls
+  } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+    // Safari 原生支持
+    video.src = url
+    video.play().catch(() => {})
+  } else {
+    video.src = url
+    video.play().catch(() => {})
+  }
+}
+
+function destroyHls() {
+  if (hlsInstance) {
+    hlsInstance.destroy()
+    hlsInstance = null
+  }
+}
+
 const handleClose = () => {
-  playerRef.value?.stop()
+  destroyHls()
   emit('update:visible', false)
 }
+
+onBeforeUnmount(() => {
+  destroyHls()
+})
 </script>
 
 <style lang="scss" scoped>
@@ -126,9 +166,10 @@ const handleClose = () => {
     z-index: 2;
   }
 
-  .video-player-wrapper {
+  .video-player {
     flex: 1;
-    overflow: hidden;
+    width: 100%;
+    background: #000;
     border-radius: 4px;
   }
 }

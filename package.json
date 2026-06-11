@@ -20,6 +20,7 @@
     "dayjs": "^1.11.15",
     "echarts": "^6.0.0",
     "echarts-gl": "^2.0.9",
+    "hls.js": "^1.6.16",
     "jsencrypt": "^3.5.4",
     "lodash-es": "^4.17.21",
     "lossless-json": "^4.3.0",
