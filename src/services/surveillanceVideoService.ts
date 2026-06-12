@@ -30,7 +30,25 @@ export interface SurveillanceVideoPageResult {
   total: number
 }
 
+/** 监控视频在线统计 */
+export interface SurveillanceVideoCountResult {
+  totalCount: number
+  onlineCount: number
+  onlineRate: string
+}
+
 // ========== 接口方法 ==========
+
+/**
+ * 获取监控视频在线数量
+ */
+export async function getSurveillanceVideoCount(params: {
+  sszx: string
+  qhbm: string
+}): Promise<SurveillanceVideoCountResult> {
+  const res = await get<any>('/gspspDtransSurveillanceVideo/count', params)
+  return res.data
+}
 
 /**
  * 获取监控视频分页列表

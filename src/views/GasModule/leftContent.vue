@@ -14,7 +14,7 @@
 <script setup>
 import InfrastructureModule from './components/InfrastructureModule.vue';
 import GasPipelineModule from './components/GasPipelineModule.vue';
-import EmergencyResourceModule from './components/EmergencyResourceModule.vue';
+import EmergencyResourceModule from '@/components/EmergencyResourceModule.vue';
 </script>
 
 <style lang="scss" scoped>

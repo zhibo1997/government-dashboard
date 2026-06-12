@@ -249,3 +249,20 @@ print(json.loads(resp.read()))
 | 应变传感器 | specialLayer | `d1a3b927-7a8e-4185-97e6-9277767295a0` |
 | 裂缝计 | specialLayer | `5ff936f3-b303-4d00-acb0-9eb2d28e97e6` |
 | 可燃气体智能监测仪 | specialLayer | `e137a3b6-4a18-44fe-88fd-f6f2019c940b` |
+
+#### 桥梁监测设备类型（字典 jcsblx_ql）
+| 设备名称 | 设备类型编码 | 对应图标 |
+|---------|------------|---------|
+| 温度传感器 | `jcsblx0501` | `jcsblx0501.svg` |
+| 应变传感器 | `jcsblx0502` | `jcsblx0502.svg` |
+| 加速度传感器 | `jcsblx0503` | `jcsblx0503.svg` |
+| 索力计 | `jcsblx0504` | `jcsblx0504.svg` |
+| 倾角计 | `jcsblx0505` | `jcsblx0505.svg` |
+| 拉线位移计 | `jcsblx0506` | `jcsblx0506.svg` |
+| GNSS | `jcsblx0507` | `jcsblx0507.svg` |
+| 静力水准仪 | `jcsblx0508` | `jcsblx0508.svg` |
+| 非接触式挠度仪 | `jcsblx0509` | `jcsblx0509.svg` |
+| 裂缝计 | `jcsblx0510` | `jcsblx0510.svg` |
+| 湿度计 | `jcsblx0511` | `jcsblx0511.svg` |
+| 风速风向仪 | `jcsblx0512` | `jcsblx0512.svg` |
+| 桥梁环境 | `jcsblx0513` | `jcsblx0513.svg` |

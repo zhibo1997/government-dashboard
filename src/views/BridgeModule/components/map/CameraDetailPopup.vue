@@ -176,7 +176,7 @@ const startPositionTracking = () => {
 
     isEntityVisible.value = true;
     dialogX.value = (screenPos.x - 620 * scaleRatio.value / 2) / scaleRatio.value;
-    dialogY.value = (screenPos.y) / scaleRatio.value - 480;
+    dialogY.value = (screenPos.y) / scaleRatio.value - 600;
   });
 };
 

@@ -88,9 +88,11 @@ const handleBridgeClick = (bridge: any) => {
   showCameraDetail.value = false;
 };
 
-// 显示监测设备
+// 显示监测设备（关闭监控相关）
 const handleShowEquipment = () => {
   showEquipmentDialog.value = true;
+  showCameraDialog.value = false;
+  showCameraDetail.value = false;
 };
 
 // 处理设备查看
@@ -100,9 +102,11 @@ const handleEquipmentView = (equipment: any) => {
   showBridgeDetail.value = false;
 };
 
-// 显示监控列表
+// 显示监控列表（关闭监测设备相关）
 const handleShowCamera = () => {
   showCameraDialog.value = true;
+  showEquipmentDialog.value = false;
+  showEquipmentDetail.value = false;
 };
 
 // 监控列表加载完成

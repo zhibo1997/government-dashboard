@@ -5,7 +5,6 @@
     </div>
     <div class="module-content">
       <!-- 顶部统计卡片 -->
-       <!-- todo 目前为假数据 -->
       <div class="top-stats">
         <div class="stat-card">
           <div class="stat-icon">
@@ -14,9 +13,9 @@
           <div class="stat-info">
             <div class="stat-label">监控设备总数</div>
             <div class="stat-value">
-              <span class="value-total gradient-text">20</span>
-              <span class="value-separator">/</span>
-              <span class="value-offline gradient-text">18</span>
+              <span class="value-total gradient-text">{{ countData.totalCount }}</span>
+              <!-- <span class="value-separator">/</span>
+              <span class="value-offline gradient-text">{{ countData.onlineCount }}</span> -->
             </div>
           </div>
         </div>
@@ -28,7 +27,7 @@
           <div class="stat-info">
             <div class="stat-label">在线率</div>
             <div class="stat-value">
-              <span class="value-rate gradient-text">90%</span>
+              <span class="value-rate gradient-text">{{ countData.onlineRate }}</span>
             </div>
           </div>
         </div>
@@ -61,8 +60,34 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue";
+import { ref, onMounted } from "vue";
 import { NCarousel, NCarouselItem } from "naive-ui";
+import { getSurveillanceVideoCount, type SurveillanceVideoCountResult } from "@/services/surveillanceVideoService";
+import { DEFAULT_COMMON_PARAMS } from "@/services/config";
+
+const countData = ref<SurveillanceVideoCountResult>({
+  totalCount: 0,
+  onlineCount: 0,
+  onlineRate: '0%',
+});
+
+async function fetchCount() {
+  try {
+    const res = await getSurveillanceVideoCount({
+      sszx: 'csaqzx_ql',
+      qhbm: DEFAULT_COMMON_PARAMS.Qhbm,
+    });
+    if (res) {
+      countData.value = res;
+    }
+  } catch (error) {
+    console.error('获取监控视频在线数量失败:', error);
+  }
+}
+
+onMounted(() => {
+  fetchCount();
+});
 
 interface BridgeItem {
   name: string;

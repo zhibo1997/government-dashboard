@@ -4,6 +4,7 @@
  */
 
 import { get, post } from './httpClient'
+import { DEFAULT_COMMON_PARAMS } from './config'
 
 // ========== 类型定义 ==========
 
@@ -91,6 +92,16 @@ export async function getDataItems(code: string): Promise<any[]> {
   }
 
   return []
+}
+
+// ========== 应急资源接口 ==========
+
+/**
+ * 获取应急能力数量统计（通用，按所属专项筛选）
+ */
+export async function getEmergencyCapacityList(params?: { Sszx?: string }) {
+  const res = await get<any>('/yjnl/list', { ...DEFAULT_COMMON_PARAMS, ...params })
+  return res.data || []
 }
 
 // ========== 图层接口 ==========

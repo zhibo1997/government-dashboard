@@ -67,7 +67,13 @@ function initVideo(url: string) {
   if (!video) return
 
   if (url.includes('.m3u8') && Hls.isSupported()) {
-    const hls = new Hls()
+    const hls = new Hls({
+      liveSyncDurationCount: 1,      // 直播同步到最新1个分片
+      liveMaxLatencyDurationCount: 3, // 最大延迟3个分片
+      maxBufferLength: 5,              // 最大缓冲5秒
+      maxMaxBufferLength: 10,          // 绝对最大缓冲10秒
+      lowLatencyMode: true,            // 低延迟模式
+    })
     hls.loadSource(url)
     hls.attachMedia(video)
     hls.on(Hls.Events.MANIFEST_PARSED, () => {
@@ -157,11 +163,11 @@ onBeforeUnmount(() => {
 
   .video-title {
     position: absolute;
-    top: 16px;
+    top: 4px;
     left: 30px;
     font-family: SourceHanSansSC, SourceHanSansSC;
     font-weight: 500;
-    font-size: var(--font-size-title);
+    font-size: var(--font-size-heading);
     color: #e4f3ff;
     z-index: 2;
   }

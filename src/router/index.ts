@@ -62,10 +62,7 @@ const routes: RouteRecordRaw[] = [
         meta: {
           requiresAuth: true,
           desc: '燃气专项',
-          defaultLayerIds: [
-            '1b30d4d8-fd3c-4b21-86ab-f534e333a3c3',
-            'e9f47982-3a43-4d16-817c-80f6b65e0566'
-          ]
+          defaultLayerIds: []
         }
       },
       {

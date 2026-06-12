@@ -1053,7 +1053,6 @@ defineExpose({
 
     .n-checkbox-box .n-checkbox-icon {
       color: #ffffff;
-      display: none;
     }
   }
 
