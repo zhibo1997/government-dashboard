@@ -104,6 +104,17 @@ export async function getEmergencyCapacityList(params?: { Sszx?: string }) {
   return res.data || []
 }
 
+// ========== 综合态势接口 ==========
+
+/**
+ * 获取各专项设备在线离线数量和比例
+ * @param sszx 所属专项代码
+ */
+export async function getSpecialRateList(sszx: string) {
+  const res = await get<any>('/gspspDtransPubmnteqpinfo/specialRateList', { sszx })
+  return res.data || []
+}
+
 // ========== 图层接口 ==========
 
 /**

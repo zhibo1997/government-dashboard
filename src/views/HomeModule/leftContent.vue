@@ -3,14 +3,14 @@
     <!-- 总览模块 -->
     <OverviewModule />
 
-    <!-- 风险隐患模块 -->
-    <RiskHazardModule />
+    <!-- 监测设备模块 -->
+    <MonitoringDeviceModule />
   </div>
 </template>
 
 <script setup>
 import OverviewModule from './components/OverviewModule.vue'
-import RiskHazardModule from './components/RiskHazardModule.vue'
+import MonitoringDeviceModule from './components/MonitoringDeviceModule.vue'
 </script>
 
 <style lang="scss" scoped>

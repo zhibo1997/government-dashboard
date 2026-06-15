@@ -10,11 +10,14 @@
   <template v-if="!loading">
     <!-- 左侧数据展示区 -->
     <LeftNav />
-    
+
+    <!-- 中间侧边栏（易涝点） -->
+    <SidebarModule />
+
     <!-- 右侧数据展示区 -->
     <RightNav />
   </template>
-  
+
   <!-- 加载状态 -->
   <div v-else class="loading-placeholder">
     <span>数据加载中...</span>
@@ -26,6 +29,7 @@ import { onBeforeMount, ref, provide } from 'vue'
 // 引入左右内容组件（复用供水模块组件）
 import LeftNav from '../WaterSupply/leftContent.vue'
 import RightNav from '../WaterSupply/RightContent.vue'
+import SidebarModule from './sidebarModule.vue'
 // 引入字典缓存服务
 import { getCachedDictionaries } from '@/services/dictionaryService'
 

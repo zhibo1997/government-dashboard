@@ -185,3 +185,39 @@ export async function getHazardLevelCountList(param: {
   const res = await get<any>('/gspspDtransPubrisks/yhdj/riskTypeCount', queryParam)
   return res?.data || []
 }
+
+// ========== 积水易涝点位接口 ==========
+
+/** 积水易涝点位分页请求参数 */
+export interface DrainFloodPageParams {
+  page: string
+  rows: string
+  jsdmc?: string     // 积水点名称（模糊搜索）
+  dsbm?: string      // 市州编码
+  qhbm?: string      // 区划编码
+  zgzt?: string       // 整改状态
+}
+
+/** 积水易涝点位分页结果 */
+export interface DrainFloodPageResult {
+  rows: any[]
+  total: number
+  records: number
+}
+
+/**
+ * 获取积水易涝点位分页
+ */
+export async function getDrainFloodPage(params: DrainFloodPageParams): Promise<DrainFloodPageResult> {
+  const res = await get<any>('/gspspDtransDrainfloodpropots/page', { ...defaultParams, ...params })
+  return res.data || { rows: [], total: 0, records: 0 }
+}
+
+/**
+ * 获取积水易涝点位详情
+ * @param lsh 流水号
+ */
+export async function getDrainFloodDetail(lsh: string) {
+  const res = await get<any>(`/gspspDtransDrainfloodpropots/${lsh}`)
+  return res.data
+}

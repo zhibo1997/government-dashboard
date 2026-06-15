@@ -91,6 +91,7 @@ const emit = defineEmits(["update:visible"]);
 // 图表引用
 const lineChartRef = ref<HTMLDivElement | null>(null);
 let lineChartInstance: echarts.ECharts | null = null;
+let chartResizeObserver: ResizeObserver | null = null;
 
 // 设备类型字典
 const sblxDictMap = ref<Record<string, string>>({});
@@ -103,7 +104,7 @@ const jczbDictMap = ref<Record<string, { name: string; unit: string }>>({});
 
 // 监测数据记录
 const monitorRecords = ref<any[]>([]);
-const latestRecord = computed(() => monitorRecords.value[0] || null);
+const latestRecord = computed(() => monitorRecords.value[monitorRecords.value.length - 1] || null);
 
 // 解析监测值
 const monitorValues = computed(() => {
@@ -177,11 +178,12 @@ watch(
           sblx: sblx,
           number: 20,
         });
-        monitorRecords.value = data || [];
+        // API 返回数据按时间倒序，反转为正序（最新数据在末尾）
+        monitorRecords.value = (data || []).slice().reverse();
         // 渲染折线图
         if (data && data.length > 1) {
           nextTick(() => {
-            initLineChart(data);
+            initLineChart(monitorRecords.value);
           });
         }
       } catch (error) {
@@ -325,6 +327,15 @@ const initLineChart = (rawData: any[]) => {
   };
 
   chartInstance.setOption(option);
+
+  // 监听容器尺寸变化，确保图表宽度正确
+  chartResizeObserver?.disconnect();
+  chartResizeObserver = new ResizeObserver(() => {
+    chartInstance.resize();
+  });
+  chartResizeObserver.observe(lineChartRef.value!);
+  // 延迟 resize 一次，处理 popup 刚显示时容器尚未完成布局的情况
+  setTimeout(() => chartInstance.resize(), 100);
 };
 
 // 开始位置跟踪 - 仿造 StationDetailDialog
@@ -408,6 +419,8 @@ const handleClose = () => {
   removeExistingMarkers();
   monitorRecords.value = [];
   // 清理图表
+  chartResizeObserver?.disconnect();
+  chartResizeObserver = null;
   if (lineChartInstance) {
     lineChartInstance.dispose();
     lineChartInstance = null;
@@ -418,6 +431,8 @@ const handleClose = () => {
 onBeforeUnmount(() => {
   stopPositionTracking();
   removeExistingMarkers();
+  chartResizeObserver?.disconnect();
+  chartResizeObserver = null;
   if (lineChartInstance) {
     lineChartInstance.dispose();
     lineChartInstance = null;

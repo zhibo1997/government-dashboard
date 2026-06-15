@@ -14,9 +14,6 @@
     <!-- 供水水质模块 -->
     <WaterQualityModule />
 
-    <!-- 供水管网模块 -->
-    <PipelineModule />
-
     <!-- 应急资源模块（替换原隐患模块） -->
     <EmergencyResourceModule />
   </div>
@@ -25,7 +22,6 @@
 <script setup>
 import OverviewModule from './components/OverviewModule.vue'
 import WaterQualityModule from './components/WaterQualityModule.vue'
-import PipelineModule from './components/PipelineModule.vue'
 import EmergencyResourceModule from '@/components/EmergencyResourceModule.vue'
 </script>
 
