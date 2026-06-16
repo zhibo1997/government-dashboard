@@ -13,9 +13,9 @@
         <div class="status-badge-row">
           <button class="badge-btn badge-type">{{ sblxName }}</button>
           <button class="badge-btn badge-normal" v-if="equipmentData?.sbyxzt === 'sbyxzt001'">
-            正常
+            在线
           </button>
-          <button class="badge-btn badge-error" v-else>异常</button>
+          <button class="badge-btn badge-error" v-else>离线</button>
         </div>
 
         <div class="info-grid">

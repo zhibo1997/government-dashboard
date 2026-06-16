@@ -64,11 +64,9 @@
 
 <script setup lang="ts">
 import { getCachedDictionary } from "@/services/dictionaryService";
-import {
-  getDeviceStatusRate,
-  getDeviceTypeStatusCount,
-} from "@/services/waterSupplyService";
-import { nextTick, onMounted, ref, inject } from "vue";
+import { getDeviceTypeStatusCount } from "@/services/waterSupplyService";
+import { getSpecialRateList } from "@/services/commonService";
+import { onMounted, ref, inject } from "vue";
 import CommonTable from '@/components/CommonTable.vue';
 
 // 从根组件接收模块配置
@@ -90,8 +88,28 @@ const topStats = ref({
   fault: 0,
 });
 
-// 初始化监控设备数据
-const initMonitoringData = async () => {
+// 从 getSpecialRateList 获取设备数量和在线率
+const fetchSpecialRate = async () => {
+  try {
+    const data = await getSpecialRateList();
+    const item = Array.isArray(data) ? data.find((d: any) => d.sszx === moduleConfig.sszx) : null;
+    if (item) {
+      topStats.value.online = item.onlineCount || 0;
+      topStats.value.offline = item.offlineCount || 0;
+      topStats.value.fault = item.faultCount || 0;
+      monitoringRate.value = [
+        { name: "在线率", value: item.onlineRate || "0%", type: "online" },
+        { name: "离线率", value: item.offlineRate || "0%", type: "offline" },
+        { name: "故障率", value: item.faultRate || "0%", type: "fault" },
+      ];
+    }
+  } catch (error) {
+    console.error("获取专项设备数据失败:", error);
+  }
+};
+
+// 初始化设备分类明细表格数据
+const initDeviceDetail = async () => {
   const jcsblx = moduleConfig.dictKey?.jcsblx || "jcsblx_gs";
   const dictionaries = await getCachedDictionary(jcsblx);
   csblxMap.value = dictionaries.reduce((acc, cur) => {
@@ -99,53 +117,25 @@ const initMonitoringData = async () => {
     return acc;
   }, {});
 
-  const res = await getDeviceTypeStatusCount({ Sszx: moduleConfig.sszx });
-
-  let online = 0;
-  let offline = 0;
-  let fault = 0;
-  let index = 0;
-
-  nextTick(() => {
+  try {
+    const res = await getDeviceTypeStatusCount({ Sszx: moduleConfig.sszx });
+    let index = 0;
     monitoringData.value = res.map((item) => {
-      const itemOnline = item.statusCounts.find((s: any) => s.status === "sbyxzt001")?.count || 0;
-      const itemOffline = item.statusCounts.find((s: any) => s.status === "sbyxzt002")?.count || 0;
-      const itemFault = item.statusCounts.find((s: any) => s.status === "sbyxzt003")?.count || 0;
-
-      online += itemOnline;
-      offline += itemOffline;
-      fault += itemFault;
       index++;
-
       return {
         index,
-        name: csblxMap.value[item.deviceType],
-        online: itemOnline,
-        offline: itemOffline,
-        fault: itemFault,
+        name: csblxMap.value[item.deviceType] || item.deviceType,
+        online: item.statusCounts.find((s: any) => s.status === "sbyxzt001")?.count || 0,
+        offline: item.statusCounts.find((s: any) => s.status === "sbyxzt002")?.count || 0,
+        fault: item.statusCounts.find((s: any) => s.status === "sbyxzt003")?.count || 0,
       };
     });
-
-    topStats.value.online = online;
-    topStats.value.offline = offline;
-    topStats.value.fault = fault;
-  });
+  } catch (error) {
+    console.error("获取设备分类明细失败:", error);
+  }
 };
 
-const rateMap: Record<string, string> = {
-  在线率: "online",
-  故障率: "fault",
-  离线率: "offline",
-};
 const monitoringRate = ref<any[]>([]);
-
-const getDeviceTypeRate = async () => {
-  const res = await getDeviceStatusRate({ Sszx: moduleConfig.sszx });
-  monitoringRate.value = (res as any[]).map((item) => ({
-    ...item,
-    type: rateMap[item.name] || "",
-  }));
-};
 
 // 表格列配置
 const deviceTableColumns = [
@@ -157,8 +147,8 @@ const deviceTableColumns = [
 ];
 
 onMounted(() => {
-  initMonitoringData();
-  getDeviceTypeRate();
+  fetchSpecialRate();
+  initDeviceDetail();
 });
 </script>
 

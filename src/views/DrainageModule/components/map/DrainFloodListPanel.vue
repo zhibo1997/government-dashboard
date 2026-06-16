@@ -55,7 +55,6 @@
               <span class="badge badge-type">{{ getZgztName(item.zgzt) }}</span>
             </div>
             <div class="flood-name">{{ item.jsdmc }}</div>
-            <div class="flood-info">{{ item.jsyy || '—' }}</div>
           </div>
         </div>
 
@@ -112,13 +111,8 @@ const resetFilters = () => {
 };
 
 const getZgztName = (zgzt: string) => {
-  const map: Record<string, string> = {
-    zgzt001: '已整改',
-    zgzt002: '未整改',
-    zgzt003: '整改中',
-    zgzt004: '持续跟进',
-  };
-  return map[zgzt] || zgzt || '—';
+  const item = zgztDict.value.find((d: any) => d.f_ItemValue === zgzt);
+  return item?.f_ItemName || zgzt || '—';
 };
 
 const loadData = async () => {

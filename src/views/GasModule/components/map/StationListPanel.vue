@@ -99,7 +99,7 @@
               <div class="station-badges">
                 <span class="badge badge-type">{{ getSblxName(item.sblx) }}</span>
                 <span class="badge badge-status" :class="item.sbyxzt === 'sbyxzt001' ? 'badge-normal' : 'badge-error'">
-                  {{ item.sbyxzt === 'sbyxzt001' ? '正常' : '异常' }}
+                  {{ item.sbyxzt === 'sbyxzt001' ? '在线' : '离线' }}
                 </span>
               </div>
               <div class="station-name">{{ item.sbmc }}</div>
@@ -134,6 +134,9 @@ import { NSelect } from "naive-ui";
 
 // 监测设备模块点击回调
 const switchToMonitorMode = inject<Ref<(() => void) | null>>('switchToMonitorMode', ref(null));
+
+// 燃气类型字典
+const rqlxDict = ref<Array<{ f_ItemValue: string; f_ItemName: string }>>([])
 
 const props = defineProps({
   visible: {
@@ -216,12 +219,9 @@ const resetFilters = () => {
 };
 
 // 获取场站类型文本
-const getStationType = (rqlx) => {
-  const typeMap = {
-    'rqlx001': '天然气',
-    'rqlx002': '液化气',
-  };
-  return typeMap[rqlx] || rqlx || '未知类型';
+const getStationType = (rqlx: string) => {
+  const item = rqlxDict.value.find((d) => d.f_ItemValue === rqlx);
+  return item?.f_ItemName || rqlx || '未知类型';
 };
 
 // 当前列表模式
@@ -270,8 +270,12 @@ onMounted(async () => {
 
   // 加载设备类型字典
   try {
-    const rqDict = await getCachedDictionary("jcsblx_rq");
-    const rqzdyhDict = await getCachedDictionary("jcsblx_rqzdyh");
+    const [rqlxData, rqDict, rqzdyhDict] = await Promise.all([
+      getCachedDictionary("rqlx"),
+      getCachedDictionary("jcsblx_rq"),
+      getCachedDictionary("jcsblx_rqzdyh"),
+    ]);
+    rqlxDict.value = rqlxData || [];
     const allDict = [...(rqDict || []), ...(rqzdyhDict || [])];
     sblxDictMap.value = allDict.reduce((acc: Record<string, string>, cur: any) => {
       acc[cur.f_ItemValue] = cur.f_ItemName;
@@ -282,7 +286,7 @@ onMounted(async () => {
       value: item.f_ItemValue,
     }));
   } catch (error) {
-    console.error("加载设备类型字典失败:", error);
+    console.error("加载字典数据失败:", error);
   }
   loadStations();
 });

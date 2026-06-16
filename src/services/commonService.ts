@@ -110,8 +110,8 @@ export async function getEmergencyCapacityList(params?: { Sszx?: string }) {
  * 获取各专项设备在线离线数量和比例
  * @param sszx 所属专项代码
  */
-export async function getSpecialRateList(sszx: string) {
-  const res = await get<any>('/gspspDtransPubmnteqpinfo/specialRateList', { sszx })
+export async function getSpecialRateList() {
+  const res = await get<any>('/gspspDtransPubmnteqpinfo/specialRateList')
   return res.data || []
 }
 

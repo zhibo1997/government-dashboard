@@ -39,7 +39,7 @@
           ref="carouselRef"
           effect="card"
           :loop="true"
-          :autoplay="false"
+          :autoplay="true"
           :autoplay-speed="3000"
           :transition-duration="500"
           :show-dots="false"

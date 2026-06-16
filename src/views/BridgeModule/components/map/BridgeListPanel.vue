@@ -146,14 +146,9 @@ const resetFilters = () => {
 };
 
 // 获取桥梁类型文本
-const getBridgeType = (qllx) => {
-  const typeMap = {
-    'qllx001': '钢构桥',
-    'qllx002': '钢筋混凝土桥',
-    'qllx003': '圬工桥',
-    'qllx004': '其他',
-  };
-  return typeMap[qllx] || qllx || '未知类型';
+const getBridgeType = (qllx: string) => {
+  const item = qllxDict.value.find((d: any) => d.value === qllx);
+  return item?.text || qllx || '未知类型';
 };
 
 // 加载桥梁数据

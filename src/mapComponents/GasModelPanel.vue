@@ -127,7 +127,8 @@ function toggleItem(item: GasModel) {
 
 .gas-card {
   flex-shrink: 0;
-  width: 240px;
+  min-width: 120px;
+  max-width: 240px;
   border-radius: 8px;
   cursor: pointer;
   border: 4px solid rgba(255, 255, 255, 0.15);

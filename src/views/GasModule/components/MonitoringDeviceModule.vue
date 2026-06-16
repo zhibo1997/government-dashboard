@@ -52,10 +52,7 @@
 <script setup lang="ts">
 import { getCachedDictionary } from "@/services/dictionaryService";
 import { getEquipmentOperationStatusList } from "@/services/gasService";
-import {
-  getDeviceStatusRate,
-  getDeviceTypeStatusCount,
-} from "@/services/waterSupplyService";
+import { getSpecialRateList } from "@/services/commonService";
 
 import { ref, onMounted, inject, computed, type Ref } from "vue";
 import CommonTable from '@/components/CommonTable.vue';
@@ -72,27 +69,28 @@ onMounted(async () => {
     return acc;
   }, {});
 
-  initMonitoringCount();
-  getDeviceTypeRate();
-
+  fetchSpecialRate();
   initGasOnlineStatus();
 });
 
-// 获取设备运行状态
-const getDeviceTypeRate = async () => {
-  const res = await getDeviceStatusRate({ Sszx: "csaqzx_rq" });
-  topStats.value.onlineRate =
-    (res as Array<any>).find((item) => item.name === "在线率")?.value || "-";
-
-  const rateMap: Record<string, string> = {
-    在线率: "online",
-    故障率: "fault",
-    离线率: "offline",
-  };
-  monitoringRate.value = (res as Array<any>).map((item) => ({
-    ...item,
-    type: rateMap[item.name] || "",
-  }));
+// 从 getSpecialRateList 获取设备数量和在线率
+const fetchSpecialRate = async () => {
+  try {
+    const data = await getSpecialRateList();
+    const item = Array.isArray(data) ? data.find((d: any) => d.sszx === "csaqzx_rq") : null;
+    if (item) {
+      topStats.value.online = item.onlineCount || 0;
+      topStats.value.offline = item.offlineCount || 0;
+      topStats.value.fault = item.faultCount || 0;
+      monitoringRate.value = [
+        { name: "在线率", value: item.onlineRate || "0%", type: "online" },
+        { name: "离线率", value: item.offlineRate || "0%", type: "offline" },
+        { name: "故障率", value: item.faultRate || "0%", type: "fault" },
+      ];
+    }
+  } catch (error) {
+    console.error("获取专项设备数据失败:", error);
+  }
 };
 
 //获取设备情况并更新分类统计
@@ -132,46 +130,6 @@ const initGasOnlineStatus = async () => {
     }));
   } catch (error) {
     console.error("获取设备在线状态失败:", error);
-  }
-};
-
-const initMonitoringCount = async () => {
-  try {
-    const res = await getDeviceTypeStatusCount({ Sszx: "csaqzx_rq" });
-
-    // 计算总设备数
-    let total = 0;
-    let online = 0;
-    let offline = 0;
-    let fault = 0;
-
-    // 遍历所有设备类型的状态数据
-    (res as Array<any>).forEach((item) => {
-      item.statusCounts.forEach((status) => {
-        const count = status.count || 0;
-        total += count;
-
-        switch (status.status) {
-          case "sbyxzt001": // 在线
-            online += count;
-            break;
-          case "sbyxzt002": // 离线
-            offline += count;
-            break;
-          case "sbyxzt003": // 故障
-            fault += count;
-            break;
-        }
-      });
-    });
-
-    topStats.value.online = online;
-    topStats.value.offline = offline;
-
-    // 这里可以进一步处理设备分类数据，如果需要的话
-    // 目前保持原有的硬编码数据不变
-  } catch (error) {
-    console.error("获取设备状态数据失败:", error);
   }
 };
 

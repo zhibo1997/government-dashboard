@@ -156,7 +156,7 @@ const processedTableData = computed(() => {
     stationName: item.czmc || '—',
     position: item.xxdz || '—',
     stationType: getCzlxName(item.czlx),
-    runStatus: item.sjtbzt === 'I' ? '正常' : '异常',
+    runStatus: item.sjtbzt === 'I' ? '在线' : '离线',
   }));
 });
 

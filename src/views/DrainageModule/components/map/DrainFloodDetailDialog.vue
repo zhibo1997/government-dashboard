@@ -23,7 +23,7 @@
       </div>
 
       <!-- 操作按钮 -->
-      <div class="action-section">
+      <div class="action-section" v-if="hasCamera">
         <button class="action-btn btn-camera" @click="handleShowCamera">
           查看监控
         </button>
@@ -59,6 +59,10 @@ const props = defineProps({
   floodData: {
     type: Object,
     default: () => ({}),
+  },
+  hasCamera: {
+    type: Boolean,
+    default: false,
   },
 });
 

@@ -16,9 +16,9 @@
         <div class="status-badge-row">
           <button class="badge-btn badge-type">天然气企业</button>
           <button class="badge-btn badge-normal" v-if="stationData?.sjtbzt === 'I'">
-            正常
+            在线
           </button>
-          <button class="badge-btn badge-error" v-else>异常</button>
+          <button class="badge-btn badge-error" v-else>离线</button>
         </div>
 
         <div class="info-grid">
@@ -34,9 +34,9 @@
         <div class="status-badge-row">
           <button class="badge-btn badge-type">液化气企业</button>
           <button class="badge-btn badge-normal" v-if="stationData?.sjtbzt === 'I'">
-            正常
+            在线
           </button>
-          <button class="badge-btn badge-error" v-else>异常</button>
+          <button class="badge-btn badge-error" v-else>离线</button>
         </div>
 
         <div class="info-grid">

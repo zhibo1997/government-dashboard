@@ -13,6 +13,7 @@ export interface SurveillanceVideoPageParams {
   rows: string       // 每页条数
   spmc?: string      // 视频名称（模糊搜索）
   spszwz?: string    // 所在位置（桥梁名称筛选）
+  glmbbh?: string    // 关联目标编号（设备编号筛选）
   sszx: string       // 所属专项
 }
 

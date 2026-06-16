@@ -72,11 +72,24 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, onMounted } from 'vue'
 import { getBridgeTargetEquipmentPageList } from '@/services/bridgeService'
+import { getCachedDictionary } from '@/services/dictionaryService'
 import { Close } from '@vicons/ionicons5'
 import { NButton, NIcon } from 'naive-ui'
 import CommonTable from '@/components/CommonTable.vue'
+
+const sbyxztDict = ref<Array<{ f_ItemValue: string; f_ItemName: string }>>([])
+const sbywztDict = ref<Array<{ f_ItemValue: string; f_ItemName: string }>>([])
+
+onMounted(async () => {
+  const [d1, d2] = await Promise.all([
+    getCachedDictionary('sbyxzt'),
+    getCachedDictionary('sbywzt'),
+  ])
+  sbyxztDict.value = d1 || []
+  sbywztDict.value = d2 || []
+})
 
 const props = defineProps({
   visible: {
@@ -252,21 +265,13 @@ const visiblePages = computed(() => {
 })
 
 const formatDeviceStatus = (sbyxzt: string) => {
-  const map: Record<string, string> = {
-    'sbyxzt001': '在线',
-    'sbyxzt002': '离线',
-    'sbyxzt003': '故障',
-  }
-  return map[sbyxzt] || sbyxzt || '—'
+  const item = sbyxztDict.value.find((d: any) => d.f_ItemValue === sbyxzt)
+  return item?.f_ItemName || sbyxzt || '—'
 }
 
 const formatMaintStatus = (sbywzt: string) => {
-  const map: Record<string, string> = {
-    'sbywzt001': '完好',
-    'sbywzt002': '维修',
-    'sbywzt003': '停用',
-  }
-  return map[sbywzt] || sbywzt || '—'
+  const item = sbywztDict.value.find((d: any) => d.f_ItemValue === sbywzt)
+  return item?.f_ItemName || sbywzt || '—'
 }
 
 // 查看设备 - 通知父组件显示详情弹窗

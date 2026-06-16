@@ -47,27 +47,13 @@
 </template>
 
 <script setup lang="ts">
-import { getBridgeEquipmentOnlineCount, getBridgeEquipmentRunStatusList } from "@/services/bridgeService";
-import { getDeviceStatusRate } from "@/services/waterSupplyService";
+import { getBridgeEquipmentRunStatusList } from "@/services/bridgeService";
+import { getSpecialRateList } from "@/services/commonService";
 import { ref, computed, onMounted } from "vue";
 import CommonTable from '@/components/CommonTable.vue';
 
 // 在线率概览数据
 const monitoringRate = ref<any[]>([]);
-
-// 获取设备运行状态比率
-const getDeviceTypeRate = async () => {
-  const res = await getDeviceStatusRate({ Sszx: "csaqzx_ql" });
-  const rateMap: Record<string, string> = {
-    在线率: "online",
-    故障率: "fault",
-    离线率: "offline",
-  };
-  monitoringRate.value = (res as Array<any>).map((item) => ({
-    ...item,
-    type: rateMap[item.name] || "",
-  }));
-};
 
 // 顶部统计数据
 const topStats = ref({
@@ -75,6 +61,26 @@ const topStats = ref({
   offline: 0,
   fault: 0,
 });
+
+// 从 getSpecialRateList 获取设备数量和在线率
+const fetchSpecialRate = async () => {
+  try {
+    const data = await getSpecialRateList();
+    const item = Array.isArray(data) ? data.find((d: any) => d.sszx === "csaqzx_ql") : null;
+    if (item) {
+      topStats.value.online = item.onlineCount || 0;
+      topStats.value.offline = item.offlineCount || 0;
+      topStats.value.fault = item.faultCount || 0;
+      monitoringRate.value = [
+        { name: "在线率", value: item.onlineRate || "0%", type: "online" },
+        { name: "离线率", value: item.offlineRate || "0%", type: "offline" },
+        { name: "故障率", value: item.faultRate || "0%", type: "fault" },
+      ];
+    }
+  } catch (error) {
+    console.error("获取专项设备数据失败:", error);
+  }
+};
 
 // 预警统计数据
 const warningStatistics = ref<
@@ -103,43 +109,9 @@ const tableData = computed(() => {
 
 // 初始化获取数据
 onMounted(async () => {
-  await initMonitoringCount();
+  await fetchSpecialRate();
   await initWarningStatistics();
-  await getDeviceTypeRate();
 });
-
-// 获取监测设备统计数据
-const initMonitoringCount = async () => {
-  try {
-    const res = await getBridgeEquipmentOnlineCount();
-
-    // 计算总设备数
-    let online = 0;
-    let offline = 0;
-    let fault = 0;
-
-    // 遍历设备状态数据
-    (res as Array<any>).forEach((item) => {
-      const count = item.count || 0;
-      switch (item.sbyxzt) {
-        case "sbyxzt001": // 在线
-          online += count;
-          break;
-        case "sbyxzt002": // 离线
-          offline += count;
-          break;
-        case "sbyxzt003": // 故障
-          fault += count;
-          break;
-      }
-    });
-    topStats.value.online = online;
-    topStats.value.offline = offline;
-    topStats.value.fault = fault;
-  } catch (error) {
-    console.error("获取设备状态数据失败:", error);
-  }
-};
 
 // 获取预警类型统计数据
 const initWarningStatistics = async () => {
