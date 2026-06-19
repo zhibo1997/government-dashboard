@@ -64,9 +64,10 @@ const baseUrl = import.meta.env.VITE_BASE_URL || '';
 
 // 从 store 中按 ID 查找图层数据，组合配置生成运行时 bridgeList
 const bridgeList = computed<BridgeModel[]>(() => {
+  console.log('🔍 bridgeList 计算, layerTreeLoaded:', mapStore.layerTreeLoaded);
   if (!mapStore.layerTreeLoaded) return [];
 
-  return BRIDGE_LAYER_CONFIG.map((cfg) => {
+  const list = BRIDGE_LAYER_CONFIG.map((cfg) => {
     const mainLayer = mapStore.findLayerById(cfg.id);
     const equipLayer = cfg.equipmentId ? mapStore.findLayerById(cfg.equipmentId) : null;
 
@@ -100,7 +101,9 @@ function convertUrlProtocol(url: string): string {
 }
 
 function toggleBridge(bridge: BridgeModel) {
+  console.log('🖱️ 点击桥梁卡片:', bridge.name, bridge.id);
   const isActive = activeBridgeIds.has(bridge.id);
+  console.log('  当前状态:', isActive ? '已激活' : '未激活');
 
   if (isActive) {
     activeBridgeIds.delete(bridge.id);
@@ -132,9 +135,14 @@ function toggleBridge(bridge: BridgeModel) {
 }
 
 function toggleEquipment(bridge: BridgeModel, checked: boolean) {
-  if (!bridge.equipment) return;
+  console.log('🖱️ 点击设备复选框:', bridge.name, '设备ID:', bridge.equipment?.id, '勾选:', checked);
+  if (!bridge.equipment) {
+    console.warn('  ⚠️ 该桥梁无设备配置');
+    return;
+  }
 
   const url = convertUrlProtocol(bridge.equipment.url);
+  console.log('  设备URL:', url);
 
   if (checked) {
     activeBridgeIds.add(bridge.equipment.id);

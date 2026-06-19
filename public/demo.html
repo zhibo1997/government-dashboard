@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <title>Cesium 3D Tiles 属性拾取 Demo</title>
+  <script src="/clmap/Cesium/Cesium.js"></script>
+  <link rel="stylesheet" href="/clmap/Cesium/Widgets/widgets.css" />
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { width: 100%; height: 100%; overflow: hidden; }
+    body { position: relative; }
+    #cesiumContainer { position: absolute; top: 0; left: 300px; right: 0; bottom: 0; }
+    .cesium-viewer-bottom { display: none !important; }
+    #devicePanel {
+      position: absolute; top: 0; left: 0; width: 300px; height: calc(100% - 240px); z-index: 999;
+      background: rgba(10, 20, 30, 0.92); color: #eee; display: flex; flex-direction: column;
+      font-size: 13px;
+    }
+    #devicePanel .panel-tabs { display: flex; border-bottom: 1px solid #2a4a6a; flex-shrink: 0; }
+    #devicePanel .panel-tabs button {
+      flex: 1; padding: 10px 4px; border: none; background: transparent; color: #8ab;
+      cursor: pointer; font-size: 12px; border-bottom: 2px solid transparent; transition: all 0.2s;
+    }
+    #devicePanel .panel-tabs button.active { color: #fff; border-bottom-color: #4a9eff; background: rgba(74, 158, 255, 0.1); }
+    #devicePanel .panel-tabs button:hover { color: #bdf; }
+    #devicePanel .panel-body { flex: 1; overflow-y: auto; padding: 4px 0; }
+    #devicePanel .panel-body .device-item {
+      padding: 6px 12px; cursor: pointer; border-bottom: 1px solid rgba(255,255,255,0.05);
+      transition: background 0.15s; font-family: monospace; font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    #devicePanel .panel-body .device-item:hover { background: rgba(74, 158, 255, 0.15); }
+    #devicePanel .panel-body .device-item .coord { color: #6a8; font-size: 11px; margin-left: 8px; }
+    #devicePanel .panel-body .device-item.empty { color: #666; cursor: default; padding: 20px 12px; text-align: center; }
+    #log {
+      position: absolute; bottom: 10px; left: 310px; z-index: 999;
+      background: rgba(0,0,0,0.75); color: #0f0; padding: 12px 16px;
+      border-radius: 6px; font-size: 12px; max-width: 500px;
+      max-height: 200px; overflow-y: auto; font-family: monospace;
+    }
+  </style>
+</head>
+<body>
+  <div id="cesiumContainer"></div>
+  <div id="devicePanel">
+    <div class="panel-tabs" id="panelTabs"></div>
+    <div class="panel-body" id="panelBody"></div>
+  </div>
+  <div id="log"></div>
+
+  <script>
+    const logEl = document.getElementById('log');
+
+    function log(msg) {
+      console.log(msg);
+      logEl.innerHTML += msg + '<br>';
+      logEl.scrollTop = logEl.scrollHeight;
+    }
+
+    const viewer = new Cesium.Viewer('cesiumContainer', {
+      animation: false,
+      timeline: false,
+      baseLayerPicker: false,
+      geocoder: false,
+      infoBox: false,
+      selectionIndicator: false,
+      navigationHelpButton: false,
+      sceneModePicker: false,
+      homeButton: false,
+      fullscreenButton: false,
+      imageryProvider: new Cesium.UrlTemplateImageryProvider({
+        url: 'https://t{s}.tianditu.gov.cn/img_w/wmts?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=img&STYLE=default&TILEMATRIXSET=w&FORMAT=tiles&TILECOL={x}&TILEROW={y}&TILEMATRIX={z}&tk=ce66c526b6d257e290069df275296cc7',
+        subdomains: ['0', '1', '2', '3', '4', '5', '6', '7'],
+        maximumLevel: 18,
+      }),
+    });
+
+    // 强制触发 resize，解决 canvas 默认 300x150 问题
+    viewer.resize();
+
+    // 挂到 window 方便调试
+    window.viewer = viewer;
+
+    // ===== 光照与阴影 =====
+    viewer.shadows = true;
+    viewer.scene.sun.show = true;
+    viewer.scene.sun.glowFactor = 0.0;
+    viewer.scene.globe.enableLighting = true;
+    viewer.scene.globe.baseColor = Cesium.Color.fromCssColorString('#8899aa');
+    viewer.shadowMap.size = 2048;
+    viewer.shadowMap.softShadows = true;
+    viewer.shadowMap.darkness = 0.6;
+    // 太阳跟随真实时间
+    viewer.clock.currentTime = Cesium.JulianDate.fromDate(new Date());
+    viewer.clock.shouldAnimate = true;
+    viewer.clock.multiplier = 1;
+
+    // 深度检测
+    viewer.scene.globe.depthTestAgainstTerrain = true;
+
+    const bridges = [
+      { qlbh: 'LHQ',  name: '莲花湖大桥',     url: 'https://webres.cityfun.com.cn/CSSMX/model/LHQ/tileset.json',            equipUrl: 'http://webres.cityfun.com.cn/CSSMX/model/LHQ_SB/tileset.json' },
+      { qlbh: 'LYDDLJQ', name: '陵园大道立交桥', url: 'https://webres.cityfun.com.cn/CSSMX/model/LYDDLJQ/tileset.json',        equipUrl: 'http://webres.cityfun.com.cn/CSSMX/model/LYDDLJQ_SB/tileset.json' },
+      { qlbh: 'MYWDQ', name: '明月湾大桥',    url: 'https://webres.cityfun.com.cn/CSSMX/model/MYWDQ/tileset.json',            equipUrl: 'http://webres.cityfun.com.cn/CSSMX/model/MYWDQ_SB/tileset.json' },
+      { qlbh: 'DSHDQ', name: '独山湖大桥',    url: 'http://webres.cityfun.com.cn/CSSMX/model/DSHDQ/tileset.json',             equipUrl: 'http://webres.cityfun.com.cn/CSSMX/model/DSHDQ_SB/tileset.json' },
+    ];
+
+    var bridgeTilesets = {};
+    var equipTilesets = {};
+
+    // ===== 3D Tiles 加载 =====
+    async function loadTileset(url, name) {
+      try {
+        var ts = new Cesium.Cesium3DTileset({
+          url: url,
+          shadows: Cesium.ShadowMode.ENABLED,
+        });
+        await ts.readyPromise;
+        viewer.scene.primitives.add(ts);
+        log('✅ 已加载: ' + name);
+        return ts;
+      } catch (err) {
+        log('❌ 加载失败: ' + name + ' - ' + err.message);
+        return null;
+      }
+    }
+    // ===== 设备列表数据 =====
+    var deviceData = {}; // { qlbh: [{ name, position, lng, lat }, ...] }
+
+    async function loadAllScenetreePoints() {
+      for (var k in equipTilesets) {
+        if (!equipTilesets[k]) continue;
+        var bridge = bridges.find(function(b) { return b.qlbh === k; });
+        if (!bridge) continue;
+        var treeUrl = bridge.equipUrl.replace('tileset.json', 'scenetree.json');
+        try {
+          var res = await fetch(treeUrl);
+          if (!res.ok) { log('⚠ ' + bridge.name + ' scenetree 请求失败: ' + res.status); continue; }
+          var data = await res.json();
+          var scene = data.scenes && data.scenes[0];
+          if (!scene || !scene.children) { log('⚠ ' + bridge.name + ' scenetree 无数据'); continue; }
+          deviceData[k] = [];
+          for (var i = 0; i < scene.children.length; i++) {
+            var el = scene.children[i];
+            if (el.type !== 'element' || !el.sphere || el.sphere.length < 3) continue;
+            var pos = new Cesium.Cartesian3(el.sphere[0], el.sphere[1], el.sphere[2]);
+            var carto = Cesium.Cartographic.fromCartesian(pos);
+            deviceData[k].push({
+              sbbh: el.name,
+              position: pos,
+              lng: Cesium.Math.toDegrees(carto.longitude),
+              lat: Cesium.Math.toDegrees(carto.latitude),
+              height: carto.height,
+            });
+          }
+          renderDevicePanel();
+          log('📌 ' + bridge.name + ' 设备: ' + deviceData[k].length + ' 个');
+        } catch (e) {
+          log('❌ ' + bridge.name + ' scenetree 加载失败: ' + e.message);
+        }
+      }
+    }
+
+    function flyToDevice(qlbh, index) {
+      var list = deviceData[qlbh];
+      if (!list || !list[index]) return;
+      var d = list[index];
+      viewer.camera.flyTo({
+        destination: Cesium.Cartesian3.fromDegrees(d.lng, d.lat, d.height + 2),
+        orientation: {
+          heading: Cesium.Math.toRadians(0),
+          pitch: Cesium.Math.toRadians(-90),
+          roll: 0,
+        },
+      });
+    }
+
+    var activeTab = null;
+    function renderDevicePanel() {
+      var keys = Object.keys(deviceData);
+      if (keys.length === 0) return;
+      if (!activeTab) activeTab = keys[0];
+      // 渲染 tabs
+      var tabsHtml = '';
+      for (var i = 0; i < keys.length; i++) {
+        var b = bridges.find(function(x) { return x.qlbh === keys[i]; });
+        tabsHtml += '<button class="' + (keys[i] === activeTab ? 'active' : '') + '" onclick="switchTab(\'' + keys[i] + '\')">' + (b ? b.name : keys[i]) + '</button>';
+      }
+      document.getElementById('panelTabs').innerHTML = tabsHtml;
+      renderTabContent(activeTab);
+    }
+
+    function switchTab(qlbh) {
+      activeTab = qlbh;
+      renderDevicePanel();
+    }
+
+    function renderTabContent(qlbh) {
+      var list = deviceData[qlbh];
+      var html = '';
+      if (!list || list.length === 0) {
+        html = '<div class="device-item empty">暂无设备数据</div>';
+      } else {
+        for (var i = 0; i < list.length; i++) {
+          var d = list[i];
+          html += '<div class="device-item" onclick="flyToDevice(\'' + qlbh + '\',' + i + ')">'
+            + d.sbbh
+            + '<span class="coord">' + d.lng.toFixed(4) + ', ' + d.lat.toFixed(4) + '</span>'
+            + '</div>';
+        }
+      }
+      document.getElementById('panelBody').innerHTML = html;
+    }
+
+    (async function () {
+      for (var i = 0; i < bridges.length; i++) {
+        var b = bridges[i];
+        bridgeTilesets[b.qlbh] = await loadTileset(b.url, b.name);
+        if (bridgeTilesets[b.qlbh]) {
+          bridgeTilesets[b.qlbh].style = new Cesium.Cesium3DTileStyle({
+            color: "color('white', 1.0)",
+          });
+        }
+        equipTilesets[b.qlbh] = await loadTileset(b.equipUrl, b.name + ' 设备');
+      }
+
+      // 加载所有设备 scenetree 点位
+      await loadAllScenetreePoints();
+
+      // 定位到第一个有数据的桥
+      var firstKey = Object.keys(deviceData)[0];
+      if (firstKey) {
+        var firstDev = deviceData[firstKey][0];
+        if (firstDev) {
+          viewer.camera.flyTo({
+            destination: Cesium.Cartesian3.fromDegrees(firstDev.lng, firstDev.lat, 400),
+            orientation: { heading: 0, pitch: Cesium.Math.toRadians(-60), roll: 0 },
+          });
+        }
+      }
+    })();
+  </script>
+</body>
+</html>

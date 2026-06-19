@@ -415,6 +415,8 @@ const handleLayerToggle = (
 
 // 处理监测设备激活/取消
 const handleEquipmentActivate = (bridge: any, active: boolean) => {
+  console.log('🎯 handleEquipmentActivate:', bridge.name, 'active:', active);
+  console.log('  已加载图层:', [...loadedLayers.value.keys()]);
   if (active) {
     const applyStyle = () => {
       // 桥梁模型变透明

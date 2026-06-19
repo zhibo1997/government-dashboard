@@ -6,7 +6,7 @@
 // 桥梁模型 ID 配置
 export const BRIDGE_LAYER_CONFIG = [
   {
-    id: '06ad0be1-f8fd-44fb-92ec-be82de6f8f38',
+    id: 'cea5650d-878b-4440-834b-64ddbc5ddf93',
     qlbh: 'LHHDQ',
     image: '莲花湖大桥（莲花湖一号桥主桥）.png',
     equipmentId: 'ad960df4-4bd4-414c-a69c-6257d86982b2',

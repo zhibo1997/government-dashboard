@@ -445,6 +445,56 @@ function on3DTilesReady({ Cesium, cesiumObject }: any) {
 }
 
 /**
+ * 3D Tiles 点击事件处理
+ */
+function setupTilesetClickHandler(viewer: any, Cesium: any) {
+  const handler = new Cesium.ScreenSpaceEventHandler(viewer.scene.canvas)
+
+  handler.setInputAction((movement: any) => {
+    // 拾取 3D Tiles
+    const picked = viewer.scene.pick(movement.position)
+    if (!picked) return
+
+    // 获取被点击的 tileset
+    let tileset = null
+    if (picked.primitive instanceof Cesium.Cesium3DTileset) {
+      tileset = picked.primitive
+    } else if (picked.content?.tile?.tileset) {
+      tileset = picked.content.tile.tileset
+    }
+
+    if (!tileset) return
+
+    // 尝试获取要素信息
+    let featureInfo: any = { name: '未知' }
+    if (picked.getPropertyNames) {
+      const names = picked.getPropertyNames()
+      names.forEach((name: string) => {
+        featureInfo[name] = picked.getProperty(name)
+      })
+    }
+
+    console.log('🖱️ 点击 3D Tile:', featureInfo)
+
+    // 高亮被点击的 tileset
+    try {
+      tileset.style = new Cesium.Cesium3DTileStyle({
+        color: "color('cyan', 0.8)",
+      })
+      viewer.scene.requestRender()
+
+      // 2秒后恢复
+      setTimeout(() => {
+        tileset.style = undefined
+        viewer.scene.requestRender()
+      }, 2000)
+    } catch (e) {
+      console.warn('设置高亮样式失败:', e)
+    }
+  }, Cesium.ScreenSpaceEventType.LEFT_CLICK)
+}
+
+/**
  * Viewer准备就绪回调
  */
 async function onViewerReady({ Cesium, viewer }: any) {
@@ -470,6 +520,9 @@ async function onViewerReady({ Cesium, viewer }: any) {
     },
     duration: 0,
   })
+
+  // 3D Tiles 点击事件
+  setupTilesetClickHandler(viewer, Cesium)
 
   // 初始化监测点位功能
   await initMonitoringPoints(viewer)
