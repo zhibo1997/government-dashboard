@@ -158,16 +158,6 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
 
-  .module-header {
-    flex-shrink: 0;
-
-    .module-title {
-      font-size: var(--font-size-subtitle);
-      font-weight: var(--font-weight-medium);
-      color: #effaff;
-    }
-  }
-
   .module-content {
     flex: 1;
     display: flex;
@@ -365,6 +355,7 @@ onMounted(() => {
   // 表格区域 — flex: 1 撑满剩余空间，内部滚动
   .table-wrapper {
     flex: 1;
+    width: 100%;
     min-height: 0;
     overflow: hidden;
   }

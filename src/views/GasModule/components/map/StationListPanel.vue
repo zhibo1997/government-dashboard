@@ -35,7 +35,7 @@
             </div>
           </div>
         </div>
-        <img src="@/assets/img/gasModule/icon_close.webp" class="panel-close" alt="" />
+        <img src="@/assets/img/gasModule/icon_close.webp" class="panel-close" alt="" @click="closePanel" />
       </div>
 
       <!-- 筛选条件 -->
@@ -102,7 +102,7 @@
                   {{ item.sbyxzt === 'sbyxzt001' ? '在线' : '离线' }}
                 </span>
               </div>
-              <div class="station-name">{{ item.sbmc }}</div>
+              <div class="station-name">{{ (item.gldwbh || '').replace(/^420200420222/, '') }}</div>
               <div class="station-address">{{ item.sbbh }}</div>
             </div>
           </template>
@@ -145,15 +145,20 @@ const props = defineProps({
   },
 });
 
-const emit = defineEmits(["update:visible", "station-click", "equipment-click"]);
+const emit = defineEmits(["update:visible", "station-click", "equipment-click", "collapsed-change"]);
 
 // 面板折叠状态
 const isCollapsed = ref(true);
 const showSearch = ref(false);
 
+// 折叠状态变化时通知父组件
+watch(isCollapsed, (val) => {
+  emit("collapsed-change", val);
+});
+
 // 标题下拉切换
 const showTitleMenu = ref(false);
-const currentTitle = ref('燃气企业');
+const currentTitle = ref('监测设备');
 const titleOptions = [
   { label: '燃气企业', value: 'enterprise' },
   { label: '监测设备', value: 'monitor' },
@@ -337,6 +342,12 @@ const visiblePages = computed(() => {
 // 切换面板显示
 const togglePanel = () => {
   isCollapsed.value = !isCollapsed.value;
+};
+
+// 关闭面板
+const closePanel = () => {
+  isCollapsed.value = true;
+  emit("update:visible", false);
 };
 
 // 切换搜索框

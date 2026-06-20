@@ -16,7 +16,7 @@
         <div class="title-container">
           <span class="title-text">桥梁</span>
         </div>
-        <img src="@/assets/img/gasModule/icon_close.webp" class="panel-close" alt="" />
+        <img src="@/assets/img/gasModule/icon_close.webp" class="panel-close" alt="" @click="closePanel" />
       </div>
 
       <!-- 筛选条件 -->
@@ -116,11 +116,16 @@ const props = defineProps({
   },
 });
 
-const emit = defineEmits(["update:visible", "bridge-click"]);
+const emit = defineEmits(["update:visible", "bridge-click", "collapsed-change"]);
 
 // 面板折叠状态
 const isCollapsed = ref(true);
 const showSearch = ref(false);
+
+// 折叠状态变化时通知父组件
+watch(isCollapsed, (val) => {
+  emit("collapsed-change", val);
+});
 
 
 // 筛选条件
@@ -230,6 +235,12 @@ const visiblePages = computed(() => {
 // 切换面板显示
 const togglePanel = () => {
   isCollapsed.value = !isCollapsed.value;
+};
+
+// 关闭面板
+const closePanel = () => {
+  isCollapsed.value = true;
+  emit("update:visible", false);
 };
 
 // 切换搜索框

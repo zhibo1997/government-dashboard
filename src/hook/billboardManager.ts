@@ -63,8 +63,9 @@ export function createBillboardCanvasWithArrow(
 
   // 确保 parsedJcz 是有效数组
   const dataRows = Array.isArray(point.parsedJcz) ? Math.max(1, point.parsedJcz.length) : 1;
-  const contentBodyHeight = dataRows * lineHeight + padding * 2;
-  const height = Math.max(1, headerHeight + contentBodyHeight); // 确保高度至少为1
+  // 内容区 = 设备名称行 + 数据行
+  const contentBodyHeight = (1 + dataRows) * lineHeight + padding * 2;
+  const height = Math.max(1, headerHeight + contentBodyHeight);
 
   canvas.width = width;
   canvas.height = height;
@@ -80,7 +81,21 @@ export function createBillboardCanvasWithArrow(
   ctx.fillStyle = headerGrad;
   ctx.fillRect(0, 0, width, headerHeight);
 
-  // 2. 绘制内容背景 - 水平渐变 (左0.85 → 中1.0 → 右0.85)
+  // 2. 绘制时间图标
+  const iconSize = 19;
+  const iconY = (headerHeight - iconSize) / 2;
+  if (resources.timeIcon.complete && resources.timeIcon.naturalWidth > 0) {
+    ctx.drawImage(resources.timeIcon, padding, iconY, iconSize, iconSize);
+  }
+
+  // 3. 绘制时间文字
+  ctx.fillStyle = '#3FFFFF';
+  ctx.font = '500 19px "Source Han Sans SC", "Microsoft YaHei", Arial, sans-serif';
+  ctx.textBaseline = 'middle';
+  const timeTextX = padding + iconSize + 4;
+  ctx.fillText(point.formattedTime || '-', timeTextX, headerHeight / 2);
+
+  // 4. 绘制内容背景 - 水平渐变 (左0.85 → 中1.0 → 右0.85)
   const contentGrad = ctx.createLinearGradient(0, 0, width, 0);
   contentGrad.addColorStop(0, "rgba(6, 30, 52, 0.85)");
   contentGrad.addColorStop(0.5, "rgba(6, 30, 52, 1)");
@@ -88,24 +103,18 @@ export function createBillboardCanvasWithArrow(
   ctx.fillStyle = contentGrad;
   ctx.fillRect(0, headerHeight - 2, width, contentBodyHeight);
 
-  // 3. 绘制时间图标
-  const iconSize = 19;
-  const iconY = (headerHeight - iconSize) / 2;
-  if (resources.timeIcon.complete && resources.timeIcon.naturalWidth > 0) {
-    ctx.drawImage(resources.timeIcon, padding, iconY, iconSize, iconSize);
-  }
-
-  // 4. 绘制时间文字
-  ctx.fillStyle = '#3FFFFF';
-  ctx.font = '500 19px "Source Han Sans SC", "Microsoft YaHei", Arial, sans-serif';
+  // 5. 绘制设备名称（内容区第一行）
+  let yOffset = headerHeight + padding + lineHeight / 2;
+  ctx.fillStyle = '#FFFFFF';
+  ctx.font = '500 18px "Source Han Sans SC", "Microsoft YaHei", Arial, sans-serif';
   ctx.textBaseline = 'middle';
-  const timeTextX = padding + iconSize + 4;
-  ctx.fillText(point.formattedTime || '-', timeTextX, headerHeight / 2);
-  console.info("🚀 ~ createBillboardCanvasWithArrow ~ point:", point)
+  ctx.textAlign = 'left';
+  const sbmcText = point.sbmc || point.sbbh || '-';
+  ctx.fillText(sbmcText, padding, yOffset);
+  yOffset += lineHeight;
 
-  // 5. 绘制监测数据
+  // 6. 绘制监测数据
   if (Array.isArray(point.parsedJcz) && point.parsedJcz.length > 0) {
-    let yOffset = headerHeight + padding + lineHeight / 2;
     const bulletRadius = 3;
     const bulletOuterRadius = 4;
     const bulletX = padding + 6;

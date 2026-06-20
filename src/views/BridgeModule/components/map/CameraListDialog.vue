@@ -1,5 +1,5 @@
 <template>
-  <div class="camera-dialog" v-show="visible" :style="{ left: dialogLeft, width: dialogWidth }">
+  <div class="camera-dialog" v-show="visible">
     <div class="dialog-header">
       <div class="dialog-title gradient-text">监控视频列表</div>
       <div class="close-btn" @click="handleClose">
@@ -74,30 +74,16 @@
 import { ref, computed, watch, onMounted, onBeforeUnmount } from 'vue'
 import { useVueCesium } from 'vue-cesium'
 import { getSurveillanceVideoPage } from '@/services/surveillanceVideoService'
+import { useBottomPanelStore } from '@/stores/bottomPanelStore'
 import { Close } from '@vicons/ionicons5'
 import { NButton, NIcon } from 'naive-ui'
 import CommonTable from '@/components/CommonTable.vue'
 
-const props = defineProps({
-  visible: {
-    type: Boolean,
-    default: false,
-  },
-  bridgeName: {
-    type: String,
-    default: '',
-  },
-  dialogLeft: {
-    type: String,
-    default: '1320px',
-  },
-  dialogWidth: {
-    type: String,
-    default: '1920px',
-  },
-})
+const bottomPanelStore = useBottomPanelStore()
+const visible = computed(() => bottomPanelStore.activePanel === 'camera')
+const bridgeName = computed(() => bottomPanelStore.panelData.bridgeName || '')
 
-const emit = defineEmits(['update:visible', 'camera-view', 'cameras-loaded'])
+const emit = defineEmits(['camera-view', 'cameras-loaded'])
 
 const viewer = ref<Cesium.Viewer | null>(null)
 const searchKeyword = ref('')
@@ -130,7 +116,7 @@ onMounted(async () => {
 })
 
 // 监听 visible 变化
-watch(() => props.visible, (val) => {
+watch(visible, (val) => {
   if (val) {
     currentPage.value = 1
     searchKeyword.value = ''
@@ -152,8 +138,8 @@ const fetchData = async () => {
     if (searchKeyword.value) {
       params.spmc = searchKeyword.value
     }
-    if (props.bridgeName) {
-      params.spszwz = props.bridgeName
+    if (bridgeName.value) {
+      params.spszwz = bridgeName.value
     }
     const res = await getSurveillanceVideoPage(params)
     if (res && res.rows) {
@@ -225,7 +211,7 @@ const removeAllCameraMarkers = () => {
 
 const handleClose = () => {
   removeAllCameraMarkers()
-  emit('update:visible', false)
+  bottomPanelStore.hidePanel()
 }
 
 const handleSearch = () => {
@@ -289,8 +275,8 @@ onBeforeUnmount(() => {
 .camera-dialog {
   position: absolute;
   bottom: 0;
-  left: 1320px;
-  width: 1920px;
+  left: var(--bottom-panel-left, 1320px);
+  width: var(--bottom-panel-width, 1920px);
   max-height: 80vh;
   z-index: 200;
   overflow: hidden;

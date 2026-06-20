@@ -96,7 +96,27 @@ const initChart = () => {
 
 // 更新图表数据
 const updateChart = (data) => {
-  if (!handledEchart || !data) return;
+  if (!handledEchart) return;
+
+  // 无数据时显示占位
+  if (!data || !Array.isArray(data) || data.length === 0) {
+    handledEchart.setOption({
+      ...handledOption,
+      xAxis: { ...handledOption.xAxis, data: [] },
+      series: handledOption.series.map(s => ({ ...s, data: [] })),
+      graphic: {
+        type: 'text',
+        left: 'center',
+        top: 'middle',
+        style: {
+          text: '暂无数据',
+          fontSize: 28,
+          fill: 'rgba(255, 255, 255, 0.4)',
+        },
+      },
+    }, true);
+    return;
+  }
 
   handledOption.xAxis.data = data.map((item) => `${item.year}-${item.month}`);
   handledOption.series[0].data = data.map((d) => d.unhandledCount);
@@ -105,7 +125,8 @@ const updateChart = (data) => {
     (d.handledCount / (d.unhandledCount + d.handledCount)) * 100
   );
 
-  handledEchart.setOption(handledOption, true);
+  // 有数据时清除占位
+  handledEchart.setOption({ ...handledOption, graphic: { elements: [] } }, true);
 };
 
 // 获取所有数据

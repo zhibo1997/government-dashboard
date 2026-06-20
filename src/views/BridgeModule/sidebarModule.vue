@@ -3,6 +3,7 @@
   <BridgeListPanel
     v-model:visible="showBridgeList"
     @bridge-click="handleBridgeClick"
+    @collapsed-change="handleCollapsedChange"
   />
 
   <!-- 桥梁详情弹窗 -->
@@ -16,8 +17,6 @@
 
   <!-- 监测设备弹窗 -->
   <EquipmentDialog
-    v-model:visible="showEquipmentDialog"
-    :bridge-data="selectedBridge"
     @equipment-view="handleEquipmentView"
   />
 
@@ -29,8 +28,6 @@
 
   <!-- 监控视频列表弹窗 -->
   <CameraListDialog
-    v-model:visible="showCameraDialog"
-    :bridge-name="selectedBridge?.llmc || ''"
     @camera-view="handleCameraView"
     @cameras-loaded="handleCamerasLoaded"
   />
@@ -51,7 +48,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue";
+import { ref, watch } from "vue";
+import { useBottomPanelStore } from "@/stores/bottomPanelStore";
 import BridgeListPanel from "./components/map/BridgeListPanel.vue";
 import BridgeDetailDialog from "./components/map/BridgeDetailDialog.vue";
 import EquipmentDialog from "./components/map/EquipmentDialog.vue";
@@ -65,11 +63,10 @@ defineOptions({
 });
 
 // 控制显示状态
+const bottomPanelStore = useBottomPanelStore();
 const showBridgeList = ref(true);
 const showBridgeDetail = ref(false);
-const showEquipmentDialog = ref(false);
 const showEquipmentDetail = ref(false);
-const showCameraDialog = ref(false);
 const showCameraDetail = ref(false);
 const showVideoPopup = ref(false);
 const selectedBridge = ref<any>(null);
@@ -78,20 +75,31 @@ const selectedCamera = ref<any>({});
 const currentVideoUrl = ref('');
 const currentCameraName = ref('');
 
+// 侧边栏折叠状态同步
+const handleCollapsedChange = (collapsed: boolean) => {
+  bottomPanelStore.setSidebarCollapsed(collapsed);
+};
+
+// 根据侧边栏状态设置底部面板 CSS 变量
+watch(() => bottomPanelStore.sidebarCollapsed, (collapsed) => {
+  const left = collapsed ? '860px' : '1320px';
+  const width = collapsed ? '2380px' : '1920px';
+  document.documentElement.style.setProperty('--bottom-panel-left', left);
+  document.documentElement.style.setProperty('--bottom-panel-width', width);
+}, { immediate: true });
+
 // 处理桥梁点击
 const handleBridgeClick = (bridge: any) => {
   selectedBridge.value = bridge;
   showBridgeDetail.value = true;
-  showEquipmentDialog.value = false;
   showEquipmentDetail.value = false;
-  showCameraDialog.value = false;
   showCameraDetail.value = false;
+  bottomPanelStore.hidePanel();
 };
 
 // 显示监测设备（关闭监控相关）
 const handleShowEquipment = () => {
-  showEquipmentDialog.value = true;
-  showCameraDialog.value = false;
+  bottomPanelStore.showPanel('equipment', { bridgeData: selectedBridge.value });
   showCameraDetail.value = false;
 };
 
@@ -104,8 +112,7 @@ const handleEquipmentView = (equipment: any) => {
 
 // 显示监控列表（关闭监测设备相关）
 const handleShowCamera = () => {
-  showCameraDialog.value = true;
-  showEquipmentDialog.value = false;
+  bottomPanelStore.showPanel('camera', { bridgeName: selectedBridge.value?.llmc });
   showEquipmentDetail.value = false;
 };
 

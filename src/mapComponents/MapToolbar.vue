@@ -8,7 +8,7 @@
     </div>
 
     <!-- 工具按钮组 (收缩时隐藏) -->
-    <template v-if="!isCollapsed">
+    <div v-show="!isCollapsed" class="toolbar-buttons">
       <!-- 底图切换 -->
       <div class="toolbar-item" :class="{ active: showBaseMapPanel }" @click.stop="toggleBaseMapPanel" title="底图切换">
         <div class="tool-icon">
@@ -98,7 +98,7 @@
           <img src="@/assets/map/风险点.webp" alt="" />
         </div>
       </div>
-    </template>
+    </div>
 
     <!-- 桥梁模型面板（独立定位） -->
     <transition name="slide-left">
@@ -169,7 +169,7 @@ const emit = defineEmits<{
 }>()
 
 // 本地UI状态管理
-const isCollapsed = ref(false);
+const isCollapsed = ref(true);
 const showLayerTreePanel = ref(false);
 const showBaseMapPanel = ref(false);
 const showBridgePanel = ref(false);
@@ -579,7 +579,35 @@ defineExpose({
   layerTreeRef,
   showEquipmentDialog,
   activeEquipmentBridge,
+  unloadAll,
 });
+
+/**
+ * 卸载所有已加载的图层（路由切换时调用）
+ * 清除 3D Tiles、MVT 等所有通过 MapToolbar 加载的图层
+ */
+function unloadAll() {
+  if (!props.viewerInstance) return;
+
+  loadedLayers.value.forEach((layer, layerId) => {
+    try {
+      if (layer.type === '3dtiles') {
+        cesiumUtils.remove3DTiles(props.viewerInstance, layer.instance);
+      } else if (layer.type === 'mvt') {
+        // MVT 图层通过 ImageryLayer 加载，移除 imageryProvider
+        if (layer.instance) {
+          layer.instance.show = false;
+        }
+      }
+      console.log(`✅ 已卸载图层: ${layerId}`);
+    } catch (e) {
+      console.warn(`⚠️ 卸载图层失败: ${layerId}`, e);
+    }
+  });
+
+  loadedLayers.value.clear();
+  console.log('✅ 所有已加载图层已清除');
+}
 </script>
 
 <style lang="scss" scoped>
@@ -589,6 +617,12 @@ defineExpose({
   gap: 16px;
   z-index: 1000;
   transition: all 0.3s ease;
+
+  .toolbar-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
 
   &.collapsed {
     gap: 0;

@@ -166,6 +166,18 @@ export function useMapHooks() {
   }
 
   /**
+   * 移除3D Tiles
+   * @param viewer - Cesium Viewer实例
+   * @param tileset - 3D Tileset实例
+   */
+  function remove3DTiles(viewer: any, tileset: any): void {
+    if (viewer && tileset) {
+      viewer.scene.primitives.remove(tileset);
+      console.log('3D Tiles已移除');
+    }
+  }
+
+  /**
    * 设置3D Tiles样式
    * @param tileset - 3D Tileset实例
    * @param style - Cesium3DTileStyle样式对象
@@ -535,6 +547,7 @@ export function useMapHooks() {
     // 3D Tiles控制相关
     set3DTilesVisibility,
     set3DTilesStyle,
+    remove3DTiles,
     
     // 图层管理相关
     getLoadedLayers,

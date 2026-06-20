@@ -6,7 +6,7 @@
     <div class="module-content">
       <div class="overview-content">
         <!-- 按 sszx 分组展示 -->
-        <div class="overview-category" v-for="category in overviewData" :key="category.sszx">
+        <div class="overview-category" v-for="category in overviewData" :key="category.sszx" @click="handleCategoryClick(category.sszx)">
           <div class="category-left">
             <span class="category-name">{{ category.title }}</span>
             <div class="category-icon">
@@ -28,6 +28,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from "vue";
+import { useRouter } from "vue-router";
 import { getBasicFacilitiesOverview } from "@/services/statusService";
 import GasIcon from "@/assets/img/homeModule/gas_icon.webp";
 import WaterIcon from "@/assets/img/homeModule/water_icon.webp";
@@ -127,11 +128,11 @@ const designData = {
 };
 
 // sszx 到 icon 和 title 的映射关系（专项编号）
-const sszxMapping: Record<string, { title: string, icon: string }> = {
-  'csaqzx_rq': { title: '燃气', icon: GasIcon },           // 燃气
-  'csaqzx_gs': { title: '供水', icon: WaterIcon },         // 供水
-  'csaqzx_ps': { title: '排水', icon: DrainageIcon },      // 排水
-  'csaqzx_ql': { title: '桥梁', icon: BridgeIcon },        // 桥梁
+const sszxMapping: Record<string, { title: string, icon: string, routePath: string }> = {
+  'csaqzx_rq': { title: '燃气', icon: GasIcon, routePath: '/gas' },
+  'csaqzx_gs': { title: '供水', icon: WaterIcon, routePath: '/waterProject' },
+  'csaqzx_ps': { title: '排水', icon: DrainageIcon, routePath: '/drainage' },
+  'csaqzx_ql': { title: '桥梁', icon: BridgeIcon, routePath: '/bridge' },
 };
 
 // 分类项数据类型
@@ -150,6 +151,17 @@ interface OverviewCategory {
   icon: string;
   sszx: string;
   items: OverviewItem[];
+}
+
+// 路由
+const router = useRouter()
+
+// 点击专项分类跳转到对应专项页面
+const handleCategoryClick = (sszx: string) => {
+  const mapping = sszxMapping[sszx]
+  if (mapping?.routePath) {
+    router.push(mapping.routePath)
+  }
 }
 
 // 原始数据 - 按 sszx 分组
@@ -259,6 +271,17 @@ onMounted(() => {
     flex-direction: row;
     gap: 8px;
     flex-shrink: 0;
+    cursor: pointer;
+    transition: opacity 0.2s ease, transform 0.15s ease;
+
+    &:hover {
+      opacity: 0.85;
+    }
+
+    &:active {
+      transform: scale(0.98);
+      opacity: 0.75;
+    }
 
     .category-left {
       display: flex;

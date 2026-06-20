@@ -79,22 +79,14 @@
 import { ref, computed, watch, onMounted } from 'vue';
 import { getGasStationPageList } from '@/services/gasService';
 import { getCachedDictionary } from '@/services/dictionaryService';
+import { useBottomPanelStore } from '@/stores/bottomPanelStore'
 import { Close } from "@vicons/ionicons5";
 import { NButton, NIcon, NSelect } from "naive-ui";
 import CommonTable from '@/components/CommonTable.vue';
 
-const props = defineProps({
-  visible: {
-    type: Boolean,
-    default: false
-  },
-  stationData: {
-    type: Object,
-    default: () => ({})
-  }
-});
-
-const emit = defineEmits(['update:visible']);
+const bottomPanelStore = useBottomPanelStore()
+const visible = computed(() => bottomPanelStore.activePanel === 'monitoring')
+const stationData = computed(() => bottomPanelStore.panelData.stationData || {})
 
 // 搜索关键词
 const searchKeyword = ref('');
@@ -161,7 +153,7 @@ const processedTableData = computed(() => {
 });
 
 // 监听 visible 变化，显示时加载数据
-watch(() => props.visible, (val) => {
+watch(visible, (val) => {
   if (val) {
     currentPage.value = 1;
     searchKeyword.value = '';
@@ -176,14 +168,14 @@ onMounted(() => {
 
 // 获取数据
 const fetchData = async () => {
-  if (!props.stationData?.qybm) return;
+  if (!stationData.value?.qybm) return;
   
   loading.value = true;
   try {
     const res = await getGasStationPageList({
       page: currentPage.value.toString(),
       rows: pageSize.value.toString(),
-      Ssqybm: props.stationData.qybm,
+      Ssqybm: stationData.value.qybm,
       czmc: searchKeyword.value || undefined,
       Czlx: selectedCzlx.value || undefined,
       Yysfzc:'-1'
@@ -206,7 +198,7 @@ const fetchData = async () => {
 };
 
 const handleClose = () => {
-  emit('update:visible', false);
+  bottomPanelStore.hidePanel();
 };
 
 const handleSearch = () => {
@@ -264,8 +256,8 @@ const visiblePages = computed(() => {
 .monitoring-dialog {
   position: absolute;
   bottom: 0;
-  left: 1320px;
-  width: 1920px;
+  left: var(--bottom-panel-left, 1320px);
+  width: var(--bottom-panel-width, 1920px);
   max-height: 80vh;
   z-index: 200;
   overflow: hidden;

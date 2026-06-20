@@ -64,12 +64,18 @@ const baseUrl = import.meta.env.VITE_BASE_URL || '';
 
 // 从 store 中按 ID 查找图层数据，组合配置生成运行时 bridgeList
 const bridgeList = computed<BridgeModel[]>(() => {
-  console.log('🔍 bridgeList 计算, layerTreeLoaded:', mapStore.layerTreeLoaded);
-  if (!mapStore.layerTreeLoaded) return [];
+  if (!mapStore.layerTreeLoaded) {
+    console.warn('⚠️ bridgeList: layerTreeLoaded 为 false，图层树未加载');
+    return [];
+  }
 
   const list = BRIDGE_LAYER_CONFIG.map((cfg) => {
     const mainLayer = mapStore.findLayerById(cfg.id);
     const equipLayer = cfg.equipmentId ? mapStore.findLayerById(cfg.equipmentId) : null;
+
+    if (!mainLayer) {
+      console.warn(`⚠️ bridgeList: 未找到桥梁图层 ID=${cfg.id} (qlbh=${cfg.qlbh})`);
+    }
 
     return {
       name: mainLayer?.name || '',
@@ -82,6 +88,9 @@ const bridgeList = computed<BridgeModel[]>(() => {
         : undefined,
     };
   }).filter(b => b.url); // 过滤掉未找到的图层
+
+  console.log(`🔍 bridgeList: 配置 ${BRIDGE_LAYER_CONFIG.length} 座桥梁，匹配 ${list.length} 座`);
+  return list;
 });
 
 const activeBridgeIds = reactive(new Set<string>());
@@ -119,7 +128,7 @@ function toggleBridge(bridge: BridgeModel) {
 
   // 互斥：关闭其他已激活的桥梁和设备
   for (const id of [...activeBridgeIds]) {
-    const otherBridge = bridgeList.find(b => b.id === id || b.equipment?.id === id);
+    const otherBridge = bridgeList.value.find(b => b.id === id || b.equipment?.id === id);
     if (otherBridge) {
       const isEquipment = otherBridge.equipment?.id === id;
       if (isEquipment) {

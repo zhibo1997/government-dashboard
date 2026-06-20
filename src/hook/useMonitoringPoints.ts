@@ -389,23 +389,6 @@ export function useMonitoringPoints() {
             CAMERA_HEIGHT_THRESHOLD
           ),
           scaleByDistance: new Cesium.NearFarScalar(1000, 1.0, 20000, 0.5)
-        },
-        // 标签样式（低海拔显示，格式为：设备类型名称-设备编号）
-        label: {
-          text: `${point.sbmc}`,
-          font: '14px Microsoft YaHei, sans-serif',
-          style: Cesium.LabelStyle.FILL_AND_OUTLINE,
-          fillColor: Cesium.Color.WHITE,
-          outlineColor: Cesium.Color.BLACK,
-          outlineWidth: 2,
-          horizontalOrigin: Cesium.HorizontalOrigin.CENTER,
-          verticalOrigin: Cesium.VerticalOrigin.TOP,
-          pixelOffset: new Cesium.Cartesian2(0, 25), // 位于图标下方
-          distanceDisplayCondition: new Cesium.DistanceDisplayCondition(
-            0,
-            CAMERA_HEIGHT_THRESHOLD
-          ),
-          scaleByDistance: new Cesium.NearFarScalar(1000, 1.0, 20000, 0.5)
         }
       })
     }

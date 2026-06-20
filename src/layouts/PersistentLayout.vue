@@ -32,7 +32,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref, provide, computed } from 'vue'
+import { ref, provide, computed, watch } from 'vue'
+import { useRoute } from 'vue-router'
+import { useBottomPanelStore } from '@/stores/bottomPanelStore'
 import ResponsiveWrapper from '@/components/ResponsiveWrapper.vue'
 import CesiumMap from '@/mapComponents/Map.vue'
 import DashboardHeader from '@/components/DashboardHeader.vue'
@@ -45,6 +47,21 @@ provide('MAP_INSTANCE', mapRef)
 
 // 向子组件提供监测点位管理 Hook（通过 computed 确保响应式）
 provide('monitoringPointsHook', computed(() => mapRef.value?.monitoringPoints))
+
+// 路由切换时，清除所有已加载图层并回到阳新全域视角
+const route = useRoute()
+watch(
+  () => route.path,
+  () => {
+    // 清除 MapToolbar 中加载的所有图层（3D 模型、MVT 等）
+    mapRef.value?.clearAllLayers()
+    // 地图飞回阳新全域视角
+    mapRef.value?.resetMap()
+    // 清除底部面板状态
+    useBottomPanelStore().hidePanel()
+  },
+  { flush: 'post' }
+)
 </script>
 
 <style lang="scss" scoped>

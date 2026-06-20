@@ -632,6 +632,7 @@ function handlePopupVisibilityChange(stats: { totalPoints: number; visiblePopups
 const toggleDefaultTileset = () => {
   defaultTilesetVisible.value = !defaultTilesetVisible.value
   console.log(`✅ 默认3D Tiles${defaultTilesetVisible.value ? '显示' : '隐藏'}`)
+  viewerInstance.value?.scene?.requestRender()
 }
 
 /**
@@ -787,6 +788,14 @@ defineExpose({
     popupCollisionConfig.value = { ...popupCollisionConfig.value, ...config }
   },
   forceRecalculatePopups: () => multiPopupRef.value?.forceRecalculate(),
+
+  // 地图重置
+  resetMap: handleResetMap,
+
+  // 清除所有已加载的图层（路由切换时调用）
+  clearAllLayers: () => {
+    toolbarRef.value?.unloadAll()
+  },
 })
 </script>
 

@@ -1,7 +1,7 @@
 <template>
   <div class="equipment-detail-dialog" v-show="visible && isEntityVisible" :style="dialogStyle">
     <div class="dialog-header">
-      <div class="dialog-title">{{ equipmentData?.sbmc || "设备详情" }}</div>
+      <div class="dialog-title">{{ displayGldwbh || "设备详情" }}</div>
       <n-button text class="close-btn" @click="handleClose">
         <n-icon size="40" color="rgb(17,167,226)" :component="Close" />
       </n-button>
@@ -100,6 +100,12 @@ const sblxName = computed(() => {
 
 // 监测指标字典
 const jczbDictMap = ref<Record<string, { name: string; unit: string }>>({});
+
+// 显示用的gldwbh（去掉前缀）
+const displayGldwbh = computed(() => {
+  const gldwbh = props.equipmentData?.gldwbh || props.equipmentData?.dwbm || '';
+  return gldwbh.replace(/^420200420222/, '');
+});
 
 // 监测数据记录
 const monitorRecords = ref<any[]>([]);
@@ -268,17 +274,20 @@ const initLineChart = (rawData: any[]) => {
     unit = (firstJcz as any).jcdw || "";
   }
 
+  // 图表字体大小（扩大一倍）
+  const chartFontSize = FONT_SIZE.mini * 2; // 14 -> 28
+
   const option: echarts.EChartsOption = {
     tooltip: {
       trigger: "axis",
       backgroundColor: "rgba(0, 20, 40, 0.9)",
       borderColor: "rgba(13, 165, 190, 0.5)",
-      textStyle: { color: "#e4f3ff", fontSize: FONT_SIZE.mini },
+      textStyle: { color: "#e4f3ff", fontSize: chartFontSize },
       formatter: (params: any) => {
         if (!Array.isArray(params)) return '';
-        let html = `<div style="margin-bottom:4px;color:#9ec3e8">${params[0].axisValue}</div>`;
+        let html = `<div style="margin-bottom:4px;color:#9ec3e8;font-size:${chartFontSize}px">${params[0].axisValue}</div>`;
         params.forEach((p: any) => {
-          html += `<div style="display:flex;align-items:center;gap:6px">
+          html += `<div style="display:flex;align-items:center;gap:6px;font-size:${chartFontSize}px">
             <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${p.color}"></span>
             ${p.seriesName}: <b>${p.value}</b> ${unit}
           </div>`;
@@ -289,22 +298,22 @@ const initLineChart = (rawData: any[]) => {
     legend: {
       data: indicators,
       top: 0,
-      textStyle: { color: "#9ec3e8", fontSize: FONT_SIZE.mini },
+      textStyle: { color: "#9ec3e8", fontSize: chartFontSize },
       itemWidth: 16,
       itemHeight: 8,
     },
     grid: {
-      left: 44,
+      left: 60,
       right: 16,
-      top: 30,
-      bottom: 28,
+      top: 40,
+      bottom: 36,
     },
     xAxis: {
       type: "category",
       data: xData,
       axisLabel: {
         color: "#9ec3e8",
-        fontSize: FONT_SIZE.mini,
+        fontSize: chartFontSize,
         interval: Math.floor(xData.length / 6),
       },
       axisLine: { lineStyle: { color: "rgba(13, 165, 190, 0.3)" } },
@@ -314,7 +323,7 @@ const initLineChart = (rawData: any[]) => {
       type: "value",
       axisLabel: {
         color: "#9ec3e8",
-        fontSize: FONT_SIZE.mini,
+        fontSize: chartFontSize,
       },
       splitLine: {
         lineStyle: { color: "rgba(13, 165, 190, 0.15)" },

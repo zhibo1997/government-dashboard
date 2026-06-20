@@ -1,7 +1,9 @@
 <template>
   <!-- 易涝点列表 -->
   <DrainFloodListPanel
+    v-model:visible="showListPanel"
     @item-click="handleItemClick"
+    @collapsed-change="handleCollapsedChange"
   />
 
   <!-- 易涝点详情弹窗 -->
@@ -28,7 +30,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue";
+import { ref, watch } from "vue";
+import { useBottomPanelStore } from "@/stores/bottomPanelStore";
 import DrainFloodListPanel from "./components/map/DrainFloodListPanel.vue";
 import DrainFloodDetailDialog from "./components/map/DrainFloodDetailDialog.vue";
 import DrainFloodCameraDetailPopup from "./components/map/DrainFloodCameraDetailPopup.vue";
@@ -40,7 +43,22 @@ defineOptions({
   name: "DrainageSidebarModule"
 });
 
+const bottomPanelStore = useBottomPanelStore();
+const showListPanel = ref(true);
 const showDetail = ref(false);
+
+// 侧边栏折叠状态同步
+const handleCollapsedChange = (collapsed: boolean) => {
+  bottomPanelStore.setSidebarCollapsed(collapsed);
+};
+
+// 根据侧边栏状态设置底部面板 CSS 变量
+watch(() => bottomPanelStore.sidebarCollapsed, (collapsed) => {
+  const left = collapsed ? '860px' : '1320px';
+  const width = collapsed ? '2380px' : '1920px';
+  document.documentElement.style.setProperty('--bottom-panel-left', left);
+  document.documentElement.style.setProperty('--bottom-panel-width', width);
+}, { immediate: true });
 const selectedItem = ref<any>({});
 const showCameraDetail = ref(false);
 const selectedCamera = ref<any>({});

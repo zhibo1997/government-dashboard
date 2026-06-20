@@ -16,7 +16,7 @@
         <div class="title-container">
           <span class="title-text">易涝点</span>
         </div>
-        <img src="@/assets/img/gasModule/icon_close.webp" class="panel-close" alt="" />
+        <img src="@/assets/img/gasModule/icon_close.webp" class="panel-close" alt="" @click="closePanel" />
       </div>
 
       <!-- 筛选条件 -->
@@ -89,9 +89,21 @@ const zgztOptions = computed(() => {
   ];
 });
 
-const emit = defineEmits(["item-click"]);
+const props = defineProps({
+  visible: {
+    type: Boolean,
+    default: true,
+  },
+});
+
+const emit = defineEmits(["update:visible", "item-click", "collapsed-change"]);
 
 const isCollapsed = ref(true);
+
+// 折叠状态变化时通知父组件
+watch(isCollapsed, (val) => {
+  emit("collapsed-change", val);
+});
 
 const filters = ref({
   jsdmc: "",
@@ -174,6 +186,12 @@ const visiblePages = computed(() => {
 
 const togglePanel = () => {
   isCollapsed.value = !isCollapsed.value;
+};
+
+// 关闭面板
+const closePanel = () => {
+  isCollapsed.value = true;
+  emit("update:visible", false);
 };
 
 const toggleSearch = () => {};

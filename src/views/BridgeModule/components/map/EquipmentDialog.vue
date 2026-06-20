@@ -1,5 +1,5 @@
 <template>
-  <div class="equipment-dialog" v-show="visible" :style="{ left: dialogLeft, width: dialogWidth }">
+  <div class="equipment-dialog" v-show="visible">
     <div class="dialog-header">
       <div class="dialog-title gradient-text">监测设备列表</div>
       <div class="close-btn" @click="handleClose">
@@ -75,9 +75,14 @@
 import { ref, computed, watch, onMounted } from 'vue'
 import { getBridgeTargetEquipmentPageList } from '@/services/bridgeService'
 import { getCachedDictionary } from '@/services/dictionaryService'
+import { useBottomPanelStore } from '@/stores/bottomPanelStore'
 import { Close } from '@vicons/ionicons5'
 import { NButton, NIcon } from 'naive-ui'
 import CommonTable from '@/components/CommonTable.vue'
+
+const bottomPanelStore = useBottomPanelStore()
+const visible = computed(() => bottomPanelStore.activePanel === 'equipment')
+const bridgeData = computed(() => bottomPanelStore.panelData.bridgeData || {})
 
 const sbyxztDict = ref<Array<{ f_ItemValue: string; f_ItemName: string }>>([])
 const sbywztDict = ref<Array<{ f_ItemValue: string; f_ItemName: string }>>([])
@@ -91,26 +96,7 @@ onMounted(async () => {
   sbywztDict.value = d2 || []
 })
 
-const props = defineProps({
-  visible: {
-    type: Boolean,
-    default: false,
-  },
-  bridgeData: {
-    type: Object,
-    default: () => ({}),
-  },
-  dialogLeft: {
-    type: String,
-    default: '1320px',
-  },
-  dialogWidth: {
-    type: String,
-    default: '1920px',
-  },
-})
-
-const emit = defineEmits(['update:visible', 'equipment-view'])
+const emit = defineEmits(['equipment-view'])
 
 // 搜索
 const searchKeyword = ref('')
@@ -159,7 +145,7 @@ const processedEquipmentData = computed(() => {
 })
 
 // 监听 visible 变化，显示时加载数据
-watch(() => props.visible, (val) => {
+watch(visible, (val) => {
   if (val) {
     currentPage.value = 1
     searchKeyword.value = ''
@@ -172,11 +158,11 @@ watch(() => props.visible, (val) => {
 const fetchData = async () => {
   loading.value = true
   try {
-    if (props.bridgeData?.qlbh) {
+    if (bridgeData.value?.qlbh) {
       const params: Record<string, string> = {
         page: currentPage.value.toString(),
         rows: pageSize.value.toString(),
-        glmbbh: props.bridgeData.qlbh,
+        glmbbh: bridgeData.value.qlbh,
       }
       if (searchKeyword.value) {
         params.sbmc = searchKeyword.value
@@ -213,7 +199,7 @@ const fetchData = async () => {
 }
 
 const handleClose = () => {
-  emit('update:visible', false)
+  bottomPanelStore.hidePanel()
 }
 
 const handleSearch = () => {
@@ -284,8 +270,8 @@ const handleViewEquipment = (equipment: any) => {
 .equipment-dialog {
   position: absolute;
   bottom: 0;
-  left: 1320px;
-  width: 1920px;
+  left: var(--bottom-panel-left, 1320px);
+  width: var(--bottom-panel-width, 1920px);
   max-height: 80vh;
   z-index: 200;
   overflow: hidden;
