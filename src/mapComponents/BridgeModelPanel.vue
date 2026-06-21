@@ -140,7 +140,7 @@ function toggleBridge(bridge: BridgeModel) {
   activeBridgeIds.clear();
 
   activeBridgeIds.add(bridge.id);
-  emit("load-3dtiles", convertUrlProtocol(bridge.url), bridge.id);
+  emit("load-3dtiles", convertUrlProtocol(bridge.url), bridge.id, { flyTo: true });
 }
 
 function toggleEquipment(bridge: BridgeModel, checked: boolean) {

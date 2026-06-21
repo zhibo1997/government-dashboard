@@ -86,7 +86,7 @@ const emit = defineEmits<{
   "layer-toggle": [layerId: string, visible: boolean, layerData: any];
   "layer-opacity-change": [layerId: string, opacity: number];
   "load-mvt": [url: string, layerId: string];
-  "load-3dtiles": [url: string, layerId: string];
+  "load-3dtiles": [url: string, layerId: string, options?: { flyTo?: boolean }];
   "toggle-device-type": [sblx: string, visible: boolean]; // specialLayer 切换，传递设备类型、显隐状态
 }>();
 
@@ -625,7 +625,7 @@ function handleLayerVisibilityChange(layerId: string, visible: boolean) {
         emit("load-mvt", convertUrlProtocol(layerData.url), layerId);
         break;
       case "3dTile":
-        emit("load-3dtiles", convertUrlProtocol(layerData.url), layerId);
+        emit("load-3dtiles", convertUrlProtocol(layerData.url), layerId, { flyTo: false });
         break;
       case "tile":
       case "wms":

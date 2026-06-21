@@ -32,7 +32,7 @@ defineProps<{
 }>();
 
 const emit = defineEmits<{
-  "load-3dtiles": [url: string, layerId: string];
+  "load-3dtiles": [url: string, layerId: string, options?: { flyTo?: boolean }];
   "layer-toggle": [layerId: string, visible: boolean, layerData: any];
 }>();
 
@@ -73,7 +73,7 @@ function toggleItem(item: GasModel) {
     emit("layer-toggle", item.id, false, { type: "3dTile", url });
   } else {
     activeIds.add(item.id);
-    emit("load-3dtiles", url, item.id);
+    emit("load-3dtiles", url, item.id, { flyTo: false });
   }
 }
 </script>

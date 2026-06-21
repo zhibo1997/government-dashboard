@@ -317,7 +317,7 @@ const compassRotation = ref(0)
 
 // 初始相机位置
 const camera = ref<VcCamera | null>({
-  position: [mapConfig.initialCamera.center[0], mapConfig.initialCamera.center[1], mapConfig.initialCamera.height],
+  position: [mapConfig.fullDomainCamera.center[0], mapConfig.fullDomainCamera.center[1], mapConfig.fullDomainCamera.height],
 })
 
 // 当前选中的要素
@@ -476,21 +476,7 @@ function setupTilesetClickHandler(viewer: any, Cesium: any) {
 
     console.log('🖱️ 点击 3D Tile:', featureInfo)
 
-    // 高亮被点击的 tileset
-    try {
-      tileset.style = new Cesium.Cesium3DTileStyle({
-        color: "color('cyan', 0.8)",
-      })
-      viewer.scene.requestRender()
-
-      // 2秒后恢复
-      setTimeout(() => {
-        tileset.style = undefined
-        viewer.scene.requestRender()
-      }, 2000)
-    } catch (e) {
-      console.warn('设置高亮样式失败:', e)
-    }
+    // 点击 3D Tile 暂无交互效果，仅记录日志
   }, Cesium.ScreenSpaceEventType.LEFT_CLICK)
 }
 
@@ -509,16 +495,15 @@ async function onViewerReady({ Cesium, viewer }: any) {
     compassRotation.value = Cesium.Math.toDegrees(viewer.camera.heading)
   })
 
-  // 飞到初始视角
-  const ic = mapConfig.initialCamera
-  viewer.camera.flyTo({
+  // 设置全域视角
+  const ic = mapConfig.fullDomainCamera
+  viewer.camera.setView({
     destination: Cesium.Cartesian3.fromDegrees(ic.center[0], ic.center[1], ic.height),
     orientation: {
       heading: Cesium.Math.toRadians(ic.heading),
       pitch: Cesium.Math.toRadians(ic.pitch),
       roll: 0,
     },
-    duration: 0,
   })
 
   // 3D Tiles 点击事件
@@ -711,7 +696,7 @@ const handleResetMap = () => {
 
   const Cesium = (window as any).Cesium
   if (Cesium) {
-    const ic = mapConfig.initialCamera
+    const ic = mapConfig.fullDomainCamera
     viewerInstance.value.camera.flyTo({
       destination: Cesium.Cartesian3.fromDegrees(ic.center[0], ic.center[1], ic.height),
       orientation: {
@@ -721,7 +706,7 @@ const handleResetMap = () => {
       },
       duration: 2,
     })
-    console.log('✅ 地图已重置')
+    console.log('✅ 地图已重置至全域视角')
   }
 }
 

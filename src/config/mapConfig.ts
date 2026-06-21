@@ -20,6 +20,14 @@ export const mapConfig = {
     heading: 21.17,
     pitch: -29.76,
   },
+
+  // 全域视角（正视图，展示阳新县全域）
+  fullDomainCamera: {
+    center: [115.2, 29.8] as [number, number],
+    height: 80000,
+    heading: 0,
+    pitch: -90,
+  },
   
   // 相机平移范围限制（阳新县范围）
   cameraBounds: {
