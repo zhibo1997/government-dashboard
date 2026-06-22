@@ -1,5 +1,23 @@
 <template>
-  <div class="map-toolbar" :class="{ collapsed: isCollapsed }">
+  <div class="map-toolbar" :class="{ collapsed: isCollapsed, expanded: isMapExpanded }">
+    <!-- 展开/收起地图 -->
+    <div class="toolbar-item" :class="{ active: isMapExpanded }" @click="toggleMapExpand" title="展开地图">
+      <div class="tool-icon">
+        <svg v-if="!isMapExpanded" viewBox="0 0 1024 1024" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M120 380V180c0-11 9-20 20-20h200" stroke="#4FC3F7" stroke-width="48" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M904 380V180c0-11-9-20-20-20H684" stroke="#4FC3F7" stroke-width="48" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M120 644v200c0 11 9 20 20 20h200" stroke="#4FC3F7" stroke-width="48" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M904 644v200c0 11-9 20-20 20H684" stroke="#4FC3F7" stroke-width="48" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <svg v-else viewBox="0 0 1024 1024" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M340 160H140c-11 0-20 9-20 20v200" stroke="#4FC3F7" stroke-width="48" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M684 160h200c11 0 20 9 20 20v200" stroke="#4FC3F7" stroke-width="48" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M340 864H140c-11 0-20-9-20-20V644" stroke="#4FC3F7" stroke-width="48" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M684 864h200c11 0 20-9 20-20V644" stroke="#4FC3F7" stroke-width="48" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+    </div>
+
     <!-- 收缩按钮 -->
     <div class="toolbar-item" @click="toggleCollapse" title="收缩/展开">
       <div class="tool-icon">
@@ -165,11 +183,13 @@ const emit = defineEmits<{
   'reset-map': []
   'toggle-measure': []
   'toggle-default-tileset': []
+  'toggle-map-expand': []
   'equipment-activate': [bridge: any, active: boolean]
 }>()
 
 // 本地UI状态管理
 const isCollapsed = ref(true);
+const isMapExpanded = ref(false);
 const showLayerTreePanel = ref(false);
 const showBaseMapPanel = ref(false);
 const showBridgePanel = ref(false);
@@ -195,6 +215,20 @@ const toggleCollapse = () => {
   isCollapsed.value = !isCollapsed.value;
   // 收缩时关闭所有面板
   if (isCollapsed.value) {
+    showLayerTreePanel.value = false;
+    showBaseMapPanel.value = false;
+    showBridgePanel.value = false;
+    showGasPanel.value = false;
+    showRiskPointPanel.value = false;
+  }
+};
+
+// 切换展开地图（隐藏左右面板）
+const toggleMapExpand = () => {
+  isMapExpanded.value = !isMapExpanded.value;
+  emit('toggle-map-expand');
+  // 展开时关闭所有子面板
+  if (isMapExpanded.value) {
     showLayerTreePanel.value = false;
     showBaseMapPanel.value = false;
     showBridgePanel.value = false;
@@ -575,6 +609,7 @@ const resetNorth = () => {
 // 暴露方法和状态
 defineExpose({
   isCollapsed,
+  isMapExpanded,
   loadedLayers,
   layerTreeRef,
   showEquipmentDialog,
@@ -635,6 +670,10 @@ function unloadAll() {
       }
     }
   }
+
+  &.expanded {
+    right: 22px !important;
+  }
   
   .toolbar-item {
     position: relative;
@@ -662,11 +701,17 @@ function unloadAll() {
 
     .tool-icon {
       display: flex;
+      align-items: center;
+      justify-content: center;
       padding: 8px;
       width: 100%;
       height: 100%;
       transition: transform 0.3s ease;
 
+      svg {
+        width: 48px;
+        height: 48px;
+      }
 
       &:hover {
         transform: scale(1.2);

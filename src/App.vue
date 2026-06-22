@@ -42,6 +42,7 @@ import { NMessageProvider, NDialogProvider, NConfigProvider, zhCN, dateZhCN } fr
     margin: 0 0 22px 22px;
     box-sizing: border-box;
     background: linear-gradient(00deg, #021A2E 0.08%, #021F37 100%);
+    transition: margin-left 0.5s ease;
   }
 
   // 右侧数据展示区域
@@ -55,6 +56,17 @@ import { NMessageProvider, NDialogProvider, NConfigProvider, zhCN, dateZhCN } fr
     margin: 0 22px 22px 0;
     box-sizing: border-box;
     background: linear-gradient(270deg, #021A2E 0.08%, #021F37 100%);
+    transition: margin-right 0.5s ease;
+  }
+
+  // 面板隐藏状态（展开地图时）
+  &.panels-hidden {
+    >.left-content {
+      margin-left: -842px;
+    }
+    >.right-content {
+      margin-right: -842px;
+    }
   }
 
 }
@@ -108,11 +120,12 @@ import { NMessageProvider, NDialogProvider, NConfigProvider, zhCN, dateZhCN } fr
   }
 }
 
-// 供水模块特有样式
+// 地图工具栏定位
 .map-toolbar {
   position: absolute;
   right: 850px;
   top: 180px;
+  transition: right 0.5s ease;
 }
 
 // 渐变文字效果

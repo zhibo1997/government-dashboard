@@ -20,7 +20,7 @@
       <DashboardHeader />
 
       <!-- 主体容器 -->
-      <div class="container">
+      <div class="container" :class="{ 'panels-hidden': isMapExpanded }">
         <!-- 子路由出口：路由切换时此处内容会更新，但布局框架保持不变 -->
         <router-view v-slot="{ Component, route }">
           <!-- 使用 key 确保路由切换时子组件强制刷新 -->
@@ -42,6 +42,9 @@ import DashboardHeader from '@/components/DashboardHeader.vue'
 // 地图组件引用，可供子组件通过 inject 获取
 const mapRef = ref<InstanceType<typeof CesiumMap> | null>(null)
 
+// 地图展开状态（控制左右面板显隐）
+const isMapExpanded = computed(() => mapRef.value?.isMapExpanded ?? false)
+
 // 向子组件提供地图实例引用
 provide('MAP_INSTANCE', mapRef)
 
@@ -59,6 +62,10 @@ watch(
     mapRef.value?.resetMap()
     // 清除底部面板状态
     useBottomPanelStore().hidePanel()
+    // 重置地图展开状态
+    if (mapRef.value?.isMapExpanded) {
+      mapRef.value.isMapExpanded = false
+    }
   },
   { flush: 'post' }
 )

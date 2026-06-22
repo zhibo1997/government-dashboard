@@ -48,6 +48,7 @@
         @update:scene-mode="handleSceneModeChange" @update:base-map="handleBaseMapChange" @reset-map="handleResetMap"
         @toggle-measure="showMeasureTool = !showMeasureTool"
         @toggle-default-tileset="toggleDefaultTileset"
+        @toggle-map-expand="isMapExpanded = !isMapExpanded"
         @equipment-activate="handleEquipmentActivate" />
 
       <!-- 测量工具面板 -->
@@ -140,6 +141,9 @@ const basemapLayer = ref(null)
 
 // 工具栏引用
 const toolbarRef = ref<any>(null)
+
+// 地图展开状态（左右面板隐藏）
+const isMapExpanded = ref(false)
 
 // scenetree 设备坐标数据（按 qlbh 缓存）
 const scenetreeCache = ref<Record<string, Awaited<ReturnType<typeof loadScenetreeForBridge>>>>({})
@@ -760,6 +764,7 @@ defineExpose({
 
   toggleDefaultTileset,
   toolbarRef,
+  isMapExpanded,
 
   // 监测点位相关
   monitoringPoints,
