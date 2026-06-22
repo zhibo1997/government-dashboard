@@ -179,3 +179,189 @@ export async function encryptPasswordWithPublicKey(
     return password
   }
 }
+
+// ========== 综合态势接口 ==========
+
+/**
+ * 综合态势-专项风险等级数量统计
+ */
+export async function getRiskLevelCountBySszx(params?: { Sszx?: string }) {
+  const res = await get<any>('/zzts/fxdj/count', { ...DEFAULT_COMMON_PARAMS, ...params })
+  return res.data || []
+}
+
+/**
+ * 综合态势-专项隐患等级数量统计
+ */
+export async function getHazardLevelCountBySszx(params?: { Sszx?: string }) {
+  const res = await get<any>('/zzts/yhdj/count', { ...DEFAULT_COMMON_PARAMS, ...params })
+  return res.data || []
+}
+
+/**
+ * 综合态势-专项监测报警数量统计
+ */
+export async function getAlarmCountBySszx(params?: { Sszx?: string }) {
+  const res = await get<any>('/zzts/jcbj/count', { ...DEFAULT_COMMON_PARAMS, ...params })
+  return res.data || []
+}
+
+/**
+ * 综合态势-专项预警处置数量统计
+ */
+export async function getWarningDisposalCountBySszx(params?: { Sszx?: string }) {
+  const res = await get<any>('/zzts/yjcz/count', { ...DEFAULT_COMMON_PARAMS, ...params })
+  return res.data || []
+}
+
+/**
+ * 综合态势-专项预警处置-分页列表
+ */
+export async function getWarningDisposalPage(params?: {
+  page?: string
+  rows?: string
+  Sszx?: string
+}) {
+  const res = await get<any>('/zzts/yjcz/operate/page', { ...DEFAULT_COMMON_PARAMS, ...params })
+  return res.data || {}
+}
+
+// ========== 危房数据接口 ==========
+
+/**
+ * 获取危房统计信息
+ */
+export async function getDangerHouseStatistics() {
+  const res = await get<any>('/gspspDtransDangerhousebscinfon/statistics', DEFAULT_COMMON_PARAMS)
+  return res.data || []
+}
+
+/**
+ * 监测设备类别数量统计
+ */
+export async function getDangerHouseEquipmentCount() {
+  const res = await get<any>('/gspspDtransDangerhousebscinfon/eqp/count', DEFAULT_COMMON_PARAMS)
+  return res.data || []
+}
+
+/**
+ * 某类别监测设备运行状态统计
+ */
+export async function getDangerHouseEquipmentRunStatus(params: { Sblx: string }) {
+  const res = await get<any>('/gspspDtransDangerhousebscinfon/eqp/run/status/count', { ...DEFAULT_COMMON_PARAMS, ...params })
+  return res.data || []
+}
+
+/**
+ * 获取监测对象列表
+ */
+export async function getDangerHouseList() {
+  const res = await get<any>('/gspspDtransDangerhousebscinfon/list', DEFAULT_COMMON_PARAMS)
+  return res.data || []
+}
+
+/**
+ * 监测对象设备类型聚合统计
+ */
+export async function getDangerHouseObjectEquipmentCount() {
+  const res = await get<any>('/gspspDtransDangerhousebscinfon/object/eqp/count', DEFAULT_COMMON_PARAMS)
+  return res.data || []
+}
+
+/**
+ * 监测对象某类监测设备运行状态
+ */
+export async function getDangerHouseObjectEquipmentRunStatusCount(params: { Sblx: string }) {
+  const res = await get<any>('/gspspDtransDangerhousebscinfon/object/eqp/run/status/count', { ...DEFAULT_COMMON_PARAMS, ...params })
+  return res.data || []
+}
+
+/**
+ * 监测对象某类监测设备运行状态和设备列表
+ */
+export async function getDangerHouseObjectEquipmentRunStatus(params: { Sblx: string }) {
+  const res = await get<any>('/gspspDtransDangerhousebscinfon/object/eqp/run/status', { ...DEFAULT_COMMON_PARAMS, ...params })
+  return res.data || []
+}
+
+// ========== 应急资源接口 (20260621新增) ==========
+
+/**
+ * 获取救援仓库列表
+ */
+export async function getWarehouseCoordinateList() {
+  const res = await get<any>('/gspspDtransWarehouse/coordinate/list', DEFAULT_COMMON_PARAMS)
+  return res.data || []
+}
+
+/**
+ * 获取救援仓库详情
+ */
+export async function getWarehouseDetail(lsh: string) {
+  const res = await get<any>(`/gspspDtransWarehouse/${lsh}`)
+  return res.data || {}
+}
+
+/**
+ * 获取应急专家列表
+ */
+export async function getEmergencySpecialistList() {
+  const res = await get<any>('/gspspDtransEmergencyspecialist/list', DEFAULT_COMMON_PARAMS)
+  return res.data || []
+}
+
+/**
+ * 获取应急专家详情
+ */
+export async function getEmergencySpecialistDetail(lsh: string) {
+  const res = await get<any>(`/gspspDtransEmergencyspecialist/${lsh}`)
+  return res.data || {}
+}
+
+/**
+ * 获取救援车辆列表
+ */
+export async function getEmergencyVehiclesList() {
+  const res = await get<any>('/gspspDtransEmergencyvehicles/list', DEFAULT_COMMON_PARAMS)
+  return res.data || []
+}
+
+/**
+ * 获取救援队伍列表
+ */
+export async function getTeamInformationList() {
+  const res = await get<any>('/gspspDtransTeaminformation/list', DEFAULT_COMMON_PARAMS)
+  return res.data || []
+}
+
+/**
+ * 获取救援人员列表
+ */
+export async function getTeamPersonList() {
+  const res = await get<any>('/gspspDtransTeamperson/list', DEFAULT_COMMON_PARAMS)
+  return res.data || []
+}
+
+/**
+ * 救援车辆详情
+ */
+export async function getEmergencyVehicleDetail(lsh: string) {
+  const res = await get<any>(`/gspspDtransEmergencyvehicles/${lsh}`)
+  return res.data || {}
+}
+
+/**
+ * 救援队伍详情
+ */
+export async function getTeamInformationDetail(lsh: string) {
+  const res = await get<any>(`/gspspDtransTeaminformation/${lsh}`)
+  return res.data || {}
+}
+
+/**
+ * 救援人员详情
+ */
+export async function getTeamPersonDetail(lsh: string) {
+  const res = await get<any>(`/gspspDtransTeamperson/${lsh}`)
+  return res.data || {}
+}

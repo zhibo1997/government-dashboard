@@ -2,7 +2,7 @@ import { defineStore } from 'pinia'
 import { ref } from 'vue'
 
 /** 底部面板类型 */
-export type BottomPanelType = 'equipment' | 'camera' | 'monitoring' | null
+export type BottomPanelType = 'equipment' | 'camera' | 'monitoring' | 'emergency-expert' | 'emergency-team' | 'emergency-personnel' | 'emergency-vehicle' | null
 
 /**
  * 底部面板状态管理 Store
@@ -16,7 +16,7 @@ export const useBottomPanelStore = defineStore('bottomPanel', () => {
   const panelData = ref<Record<string, any>>({})
 
   /** 侧边栏是否折叠 */
-  const sidebarCollapsed = ref(false)
+  const sidebarCollapsed = ref(true)
 
   /** 打开指定类型的底部面板（自动关闭其他面板） */
   function showPanel(type: BottomPanelType, data: Record<string, any> = {}) {

@@ -5,7 +5,13 @@
     </div>
     <div class="module-content">
       <div class="overview-content">
-        <div class="overview-item" v-for="item in overviewData" :key="item.id">
+        <div
+          class="overview-item"
+          :class="{ active: selectedId === item.id }"
+          v-for="item in overviewData"
+          :key="item.id"
+          @click="handleItemClick(item)"
+        >
           <div class="item-icon">
             <img v-if="item.icon" :src="getIconUrl(item.icon)" :alt="item.name" />
           </div>
@@ -13,96 +19,148 @@
             <div class="item-title">{{ item.name }}</div>
             <div class="item-value">
               <span class="value gradient-text">{{ item.value !== null && item.value !== undefined ? item.value : '-' }}</span>
-              <span class="unit" v-if="item.value !== null && item.value !== undefined">{{ item.unit }}</span>
+              <span class="unit" v-if="item.unit">{{ item.unit }}</span>
             </div>
           </div>
         </div>
       </div>
     </div>
   </div>
+
+  <!-- 点位详情弹窗 -->
+  <GasPointPopup
+    :visible="popupVisible"
+    :point-data="popupData"
+    :position="{ x: 0, y: 0 }"
+    :point-type="selectedId || ''"
+    @close="closePopup"
+  />
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, inject } from "vue";
-import { getWaterOverview } from "@/services/waterSupplyService";
-import { getCachedDictionary } from "@/services/dictionaryService";
-// 从根组件接收模块配置
-const moduleConfig = inject('MODULE_CONFIG', {
-  sszx: 'csaqzx_gs',
-  dictKey: {
-    jcssdstjlx: 'jcssdstjlx_gs'
-  }
-});
-// 响应式数据
-const overviewData = ref([]);
+import { ref, onMounted } from "vue";
+import { getWaterSupplyStats, getWaterSourceCoordinateList, getWaterPlantCoordinateList, getWaterPumpStationCoordinateList, getWaterSourceDetail, getWaterPlantDetail, getWaterPumpStationDetail } from "@/services/waterSupplyService";
+import { useGasOverviewPoints } from "@/hook/useGasOverviewPoints";
+import GasPointPopup from "@/views/GasModule/components/GasPointPopup.vue";
 
-// jcsslx 到 icon 的映射关系
-const iconMapping = {
-  jcssdstj0502: "fire_hydrant",    // 市政消火栓
-  jcssdstj0503: "water_source",           // 水源地
-  jcssdstj0504: "water_treatment",  // 水厂
-  jcssdstj0505: "pump_station",     // 供水泵站
-  jcssdstj0506: "major_customer",   // 供水大户
-  jcssdstj0501: "pipeline",         // 供水管网
-  jcssdstj0401: "pipeline",         // 供水管网
-  jcssdstj0402: "pipeline",         // 供水管网
-  jcssdstj0403: "pipeline",         // 供水管网
-  jcssdstj0404: "pipeline",         // 供水管网
-  jcssdstj0406: "pump_station",         // 供水管网
+// 响应式数据
+const overviewData = ref<any[]>([]);
+const selectedId = ref<string | null>(null);
+
+// 地图点位管理
+const { init: initMapPoints, addPoints, clearPoints } = useGasOverviewPoints();
+
+// 弹窗状态
+const popupVisible = ref(false);
+const popupData = ref<any>(null);
+
+// icon 映射
+const iconMapping: Record<string, string> = {
+  '水源地': 'water_source',
+  '水厂': 'water_treatment',
+  '供水管网': 'pipeline',
+  '供水泵站': 'pump_station',
+  '市政消火栓': 'fire_hydrant',
 };
-// 初始化基础配置数据(从字典获取)
-const initGSItems = async () => {
-  try {
-    const dictKey = moduleConfig.dictKey?.jcssdstjlx || ""
-    const res = await getCachedDictionary(dictKey);
-    
-    if (res && res.length > 0) {
-      overviewData.value = res.map(item => ({
-        id: item.f_ItemValue,
-        name: item.f_ItemName,
-        unit: item.f_Description,
-        icon: iconMapping[item.f_ItemValue] || 'pump_station', // 使用默认图标作为后备
-        value: null, // 初始值为 null，后续从 initOverviewData 获取
-        jcsslx: item.f_ItemValue // 保存原始类型码，用于数据匹配
-      }));
-    }
-  } catch (error) {
-    console.error("获取基础配置数据失败:", error);
-  }
+
+// 点位接口映射
+const coordinateApiMap: Record<string, () => Promise<any>> = {
+  '水源地': getWaterSourceCoordinateList,
+  '水厂': getWaterPlantCoordinateList,
+  '供水泵站': getWaterPumpStationCoordinateList,
 };
+
+// 详情接口映射
+const detailApiMap: Record<string, (lsh: string) => Promise<any>> = {
+  '水源地': getWaterSourceDetail,
+  '水厂': getWaterPlantDetail,
+  '供水泵站': getWaterPumpStationDetail,
+};
+
 // 动态获取图标路径
-const getIconUrl = (iconName) => {
+const getIconUrl = (iconName: string) => {
   return new URL(
     `../../../assets/img/waterSupply/${iconName}.png`,
     import.meta.url
   ).href;
 };
 
-// 初始化统计数据(获取 value)
-const initOverviewData = async () => {
-  try {
-    const Sszx = moduleConfig.sszx || ""
-    const data = await getWaterOverview({ Sszx  });
+// 关闭弹窗
+const closePopup = () => {
+  popupVisible.value = false;
+  popupData.value = null;
+};
 
-    if (data && data.length > 0) {
-      // 更新 overviewData 中的 value 值
-      data.forEach((item) => {
-        const targetItem = overviewData.value.find(
-          (d) => d.jcsslx === item.jcsslx
-        );
-        if (targetItem) {
-          targetItem.value = item.jcsstjsl;
-        }
-      });
+// 点击地图点位回调
+const handlePointClick = async (point: any) => {
+  const detailApi = detailApiMap[selectedId.value || ''];
+  if (detailApi) {
+    try {
+      const detail = await detailApi(point.lsh);
+      popupData.value = detail;
+      popupVisible.value = true;
+    } catch (error) {
+      console.error('获取详情失败:', error);
+    }
+  }
+};
+
+// 点击事件处理
+const handleItemClick = async (item: any) => {
+  if (selectedId.value === item.id) {
+    selectedId.value = null;
+    clearPoints();
+    closePopup();
+    return;
+  }
+
+  selectedId.value = item.id;
+  closePopup();
+  clearPoints();
+
+  // 有坐标接口的展示点位
+  const coordinateApi = coordinateApiMap[item.name];
+  if (coordinateApi) {
+    try {
+      const data = await coordinateApi();
+      if (Array.isArray(data) && data.length > 0) {
+        const points = data.map((p: any) => ({
+          lsh: p.lsh,
+          jd: p.jd,
+          wd: p.wd,
+          name: p.name || p.lsh,
+        }));
+        addPoints(points, item.name, handlePointClick);
+      }
+    } catch (error) {
+      console.error(`获取${item.name}点位失败:`, error);
+    }
+  }
+};
+
+// 初始化数据
+const initData = async () => {
+  try {
+    const data = await getWaterSupplyStats();
+    if (Array.isArray(data) && data.length > 0) {
+      overviewData.value = data
+        .sort((a: any, b: any) => (a.sort || 0) - (b.sort || 0))
+        .map((item: any) => ({
+          id: item.name,
+          name: item.name,
+          value: item.count ?? null,
+          unit: item.unit || '',
+          icon: iconMapping[item.name] || 'pipeline',
+        }));
     }
   } catch (error) {
-    console.error("获取纵览数据失败:", error);
+    console.error("获取供水专项统计指标失败:", error);
   }
 };
 
 onMounted(async () => {
-  await initGSItems();      // 先获取基础配置
-  await initOverviewData(); // 再获取统计数据
+  await initMapPoints();
+  initData();
 });
 </script>
 
@@ -111,7 +169,6 @@ onMounted(async () => {
   .overview-content {
     display: flex;
     flex-wrap: wrap;
-    justify-content: space-between;
     gap: 15px;
     padding: 0 10px;
     overflow-y: auto;
@@ -120,12 +177,26 @@ onMounted(async () => {
   .overview-item {
     display: flex;
     align-items: center;
+    cursor: pointer;
+    padding: 8px;
+    border-radius: 8px;
+    box-shadow: inset 0 0 0 2px transparent;
+    transition: all 0.3s ease;
+
+    &:hover {
+      background: rgba(13, 165, 190, 0.1);
+      box-shadow: inset 0 0 0 2px rgba(13, 165, 190, 0.3);
+    }
+
+    &.active {
+      background: rgba(13, 165, 190, 0.2);
+      box-shadow: inset 0 0 0 2px #0da5be, 0 0 12px rgba(13, 165, 190, 0.3);
+    }
 
     .item-icon {
-      width: 90px;
-      height: 100px;
-      display: flex;
-      justify-content: center;
+      width: 80px;
+      height: 80px;
+      flex-shrink: 0;
 
       img {
         width: 100%;
@@ -136,7 +207,7 @@ onMounted(async () => {
 
     .item-info {
       flex: 1;
-      padding-left: 8px;
+      padding-left: 12px;
     }
 
     .item-title {

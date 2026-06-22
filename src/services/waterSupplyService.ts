@@ -221,3 +221,119 @@ export async function getDrainFloodDetail(lsh: string) {
   const res = await get<any>(`/gspspDtransDrainfloodpropots/${lsh}`)
   return res.data
 }
+
+// ========== 供水专项接口 (20260621新增) ==========
+
+/**
+ * 获取供水专项统计指标
+ */
+export async function getWaterSupplyStats(params?: { Sszx?: string }) {
+  const res = await get<any>('/gspspDtransWaterSupply/gsZxtjzb/list', { ...defaultParams, ...params })
+  return res.data || []
+}
+
+/**
+ * 获取水源地点位信息
+ */
+export async function getWaterSourceCoordinateList() {
+  const res = await get<any>('/gspspDtransWaterSupply/watersrcinfo/coordinate/list', defaultParams)
+  return res.data || []
+}
+
+/**
+ * 获取水厂点位信息
+ */
+export async function getWaterPlantCoordinateList() {
+  const res = await get<any>('/gspspDtransWaterSupply/waterplantinfo/coordinate/list', defaultParams)
+  return res.data || []
+}
+
+/**
+ * 获取供水泵站点位信息
+ */
+export async function getWaterPumpStationCoordinateList() {
+  const res = await get<any>('/gspspDtransWaterSupply/watersupplypumpingstation/coordinate/list', defaultParams)
+  return res.data || []
+}
+
+/**
+ * 获取水源地详情
+ */
+export async function getWaterSourceDetail(lsh: string) {
+  const res = await get<any>(`/gspspDtransWaterSupply/watersrcinfo/${lsh}`)
+  return res.data || {}
+}
+
+/**
+ * 获取水厂详情
+ */
+export async function getWaterPlantDetail(lsh: string) {
+  const res = await get<any>(`/gspspDtransWaterSupply/waterplantinfo/${lsh}`)
+  return res.data || {}
+}
+
+/**
+ * 获取供水泵站详情
+ */
+export async function getWaterPumpStationDetail(lsh: string) {
+  const res = await get<any>(`/gspspDtransWaterSupply/watersupplypumpingstation/${lsh}`)
+  return res.data || {}
+}
+
+// ========== 排水专项接口 (20260621新增) ==========
+
+/**
+ * 获取排水专项统计指标
+ */
+export async function getDrainageStats(params?: { Sszx?: string }) {
+  const res = await get<any>('/gspspDtransDrainage/psZxtjzb/list', { ...defaultParams, ...params })
+  return res.data || []
+}
+
+/**
+ * 获取易积水点点位
+ */
+export async function getDrainFloodCoordinateList() {
+  const res = await get<any>('/gspspDtransDrainage/drainfloodpropots/coordinate/list', defaultParams)
+  return res.data || []
+}
+
+/**
+ * 获取河道点位
+ */
+export async function getDrainRiverCoordinateList() {
+  const res = await get<any>('/gspspDtransDrainage/drainriver/coordinate/list', defaultParams)
+  return res.data || []
+}
+
+/**
+ * 获取污水处理厂点位信息
+ */
+export async function getSewageTreatmentPlantCoordinateList() {
+  const res = await get<any>('/gspspDtransDrainage/sewagetreatmentplant/coordinate/list', defaultParams)
+  return res.data || []
+}
+
+/**
+ * 获取易积水点详情
+ */
+export async function getDrainFloodDetailByLsh(lsh: string) {
+  const res = await get<any>(`/gspspDtransDrainage/drainfloodpropots/${lsh}`)
+  return res.data || {}
+}
+
+/**
+ * 获取河道详情
+ */
+export async function getDrainRiverDetail(lsh: string) {
+  const res = await get<any>(`/gspspDtransDrainage/drainriver/${lsh}`)
+  return res.data || {}
+}
+
+/**
+ * 获取污水处理厂详情
+ */
+export async function getSewageTreatmentPlantDetail(lsh: string) {
+  const res = await get<any>(`/gspspDtransDrainage/sewagetreatmentplant/${lsh}`)
+  return res.data || {}
+}

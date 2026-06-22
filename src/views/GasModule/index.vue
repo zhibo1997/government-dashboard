@@ -7,12 +7,15 @@
   <template v-if="!loading">
     <!-- 左侧数据展示区 -->
     <LeftContent />
-    
+
     <!-- 中间侧边栏 -->
     <SidebarModule />
 
     <!-- 右侧数据展示区 -->
     <RightContent />
+
+    <!-- 应急资源列表面板 -->
+    <EmergencyResourceListPanel />
   </template>
   
   <!-- 加载状态 -->
@@ -25,6 +28,7 @@
 import LeftContent from './leftContent.vue'
 import RightContent from './rightContent.vue'
 import SidebarModule from './sidebarModule.vue'
+import EmergencyResourceListPanel from '@/components/EmergencyResourceListPanel.vue'
 import { onBeforeMount, ref, provide } from 'vue'
 import { getCachedDictionaries } from '@/services/dictionaryService'
 

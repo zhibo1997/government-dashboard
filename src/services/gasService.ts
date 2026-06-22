@@ -202,3 +202,45 @@ export async function getEquipmentData(params: {
   const res = await get<any>('/eqp/pubmnt/data', params)
   return res.data || []
 }
+
+// ========== 燃气数据接口 (20260621新增) ==========
+
+/**
+ * 获取燃气专项统计指标
+ */
+export async function getGasStats() {
+  const res = await get<any>('/gspspDtransGas/rqZxtjzb/list', defaultParams)
+  return res.data || []
+}
+
+/**
+ * 获取燃气企业点位列表
+ */
+export async function getGasEnterpriseCoordinateList() {
+  const res = await get<any>('/gspspDtransGas/gasenterpriseledger/coordinate/list', defaultParams)
+  return res.data || []
+}
+
+/**
+ * 获取液化气企业列表
+ */
+export async function getBottleGasEnterpriseCoordinateList() {
+  const res = await get<any>('/gspspDtransGas/bottlegasenterpriseledger/coordinate/list', defaultParams)
+  return res.data || []
+}
+
+/**
+ * 获取燃气井盖列表
+ */
+export async function getManholeCoverCoordinateList() {
+  const res = await get<any>('/gspspDtransGas/manholecoverbasetinfo/coordinate/list', defaultParams)
+  return res.data || []
+}
+
+/**
+ * 获取燃气井盖详情信息
+ */
+export async function getManholeCoverDetail(lsh: string) {
+  const res = await get<any>(`/gspspDtransGas/manholecoverbasetinfo/${lsh}`)
+  return res.data || {}
+}

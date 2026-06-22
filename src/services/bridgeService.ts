@@ -69,3 +69,11 @@ export async function getBridgeTargetEquipmentPageList(params?: {
   const res = await get<any>('/gspspDtrans/glmbbh/eqp/page', { ...defaultParams, ...params })
   return res.data || []
 }
+
+/**
+ * 获取桥梁详情信息
+ */
+export async function getBridgeDetail(lsh: string) {
+  const res = await get<any>(`/bridgebscinfo/${lsh}`)
+  return res.data || {}
+}

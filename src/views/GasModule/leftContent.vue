@@ -1,7 +1,7 @@
 <template>
   <div class="left-content">
-    <!-- 基础设施模块 -->
-    <InfrastructureModule />
+    <!-- 基础设施模块（调用燃气专项统计指标接口） -->
+    <GasOverviewModule />
 
     <!-- 燃气管网模块 -->
     <GasPipelineModule />
@@ -12,7 +12,7 @@
 </template>
 
 <script setup>
-import InfrastructureModule from './components/InfrastructureModule.vue';
+import GasOverviewModule from './components/GasOverviewModule.vue';
 import GasPipelineModule from './components/GasPipelineModule.vue';
 import EmergencyResourceModule from '@/components/EmergencyResourceModule.vue';
 </script>
