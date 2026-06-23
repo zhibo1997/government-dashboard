@@ -1,0 +1,14 @@
+diff --git a/lib/index.js b/lib/index.js
+index 61c605f0e2b23ce8448615f2e9eebe34fade20dd..6c3a3c089d048038f601886c5a52af6a74bccdfc 100644
+--- a/lib/index.js
++++ b/lib/index.js
+@@ -186,7 +186,8 @@ class MVTImageryProvider {
+     var _a;
+     if (!this._enablePickFeatures)
+       return void 0;
+-    return (_a = this.requestImage(x, y, zoom, false)) == null ? void 0 : _a.then((renderRef) => {
++    const clampedZoom = zoom > this.maximumLevel ? this.maximumLevel : zoom;
++    return (_a = this.requestImage(x, y, clampedZoom, false)) == null ? void 0 : _a.then((renderRef) => {
+       let targetSources = this.mapboxRenderer.getVisibleSources(zoom);
+       targetSources = this.sourceFilter ? this.sourceFilter(targetSources) : targetSources;
+       const queryResult = [];

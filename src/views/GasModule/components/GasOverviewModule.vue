@@ -51,6 +51,7 @@ import {
 } from "@/services/gasService";
 import { useGasOverviewPoints } from "@/hook/useGasOverviewPoints";
 import { useMapHooks } from "@/hook/useMapHooks";
+import { useMvtPickHandler } from "@/hook/useMvtPickHandler";
 import { useMapStore } from "@/stores/mapStore";
 import GasPointPopup from "./GasPointPopup.vue";
 
@@ -72,6 +73,28 @@ const mapStore = useMapStore();
 let viewer: any = null;
 let pipelineMvtLayer: any = null;
 
+// MVT 点击查询 hook
+const { setup: setupMvtPick } = useMvtPickHandler({
+  get viewer() { return viewer },
+  getMvtLayer: () => pipelineMvtLayer,
+  onFeaturePick: (props) => {
+    popupPosition.value = { x: window.innerWidth / 2 + 100, y: window.innerHeight / 2 - 100 };
+    popupData.value = props;
+    selectedId.value = "燃气管线";
+    popupVisible.value = true;
+  },
+  onScatterPick: (entity) => {
+    if (entity.point && entity.description) {
+      try {
+        const pointData = JSON.parse(entity.description.getValue());
+        handlePointClick(pointData);
+      } catch (e) {
+        console.warn("解析点位数据失败:", e);
+      }
+    }
+  },
+});
+
 /** 从图层树中查找"燃气管线"MVT 图层的 URL */
 const findPipelineMvtUrl = (): string | null => {
   const tree = mapStore.layerTreeNodes;
@@ -88,55 +111,6 @@ const findPipelineMvtUrl = (): string | null => {
     return null;
   };
   return search(tree);
-};
-
-/** 统一点击处理器：MVT 要素优先，其次散点 */
-const setupUnifiedClickHandler = () => {
-  if (!viewer) return;
-  const Cesium = (window as any).Cesium;
-
-  viewer.screenSpaceEventHandler.setInputAction(async (movement: any) => {
-    // 1. 尝试拾取 MVT 要素
-    if (pipelineMvtLayer?.show) {
-      try {
-        const features = await viewer.imageryLayers.pickImageryLayerFeatures(
-          pipelineMvtLayer,
-          movement.position,
-          viewer.scene
-        );
-        if (features?.length > 0) {
-          const props: Record<string, any> = {};
-          features[0].getPropertyNames?.().forEach((name: string) => {
-            props[name] = features[0].getProperty(name);
-          });
-          console.log("🖱️ 燃气管线要素:", props);
-          popupPosition.value = {
-            x: window.innerWidth / 2 + 100,
-            y: window.innerHeight / 2 - 100,
-          };
-          popupData.value = props;
-          popupVisible.value = true;
-          return;
-        }
-      } catch {
-        // 非 MVT 区域，继续尝试散点
-      }
-    }
-
-    // 2. 尝试拾取散点
-    const pickedObject = viewer.scene.pick(movement.position);
-    if (Cesium.defined(pickedObject) && pickedObject.id) {
-      const entity = pickedObject.id;
-      if (entity.point && entity.description) {
-        try {
-          const pointData = JSON.parse(entity.description.getValue());
-          handlePointClick(pointData);
-        } catch (e) {
-          console.warn("解析点位数据失败:", e);
-        }
-      }
-    }
-  }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
 };
 
 /** 显示燃气管线 MVT 图层 */
@@ -270,8 +244,12 @@ const handleItemClick = async (item: any) => {
   if (apiFn) {
     try {
       const data = await apiFn();
+      console.log(`[GasOverview] ${item.name} API 返回:`, data);
       if (Array.isArray(data) && data.length > 0) {
-        addPoints(data, item.name);
+        console.log(`[GasOverview] 首条数据:`, data[0]);
+        addPoints(data, item.name, handlePointClick);
+      } else {
+        console.warn(`[GasOverview] ${item.name} 数据为空或非数组:`, data);
       }
     } catch (error) {
       console.error(`获取${item.name}数据失败:`, error);
@@ -303,14 +281,14 @@ onMounted(async () => {
   const $vc = useVueCesium();
   const readyObj = await $vc.creatingPromise;
   viewer = readyObj.viewer;
-  await initMapPoints();
+  await initMapPoints(viewer);
   initData();
   // 确保图层树已加载（用于查找 MVT URL）
   if (!mapStore.layerTreeLoaded) {
     await mapStore.fetchLayerTree();
   }
   // 注册统一点击处理器（MVT + 散点）
-  setupUnifiedClickHandler();
+  setupMvtPick();
 });
 
 onBeforeUnmount(() => {
@@ -324,10 +302,14 @@ onBeforeUnmount(() => {
 
   .overview-content {
     display: flex;
-    flex-direction: column;
+    flex-wrap: wrap;
     gap: 15px;
     padding: 0 10px;
     overflow-y: auto;
+  }
+
+  .overview-item {
+    width: calc(50% - 8px);
   }
 
   .overview-item {

@@ -6,7 +6,8 @@
     <div class="module-content">
       <!-- 上方：统计卡片区域 -->
       <div class="stats-cards-container">
-        <div class="stats-card" v-for="(item, idx) in statsCards" :key="item.id">
+        <div class="stats-card" v-for="(item, idx) in statsCards" :key="item.id"
+          :class="{ active: selectedCardType === item.id }" @click="handleCardClick(item)">
           <div class="card-info" :class="item.type">
             <div class="card-value gradient-text">{{ item.value }}<span class="unit">座</span>
             </div>
@@ -34,15 +35,27 @@
       </div>
     </div>
   </div>
+
+  <!-- 点位详情弹窗 -->
+  <GasPointPopup
+    :visible="popupVisible"
+    :point-data="popupData"
+    :position="{ x: 0, y: 0 }"
+    point-type="桥梁"
+    @close="closePopup"
+  />
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref, nextTick } from "vue";
+import { onMounted, onBeforeUnmount, ref, nextTick } from "vue";
+import { useVueCesium } from "vue-cesium";
 import * as echarts from "echarts";
-import { getBridgeCategoryStats } from "@/services/bridgeService";
+import { getBridgeCategoryStats, getBridgePageList, getBridgeDetail } from "@/services/bridgeService";
 import { createChartOption, getGradientColor } from "./chartOption";
 import { getWaterOverview } from "@/services/waterSupplyService";
 import { getCachedDictionary } from "@/services/dictionaryService";
+import { useGasOverviewPoints } from "@/hook/useGasOverviewPoints";
+import GasPointPopup from "@/views/GasModule/components/GasPointPopup.vue";
 
 defineOptions({
   name: "OverviewModule",
@@ -57,6 +70,99 @@ const chartConfigs = ref<any[]>([]);
 
 // 字典映射
 const qlTypeMap = ref<any>({});
+
+// 地图点位管理
+const { init: initMapPoints, addPoints, clearPoints, setupClickHandler, dataSource, viewer } = useGasOverviewPoints();
+
+// 选中状态
+const selectedCardType = ref<string | null>(null);
+const selectedChartType = ref<string | null>(null);
+
+// 弹窗状态
+const popupVisible = ref(false);
+const popupData = ref<any>(null);
+
+// ==================== 点击处理 ====================
+
+// 卡片类型到筛选参数的映射
+const cardTypeFilterMap: Record<string, string> = {
+  "jcssdstj0601": "",  // 桥梁总数 - 不筛选
+  "jcssdstj0602": "qllx002",  // 大桥及特大桥
+  "jcssdstj0603": "qllx004",  // 立交桥
+  "jcssdstj0604": "qllx005",  // 涵洞
+};
+
+// 关闭弹窗
+const closePopup = () => {
+  popupVisible.value = false;
+  popupData.value = null;
+};
+
+// 点击地图点位回调
+const handlePointClick = async (point: any) => {
+  try {
+    const detail = await getBridgeDetail(point.lsh);
+    popupData.value = detail;
+    popupVisible.value = true;
+  } catch (error) {
+    console.error('获取桥梁详情失败:', error);
+  }
+};
+
+// 请求桥梁列表并展示点位
+const loadBridgePoints = async (filter?: string) => {
+  try {
+    const params: any = {
+      page: '1',
+      rows: '50',
+    };
+    if (filter) {
+      params.Qllx = filter;
+    }
+    console.log('🔍 请求桥梁列表参数:', params);
+    const res = await getBridgePageList(params);
+    console.log('📦 桥梁列表返回:', res);
+    const data = res?.rows || res || [];
+    console.log('📊 数据条数:', data.length);
+    if (Array.isArray(data) && data.length > 0) {
+      const points = data
+        .filter((p: any) => p.qjdxx && p.qwdxx)
+        .map((p: any) => ({
+          lsh: p.lsh,
+          jd: p.qjdxx,
+          wd: p.qwdxx,
+          name: p.llmc || p.qlbh || '',
+        }));
+      console.log('📍 有效点位:', points.length, points);
+      if (points.length > 0) {
+        addPoints(points, '桥梁');
+        setupClickHandler(handlePointClick);
+        console.log('✅ addPoints 已调用, setupClickHandler 已注册');
+      }
+    }
+  } catch (error) {
+    console.error("获取桥梁列表失败:", error);
+  }
+};
+
+// 点击卡片
+const handleCardClick = async (card: any) => {
+  if (selectedCardType.value === card.id) {
+    selectedCardType.value = null;
+    clearPoints();
+    closePopup();
+    return;
+  }
+  selectedCardType.value = card.id;
+  selectedChartType.value = null;
+  closePopup();
+  clearPoints();
+
+  // 获取对应类型的桥梁列表
+  const jcsslx = `jcssdstj060${card.id}`;
+  const filter = cardTypeFilterMap[jcsslx] || '';
+  await loadBridgePoints(filter);
+};
 
 // ==================== 数据获取与处理 ====================
 /**
@@ -170,6 +276,30 @@ const groupLegends = (legends: any[]) => {
  */
 
 // ==================== 图表渲染 ====================
+
+// 图表实例缓存
+const chartInstances: Record<number, echarts.ECharts> = {};
+
+// 图例名称到筛选参数的映射
+const legendFilterMap: Record<string, string> = {
+  // 桥梁结构
+  '梁式桥': 'qljglb001',
+  '拱式桥': 'qljglb002',
+  '悬索桥': 'qljglb003',
+  '斜拉桥': 'qljglb004',
+  '刚构桥': 'qljglb005',
+  '组合体系桥': 'qljglb006',
+  // 养护等级
+  'I 等养护': 'qlyhdj001',
+  'II 等养护': 'qlyhdj002',
+  'III 等养护': 'qlyhdj003',
+  'IV 等养护': 'qlyhdj004',
+  'V 等养护': 'qlyhdj005',
+  'I 级': 'qlyhdj006',
+  'II 级': 'qlyhdj007',
+  'III 级': 'qlyhdj008',
+};
+
 /**
  * 渲染圆环图表
  */
@@ -179,13 +309,34 @@ const renderCharts = () => {
     if (!chartDom) return;
 
     const myChart = echarts.init(chartDom);
+    chartInstances[chart.id] = myChart;
     const option = createChartOption(chart, chartIndex);
     myChart.setOption(option);
+
+    // 监听图例点击事件
+    myChart.on('legendselectchanged', async (params: any) => {
+      console.log('🖱️ 图例点击:', params.name);
+      // 禁用图例的默认切换行为，保持所有项显示
+      myChart.dispatchAction({ type: 'legendAllSelect' });
+      const filter = legendFilterMap[params.name];
+      if (filter) {
+        clearPoints();
+        closePopup();
+        selectedCardType.value = null;
+        await loadBridgePoints(filter);
+      }
+    });
   });
 };
 
 // ==================== 生命周期 ====================
+const $vc = useVueCesium();
+
 onMounted(async () => {
+  const readyObj = await $vc.creatingPromise;
+  await initMapPoints(readyObj.viewer);
+  console.log('📍 initMapPoints 完成, dataSource:', !!dataSource.value, 'viewer:', !!viewer.value);
+
   // 获取卡片数据
   await fetchCardData();
   // 获取桥梁分类统计数据
@@ -216,6 +367,21 @@ onMounted(async () => {
   display: flex;
   gap: 20px;
   align-items: center;
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 8px;
+  box-shadow: inset 0 0 0 2px transparent;
+  transition: all 0.3s ease;
+
+  &:hover {
+    background: rgba(13, 165, 190, 0.1);
+    box-shadow: inset 0 0 0 2px rgba(13, 165, 190, 0.3);
+  }
+
+  &.active {
+    background: rgba(13, 165, 190, 0.2);
+    box-shadow: inset 0 0 0 2px #0da5be, 0 0 12px rgba(13, 165, 190, 0.3);
+  }
 
   .card-info {
     width: 153.2px;

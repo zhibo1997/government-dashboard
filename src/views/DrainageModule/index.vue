@@ -26,8 +26,8 @@
 
 <script setup lang="ts">
 import { onBeforeMount, ref, provide } from 'vue'
-// 引入左右内容组件（复用供水模块组件）
-import LeftNav from '../WaterSupply/leftContent.vue'
+// 引入左右内容组件
+import LeftNav from './leftContent.vue'
 import RightNav from '../WaterSupply/RightContent.vue'
 import SidebarModule from './sidebarModule.vue'
 // 引入字典缓存服务

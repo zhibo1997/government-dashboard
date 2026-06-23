@@ -144,6 +144,9 @@ export function useMapHooks() {
         await viewer.zoomTo(tileset);
       }
 
+      // 强制渲染，确保模型立即显示（requestRenderMode 下不会自动刷新）
+      viewer.scene.requestRender();
+
       console.log("✅ 3D Tiles加载成功");
 
       return tileset;

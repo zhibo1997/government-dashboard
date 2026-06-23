@@ -38,13 +38,22 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from "vue";
+import { ref, onMounted, onBeforeUnmount } from "vue";
 import { useVueCesium } from "vue-cesium";
-import { getWaterSupplyStats, getWaterSourceCoordinateList, getWaterPlantCoordinateList, getWaterPumpStationCoordinateList, getWaterSourceDetail, getWaterPlantDetail, getWaterPumpStationDetail } from "@/services/waterSupplyService";
+import {
+  getDrainageStats,
+  getDrainFloodCoordinateList,
+  getDrainRiverCoordinateList,
+  getSewageTreatmentPlantCoordinateList,
+  getDrainFloodDetailByLsh,
+  getDrainRiverDetail,
+  getSewageTreatmentPlantDetail,
+} from "@/services/waterSupplyService";
 import { useGasOverviewPoints } from "@/hook/useGasOverviewPoints";
+import { useMapHooks } from "@/hook/useMapHooks";
+import { useMvtPickHandler } from "@/hook/useMvtPickHandler";
+import { useMapStore } from "@/stores/mapStore";
 import GasPointPopup from "@/views/GasModule/components/GasPointPopup.vue";
-
-let viewer: any = null;
 
 // 响应式数据
 const overviewData = ref<any[]>([]);
@@ -53,31 +62,140 @@ const selectedId = ref<string | null>(null);
 // 地图点位管理
 const { init: initMapPoints, addPoints, clearPoints } = useGasOverviewPoints();
 
+// MVT 图层管理
+const { loadMVTLayer } = useMapHooks();
+const mapStore = useMapStore();
+let viewer: any = null;
+
+// MVT 图层实例缓存
+const mvtLayerCache: Record<string, any> = {};
+
 // 弹窗状态
 const popupVisible = ref(false);
 const popupData = ref<any>(null);
 
 // icon 映射
 const iconMapping: Record<string, string> = {
-  '水源地': 'water_source',
-  '水厂': 'water_treatment',
-  '供水管网': 'pipeline',
-  '供水泵站': 'pump_station',
-  '市政消火栓': 'fire_hydrant',
+  '污水厂': 'water_treatment',
+  '易积水点': 'fire_hydrant',
+  '河道': 'pipeline',
+  '污水箅子': 'fire_hydrant',
+  '雨污合流箅子': 'fire_hydrant',
+  '污水管线': 'pipeline',
+  '雨水管线': 'pipeline',
+  '雨污合流管线': 'pipeline',
+  '污水井': 'pump_station',
+  '雨水方形箅': 'fire_hydrant',
+  '雨水圆形井': 'pump_station',
+};
+
+// MVT 图层 ID 映射
+const mvtLayerIdMap: Record<string, string> = {
+  '河道': '8957f558-a82f-4243-8d45-5ae0d04f7b81',
+  '污水箅子': '28b7c8b1-5edf-4ac3-b686-a11f8a4b9471',
+  '雨污合流箅子': 'cd3d3010-2f92-4e8a-8c90-cd7683f7128f',
+  '污水管线': '2071343c-a75a-49e4-9e9b-529efe525581',
+  '雨水管线': 'f879d172-9a05-4d47-a70f-0688eca35533',
+  '雨污合流管线': 'a7d508cb-65e6-49d5-a42a-cd8865a8fb92',
+  '污水井': '0017de5f-0fb8-41ee-81cb-ef5f05ea790d',
+  '雨水方形箅': '187f97a4-444e-47f9-bb95-092fd3139aac',
+  '雨水圆形井': 'eb124a2c-b167-4482-a076-d331fed0a5a2',
 };
 
 // 点位接口映射
 const coordinateApiMap: Record<string, () => Promise<any>> = {
-  '水源地': getWaterSourceCoordinateList,
-  '水厂': getWaterPlantCoordinateList,
-  '供水泵站': getWaterPumpStationCoordinateList,
+  '易积水点': getDrainFloodCoordinateList,
+  '河道': getDrainRiverCoordinateList,
+  '污水厂': getSewageTreatmentPlantCoordinateList,
 };
 
 // 详情接口映射
 const detailApiMap: Record<string, (lsh: string) => Promise<any>> = {
-  '水源地': getWaterSourceDetail,
-  '水厂': getWaterPlantDetail,
-  '供水泵站': getWaterPumpStationDetail,
+  '易积水点': getDrainFloodDetailByLsh,
+  '河道': getDrainRiverDetail,
+  '污水厂': getSewageTreatmentPlantDetail,
+};
+
+// 当前活跃的 MVT 图层（用于 pickHandler）
+let activeMvtLayer: any = null;
+
+// MVT 点击查询
+const { setup: setupMvtPick } = useMvtPickHandler({
+  get viewer() { return viewer },
+  getMvtLayer: () => activeMvtLayer,
+  onFeaturePick: (props) => {
+    popupData.value = props;
+    selectedId.value = Object.keys(mvtLayerIdMap).find(k => mvtLayerCache[k] === activeMvtLayer) || "MVT要素";
+    popupVisible.value = true;
+  },
+  onScatterPick: (entity) => {
+    if (entity.point && entity.description) {
+      try {
+        const pointData = JSON.parse(entity.description.getValue());
+        handlePointClick(pointData);
+      } catch (e) {
+        console.warn("解析点位数据失败:", e);
+      }
+    }
+  },
+});
+
+/** 从图层树中查找 MVT 图层 URL */
+const findMvtUrl = (layerId: string): string | null => {
+  const tree = mapStore.layerTreeNodes;
+  const search = (nodes: any[]): string | null => {
+    for (const node of nodes) {
+      if (node.id === layerId && node.type === 'mvt' && node.url) {
+        return node.url;
+      }
+      if (node.child?.length) {
+        const found = search(node.child);
+        if (found) return found;
+      }
+    }
+    return null;
+  };
+  return search(tree);
+};
+
+/** 显示 MVT 图层 */
+const showMvtLayer = async (layerName: string) => {
+  if (!viewer) return;
+
+  const layerId = mvtLayerIdMap[layerName];
+  if (!layerId) return;
+
+  // 已加载过的图层直接显示
+  if (mvtLayerCache[layerName]) {
+    mvtLayerCache[layerName].show = true;
+    activeMvtLayer = mvtLayerCache[layerName];
+    viewer.scene.requestRender();
+    return;
+  }
+
+  const url = findMvtUrl(layerId);
+  if (!url) {
+    console.warn(`图层树中未找到 ${layerName} MVT 图层`);
+    return;
+  }
+
+  try {
+    const layer = await loadMVTLayer(viewer, url);
+    mvtLayerCache[layerName] = layer;
+    activeMvtLayer = layer;
+  } catch (e) {
+    console.error(`加载 ${layerName} MVT 失败:`, e);
+  }
+};
+
+/** 隐藏所有 MVT 图层 */
+const hideAllMvtLayers = () => {
+  if (!viewer) return;
+  Object.values(mvtLayerCache).forEach(layer => {
+    if (layer) layer.show = false;
+  });
+  activeMvtLayer = null;
+  viewer.scene.requestRender();
 };
 
 // 动态获取图标路径
@@ -113,6 +231,7 @@ const handleItemClick = async (item: any) => {
   if (selectedId.value === item.id) {
     selectedId.value = null;
     clearPoints();
+    hideAllMvtLayers();
     closePopup();
     return;
   }
@@ -120,6 +239,13 @@ const handleItemClick = async (item: any) => {
   selectedId.value = item.id;
   closePopup();
   clearPoints();
+  hideAllMvtLayers();
+
+  // 有 MVT 图层的展示 MVT
+  if (mvtLayerIdMap[item.name]) {
+    await showMvtLayer(item.name);
+    return;
+  }
 
   // 有坐标接口的展示点位
   const coordinateApi = coordinateApiMap[item.name];
@@ -144,7 +270,7 @@ const handleItemClick = async (item: any) => {
 // 初始化数据
 const initData = async () => {
   try {
-    const data = await getWaterSupplyStats();
+    const data = await getDrainageStats();
     if (Array.isArray(data) && data.length > 0) {
       overviewData.value = data
         .sort((a: any, b: any) => (a.sort || 0) - (b.sort || 0))
@@ -157,7 +283,7 @@ const initData = async () => {
         }));
     }
   } catch (error) {
-    console.error("获取供水专项统计指标失败:", error);
+    console.error("获取排水专项统计指标失败:", error);
   }
 };
 
@@ -167,6 +293,16 @@ onMounted(async () => {
   viewer = readyObj.viewer;
   await initMapPoints(viewer);
   initData();
+  setupMvtPick();
+
+  // 确保图层树已加载
+  if (!mapStore.layerTreeLoaded) {
+    await mapStore.fetchLayerTree();
+  }
+});
+
+onBeforeUnmount(() => {
+  hideAllMvtLayers();
 });
 </script>
 

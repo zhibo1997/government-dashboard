@@ -1,0 +1,2 @@
+patchedDependencies:
+  mvt-imagery-provider@1.0.3: patches/mvt-imagery-provider@1.0.3.patch

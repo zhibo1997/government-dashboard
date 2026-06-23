@@ -4,6 +4,11 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
+patchedDependencies:
+  mvt-imagery-provider@1.0.3:
+    hash: 7482bd4f68d64340263e6e7d221485f61f26ec78ff13f5d496349d9ce1c203bc
+    path: patches/mvt-imagery-provider@1.0.3.patch
+
 importers:
 
   .:
@@ -43,7 +48,7 @@ importers:
         version: 4.3.0
       mvt-imagery-provider:
         specifier: ^1.0.3
-        version: 1.0.3(cesium@1.135.0)
+        version: 1.0.3(patch_hash=7482bd4f68d64340263e6e7d221485f61f26ec78ff13f5d496349d9ce1c203bc)(cesium@1.135.0)
       naive-ui:
         specifier: ^2.40.1
         version: 2.43.1(vue@3.5.22(typescript@5.9.3))
@@ -5437,7 +5442,7 @@ snapshots:
 
   mvt-basic-render@0.3.5: {}
 
-  mvt-imagery-provider@1.0.3(cesium@1.135.0):
+  mvt-imagery-provider@1.0.3(patch_hash=7482bd4f68d64340263e6e7d221485f61f26ec78ff13f5d496349d9ce1c203bc)(cesium@1.135.0):
     dependencies:
       cesium: 1.135.0
       mvt-basic-render: 0.3.5

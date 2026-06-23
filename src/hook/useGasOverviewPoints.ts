@@ -4,7 +4,7 @@
  */
 
 import { ref, onBeforeUnmount } from 'vue'
-import { useVueCesium } from 'vue-cesium'
+import { getCameraHeight } from './billboardManager'
 
 export interface GasOverviewPoint {
   lsh: string
@@ -18,20 +18,28 @@ export function useGasOverviewPoints() {
   const dataSource = ref<any>(null)
   const currentType = ref<string | null>(null)
   let clickHandler: any = null
+  let cameraMoveEndListener: any = null
+  let currentPoints: GasOverviewPoint[] = []
+  let lastThinMode: boolean | null = null // 上一次抽稀状态，null 表示未初始化
 
   /**
    * 初始化 Cesium
+   * @param cesiumViewer 外部传入的 viewer 实例
    */
-  const init = async () => {
+  const init = async (cesiumViewer: any) => {
+    if (!cesiumViewer) {
+      console.warn('[useGasOverviewPoints] viewer 未就绪')
+      return
+    }
     try {
-      const $vc = useVueCesium()
-      const readyObj = await $vc.creatingPromise
-      viewer.value = readyObj.viewer
+      viewer.value = cesiumViewer
+      console.log('[useGasOverviewPoints] viewer 初始化完成:', !!viewer.value)
 
       const Cesium = (window as any).Cesium
       const ds = new Cesium.CustomDataSource('gasOverviewPoints')
       await viewer.value.dataSources.add(ds)
       dataSource.value = ds
+      console.log('[useGasOverviewPoints] dataSource 初始化完成:', !!dataSource.value)
     } catch (error) {
       console.error('初始化 Cesium 失败:', error)
     }
@@ -88,6 +96,10 @@ export function useGasOverviewPoints() {
     )
   }
 
+  // 高度阈值：高于此值启用抽稀，低于此值显示全部标签
+  const THIN_HEIGHT_THRESHOLD = 10000 // 10km
+  const THIN_DISTANCE = 0.025
+
   /**
    * 标签抽稀：根据距离判断是否显示标签
    * @param points 点位数组
@@ -119,26 +131,23 @@ export function useGasOverviewPoints() {
   }
 
   /**
-   * 在地图上添加散点
-   * @param points 点位数据数组
-   * @param name 点位类型名称
-   * @param onPointClick 点击点位时的回调函数
+   * 首次渲染点位（所有实体都带 label，通过 show 控制显隐）
    */
-  const addPoints = (points: GasOverviewPoint[], name: string, onPointClick?: (point: GasOverviewPoint) => void) => {
+  const renderPoints = (points: GasOverviewPoint[], thinMode: boolean) => {
     if (!dataSource.value || !viewer.value) return
 
     const Cesium = (window as any).Cesium
-    clearPoints()
-    currentType.value = name
+    const entities = dataSource.value.entities
 
-    // 标签抽稀
-    const labelIndices = thinLabels(points)
+    entities.suspendEvents()
+    entities.removeAll()
+
+    const labelIndices = thinMode ? thinLabels(points, THIN_DISTANCE) : new Set(points.map((_, i) => i))
 
     points.forEach((point, index) => {
       if (point.jd && point.wd) {
         const showLabel = labelIndices.has(index)
-
-        dataSource.value.entities.add({
+        entities.add({
           position: Cesium.Cartesian3.fromDegrees(point.jd, point.wd),
           point: {
             pixelSize: 10,
@@ -147,7 +156,7 @@ export function useGasOverviewPoints() {
             outlineWidth: 2,
             scaleByDistance: new Cesium.NearFarScalar(500, 1, 1000000, 0.4),
           },
-          label: showLabel ? {
+          label: {
             text: point.name || '',
             font: '14px Microsoft YaHei, sans-serif',
             style: Cesium.LabelStyle.FILL_AND_OUTLINE,
@@ -158,22 +167,74 @@ export function useGasOverviewPoints() {
             verticalOrigin: Cesium.VerticalOrigin.BOTTOM,
             pixelOffset: new Cesium.Cartesian2(0, -15),
             scaleByDistance: new Cesium.NearFarScalar(500, 1, 1000000, 0.5),
-          } : undefined,
-          // 存储原始数据用于点击弹窗
+            show: showLabel,
+          },
           description: JSON.stringify(point),
         })
       }
     })
 
-    // 设置点击事件处理（有回调时才注册，避免覆盖外部统一处理器）
-    if (onPointClick) {
-      setupClickHandler(onPointClick)
+    entities.resumeEvents()
+    viewer.value.scene.requestRender()
+  }
+
+  /**
+   * 更新标签显隐（不重建实体，只切换 label.show）
+   */
+  const updateLabelVisibility = (points: GasOverviewPoint[], thinMode: boolean) => {
+    if (!dataSource.value || !viewer.value) return
+
+    const entities = dataSource.value.entities.values
+    const labelIndices = thinMode ? thinLabels(points, THIN_DISTANCE) : null
+
+    for (let i = 0; i < entities.length; i++) {
+      const entity = entities[i]
+      if (entity.label) {
+        entity.label.show = thinMode ? labelIndices!.has(i) : true
+      }
     }
 
-    // 强制刷新场景
-    if (viewer.value.scene) {
-      viewer.value.scene.requestRender()
+    viewer.value.scene.requestRender()
+  }
+
+  /**
+   * 设置相机高度监听，跨越阈值时切换抽稀模式
+   */
+  const setupCameraListener = () => {
+    if (!viewer.value) return
+    if (cameraMoveEndListener) {
+      cameraMoveEndListener()
+      cameraMoveEndListener = null
     }
+    cameraMoveEndListener = viewer.value.camera.moveEnd.addEventListener(() => {
+      if (currentPoints.length === 0) return
+      const cameraHeight = getCameraHeight(viewer.value)
+      const thinMode = cameraHeight >= THIN_HEIGHT_THRESHOLD
+      if (thinMode !== lastThinMode) {
+        lastThinMode = thinMode
+        updateLabelVisibility(currentPoints, thinMode)
+      }
+    })
+  }
+
+  const addPoints = (points: GasOverviewPoint[], name: string, _onPointClick?: (point: GasOverviewPoint) => void) => {
+    console.log(`[addPoints] 被调用, points=${points.length}, dataSource=${!!dataSource.value}, viewer=${!!viewer.value}`)
+    if (!dataSource.value || !viewer.value) return
+
+    clearPoints()
+    currentType.value = name
+    currentPoints = points
+
+    // 根据当前高度决定是否抽稀
+    const cameraHeight = getCameraHeight(viewer.value)
+    const thinMode = cameraHeight >= THIN_HEIGHT_THRESHOLD
+    lastThinMode = thinMode
+    console.log(`[addPoints] 相机高度: ${(cameraHeight / 1000).toFixed(1)}km, 抽稀: ${thinMode}`)
+
+    renderPoints(points, thinMode)
+
+    // 设置相机监听，跨越阈值时切换
+    setupCameraListener()
   }
 
   /**
@@ -204,6 +265,11 @@ export function useGasOverviewPoints() {
       clickHandler()
       clickHandler = null
     }
+    if (cameraMoveEndListener) {
+      cameraMoveEndListener()
+      cameraMoveEndListener = null
+    }
+    currentPoints = []
     if (dataSource.value && viewer.value) {
       viewer.value.dataSources.remove(dataSource.value, true)
       dataSource.value = null

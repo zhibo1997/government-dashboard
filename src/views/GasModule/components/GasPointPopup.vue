@@ -10,7 +10,7 @@
       <div class="popup-header">
         <div class="popup-title">{{ title }}</div>
         <div class="popup-close" @click="$emit('close')">
-          <n-icon size="32" color="rgb(17,167,226)" :component="Close" />
+          <n-icon size="64" color="rgb(17,167,226)" :component="Close" />
         </div>
       </div>
 
