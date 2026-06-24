@@ -29,6 +29,7 @@
 import { computed, inject, ref } from 'vue'
 import { NIcon } from 'naive-ui'
 import { Close } from "@vicons/ionicons5"
+import { mapToLabelValue } from '@/config/fieldLabelConfig'
 
 interface DisplayField {
   label: string
@@ -66,58 +67,10 @@ const popupStyle = computed(() => {
   }
 })
 
-// 根据类型显示不同字段
+// 统一使用 mapToLabelValue 映射字段
 const displayFields = computed<DisplayField[]>(() => {
   if (!props.pointData) return []
-
-  const data = props.pointData
-
-  if (props.pointType === '燃气井盖') {
-    return [
-      { label: '编号', value: data.jgbh },
-      { label: '地址', value: data.dz },
-      { label: '权属单位', value: data.qsdw },
-      { label: '井盖型号', value: data.jgxh },
-      { label: '井盖类型', value: data.jglx },
-      { label: '井盖状态', value: data.jgzt },
-      { label: '是否功能型维护', value: data.sfgnxwh === 1 ? '是' : '否' },
-      { label: '是否检查', value: data.sfjc === 1 ? '是' : '否' },
-    ]
-  }
-
-  if (props.pointType === '燃气企业') {
-    return [
-      { label: '企业编码', value: data.qybm },
-      { label: '企业名称', value: data.qymc },
-      { label: '详细地址', value: data.xxdz },
-      { label: '经营区域', value: data.jyqy },
-      { label: '职工人数', value: data.zgrs },
-      { label: '拥有窨井数量', value: data.yyyjsl },
-      { label: '拥有厂站数量', value: data.yyczsl },
-      { label: '拥有管线长度', value: data.yygxcd },
-    ]
-  }
-
-  if (props.pointType === '液化气企业') {
-    return [
-      { label: '企业编码', value: data.qybm },
-      { label: '企业名称', value: data.qymc },
-      { label: '详细地址', value: data.xxdz },
-      { label: '经营区域', value: data.jyqy },
-      { label: '液化气瓶数量', value: data.yhqpsl },
-      { label: '职工人数', value: data.zgrs },
-      { label: '客户总数', value: data.khzs },
-      { label: '运输车辆数量', value: data.ysclsl },
-    ]
-  }
-
-  return Object.entries(data)
-    .filter(([key]) => !['lsh', 'jd', 'wd', 'dsbm', 'qhbm', 'yskzjbz', 'sjtbzt', 'tbsj', 'sjly', 'sjbb'].includes(key))
-    .slice(0, 8)
-    .map(([key, value]) => ({
-      label: key,
-      value: value as string | number | null,
-    }))
+  return mapToLabelValue(props.pointData) as DisplayField[]
 })
 </script>
 

@@ -203,9 +203,9 @@ const waterPlants = ref([]);
   gap: 0;
   
   .quality-item{
-    width: 50%;
-    flex-shrink: 0;
-    flex-grow: 0;
+    flex: 1 1 50%;
+    min-width: 50%;
+    max-width: 100%;
   }
   .quality-item-title {
     background-image: url("@/assets/img/waterSupply/quality_title.png");

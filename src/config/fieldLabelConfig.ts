@@ -1,10 +1,10 @@
 /**
- * 字段中文映射配置
- * 统一管理各模块详情弹窗的字段标签
+ * 字段中文映射配置（统一管理）
+ * 所有模块共用一个映射表，key 为字段名，value 为中文标签
  */
 
-// 通用字段映射（多个模块共用）
-export const COMMON_FIELDS: Record<string, string> = {
+export const FIELD_LABEL_MAP: Record<string, string> = {
+  // ========== 通用字段 ==========
   lsh: '流水号',
   dsbm: '市州编码',
   qhbm: '区划编码',
@@ -15,10 +15,8 @@ export const COMMON_FIELDS: Record<string, string> = {
   tbsj: '同步时间',
   sjly: '数据来源',
   sjbb: '数据版本',
-}
 
-// 燃气井盖字段映射
-export const GAS_MANHOLE_COVER_FIELDS: Record<string, string> = {
+  // ========== 燃气井盖 ==========
   jgbh: '编号',
   dz: '地址',
   qsdw: '权属单位',
@@ -37,10 +35,8 @@ export const GAS_MANHOLE_COVER_FIELDS: Record<string, string> = {
   zjycdwxjl: '最后一次维修记录',
   sfjc: '是否检查',
   glgxbm: '关联管线编码',
-}
 
-// 燃气企业字段映射
-export const GAS_ENTERPRISE_FIELDS: Record<string, string> = {
+  // ========== 燃气企业 ==========
   qybm: '企业编码',
   qymc: '企业名称',
   xxdz: '详细地址',
@@ -52,16 +48,9 @@ export const GAS_ENTERPRISE_FIELDS: Record<string, string> = {
   lxr: '联系人',
   lxdh: '联系电话',
   rqlx: '燃气类型',
-}
 
-// 液化气企业字段映射
-export const BOTTLE_GAS_ENTERPRISE_FIELDS: Record<string, string> = {
-  qybm: '企业编码',
-  qymc: '企业名称',
-  xxdz: '详细地址',
-  jyqy: '经营区域',
+  // ========== 液化气企业 ==========
   yhqpsl: '液化气瓶数量',
-  zgrs: '职工人数',
   czgsl: '充装工数量',
   sqgsl: '送气工数量',
   khzs: '客户总数',
@@ -71,40 +60,84 @@ export const BOTTLE_GAS_ENTERPRISE_FIELDS: Record<string, string> = {
   azdwsbclsl: '安装定位设备车辆数量',
   qyfzrxm: '企业负责人姓名',
   qyjyyxq: '企业经营有效期',
-}
 
-// 供水水源地字段映射
-export const WATER_SOURCE_FIELDS: Record<string, string> = {
+  // ========== 供水水源地 ==========
   sydbh: '水源地编号',
-  symc: '水源地名称',
-  syddz: '水源地地址',
-  sylx: '水源类型',
-  sydj: '水源等级',
-  sjll: '设计流量',
-  sjzl: '设计水量',
-}
+  sydmc: '水源地名称',
+  sydlx: '水源地类型',
+  bhqjb: '保护区级别',
+  zdmj: '占地面积',
+  gldw: '管理单位',
+  zbdh: '值班电话',
+  sjlydw: '数据来源单位',
+  sydtp: '水源地图片',
+  sydjj: '水源地简介',
 
-// 供水水厂字段映射
-export const WATER_PLANT_FIELDS: Record<string, string> = {
-  ccbh: '水厂编号',
-  ccmc: '水厂名称',
-  ccdz: '水厂地址',
-  cclx: '水厂类型',
-  sjcl: '设计处理能力',
-  sjcll: '设计处理量',
-}
+  // ========== 供水水厂 ==========
+  scbh: '水厂编号',
+  scmc: '水厂名称',
+  gsnl: '供水能力',
+  trsysj: '投入使用时间',
+  sctp: '水厂图片',
+  scjj: '水厂简介',
 
-// 供水泵站字段映射
-export const WATER_PUMP_STATION_FIELDS: Record<string, string> = {
+  // ========== 供水泵站 ==========
   bzbh: '泵站编号',
   bzmc: '泵站名称',
   bzdz: '泵站地址',
   bzlz: '泵站类型',
-  sjll: '设计流量',
-}
 
-// 应急专家字段映射
-export const EMERGENCY_EXPERT_FIELDS: Record<string, string> = {
+  // ========== 排水污水厂 ==========
+  csbz: '出水标准',
+  jsbz: '进水标准',
+  psqx: '排水去向',
+  clgm: '处理规模',
+  gldwmc: '管理单位名称',
+
+  // ========== 排水河道 ==========
+  hlbh: '河流编号',
+  hlmc: '河流名称',
+  hlcd: '河流长度',
+  qdjd: '起点经度',
+  qdwd: '起点纬度',
+  qdxxdz: '起点详细地址',
+  jsdjd: '结束点经度',
+  jsdwd: '结束点纬度',
+  jsdxxdz: '结束点详细地址',
+  sssx: '所属水系',
+  czs: '测站数量',
+  hdlx: '河道流向',
+
+  // ========== 桥梁 ==========
+  qlbh: '桥梁编号',
+  llmc: '桥梁名称',
+  qljg: '桥梁结构',
+  kjzh: '孔跨组合',
+  qlzcd: '桥梁总长',
+  qlk: '桥梁宽',
+  qjdxx: '起点经度',
+  qwdxx: '起点纬度',
+  yhdw: '养护单位',
+  jsdwmc: '建设单位名称',
+  jsnd: '建设年代',
+  sjdwmc: '设计单位名称',
+  jldwmc: '监理单位名称',
+  sgdwmc: '施工单位名称',
+  qljbxxms: '桥梁基本信息描述',
+  qljsgm: '桥梁建设规模',
+  qlyhdj: '桥梁养护等级',
+  zynl: '主要年限',
+  qltp: '桥梁图片',
+  hysx: '行业属性',
+  qllx: '桥梁类型',
+  ssdl: '所属道路',
+  qswz: '起始位置',
+  zzwz: '终止位置',
+  kfsj: '开放时间',
+  jgrq: '竣工日期',
+  ztdj: '状态等级',
+
+  // ========== 应急专家 ==========
   xm: '姓名',
   xb: '性别',
   zyjstc: '专业技术特长',
@@ -117,30 +150,23 @@ export const EMERGENCY_EXPERT_FIELDS: Record<string, string> = {
   zzmm: '政治面貌',
   xl: '学历',
   sxzy: '所学专业',
-}
+  sfflzj: '是否防涝专家',
 
-// 救援队伍字段映射
-export const EMERGENCY_TEAM_FIELDS: Record<string, string> = {
+  // ========== 救援队伍 ==========
   dwmc: '单位名称',
   dwlx: '单位类型',
   dwgm: '单位规模',
   lsdw: '隶属单位',
   dwwz: '单位位置',
   zyfzr: '主要负责人',
-  lxdh: '联系电话',
-}
 
-// 救援人员字段映射
-export const EMERGENCY_PERSONNEL_FIELDS: Record<string, string> = {
+  // ========== 救援人员 ==========
   ryxm: '人员姓名',
   ssdw: '所属单位',
-  zw: '职务',
   zytc: '专业特长',
   rydh: '人员电话',
-}
 
-// 救援车辆字段映射
-export const EMERGENCY_VEHICLE_FIELDS: Record<string, string> = {
+  // ========== 救援车辆 ==========
   mc: '名称',
   lx: '类型',
   cph: '车牌号',
@@ -148,37 +174,34 @@ export const EMERGENCY_VEHICLE_FIELDS: Record<string, string> = {
   fzrxm: '负责人',
   fzrlxdh: '负责人电话',
   cpnl: '车辆能力',
-}
 
-// 救援仓库字段映射
-export const EMERGENCY_WAREHOUSE_FIELDS: Record<string, string> = {
-  ckmc: '仓库名称',
-  ckdz: '仓库地址',
-  cklx: '仓库类型',
-  ckmj: '仓库面积',
-  fzrxm: '负责人',
-  fzrlxdh: '负责人电话',
+  // ========== 救援仓库 ==========
+  jyckbh: '救援仓库编号',
+  jyckmc: '救援仓库名称',
+  jycklx: '救援仓库类型',
+  tzms: '特征简述',
+  ssdwmc: '所属单位名称',
+  jzmj: '建筑面积',
+  jyckzywp: '救援仓库主要物品',
+  fzr: '负责人',
+  fzrdh: '负责人电话',
+  zgjgdw: '主管监管单位',
 }
 
 /**
- * 根据模块类型获取字段映射
- * @param moduleType 模块类型
- * @returns 字段映射对象
+ * 将数据对象的 key 映射为中文标签
+ * @param data 原始数据对象
+ * @param filterKeys 需要过滤掉的 key 列表（可选）
+ * @returns 映射后的数组 [{ label, value }]
  */
-export function getFieldMapping(moduleType: string): Record<string, string> {
-  const mappingMap: Record<string, Record<string, string>> = {
-    '燃气井盖': GAS_MANHOLE_COVER_FIELDS,
-    '燃气企业': GAS_ENTERPRISE_FIELDS,
-    '液化气企业': BOTTLE_GAS_ENTERPRISE_FIELDS,
-    '水源地': WATER_SOURCE_FIELDS,
-    '水厂': WATER_PLANT_FIELDS,
-    '供水泵站': WATER_PUMP_STATION_FIELDS,
-    '应急专家': EMERGENCY_EXPERT_FIELDS,
-    '救援队伍': EMERGENCY_TEAM_FIELDS,
-    '救援人员': EMERGENCY_PERSONNEL_FIELDS,
-    '救援车辆': EMERGENCY_VEHICLE_FIELDS,
-    '救援仓库': EMERGENCY_WAREHOUSE_FIELDS,
-  }
+export function mapToLabelValue(data: Record<string, any>, filterKeys: string[] = []): { label: string; value: any }[] {
+  const defaultFilter = ['lsh', 'dsbm', 'qhbm', 'yskzjbz', 'sjtbzt', 'tbsj', 'sjly', 'sjbb', 'jd', 'wd']
+  const allFilter = [...defaultFilter, ...filterKeys]
 
-  return { ...COMMON_FIELDS, ...(mappingMap[moduleType] || {}) }
+  return Object.entries(data)
+    .filter(([key]) => !allFilter.includes(key) && data[key] !== null && data[key] !== undefined)
+    .map(([key, value]) => ({
+      label: FIELD_LABEL_MAP[key] || key,
+      value,
+    }))
 }
