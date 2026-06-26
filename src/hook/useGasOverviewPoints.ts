@@ -20,12 +20,9 @@ export function useGasOverviewPoints() {
   let clickHandler: any = null
   let cameraMoveEndListener: any = null
   let currentPoints: GasOverviewPoint[] = []
-  let lastThinDistance: number | null = null // 上一次抽稀距离，null 表示不抽稀
+  let lastThinDistance: number | null = null
+  let currentIconUrl: string | undefined = undefined
 
-  /**
-   * 初始化 Cesium
-   * @param cesiumViewer 外部传入的 viewer 实例
-   */
   const init = async (cesiumViewer: any) => {
     if (!cesiumViewer) {
       console.warn('[useGasOverviewPoints] viewer 未就绪')
@@ -33,21 +30,15 @@ export function useGasOverviewPoints() {
     }
     try {
       viewer.value = cesiumViewer
-      console.log('[useGasOverviewPoints] viewer 初始化完成:', !!viewer.value)
-
       const Cesium = (window as any).Cesium
       const ds = new Cesium.CustomDataSource('gasOverviewPoints')
       await viewer.value.dataSources.add(ds)
       dataSource.value = ds
-      console.log('[useGasOverviewPoints] dataSource 初始化完成:', !!dataSource.value)
     } catch (error) {
       console.error('初始化 Cesium 失败:', error)
     }
   }
 
-  /**
-   * 清除地图上的点位
-   */
   const clearPoints = () => {
     if (dataSource.value) {
       dataSource.value.entities.removeAll()
@@ -55,34 +46,25 @@ export function useGasOverviewPoints() {
     currentType.value = null
   }
 
-  /**
-   * 设置点击事件处理
-   * @param onPointClick 点击点位时的回调函数
-   */
   const setupClickHandler = (onPointClick?: (point: GasOverviewPoint) => void) => {
     if (!viewer.value) return
 
     const Cesium = (window as any).Cesium
 
-    // 移除旧的点击处理器
     if (clickHandler) {
       clickHandler()
       clickHandler = null
     }
 
-    // 添加新的点击处理器
     clickHandler = viewer.value.screenSpaceEventHandler.setInputAction(
       (movement: any) => {
         const pickedObject = viewer.value.scene.pick(movement.position)
         if (Cesium.defined(pickedObject) && pickedObject.id) {
           const entity = pickedObject.id
-          // 检查是否是我们添加的点位
-          if (entity.point && entity.description) {
+          if ((entity.point || entity.billboard) && entity.description) {
             try {
               const pointData = JSON.parse(entity.description.getValue())
-              // 飞行到该点位
               flyToPoint(pointData)
-              // 调用回调
               if (onPointClick) {
                 onPointClick(pointData)
               }
@@ -98,25 +80,19 @@ export function useGasOverviewPoints() {
 
   // 四档抽稀配置：[相机高度阈值(米), 标签间距(经纬度)]
   const THIN_LEVELS: [number, number][] = [
-    [30000, 0.04],   // 30km+：最稀疏
-    [15000, 0.025],  // 15km+：较稀疏
-    [8000, 0.015],   // 8km+：中等
-    [3000, 0.008],   // 3km+：较密集
+    [30000, 0.04],
+    [15000, 0.025],
+    [8000, 0.015],
+    [3000, 0.008],
   ]
 
-  /**
-   * 根据相机高度获取抽稀距离
-   */
   const getThinDistance = (cameraHeight: number): number | null => {
     for (const [threshold, distance] of THIN_LEVELS) {
       if (cameraHeight >= threshold) return distance
     }
-    return null // 低于 3km 不抽稀
+    return null
   }
 
-  /**
-   * 标签抽稀：根据距离判断是否显示标签
-   */
   const thinLabels = (points: GasOverviewPoint[], minDistance: number): Set<number> => {
     const showLabel = new Set<number>()
     const used: boolean[] = new Array(points.length).fill(false)
@@ -140,10 +116,15 @@ export function useGasOverviewPoints() {
     return showLabel
   }
 
+  /** 过滤不可见/控制 Unicode 字符，避免 Cesium 渲染崩溃 */
+  const sanitizeName = (name: string): string => {
+    return name.replace(/[\u0000-\u001f\u007f-\u009f\u00ad\u200b-\u200f\u2028-\u202f\u2060-\u206f\ufeff]/g, '')
+  }
+
   /**
-   * 首次渲染点位（所有实体都带 label，通过 show 控制显隐）
+   * 首次渲染点位（billboard 图标 + label）
    */
-  const renderPoints = (points: GasOverviewPoint[], thinDistance: number | null) => {
+  const renderPoints = (points: GasOverviewPoint[], thinDistance: number | null, iconUrl?: string) => {
     if (!dataSource.value || !viewer.value) return
 
     const Cesium = (window as any).Cesium
@@ -157,16 +138,9 @@ export function useGasOverviewPoints() {
     points.forEach((point, index) => {
       if (point.jd && point.wd) {
         const showLabel = labelIndices.has(index)
-        // 过滤所有不可见/控制 Unicode 字符，避免 Cesium 渲染崩溃
-        const safeName = (point.name || '').replace(/[\u0000-\u001F\u007F-\u009F\u00AD\u200B-\u200F\u2028-\u202F\u2060-\u206F\uFEFF]/g, '')
-        entities.add({
+        const safeName = sanitizeName(point.name || '')
+        const entityOptions: any = {
           position: Cesium.Cartesian3.fromDegrees(point.jd, point.wd),
-          point: {
-            pixelSize: 10,
-            color: Cesium.Color.fromCssColorString('#00ffff'),
-            outlineColor: Cesium.Color.WHITE,
-            outlineWidth: 2,
-          },
           label: {
             text: safeName,
             font: '14px Microsoft YaHei, sans-serif',
@@ -174,13 +148,34 @@ export function useGasOverviewPoints() {
             fillColor: Cesium.Color.WHITE,
             outlineColor: Cesium.Color.BLACK,
             outlineWidth: 2,
+            backgroundColor: Cesium.Color.fromCssColorString('rgba(6, 30, 52, 0.75)'),
+            padding: new Cesium.Cartesian2(6, 3),
             horizontalOrigin: Cesium.HorizontalOrigin.CENTER,
             verticalOrigin: Cesium.VerticalOrigin.BOTTOM,
             pixelOffset: new Cesium.Cartesian2(0, -15),
             show: showLabel,
           },
           description: JSON.stringify(point),
-        })
+        }
+
+        if (iconUrl) {
+          entityOptions.billboard = {
+            image: iconUrl,
+            width: 32,
+            height: 32,
+            horizontalOrigin: Cesium.HorizontalOrigin.CENTER,
+            verticalOrigin: Cesium.VerticalOrigin.CENTER,
+          }
+        } else {
+          entityOptions.point = {
+            pixelSize: 10,
+            color: Cesium.Color.fromCssColorString('#00ffff'),
+            outlineColor: Cesium.Color.WHITE,
+            outlineWidth: 2,
+          }
+        }
+
+        entities.add(entityOptions)
       }
     })
 
@@ -188,9 +183,6 @@ export function useGasOverviewPoints() {
     viewer.value.scene.requestRender()
   }
 
-  /**
-   * 更新标签显隐（不重建实体，只切换 label.show）
-   */
   const updateLabelVisibility = (points: GasOverviewPoint[], thinDistance: number | null) => {
     if (!dataSource.value || !viewer.value) return
 
@@ -207,9 +199,6 @@ export function useGasOverviewPoints() {
     viewer.value.scene.requestRender()
   }
 
-  /**
-   * 设置相机高度监听，跨越阈值时切换抽稀档位
-   */
   const setupCameraListener = () => {
     if (!viewer.value) return
     if (cameraMoveEndListener) {
@@ -227,30 +216,29 @@ export function useGasOverviewPoints() {
     })
   }
 
-  const addPoints = (points: GasOverviewPoint[], name: string, _onPointClick?: (point: GasOverviewPoint) => void) => {
-    console.log(`[addPoints] 被调用, points=${points.length}, dataSource=${!!dataSource.value}, viewer=${!!viewer.value}`)
+  /**
+   * 添加散点
+   * @param points 点位数据
+   * @param name 模块名称
+   * @param iconUrl 散点图标 URL（可选，不传则用默认圆点）
+   * @param _onPointClick 点击回调（保留参数兼容，实际通过 setupClickHandler 注册）
+   */
+  const addPoints = (points: GasOverviewPoint[], name: string, iconUrl?: string, _onPointClick?: (point: GasOverviewPoint) => void) => {
     if (!dataSource.value || !viewer.value) return
 
     clearPoints()
     currentType.value = name
     currentPoints = points
+    currentIconUrl = iconUrl
 
-    // 根据当前高度决定抽稀档位
     const cameraHeight = getCameraHeight(viewer.value)
     const thinDistance = getThinDistance(cameraHeight)
     lastThinDistance = thinDistance
-    console.log(`[addPoints] 相机高度: ${(cameraHeight / 1000).toFixed(1)}km, 抽稀距离: ${thinDistance}`)
 
-    renderPoints(points, thinDistance)
-
-    // 设置相机监听，跨越阈值时切换
+    renderPoints(points, thinDistance, iconUrl)
     setupCameraListener()
   }
 
-  /**
-   * 飞行到指定点位
-   * @param point 点位数据
-   */
   const flyToPoint = (point: GasOverviewPoint) => {
     if (!viewer.value) return
 
@@ -266,9 +254,6 @@ export function useGasOverviewPoints() {
     })
   }
 
-  /**
-   * 清理资源
-   */
   const cleanup = () => {
     clearPoints()
     if (clickHandler) {

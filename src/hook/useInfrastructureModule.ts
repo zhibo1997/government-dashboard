@@ -15,12 +15,14 @@ export interface InfrastructureModuleOptions {
   detailApiMap: Record<string, (lsh: string) => Promise<any>>
   /** MVT 图层 ID 映射（可选）：模块名 → 图层 ID */
   mvtLayerIdMap?: Record<string, string>
+  /** 散点图标映射（可选）：模块名 → 图标 URL */
+  iconUrlMap?: Record<string, string>
   /** MVT 要素点击回调（可选，不同模块处理不同） */
   onMvtFeaturePick?: (props: any, moduleName: string) => void
 }
 
 export function useInfrastructureModule(options: InfrastructureModuleOptions) {
-  const { coordinateApiMap, detailApiMap, mvtLayerIdMap = {}, onMvtFeaturePick } = options
+  const { coordinateApiMap, detailApiMap, mvtLayerIdMap = {}, iconUrlMap = {}, onMvtFeaturePick } = options
 
   // 散点管理
   const { init: initMapPoints, addPoints, clearPoints, setupClickHandler, dataSource, viewer } = useGasOverviewPoints()
@@ -186,7 +188,8 @@ export function useInfrastructureModule(options: InfrastructureModuleOptions) {
       try {
         const data = await coordinateApi()
         if (Array.isArray(data) && data.length > 0) {
-          addPoints(data, item.name, handlePointClick)
+          const iconUrl = iconUrlMap[item.name]
+          addPoints(data, item.name, iconUrl, handlePointClick)
           setupClickHandler(handlePointClick)
         }
       } catch (error) {

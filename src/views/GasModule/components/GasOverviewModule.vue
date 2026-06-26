@@ -61,6 +61,9 @@ const popupPosition = ref({ x: 0, y: 0 });
 const mapStore = useMapStore();
 const { loadMVTLayer } = useMapHooks();
 
+// 散点图标
+const pointIcon = (name: string) => new URL(`../../../assets/img/points/4个专项点位/${name}.png`, import.meta.url).href
+
 // 统一 hook（散点 + 详情 + 弹窗）
 const {
   selectedId, popupVisible, popupData, viewer,
@@ -76,6 +79,10 @@ const {
     '燃气企业': getGasEnterpriseLedgerDetail,
     '液化气企业': getBottleGasEnterpriseLedgerDetail,
     '燃气井盖': getManholeCoverDetail,
+  },
+  iconUrlMap: {
+    '燃气企业': pointIcon('燃气企业'),
+    '液化气企业': pointIcon('液化气企业'),
   },
   onMvtFeaturePick: (props) => {
     popupPosition.value = { x: window.innerWidth / 2 + 100, y: window.innerHeight / 2 - 100 };
@@ -162,12 +169,16 @@ const handleItemClick = async (item: any) => {
     '液化气企业': getBottleGasEnterpriseCoordinateList,
     '燃气井盖': getManholeCoverCoordinateList,
   };
+  const iconMap: Record<string, string> = {
+    '燃气企业': pointIcon('燃气企业'),
+    '液化气企业': pointIcon('液化气企业'),
+  };
   const apiFn = apiMapping[item.name];
   if (apiFn) {
     try {
       const data = await apiFn();
       if (Array.isArray(data) && data.length > 0) {
-        addPoints(data, item.name, handlePointClick);
+        addPoints(data, item.name, iconMap[item.name], handlePointClick);
         setupClickHandler(handlePointClick);
       }
     } catch (error) {

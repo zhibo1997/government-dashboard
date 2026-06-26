@@ -47,6 +47,9 @@ import GasPointPopup from "@/views/GasModule/components/GasPointPopup.vue";
 // 响应式数据
 const overviewData = ref<any[]>([]);
 
+// 散点图标
+const pointIcon = (name: string) => new URL(`../../../assets/img/points/4个专项点位/${name}.png`, import.meta.url).href
+
 // 统一 hook
 const {
   selectedId, popupVisible, popupData,
@@ -61,6 +64,11 @@ const {
     '水源地': getWaterSourceDetail,
     '水厂': getWaterPlantDetail,
     '供水泵站': getWaterPumpStationDetail,
+  },
+  iconUrlMap: {
+    '水源地': pointIcon('水源地'),
+    '水厂': pointIcon('水厂'),
+    '供水泵站': pointIcon('供水泵站'),
   },
 });
 

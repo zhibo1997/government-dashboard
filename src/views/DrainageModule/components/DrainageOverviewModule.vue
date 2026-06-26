@@ -58,6 +58,9 @@ const overviewData = ref<any[]>([]);
 
 const mapStore = useMapStore();
 
+// 散点图标
+const pointIcon = (name: string) => new URL(`../../../assets/img/points/4个专项点位/${name}.png`, import.meta.url).href
+
 // 统一 hook
 const {
   selectedId, popupVisible, popupData,
@@ -83,6 +86,10 @@ const {
     '污水井': '0017de5f-0fb8-41ee-81cb-ef5f05ea790d',
     '雨水方形箅': '187f97a4-444e-47f9-bb95-092fd3139aac',
     '雨水圆形井': 'eb124a2c-b167-4482-a076-d331fed0a5a2',
+  },
+  iconUrlMap: {
+    '易积水点': pointIcon('易积水点'),
+    '污水厂': pointIcon('污水厂'),
   },
 });
 
