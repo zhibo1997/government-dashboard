@@ -724,6 +724,11 @@ onMounted(() => {
   loadYangxinBoundary()
 })
 
+// 监控 GeoJSON 状态
+watch(yangxinGeoJSON, (newVal, oldVal) => {
+  console.log('[GeoJSON] yangxinGeoJSON 变化:', oldVal ? '有数据' : 'null', '->', newVal ? '有数据' : 'null')
+}, { deep: false })
+
 /**
  * 组件卸载前
  */

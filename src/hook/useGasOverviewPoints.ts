@@ -1,6 +1,6 @@
 /**
- * 燃气基础设施地图点位管理 Hook
- * @description 管理燃气企业、液化气企业、燃气井盖等点位的地图展示
+ * 地图散点管理 Hook（各专项共用）
+ * @description 管理燃气、供水、排水、桥梁等点位的地图展示
  */
 
 import { ref, onBeforeUnmount } from 'vue'
@@ -20,7 +20,7 @@ export function useGasOverviewPoints() {
   let clickHandler: any = null
   let cameraMoveEndListener: any = null
   let currentPoints: GasOverviewPoint[] = []
-  let lastThinMode: boolean | null = null // 上一次抽稀状态，null 表示未初始化
+  let lastThinDistance: number | null = null // 上一次抽稀距离，null 表示不抽稀
 
   /**
    * 初始化 Cesium
@@ -96,17 +96,28 @@ export function useGasOverviewPoints() {
     )
   }
 
-  // 高度阈值：高于此值启用抽稀，低于此值显示全部标签
-  const THIN_HEIGHT_THRESHOLD = 10000 // 10km
-  const THIN_DISTANCE = 0.025
+  // 四档抽稀配置：[相机高度阈值(米), 标签间距(经纬度)]
+  const THIN_LEVELS: [number, number][] = [
+    [30000, 0.04],   // 30km+：最稀疏
+    [15000, 0.025],  // 15km+：较稀疏
+    [8000, 0.015],   // 8km+：中等
+    [3000, 0.008],   // 3km+：较密集
+  ]
+
+  /**
+   * 根据相机高度获取抽稀距离
+   */
+  const getThinDistance = (cameraHeight: number): number | null => {
+    for (const [threshold, distance] of THIN_LEVELS) {
+      if (cameraHeight >= threshold) return distance
+    }
+    return null // 低于 3km 不抽稀
+  }
 
   /**
    * 标签抽稀：根据距离判断是否显示标签
-   * @param points 点位数组
-   * @param minDistance 最小间距（经纬度单位）
-   * @returns 需要显示标签的点位索引集合
    */
-  const thinLabels = (points: GasOverviewPoint[], minDistance: number = 0.015): Set<number> => {
+  const thinLabels = (points: GasOverviewPoint[], minDistance: number): Set<number> => {
     const showLabel = new Set<number>()
     const used: boolean[] = new Array(points.length).fill(false)
 
@@ -115,7 +126,6 @@ export function useGasOverviewPoints() {
       showLabel.add(i)
       used[i] = true
 
-      // 标记附近的点为已使用
       for (let j = i + 1; j < points.length; j++) {
         if (used[j]) continue
         const dx = points[i].jd - points[j].jd
@@ -133,7 +143,7 @@ export function useGasOverviewPoints() {
   /**
    * 首次渲染点位（所有实体都带 label，通过 show 控制显隐）
    */
-  const renderPoints = (points: GasOverviewPoint[], thinMode: boolean) => {
+  const renderPoints = (points: GasOverviewPoint[], thinDistance: number | null) => {
     if (!dataSource.value || !viewer.value) return
 
     const Cesium = (window as any).Cesium
@@ -142,11 +152,13 @@ export function useGasOverviewPoints() {
     entities.suspendEvents()
     entities.removeAll()
 
-    const labelIndices = thinMode ? thinLabels(points, THIN_DISTANCE) : new Set(points.map((_, i) => i))
+    const labelIndices = thinDistance !== null ? thinLabels(points, thinDistance) : new Set(points.map((_, i) => i))
 
     points.forEach((point, index) => {
       if (point.jd && point.wd) {
         const showLabel = labelIndices.has(index)
+        // 过滤所有不可见/控制 Unicode 字符，避免 Cesium 渲染崩溃
+        const safeName = (point.name || '').replace(/[\u0000-\u001F\u007F-\u009F\u00AD\u200B-\u200F\u2028-\u202F\u2060-\u206F\uFEFF]/g, '')
         entities.add({
           position: Cesium.Cartesian3.fromDegrees(point.jd, point.wd),
           point: {
@@ -154,10 +166,9 @@ export function useGasOverviewPoints() {
             color: Cesium.Color.fromCssColorString('#00ffff'),
             outlineColor: Cesium.Color.WHITE,
             outlineWidth: 2,
-            scaleByDistance: new Cesium.NearFarScalar(500, 1, 1000000, 0.4),
           },
           label: {
-            text: point.name || '',
+            text: safeName,
             font: '14px Microsoft YaHei, sans-serif',
             style: Cesium.LabelStyle.FILL_AND_OUTLINE,
             fillColor: Cesium.Color.WHITE,
@@ -166,7 +177,6 @@ export function useGasOverviewPoints() {
             horizontalOrigin: Cesium.HorizontalOrigin.CENTER,
             verticalOrigin: Cesium.VerticalOrigin.BOTTOM,
             pixelOffset: new Cesium.Cartesian2(0, -15),
-            scaleByDistance: new Cesium.NearFarScalar(500, 1, 1000000, 0.5),
             show: showLabel,
           },
           description: JSON.stringify(point),
@@ -181,16 +191,16 @@ export function useGasOverviewPoints() {
   /**
    * 更新标签显隐（不重建实体，只切换 label.show）
    */
-  const updateLabelVisibility = (points: GasOverviewPoint[], thinMode: boolean) => {
+  const updateLabelVisibility = (points: GasOverviewPoint[], thinDistance: number | null) => {
     if (!dataSource.value || !viewer.value) return
 
     const entities = dataSource.value.entities.values
-    const labelIndices = thinMode ? thinLabels(points, THIN_DISTANCE) : null
+    const labelIndices = thinDistance !== null ? thinLabels(points, thinDistance) : null
 
     for (let i = 0; i < entities.length; i++) {
       const entity = entities[i]
       if (entity.label) {
-        entity.label.show = thinMode ? labelIndices!.has(i) : true
+        entity.label.show = thinDistance !== null ? labelIndices!.has(i) : true
       }
     }
 
@@ -198,7 +208,7 @@ export function useGasOverviewPoints() {
   }
 
   /**
-   * 设置相机高度监听，跨越阈值时切换抽稀模式
+   * 设置相机高度监听，跨越阈值时切换抽稀档位
    */
   const setupCameraListener = () => {
     if (!viewer.value) return
@@ -209,10 +219,10 @@ export function useGasOverviewPoints() {
     cameraMoveEndListener = viewer.value.camera.moveEnd.addEventListener(() => {
       if (currentPoints.length === 0) return
       const cameraHeight = getCameraHeight(viewer.value)
-      const thinMode = cameraHeight >= THIN_HEIGHT_THRESHOLD
-      if (thinMode !== lastThinMode) {
-        lastThinMode = thinMode
-        updateLabelVisibility(currentPoints, thinMode)
+      const thinDistance = getThinDistance(cameraHeight)
+      if (thinDistance !== lastThinDistance) {
+        lastThinDistance = thinDistance
+        updateLabelVisibility(currentPoints, thinDistance)
       }
     })
   }
@@ -225,13 +235,13 @@ export function useGasOverviewPoints() {
     currentType.value = name
     currentPoints = points
 
-    // 根据当前高度决定是否抽稀
+    // 根据当前高度决定抽稀档位
     const cameraHeight = getCameraHeight(viewer.value)
-    const thinMode = cameraHeight >= THIN_HEIGHT_THRESHOLD
-    lastThinMode = thinMode
-    console.log(`[addPoints] 相机高度: ${(cameraHeight / 1000).toFixed(1)}km, 抽稀: ${thinMode}`)
+    const thinDistance = getThinDistance(cameraHeight)
+    lastThinDistance = thinDistance
+    console.log(`[addPoints] 相机高度: ${(cameraHeight / 1000).toFixed(1)}km, 抽稀距离: ${thinDistance}`)
 
-    renderPoints(points, thinMode)
+    renderPoints(points, thinDistance)
 
     // 设置相机监听，跨越阈值时切换
     setupCameraListener()

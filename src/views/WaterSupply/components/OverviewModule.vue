@@ -41,21 +41,28 @@
 import { ref, onMounted } from "vue";
 import { useVueCesium } from "vue-cesium";
 import { getWaterSupplyStats, getWaterSourceCoordinateList, getWaterPlantCoordinateList, getWaterPumpStationCoordinateList, getWaterSourceDetail, getWaterPlantDetail, getWaterPumpStationDetail } from "@/services/waterSupplyService";
-import { useGasOverviewPoints } from "@/hook/useGasOverviewPoints";
+import { useInfrastructureModule } from "@/hook/useInfrastructureModule";
 import GasPointPopup from "@/views/GasModule/components/GasPointPopup.vue";
-
-let viewer: any = null;
 
 // 响应式数据
 const overviewData = ref<any[]>([]);
-const selectedId = ref<string | null>(null);
 
-// 地图点位管理
-const { init: initMapPoints, addPoints, clearPoints } = useGasOverviewPoints();
-
-// 弹窗状态
-const popupVisible = ref(false);
-const popupData = ref<any>(null);
+// 统一 hook
+const {
+  selectedId, popupVisible, popupData,
+  init, handleItemClick, closePopup,
+} = useInfrastructureModule({
+  coordinateApiMap: {
+    '水源地': getWaterSourceCoordinateList,
+    '水厂': getWaterPlantCoordinateList,
+    '供水泵站': getWaterPumpStationCoordinateList,
+  },
+  detailApiMap: {
+    '水源地': getWaterSourceDetail,
+    '水厂': getWaterPlantDetail,
+    '供水泵站': getWaterPumpStationDetail,
+  },
+});
 
 // icon 映射
 const iconMapping: Record<string, string> = {
@@ -66,79 +73,12 @@ const iconMapping: Record<string, string> = {
   '市政消火栓': 'fire_hydrant',
 };
 
-// 点位接口映射
-const coordinateApiMap: Record<string, () => Promise<any>> = {
-  '水源地': getWaterSourceCoordinateList,
-  '水厂': getWaterPlantCoordinateList,
-  '供水泵站': getWaterPumpStationCoordinateList,
-};
-
-// 详情接口映射
-const detailApiMap: Record<string, (lsh: string) => Promise<any>> = {
-  '水源地': getWaterSourceDetail,
-  '水厂': getWaterPlantDetail,
-  '供水泵站': getWaterPumpStationDetail,
-};
-
 // 动态获取图标路径
 const getIconUrl = (iconName: string) => {
   return new URL(
     `../../../assets/img/waterSupply/${iconName}.png`,
     import.meta.url
   ).href;
-};
-
-// 关闭弹窗
-const closePopup = () => {
-  popupVisible.value = false;
-  popupData.value = null;
-};
-
-// 点击地图点位回调
-const handlePointClick = async (point: any) => {
-  const detailApi = detailApiMap[selectedId.value || ''];
-  if (detailApi) {
-    try {
-      const detail = await detailApi(point.lsh);
-      popupData.value = detail;
-      popupVisible.value = true;
-    } catch (error) {
-      console.error('获取详情失败:', error);
-    }
-  }
-};
-
-// 点击事件处理
-const handleItemClick = async (item: any) => {
-  if (selectedId.value === item.id) {
-    selectedId.value = null;
-    clearPoints();
-    closePopup();
-    return;
-  }
-
-  selectedId.value = item.id;
-  closePopup();
-  clearPoints();
-
-  // 有坐标接口的展示点位
-  const coordinateApi = coordinateApiMap[item.name];
-  if (coordinateApi) {
-    try {
-      const data = await coordinateApi();
-      if (Array.isArray(data) && data.length > 0) {
-        const points = data.map((p: any) => ({
-          lsh: p.lsh,
-          jd: p.jd,
-          wd: p.wd,
-          name: p.name || p.lsh,
-        }));
-        addPoints(points, item.name, handlePointClick);
-      }
-    } catch (error) {
-      console.error(`获取${item.name}点位失败:`, error);
-    }
-  }
 };
 
 // 初始化数据
@@ -164,8 +104,7 @@ const initData = async () => {
 onMounted(async () => {
   const $vc = useVueCesium();
   const readyObj = await $vc.creatingPromise;
-  viewer = readyObj.viewer;
-  await initMapPoints(viewer);
+  await init(readyObj.viewer);
   initData();
 });
 </script>

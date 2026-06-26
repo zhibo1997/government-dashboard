@@ -52,6 +52,49 @@
       max-height: 200px; overflow-y: auto; font-family: monospace;
     }
 
+    /* 设备点位 */
+    .device-dot {
+      position: absolute;
+      width: 32px;
+      height: 32px;
+      pointer-events: auto;
+      cursor: pointer;
+      z-index: 15;
+      will-change: transform;
+      transform: translate(-50%, -100%);
+    }
+    .device-dot img {
+      width: 100%;
+      height: 100%;
+      opacity: 0.6;
+      filter: drop-shadow(0 0 3px rgba(0, 255, 136, 0.3));
+    }
+    .device-dot:hover {
+      transform: translate(-50%, -100%) scale(1.2);
+    }
+    .device-dot:hover img {
+      opacity: 0.8;
+      filter: drop-shadow(0 0 6px rgba(0, 255, 136, 0.6));
+    }
+    .device-dot.selected img {
+      opacity: 0.9;
+      filter: drop-shadow(0 0 6px rgba(255, 102, 0, 0.6));
+    }
+    .device-dot.hidden {
+      visibility: hidden;
+    }
+
+    /* 点位容器 */
+    #dotContainer {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 15;
+    }
+
     /* 设备详情弹窗 */
     #devicePopup {
       display: none;
@@ -114,6 +157,7 @@
 </head>
 <body>
   <div id="cesiumContainer"></div>
+  <div id="dotContainer"></div>
   <div id="loading">加载模型中...</div>
   <div id="toolbar">
     <h3>🌉 桥梁监控</h3>
@@ -217,41 +261,84 @@
     var equipTilesets = {};
     var monitorTilesets = {};
     var deviceData = {};
-    var pointCollections = {};   // { qlbh: PointPrimitiveCollection }
+    var dotElements = {};        // { qlbh: [HTMLElement, ...] }
     var activeBridge = 'LHQ';
     var showPopups = true;
     var showEquip = true;
-    var allDevices = [];         // [{ qlbh, device, bridgeName, pointPrimitive }]
-    var selectedPoint = null;    // 当前选中的点
+    var allDevices = [];         // [{ qlbh, device, bridgeName, dotEl }]
+    var selectedDot = null;      // 当前选中的点
     var selectedTileset = null;
+    var dotContainer = document.getElementById('dotContainer');
 
-    // ===== 创建设备标识 Point (PointPrimitiveCollection) =====
-    async function createDevicePoints(bridgeQlbh, bridgeName, devices) {
-      var collection = new Cesium.PointPrimitiveCollection();
-      viewer.scene.primitives.add(collection);
-      pointCollections[bridgeQlbh] = collection;
+    // ===== 创建设备标识 HTML DOM =====
+    async function createDevicePoints(bridgeQlbh, bridgeName, devices, type) {
+      var dots = [];
+      var icon = type === 'monitor'
+        ? 'images/equipmentIcons/jcsblx0405.svg'  // 监控设备
+        : 'images/equipmentIcons/jcsblx0406.svg'; // 监测设备
 
       for (var i = 0; i < devices.length; i++) {
         var device = devices[i];
-        var point = collection.add({
-          position: device.position,
-          pixelSize: 10,
-          color: Cesium.Color.fromCssColorString('#00ff88'),
-          outlineColor: Cesium.Color.WHITE,
-          outlineWidth: 2,
-          disableDepthTestDistance: Number.POSITIVE_INFINITY,
-        });
 
+        // 创建 DOM 元素
+        var dot = document.createElement('div');
+        dot.className = 'device-dot';
+        dot.dataset.qlbh = bridgeQlbh;
+        dot.dataset.type = type;
+
+        // 添加图片
+        var img = document.createElement('img');
+        img.src = icon;
+        img.alt = device.sbbh;
+        dot.appendChild(img);
+
+        dotContainer.appendChild(dot);
+
+        dots.push(dot);
         allDevices.push({
           qlbh: bridgeQlbh,
           device: device,
           bridgeName: bridgeName,
-          pointPrimitive: point,
+          dotEl: dot,
+          type: type,
         });
       }
 
-      log('📍 ' + bridgeName + ': ' + devices.length + ' 个设备标识');
+      dotElements[bridgeQlbh + '_' + type] = dots;
+      log('📍 ' + bridgeName + ' ' + (type === 'monitor' ? '监控' : '监测') + ': ' + devices.length + ' 个设备标识');
     }
+
+    // ===== postRender 更新点位位置 =====
+    viewer.scene.postRender.addEventListener(function() {
+      var canvas = viewer.scene.canvas;
+      var width = canvas.clientWidth;
+      var height = canvas.clientHeight;
+
+      for (var i = 0; i < allDevices.length; i++) {
+        var item = allDevices[i];
+        var dot = item.dotEl;
+        var isActive = (item.qlbh === activeBridge);
+
+        if (!showPopups || !isActive) {
+          dot.classList.add('hidden');
+          continue;
+        }
+
+        var screenPos = Cesium.SceneTransforms.wgs84ToWindowCoordinates(
+          viewer.scene,
+          item.device.position
+        );
+
+        if (!screenPos || screenPos.x < -20 || screenPos.x > width + 20 ||
+            screenPos.y < -20 || screenPos.y > height + 20) {
+          dot.classList.add('hidden');
+          continue;
+        }
+
+        dot.classList.remove('hidden');
+        dot.style.transform = 'translate(' + (screenPos.x - 6) + 'px, ' + (screenPos.y - 6) + 'px)';
+      }
+    });
 
     // ===== 加载 3D Tiles =====
     async function loadTileset(url, name) {
@@ -298,39 +385,27 @@
 
     // ===== 显示/隐藏标签 =====
     function updatePointVisibility() {
-      for (var qlbh in pointCollections) {
-        var collection = pointCollections[qlbh];
-        var isActive = (qlbh === activeBridge);
-        // 遍历集合中的每个点，设置可见性
-        for (var i = 0; i < collection.length; i++) {
-          collection.get(i).show = showPopups && isActive;
-        }
-      }
+      // postRender 会自动处理显示/隐藏
+      // 这里可以添加额外的控制逻辑
     }
 
     // ===== 点击设备显示弹窗 + 高亮 =====
     var popupEl = document.getElementById('devicePopup');
 
-    function highlightPoint(point) {
+    function highlightDot(dot) {
       // 取消之前的高亮
-      if (selectedPoint) {
-        selectedPoint.pixelSize = 10;
-        selectedPoint.color = Cesium.Color.fromCssColorString('#00ff88');
-        selectedPoint.outlineWidth = 2;
+      if (selectedDot) {
+        selectedDot.classList.remove('selected');
       }
       // 设置新的高亮
-      point.pixelSize = 16;
-      point.color = Cesium.Color.fromCssColorString('#ff6600');
-      point.outlineWidth = 3;
-      selectedPoint = point;
+      dot.classList.add('selected');
+      selectedDot = dot;
     }
 
     function resetHighlight() {
-      if (selectedPoint) {
-        selectedPoint.pixelSize = 10;
-        selectedPoint.color = Cesium.Color.fromCssColorString('#00ff88');
-        selectedPoint.outlineWidth = 2;
-        selectedPoint = null;
+      if (selectedDot) {
+        selectedDot.classList.remove('selected');
+        selectedDot = null;
       }
       if (selectedTileset) {
         selectedTileset.style = new Cesium.Cesium3DTileStyle({
@@ -380,13 +455,37 @@
     window.closePopup = closePopup;
 
 
-    // 点击事件
+    // 点击 DOM 点位
+    dotContainer.addEventListener('click', function(e) {
+      var dot = e.target.closest('.device-dot');
+      if (!dot) return;
+
+      var qlbh = dot.dataset.qlbh;
+      var index = parseInt(dot.dataset.index);
+
+      // 找到对应的设备数据
+      var deviceInfo = null;
+      for (var i = 0; i < allDevices.length; i++) {
+        if (allDevices[i].qlbh === qlbh && allDevices[i].dotEl === dot) {
+          deviceInfo = allDevices[i];
+          break;
+        }
+      }
+
+      if (deviceInfo) {
+        highlightDot(dot);
+        // 获取屏幕位置
+        var rect = dot.getBoundingClientRect();
+        showPopup(deviceInfo.device, deviceInfo.bridgeName, { x: rect.left + 6, y: rect.top });
+      }
+    });
+
+    // 点击 3D Tiles 监控设备模型
     var handler = new Cesium.ScreenSpaceEventHandler(viewer.scene.canvas);
     handler.setInputAction(function(click) {
       var picked = viewer.scene.pick(click.position);
-
-      // 1. 点击 3D Tiles 监控设备模型
       var cartesian = viewer.scene.pickPosition(click.position);
+
       if (cartesian) {
         var featureName = null;
         var tileset = null;
@@ -409,9 +508,9 @@
           if (isMonitorTileset) {
             highlightTilesetFeature(tileset, featureName);
             // 匹配最近的点位
-            var nearest = findNearestPoint(cartesian, 50);
+            var nearest = findNearestDevice(cartesian, 50);
             if (nearest) {
-              highlightPoint(nearest.pointPrimitive);
+              highlightDot(nearest.dotEl);
               showPopup(nearest.device, nearest.bridgeName, click.position);
               return;
             }
@@ -419,16 +518,17 @@
         }
       }
 
-      // 2. 点击空白处
+      // 点击空白处
       closePopup();
     }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
 
     // 根据坐标查找最近的点位
-    function findNearestPoint(position, maxDistance) {
+    function findNearestDevice(position, maxDistance) {
       var minDist = maxDistance || 50;
       var nearest = null;
       for (var i = 0; i < allDevices.length; i++) {
         var item = allDevices[i];
+        if (item.qlbh !== activeBridge) continue;
         var dist = Cesium.Cartesian3.distance(position, item.device.position);
         if (dist < minDist) {
           minDist = dist;
@@ -492,19 +592,26 @@
           bridgeTilesets[b.qlbh].style = new Cesium.Cesium3DTileStyle({ color: "color('white', 1.0)" });
         }
 
-        equipTilesets[b.qlbh] = await loadTileset(b.equipUrl, b.name + ' 设备');
+        // 加载监测设备模型 + scenetree
+        equipTilesets[b.qlbh] = await loadTileset(b.equipUrl, b.name + ' 监测设备');
+        var equipDevices = await loadScenetree(b, b.equipUrl);
+        deviceData[b.qlbh + '_equip'] = equipDevices;
+        log('📌 ' + b.name + ' 监测: ' + equipDevices.length + ' 个设备');
+        if (equipDevices.length > 0) {
+          await createDevicePoints(b.qlbh, b.name, equipDevices, 'equip');
+        }
 
-        // 加载监控设备（如果有）
+        // 加载监控设备模型 + scenetree（如果有）
         if (b.monitorUrl) {
-          monitorTilesets[b.qlbh] = await loadTileset(b.monitorUrl, b.name + ' 监控');
-          var devices = await loadScenetree(b, b.monitorUrl);
-          deviceData[b.qlbh] = devices;
-          log('📌 ' + b.name + ': ' + devices.length + ' 个监控设备');
-          if (devices.length > 0) {
-            await createDevicePoints(b.qlbh, b.name, devices);
+          monitorTilesets[b.qlbh] = await loadTileset(b.monitorUrl, b.name + ' 监控设备');
+          var monitorDevices = await loadScenetree(b, b.monitorUrl);
+          deviceData[b.qlbh + '_monitor'] = monitorDevices;
+          log('📌 ' + b.name + ' 监控: ' + monitorDevices.length + ' 个设备');
+          if (monitorDevices.length > 0) {
+            await createDevicePoints(b.qlbh, b.name, monitorDevices, 'monitor');
           }
         } else {
-          deviceData[b.qlbh] = [];
+          deviceData[b.qlbh + '_monitor'] = [];
           log('📌 ' + b.name + ': 无监控设备');
         }
       }

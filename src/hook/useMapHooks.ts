@@ -39,55 +39,39 @@ export function useMapHooks() {
    */
   async function loadMVTLayer(viewer: any, styleUrl: string): Promise<any> {
     try {
-      console.log(`开始加载MVT图层，样式URL: ${styleUrl}`);
+      // 获取样式 JSON 并降低 minzoom，使 MVT 图层在高处也能显示
+      const response = await fetch(styleUrl);
+      if (!response.ok) {
+        throw new Error(`样式文件不存在: ${styleUrl} (HTTP ${response.status})`);
+      }
+      const styleJson = await response.json();
 
-      // 验证样式文件是否存在
-      try {
-        const response = await fetch(styleUrl);
-        if (!response.ok) {
-          throw new Error(
-            `样式文件不存在: ${styleUrl} (HTTP ${response.status})`
-          );
-        }
-
-        const styleJson = await response.json();
-
-        // 验证必需的字段
-        if (!styleJson.version) {
-          throw new Error('样式文件缺少 "version" 字段');
-        }
-        if (!styleJson.sources) {
-          throw new Error('样式文件缺少 "sources" 字段');
-        }
-        if (!styleJson.layers) {
-          throw new Error('样式文件缺少 "layers" 字段');
-        }
-
-        console.log(`✅ 样式文件验证通过:`, {
-          version: styleJson.version,
-          sources: Object.keys(styleJson.sources),
-          layers: styleJson.layers.length,
-        });
-      } catch (error) {
-        console.error("❌ 样式文件验证失败:", error);
-        throw error;
+      if (!styleJson.version || !styleJson.sources || !styleJson.layers) {
+        throw new Error('样式文件缺少必需字段 (version/sources/layers)');
       }
 
-      // 创建MVT Imagery Provider
-      const provider = await MVTImageryProvider.fromUrl(styleUrl);
+      // 降低图层 minzoom，使 MVT 在低 zoom 级别也能显示
+      const MIN_ZOOM_OVERRIDE = 8;
+      if (styleJson.layers) {
+        for (const layer of styleJson.layers) {
+          if (layer.minzoom !== undefined && layer.minzoom > MIN_ZOOM_OVERRIDE) {
+            layer.minzoom = MIN_ZOOM_OVERRIDE;
+          }
+        }
+      }
+
+      // 用修改后的样式对象创建 Provider（而非 URL）
+      const provider = new MVTImageryProvider({ style: styleJson });
 
       // 将图层添加到viewer的imageryLayers中，返回ImageryLayer对象
       if (viewer && viewer.imageryLayers) {
         const imageryLayer = viewer.imageryLayers.addImageryProvider(provider);
-        console.log("✅ MVT图层加载成功");
-        
-        // 返回ImageryLayer对象，而非Provider
         return imageryLayer;
       } else {
         throw new Error("Viewer或imageryLayers不可用");
       }
     } catch (error) {
-      console.error("❌ 加载MVT图层失败:", error);
+      console.error("加载MVT图层失败:", error);
       throw new Error(`Failed to load MVT layer: ${error}`);
     }
   }

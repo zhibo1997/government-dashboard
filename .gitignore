@@ -140,6 +140,7 @@ Thumbs.db
 # Build output
 dist/
 build/
+tmp/
 
 # Local environment files
 .env.local

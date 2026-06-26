@@ -102,7 +102,8 @@ const closePopup = () => {
 const handlePointClick = async (point: any) => {
   try {
     const detail = await getBridgeDetail(point.lsh);
-    popupData.value = detail;
+    // 合并列表的 name 字段到详情数据
+    popupData.value = { ...detail, _name: detail._name || point.name };
     popupVisible.value = true;
   } catch (error) {
     console.error('获取桥梁详情失败:', error);

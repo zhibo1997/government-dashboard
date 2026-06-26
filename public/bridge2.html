@@ -1,0 +1,651 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <title>陵园大道立交桥 - 视角保存</title>
+  <script src="./Cesium/Cesium.js"></script>
+  <link rel="stylesheet" href="./Cesium/Widgets/widgets.css" />
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { width: 100%; height: 100%; overflow: hidden; }
+    #cesiumContainer { width: 100%; height: 100%; }
+    .cesium-viewer-bottom { display: none !important; }
+
+    /* 工具栏 */
+    #toolbar {
+      position: absolute; top: 12px; left: 12px; z-index: 20;
+      background: rgba(10, 20, 30, 0.9);
+      border: 1px solid #2a4a6a;
+      border-radius: 6px;
+      padding: 12px;
+      color: #ccc; font-size: 13px;
+      min-width: 180px;
+    }
+    #toolbar h3 { color: #4a9eff; margin-bottom: 10px; font-size: 14px; }
+    #toolbar label {
+      display: flex; align-items: center;
+      margin-bottom: 8px; cursor: pointer; font-size: 12px;
+    }
+    #toolbar input[type="checkbox"] { margin-right: 8px; }
+    #toolbar .separator { border-top: 1px solid #2a4a6a; margin: 10px 0; }
+    #toolbar .btn {
+      display: block; width: 100%;
+      padding: 8px 12px; margin-top: 8px;
+      background: rgba(74, 158, 255, 0.2);
+      border: 1px solid #2a4a6a;
+      border-radius: 4px;
+      color: #8ab; cursor: pointer;
+      font-size: 12px; text-align: center;
+      transition: all 0.2s;
+    }
+    #toolbar .btn:hover { background: rgba(74, 158, 255, 0.4); color: #fff; }
+    #toolbar .btn.active { background: rgba(0, 255, 136, 0.3); border-color: #00ff88; color: #00ff88; }
+
+    /* 选中设备提示 */
+    #selectedInfo {
+      display: none; margin-top: 10px; padding: 8px;
+      background: rgba(0, 255, 136, 0.1);
+      border: 1px solid rgba(0, 255, 136, 0.3);
+      border-radius: 4px; font-size: 11px; color: #00ff88;
+    }
+
+    /* 加载状态 */
+    #loading {
+      position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+      z-index: 100; background: rgba(0,0,0,0.8); color: #4a9eff;
+      padding: 20px 30px; border-radius: 8px; font-size: 16px;
+    }
+    #loading.done { display: none; }
+
+    /* 日志 */
+    #log {
+      position: absolute; bottom: 10px; left: 10px; z-index: 20;
+      background: rgba(0,0,0,0.7); color: #0f0; padding: 8px 12px;
+      border-radius: 4px; font-size: 11px; max-width: 500px;
+      max-height: 150px; overflow-y: auto; font-family: monospace;
+    }
+
+    /* 设备点位 */
+    .device-dot {
+      position: absolute; width: 28px; height: 28px;
+      pointer-events: auto; cursor: pointer; z-index: 15;
+      will-change: transform; transform: translate(-50%, -100%);
+    }
+    .device-dot img {
+      width: 100%; height: 100%;
+      opacity: 0.6;
+      filter: drop-shadow(0 0 3px rgba(0, 255, 136, 0.3));
+    }
+    .device-dot:hover { transform: translate(-50%, -100%) scale(1.2); }
+    .device-dot:hover img { opacity: 0.9; filter: drop-shadow(0 0 6px rgba(0, 255, 136, 0.6)); }
+    .device-dot.selected img { opacity: 1; filter: drop-shadow(0 0 8px rgba(255, 102, 0, 0.8)); }
+    .device-dot.hidden { visibility: hidden; }
+
+    #dotContainer {
+      position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+      pointer-events: none; z-index: 15;
+    }
+
+    /* 视角列表面板 */
+    #viewPanel {
+      display: none; position: absolute; top: 12px; right: 12px; z-index: 20;
+      background: rgba(10, 20, 30, 0.95);
+      border: 1px solid #2a4a6a;
+      border-radius: 6px; padding: 12px;
+      color: #ccc; font-size: 13px;
+      min-width: 280px; max-height: 80vh; overflow-y: auto;
+    }
+    #viewPanel h4 { color: #4a9eff; margin-bottom: 10px; }
+    .view-item {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 8px; margin-bottom: 6px;
+      background: rgba(0,0,0,0.2); border-radius: 4px;
+    }
+    .view-item:hover { background: rgba(74, 158, 255, 0.2); }
+    .view-item .name { flex: 1; cursor: pointer; }
+    .view-item .device { color: #8ab; font-size: 11px; }
+    .view-item .actions { display: flex; gap: 8px; }
+    .view-item .actions span { cursor: pointer; }
+    .view-item .fly { color: #4a9eff; }
+    .view-item .delete { color: #f66; }
+    .view-item .time { color: #666; font-size: 10px; }
+    .close-btn {
+      display: block; margin: 10px auto 0;
+      padding: 6px 16px; background: rgba(100,100,100,0.3);
+      border: 1px solid #666; border-radius: 4px;
+      color: #8ab; cursor: pointer; font-size: 12px;
+    }
+
+    /* 设备列表面板 */
+    #devicePanel {
+      position: absolute; top: 12px; left: 200px; z-index: 20;
+      background: rgba(10, 20, 30, 0.95);
+      border: 1px solid #2a4a6a;
+      border-radius: 6px; padding: 12px;
+      color: #ccc; font-size: 12px;
+      min-width: 220px; max-height: 80vh; overflow-y: auto;
+    }
+    #devicePanel h4 { color: #4a9eff; margin-bottom: 10px; font-size: 13px; }
+    #deviceCount { color: #8ab; font-weight: normal; }
+    .device-group { margin-bottom: 12px; }
+    .group-title {
+      padding: 4px 8px; margin-bottom: 6px;
+      background: rgba(74, 158, 255, 0.1);
+      border-radius: 3px; color: #4a9eff; font-size: 11px;
+    }
+    .device-list { max-height: 200px; overflow-y: auto; }
+    .device-item {
+      display: flex; align-items: center;
+      padding: 6px 8px; margin-bottom: 3px;
+      background: rgba(0,0,0,0.2); border-radius: 3px;
+      cursor: pointer; transition: background 0.2s;
+    }
+    .device-item:hover { background: rgba(74, 158, 255, 0.3); }
+    .device-item.saved { border-left: 3px solid #00ff88; }
+    .device-item.selected { background: rgba(255, 102, 0, 0.3); }
+    .device-item .icon { width: 16px; height: 16px; margin-right: 8px; opacity: 0.7; }
+    .device-item .name { flex: 1; }
+    .device-item .status {
+      font-size: 10px; padding: 2px 6px;
+      border-radius: 10px; margin-left: 8px;
+    }
+    .device-item .status.saved { background: rgba(0, 255, 136, 0.2); color: #00ff88; }
+    .device-item .status.unsaved { background: rgba(100, 100, 100, 0.3); color: #666; }
+  </style>
+</head>
+<body>
+  <div id="cesiumContainer"></div>
+  <div id="dotContainer"></div>
+  <div id="loading">加载模型中...</div>
+
+  <div id="toolbar">
+    <h3>🌉 陵园大道立交桥</h3>
+    <label><input type="checkbox" id="chkBridge" checked> 桥梁模型</label>
+    <label><input type="checkbox" id="chkMonitor" checked> 监控设备</label>
+    <label><input type="checkbox" id="chkSensor" checked> 传感设备</label>
+    <div class="separator"></div>
+    <label><input type="checkbox" id="chkDots" checked> 显示点位</label>
+    <div class="separator"></div>
+    <div id="selectedInfo">
+      <div>🎯 已选中: <span id="selectedName">-</span></div>
+      <div style="margin-top:6px;font-size:10px;color:#8ab;">调整视角后点击保存</div>
+    </div>
+    <div class="btn" id="btnSave" onclick="saveCurrentView()">💾 保存当前视角</div>
+    <div class="btn" onclick="toggleViewPanel()">📋 视角列表</div>
+    <div class="btn" onclick="exportViews()">📤 导出视角</div>
+    <div class="btn" onclick="importViews()">📥 导入视角</div>
+  </div>
+
+  <!-- 设备列表面板 -->
+  <div id="devicePanel">
+    <h4>设备列表 <span id="deviceCount">(0)</span></h4>
+    <div class="device-group">
+      <div class="group-title">📹 监控设备</div>
+      <div id="monitorList" class="device-list"></div>
+    </div>
+    <div class="device-group">
+      <div class="group-title">🔧 传感设备</div>
+      <div id="sensorList" class="device-list"></div>
+    </div>
+  </div>
+
+  <div id="log"></div>
+
+  <div id="viewPanel">
+    <h4>已保存视角</h4>
+    <div id="viewItems"></div>
+    <div class="close-btn" onclick="toggleViewPanel()">关闭</div>
+  </div>
+
+  <input type="file" id="fileInput" accept=".json" style="display:none" onchange="handleImport(event)">
+
+  <script>
+    var logEl = document.getElementById('log');
+    function log(msg) {
+      console.log(msg);
+      logEl.innerHTML += msg + '<br>';
+      logEl.scrollTop = logEl.scrollHeight;
+    }
+
+    window.onload = function() {
+
+    var viewer = new Cesium.Viewer('cesiumContainer', {
+      animation: false, timeline: false, baseLayerPicker: false,
+      geocoder: false, infoBox: false, selectionIndicator: false,
+      navigationHelpButton: false, sceneModePicker: false,
+      homeButton: false, fullscreenButton: false,
+      imageryProvider: new Cesium.UrlTemplateImageryProvider({
+        url: 'https://t{s}.tianditu.gov.cn/img_w/wmts?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=img&STYLE=default&TILEMATRIXSET=w&FORMAT=tiles&TILECOL={x}&TILEROW={y}&TILEMATRIX={z}&tk=ce66c526b6d257e290069df275296cc7',
+        subdomains: ['0','1','2','3','4','5','6','7'], maximumLevel: 18,
+      }),
+    });
+    window.viewer = viewer;
+
+    viewer.shadows = true;
+    viewer.shadowMap.darkness = 0.3; // 阴影更淡
+    viewer.shadowMap.maximumDistance = 1000; // 阴影最大距离
+    viewer.scene.sun.show = true;
+    viewer.scene.globe.enableLighting = true;
+    viewer.scene.globe.baseColor = Cesium.Color.fromCssColorString('#8899aa');
+    viewer.clock.currentTime = Cesium.JulianDate.fromDate(new Date());
+    viewer.scene.globe.depthTestAgainstTerrain = true;
+
+    // 模型配置
+    var models = {
+      bridge:  { name: '桥梁模型', url: 'https://webres.cityfun.com.cn/CSSMX/model/LYDDLJQ/tileset.json', tileset: null },
+      monitor: { name: '监控设备', url: 'https://webres.cityfun.com.cn/CSSMX/model/LYDDLJQ_JKSB/tileset.json', tileset: null, icon: 'images/equipmentIcons/jcsblx0405.svg' },
+      sensor:  { name: '传感设备', url: 'https://webres.cityfun.com.cn/CSSMX/model/LYDDLJQ_CGSB/tileset.json', tileset: null, icon: 'images/equipmentIcons/jcsblx0406.svg' },
+    };
+
+    var allDevices = [];
+    var selectedDot = null;
+    var selectedDevice = null;
+    var dotContainer = document.getElementById('dotContainer');
+
+    // 加载 3D Tiles
+    async function loadTileset(url, name) {
+      try {
+        var ts = new Cesium.Cesium3DTileset({
+          url: url,
+          shadows: Cesium.ShadowMode.DISABLED, // 关闭阴影
+        });
+        await ts.readyPromise;
+        viewer.scene.primitives.add(ts);
+        log('✅ ' + name);
+        return ts;
+      } catch (err) {
+        log('❌ ' + name + ': ' + err.message);
+        return null;
+      }
+    }
+
+    // 加载 scenetree
+    async function loadScenetree(url) {
+      var treeUrl = url.replace('tileset.json', 'scenetree.json');
+      try {
+        var res = await fetch(treeUrl);
+        if (!res.ok) return [];
+        var data = await res.json();
+        var scene = data.scenes && data.scenes[0];
+        if (!scene || !scene.children) return [];
+        return scene.children.filter(function(el) {
+          return el.type === 'element' && el.sphere && el.sphere.length >= 3;
+        }).map(function(el) {
+          var pos = new Cesium.Cartesian3(el.sphere[0], el.sphere[1], el.sphere[2]);
+          var carto = Cesium.Cartographic.fromCartesian(pos);
+          return {
+            id: el.id, name: el.name, position: pos,
+            lng: Cesium.Math.toDegrees(carto.longitude),
+            lat: Cesium.Math.toDegrees(carto.latitude),
+            height: carto.height,
+          };
+        });
+      } catch (e) { return []; }
+    }
+
+    // 创建点位
+    function createDots(type, devices, icon) {
+      devices.forEach(function(device) {
+        var dot = document.createElement('div');
+        dot.className = 'device-dot';
+        dot.dataset.type = type;
+        var img = document.createElement('img');
+        img.src = icon;
+        img.alt = device.name;
+        dot.appendChild(img);
+        dotContainer.appendChild(dot);
+        allDevices.push({ type: type, device: device, dotEl: dot });
+      });
+      log('📍 ' + models[type].name + ': ' + devices.length + ' 个');
+      refreshDeviceList(); // 刷新设备列表
+    }
+
+    // postRender 更新位置和大小
+    viewer.scene.postRender.addEventListener(function() {
+      var w = viewer.scene.canvas.clientWidth, h = viewer.scene.canvas.clientHeight;
+      var cameraHeight = viewer.camera.positionCartographic.height;
+
+      // 根据相机高度计算缩放比例
+      // 近距离（<100m）: 0.5倍
+      // 中距离（100-500m）: 0.5-1.0倍
+      // 远距离（>500m）: 1.0倍
+      var scale = 1.0;
+      if (cameraHeight < 100) {
+        scale = 0.5;
+      } else if (cameraHeight < 500) {
+        scale = 0.5 + (cameraHeight - 100) / 400 * 0.5;
+      }
+
+      allDevices.forEach(function(item) {
+        var dot = item.dotEl;
+        var show = document.getElementById('chkDots').checked &&
+                   document.getElementById('chk' + capitalize(item.type)).checked;
+        if (!show) { dot.classList.add('hidden'); return; }
+
+        var sp = Cesium.SceneTransforms.wgs84ToWindowCoordinates(viewer.scene, item.device.position);
+        if (!sp || sp.x < -20 || sp.x > w + 20 || sp.y < -20 || sp.y > h + 20) {
+          dot.classList.add('hidden'); return;
+        }
+        dot.classList.remove('hidden');
+        dot.style.transform = 'translate(' + (sp.x - 14 * scale) + 'px,' + (sp.y - 28 * scale) + 'px) scale(' + scale + ')';
+      });
+    });
+
+    function capitalize(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
+
+    // 点击点位：已保存→恢复视角，未保存→俯视
+    dotContainer.addEventListener('click', function(e) {
+      var dot = e.target.closest('.device-dot');
+      if (!dot) return;
+
+      if (selectedDot) selectedDot.classList.remove('selected');
+      dot.classList.add('selected');
+      selectedDot = dot;
+
+      for (var i = 0; i < allDevices.length; i++) {
+        if (allDevices[i].dotEl === dot) {
+          var item = allDevices[i];
+          selectedDevice = item;
+
+          document.getElementById('selectedInfo').style.display = 'block';
+          document.getElementById('selectedName').textContent = item.device.name;
+
+          // 查找该设备已保存的视角
+          var views = JSON.parse(localStorage.getItem('overpassViews') || '[]');
+          var savedView = views.find(function(v) { return v.device && v.device.name === item.device.name; });
+
+          if (savedView) {
+            // 已保存：恢复到保存的视角
+            viewer.camera.flyTo({
+              destination: Cesium.Cartesian3.fromDegrees(savedView.camera.lng, savedView.camera.lat, savedView.camera.height),
+              orientation: { heading: savedView.camera.heading, pitch: savedView.camera.pitch, roll: savedView.camera.roll },
+              duration: 1.0,
+            });
+            log('🎯 恢复视角: ' + item.device.name);
+          } else {
+            // 未保存：俯视设备
+            var devicePos = Cesium.Cartesian3.fromDegrees(item.device.lng, item.device.lat, item.device.height);
+            viewer.camera.lookAt(devicePos, new Cesium.HeadingPitchRange(0, Cesium.Math.toRadians(-90), 80));
+            log('🎯 俯视设备: ' + item.device.name);
+          }
+          break;
+        }
+      }
+    });
+
+    // 点击 3D 模型
+    var handler = new Cesium.ScreenSpaceEventHandler(viewer.scene.canvas);
+    handler.setInputAction(function(click) {
+      var picked = viewer.scene.pick(click.position);
+      if (Cesium.defined(picked) && picked instanceof Cesium.Cesium3DTileFeature) {
+        var name = picked.getProperty('name');
+        log('📌 点击模型: ' + name);
+      }
+    }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
+
+    // 保存当前视角
+    function saveCurrentView() {
+      var name = '';
+      if (selectedDevice) {
+        name = selectedDevice.device.name + '_' + new Date().toLocaleTimeString('zh-CN', {hour:'2-digit',minute:'2-digit',second:'2-digit'});
+      } else {
+        name = '视角_' + new Date().toLocaleTimeString('zh-CN', {hour:'2-digit',minute:'2-digit',second:'2-digit'});
+      }
+
+      var camera = viewer.camera;
+      var pos = camera.positionCartographic;
+
+      var view = {
+        id: Date.now().toString(36),
+        name: name,
+        device: selectedDevice ? {
+          id: selectedDevice.device.id,
+          name: selectedDevice.device.name,
+          type: selectedDevice.type,
+          lng: selectedDevice.device.lng,
+          lat: selectedDevice.device.lat,
+          height: selectedDevice.device.height,
+        } : null,
+        camera: {
+          lng: Cesium.Math.toDegrees(pos.longitude),
+          lat: Cesium.Math.toDegrees(pos.latitude),
+          height: pos.height,
+          heading: camera.heading,
+          pitch: camera.pitch,
+          roll: camera.roll,
+        },
+        time: new Date().toISOString(),
+      };
+
+      var views = JSON.parse(localStorage.getItem('overpassViews') || '[]');
+      views.push(view);
+      localStorage.setItem('overpassViews', JSON.stringify(views));
+
+      log('💾 视角已保存: ' + name);
+      refreshViewList();
+      refreshDeviceList(); // 刷新设备列表状态
+    }
+    window.saveCurrentView = saveCurrentView;
+
+    // 视角列表
+    function toggleViewPanel() {
+      var panel = document.getElementById('viewPanel');
+      if (panel.style.display === 'none') {
+        refreshViewList();
+        panel.style.display = 'block';
+      } else {
+        panel.style.display = 'none';
+      }
+    }
+    window.toggleViewPanel = toggleViewPanel;
+
+    function refreshViewList() {
+      var views = JSON.parse(localStorage.getItem('overpassViews') || '[]');
+      var html = '';
+      views.forEach(function(v, i) {
+        var deviceInfo = v.device ? v.device.name : '无选中设备';
+        var time = new Date(v.time).toLocaleString('zh-CN');
+        html += '<div class="view-item">' +
+          '<div class="name" onclick="flyToView(' + i + ')">' +
+            '<div>' + v.name + '</div>' +
+            '<div class="device">' + deviceInfo + '</div>' +
+            '<div class="time">' + time + '</div>' +
+          '</div>' +
+          '<div class="actions">' +
+            '<span class="fly" onclick="flyToView(' + i + ')" title="飞行到此视角">✈️</span>' +
+            '<span class="delete" onclick="deleteView(' + i + ')" title="删除">🗑️</span>' +
+          '</div>' +
+        '</div>';
+      });
+      document.getElementById('viewItems').innerHTML = html || '<div style="color:#8ab;padding:10px;">暂无保存的视角</div>';
+    }
+
+    function flyToView(index) {
+      var views = JSON.parse(localStorage.getItem('overpassViews') || '[]');
+      var v = views[index];
+      if (!v) return;
+
+      viewer.camera.flyTo({
+        destination: Cesium.Cartesian3.fromDegrees(v.camera.lng, v.camera.lat, v.camera.height),
+        orientation: { heading: v.camera.heading, pitch: v.camera.pitch, roll: v.camera.roll },
+        duration: 1.5,
+      });
+
+      // 如果有设备信息，高亮对应点位
+      if (v.device) {
+        document.getElementById('selectedInfo').style.display = 'block';
+        document.getElementById('selectedName').textContent = v.device.name;
+        // 找到对应点位并高亮
+        allDevices.forEach(function(item) {
+          if (item.device.name === v.device.name) {
+            if (selectedDot) selectedDot.classList.remove('selected');
+            item.dotEl.classList.add('selected');
+            selectedDot = item.dotEl;
+            selectedDevice = item;
+          }
+        });
+      }
+
+      log('🎯 飞行到: ' + v.name);
+    }
+    window.flyToView = flyToView;
+
+    function deleteView(index) {
+      var views = JSON.parse(localStorage.getItem('overpassViews') || '[]');
+      var name = views[index].name;
+      views.splice(index, 1);
+      localStorage.setItem('overpassViews', JSON.stringify(views));
+      refreshViewList();
+      log('🗑️ 删除: ' + name);
+    }
+    window.deleteView = deleteView;
+
+    // ===== 设备列表 =====
+    function refreshDeviceList() {
+      var views = JSON.parse(localStorage.getItem('overpassViews') || '[]');
+      var savedDeviceNames = new Set(views.filter(v => v.device).map(v => v.device.name));
+
+      var groups = { monitor: [], sensor: [] };
+      allDevices.forEach(function(item, index) {
+        groups[item.type].push({ ...item, index: index });
+      });
+
+      ['monitor', 'sensor'].forEach(function(type) {
+        var listEl = document.getElementById(type + 'List');
+        var devices = groups[type];
+        var html = '';
+
+        devices.forEach(function(item) {
+          var isSaved = savedDeviceNames.has(item.device.name);
+          var isSelected = selectedDevice && selectedDevice.device.name === item.device.name;
+
+          html += '<div class="device-item ' + (isSaved ? 'saved ' : '') + (isSelected ? 'selected' : '') + '" ' +
+                  'onclick="onDeviceListClick(\'' + item.device.name + '\')">' +
+                  '<img class="icon" src="' + models[type].icon + '">' +
+                  '<span class="name">' + item.device.name + '</span>' +
+                  '<span class="status ' + (isSaved ? 'saved' : 'unsaved') + '">' + (isSaved ? '已保存' : '未保存') + '</span>' +
+                  '</div>';
+        });
+
+        listEl.innerHTML = html || '<div style="color:#666;padding:4px;">无设备</div>';
+      });
+
+      // 更新总数
+      document.getElementById('deviceCount').textContent = '(' + allDevices.length + ')';
+    }
+
+    // 点击设备列表项
+    function onDeviceListClick(deviceName) {
+      // 根据 name 查找设备（name 唯一）
+      var item = allDevices.find(function(d) { return d.device.name === deviceName; });
+      if (!item) return;
+
+      // 触发和点击 icon 相同的操作
+      if (selectedDot) selectedDot.classList.remove('selected');
+      item.dotEl.classList.add('selected');
+      selectedDot = item.dotEl;
+      selectedDevice = item;
+
+      document.getElementById('selectedInfo').style.display = 'block';
+      document.getElementById('selectedName').textContent = item.device.name;
+
+      // 查找该设备已保存的视角
+      var views = JSON.parse(localStorage.getItem('overpassViews') || '[]');
+      var savedView = views.find(function(v) { return v.device && v.device.name === deviceName; });
+
+      if (savedView) {
+        // 已保存：恢复到保存的视角
+        viewer.camera.flyTo({
+          destination: Cesium.Cartesian3.fromDegrees(savedView.camera.lng, savedView.camera.lat, savedView.camera.height),
+          orientation: { heading: savedView.camera.heading, pitch: savedView.camera.pitch, roll: savedView.camera.roll },
+          duration: 1.0,
+        });
+        log('🎯 恢复视角: ' + item.device.name);
+      } else {
+        // 未保存：俯视设备
+        var devicePos = Cesium.Cartesian3.fromDegrees(item.device.lng, item.device.lat, item.device.height);
+        viewer.camera.lookAt(devicePos, new Cesium.HeadingPitchRange(0, Cesium.Math.toRadians(-90), 80));
+        log('🎯 俯视设备: ' + item.device.name);
+      }
+
+      refreshDeviceList(); // 刷新列表状态
+    }
+    window.onDeviceListClick = onDeviceListClick;
+
+    // 导出视角
+    function exportViews() {
+      var data = localStorage.getItem('overpassViews') || '[]';
+      var blob = new Blob([data], { type: 'application/json' });
+      var url = URL.createObjectURL(blob);
+      var a = document.createElement('a');
+      a.href = url;
+      a.download = 'overpass-views-' + new Date().toISOString().slice(0,10) + '.json';
+      a.click();
+      URL.revokeObjectURL(url);
+      log('📤 视角已导出');
+    }
+    window.exportViews = exportViews;
+
+    // 导入视角
+    function importViews() {
+      document.getElementById('fileInput').click();
+    }
+    window.importViews = importViews;
+
+    function handleImport(event) {
+      var file = event.target.files[0];
+      if (!file) return;
+      var reader = new FileReader();
+      reader.onload = function(e) {
+        try {
+          var imported = JSON.parse(e.target.result);
+          var existing = JSON.parse(localStorage.getItem('overpassViews') || '[]');
+          var merged = existing.concat(imported);
+          localStorage.setItem('overpassViews', JSON.stringify(merged));
+          refreshViewList();
+          log('📥 导入 ' + imported.length + ' 个视角');
+        } catch (err) {
+          log('❌ 导入失败: ' + err.message);
+        }
+      };
+      reader.readAsText(file);
+      event.target.value = '';
+    }
+
+    // 模型显示/隐藏
+    ['Bridge','Monitor','Sensor'].forEach(function(key) {
+      document.getElementById('chk' + key).addEventListener('change', function() {
+        var modelKey = key.toLowerCase();
+        if (models[modelKey] && models[modelKey].tileset) {
+          models[modelKey].tileset.show = this.checked;
+        }
+      });
+    });
+
+    // 主流程
+    (async function() {
+      var loadingEl = document.getElementById('loading');
+
+      models.bridge.tileset = await loadTileset(models.bridge.url, '陵园大道立交桥');
+      if (models.bridge.tileset) {
+        models.bridge.tileset.style = new Cesium.Cesium3DTileStyle({ color: "color('white', 1.0)" });
+      }
+
+      for (var key of ['monitor', 'sensor']) {
+        models[key].tileset = await loadTileset(models[key].url, models[key].name);
+        var devices = await loadScenetree(models[key].url);
+        if (devices.length > 0) createDots(key, devices, models[key].icon);
+      }
+
+      if (models.bridge.tileset) {
+        viewer.zoomTo(models.bridge.tileset, new Cesium.HeadingPitchRange(0, Cesium.Math.toRadians(-45), 800));
+      }
+
+      loadingEl.classList.add('done');
+      log('🎉 加载完成，点击设备图标开始');
+    })();
+
+    };
+  </script>
+</body>
+</html>

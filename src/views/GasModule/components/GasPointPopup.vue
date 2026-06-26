@@ -52,10 +52,11 @@ const scaleRatio = inject<any>('responsiveScale', ref(1))
 const title = computed(() => {
   if (!props.pointData) return '详情'
   const data = props.pointData
-  if (props.pointType === '燃气井盖') return data.jgbh || '井盖详情'
-  if (props.pointType === '燃气企业') return data.qymc || '企业详情'
-  if (props.pointType === '液化气企业') return data.qymc || '企业详情'
-  return '详情'
+  if (props.pointType === '燃气井盖') return data.jgbh || data._name || '井盖详情'
+  if (props.pointType === '燃气企业') return data.qymc || data._name || '企业详情'
+  if (props.pointType === '液化气企业') return data.qymc || data._name || '企业详情'
+  if (props.pointType === '桥梁') return data.llmc || data._name || data.qlmc || data.qlbh || '桥梁详情'
+  return data._name || '详情'
 })
 
 // 弹窗位置样式 - 居中显示 + 缩放
@@ -63,7 +64,7 @@ const popupStyle = computed(() => {
   return {
     left: '50%',
     top: '50%',
-    transform: `translate(-50%, -50%) scale(${scaleRatio.value})`,
+    transform: `translate(-50%, -50%) scale(${scaleRatio.value * 1.5})`,
   }
 })
 

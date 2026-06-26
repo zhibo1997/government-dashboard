@@ -49,60 +49,47 @@ import {
   getGasEnterpriseLedgerDetail,
   getBottleGasEnterpriseLedgerDetail,
 } from "@/services/gasService";
-import { useGasOverviewPoints } from "@/hook/useGasOverviewPoints";
+import { useInfrastructureModule } from "@/hook/useInfrastructureModule";
 import { useMapHooks } from "@/hook/useMapHooks";
-import { useMvtPickHandler } from "@/hook/useMvtPickHandler";
 import { useMapStore } from "@/stores/mapStore";
 import GasPointPopup from "./GasPointPopup.vue";
 
 // 响应式数据
 const overviewData = ref<any[]>([]);
-const selectedId = ref<string | null>(null);
-
-// 弹窗状态
-const popupVisible = ref(false);
-const popupData = ref<any>(null);
 const popupPosition = ref({ x: 0, y: 0 });
 
-// 地图点位管理
-const { init: initMapPoints, addPoints, clearPoints } = useGasOverviewPoints();
-
-// MVT 图层管理
-const { loadMVTLayer } = useMapHooks();
 const mapStore = useMapStore();
-let viewer: any = null;
-let pipelineMvtLayer: any = null;
+const { loadMVTLayer } = useMapHooks();
 
-// MVT 点击查询 hook
-const { setup: setupMvtPick } = useMvtPickHandler({
-  get viewer() { return viewer },
-  getMvtLayer: () => pipelineMvtLayer,
-  onFeaturePick: (props) => {
-    popupPosition.value = { x: window.innerWidth / 2 + 100, y: window.innerHeight / 2 - 100 };
-    popupData.value = props;
-    selectedId.value = "燃气管线";
-    popupVisible.value = true;
+// 统一 hook（散点 + 详情 + 弹窗）
+const {
+  selectedId, popupVisible, popupData, viewer,
+  init, handlePointClick, closePopup, clearPoints,
+  addPoints, setupClickHandler,
+} = useInfrastructureModule({
+  coordinateApiMap: {
+    '燃气企业': getGasEnterpriseCoordinateList,
+    '液化气企业': getBottleGasEnterpriseCoordinateList,
+    '燃气井盖': getManholeCoverCoordinateList,
   },
-  onScatterPick: (entity) => {
-    if (entity.point && entity.description) {
-      try {
-        const pointData = JSON.parse(entity.description.getValue());
-        handlePointClick(pointData);
-      } catch (e) {
-        console.warn("解析点位数据失败:", e);
-      }
-    }
+  detailApiMap: {
+    '燃气企业': getGasEnterpriseLedgerDetail,
+    '液化气企业': getBottleGasEnterpriseLedgerDetail,
+    '燃气井盖': getManholeCoverDetail,
+  },
+  onMvtFeaturePick: (props) => {
+    popupPosition.value = { x: window.innerWidth / 2 + 100, y: window.innerHeight / 2 - 100 };
   },
 });
 
-/** 从图层树中查找"燃气管线"MVT 图层的 URL */
+// 燃气管线 MVT（按 name 查找，特殊逻辑）
+let pipelineMvtLayer: any = null;
+
 const findPipelineMvtUrl = (): string | null => {
   const tree = mapStore.layerTreeNodes;
   const search = (nodes: any[]): string | null => {
     for (const node of nodes) {
-      if (node.name === "燃气管线" && node.type === "mvt" && node.url) {
-        return node.url;
-      }
+      if (node.name === "燃气管线" && node.type === "mvt" && node.url) return node.url;
       if (node.child?.length) {
         const found = search(node.child);
         if (found) return found;
@@ -113,42 +100,30 @@ const findPipelineMvtUrl = (): string | null => {
   return search(tree);
 };
 
-/** 显示燃气管线 MVT 图层 */
 const showPipelineMvt = async () => {
-  if (!viewer) return;
+  if (!viewer.value) return;
   if (pipelineMvtLayer) {
     pipelineMvtLayer.show = true;
-    viewer.scene.requestRender();
+    viewer.value.scene.requestRender();
     return;
   }
   const url = findPipelineMvtUrl();
-  if (!url) {
-    console.warn("图层树中未找到燃气管线 MVT 图层");
-    return;
-  }
+  if (!url) return;
   try {
-    pipelineMvtLayer = await loadMVTLayer(viewer, url);
+    pipelineMvtLayer = await loadMVTLayer(viewer.value, url);
   } catch (e) {
     console.error("加载燃气管线 MVT 失败:", e);
   }
 };
 
-/** 隐藏燃气管线 MVT 图层 */
 const hidePipelineMvt = () => {
   if (pipelineMvtLayer) {
     pipelineMvtLayer.show = false;
-    viewer?.scene?.requestRender();
+    viewer.value?.scene?.requestRender();
   }
 };
 
-// 接口映射：name -> API 函数
-const apiMapping: Record<string, () => Promise<any>> = {
-  '燃气企业': getGasEnterpriseCoordinateList,
-  '液化气企业': getBottleGasEnterpriseCoordinateList,
-  '燃气井盖': getManholeCoverCoordinateList,
-};
-
-// icon 映射（使用供水模块的图标作为占位）
+// icon 映射
 const iconMapping: Record<string, string> = {
   '燃气企业': 'major_customer',
   '液化气企业': 'major_customer',
@@ -156,100 +131,44 @@ const iconMapping: Record<string, string> = {
   '燃气井盖': 'fire_hydrant',
 };
 
-// 动态获取图标路径
 const getIconUrl = (iconName: string) => {
-  return new URL(
-    `../../../assets/img/waterSupply/${iconName}.png`,
-    import.meta.url
-  ).href;
+  return new URL(`../../../assets/img/waterSupply/${iconName}.png`, import.meta.url).href;
 };
 
-// 关闭弹窗
-const closePopup = () => {
-  popupVisible.value = false;
-  popupData.value = null;
-};
-
-// 点击地图点位时的回调
-const handlePointClick = async (point: any) => {
-  console.log('点击了点位:', point);
-
-  // 设置弹窗位置（屏幕中心偏右）
-  popupPosition.value = {
-    x: window.innerWidth / 2 + 100,
-    y: window.innerHeight / 2 - 100,
-  };
-
-  // 燃气井盖点击时请求详情
-  if (selectedId.value === '燃气井盖') {
-    try {
-      const detail = await getManholeCoverDetail(point.lsh);
-      popupData.value = detail;
-      popupVisible.value = true;
-    } catch (error) {
-      console.error('获取燃气井盖详情失败:', error);
-    }
-    return;
-  }
-
-  // 燃气企业点击时请求详情
-  if (selectedId.value === '燃气企业') {
-    try {
-      const detail = await getGasEnterpriseLedgerDetail(point.lsh);
-      popupData.value = detail;
-      popupVisible.value = true;
-    } catch (error) {
-      console.error('获取燃气企业详情失败:', error);
-    }
-    return;
-  }
-
-  // 液化气企业点击时请求详情
-  if (selectedId.value === '液化气企业') {
-    try {
-      const detail = await getBottleGasEnterpriseLedgerDetail(point.lsh);
-      popupData.value = detail;
-      popupVisible.value = true;
-    } catch (error) {
-      console.error('获取液化气企业详情失败:', error);
-    }
-    return;
-  }
-};
-
-// 点击事件处理
+// 点击事件处理（燃气管线用特殊 MVT，其他走统一 hook 散点逻辑）
 const handleItemClick = async (item: any) => {
-  // 选中/取消选中
   if (selectedId.value === item.id) {
     selectedId.value = null;
     clearPoints();
     hidePipelineMvt();
+    closePopup();
     return;
   }
 
   selectedId.value = item.id;
-
-  // 隐藏管线 MVT（从管线切到其他项时）
+  closePopup();
+  clearPoints();
   hidePipelineMvt();
 
-  // 燃气管线：加载 MVT 图层
+  // 燃气管线：特殊 MVT
   if (item.name === '燃气管线') {
-    clearPoints();
     await showPipelineMvt();
     return;
   }
 
-  // 其他项目：调用对应接口加载点位
+  // 其他：加载散点
+  const apiMapping: Record<string, () => Promise<any>> = {
+    '燃气企业': getGasEnterpriseCoordinateList,
+    '液化气企业': getBottleGasEnterpriseCoordinateList,
+    '燃气井盖': getManholeCoverCoordinateList,
+  };
   const apiFn = apiMapping[item.name];
   if (apiFn) {
     try {
       const data = await apiFn();
-      console.log(`[GasOverview] ${item.name} API 返回:`, data);
       if (Array.isArray(data) && data.length > 0) {
-        console.log(`[GasOverview] 首条数据:`, data[0]);
         addPoints(data, item.name, handlePointClick);
-      } else {
-        console.warn(`[GasOverview] ${item.name} 数据为空或非数组:`, data);
+        setupClickHandler(handlePointClick);
       }
     } catch (error) {
       console.error(`获取${item.name}数据失败:`, error);
@@ -280,15 +199,11 @@ const initData = async () => {
 onMounted(async () => {
   const $vc = useVueCesium();
   const readyObj = await $vc.creatingPromise;
-  viewer = readyObj.viewer;
-  await initMapPoints(viewer);
-  initData();
-  // 确保图层树已加载（用于查找 MVT URL）
   if (!mapStore.layerTreeLoaded) {
     await mapStore.fetchLayerTree();
   }
-  // 注册统一点击处理器（MVT + 散点）
-  setupMvtPick();
+  await init(readyObj.viewer, mapStore);
+  initData();
 });
 
 onBeforeUnmount(() => {

@@ -251,8 +251,13 @@ const initLineChart = (rawData: any[]) => {
     });
   });
 
-  // x轴时间
-  const xData = processedData.map((item) => dayjs(item.jcsj).format('HH:mm'));
+  // x轴时间：跨天时显示日期+时间，同天只显示时间
+  const timestamps = processedData.map((item) => item.jcsj);
+  const hasMultipleDays = new Set(
+    timestamps.map((ts: number) => dayjs(ts).format('YYYY-MM-DD'))
+  ).size > 1;
+  const timeFormat = hasMultipleDays ? 'MM-DD HH:mm' : 'HH:mm';
+  const xData = timestamps.map((ts: number) => dayjs(ts).format(timeFormat));
 
   // 系列数据
   const series = Object.keys(seriesData).map((key, index) => {
@@ -263,7 +268,7 @@ const initLineChart = (rawData: any[]) => {
       data: seriesData[key].map((item) => item.value),
       smooth: true,
       symbol: 'circle',
-      symbolSize: 4,
+      symbolSize: 6,
     };
   });
 

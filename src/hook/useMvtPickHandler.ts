@@ -33,19 +33,20 @@ export function useMvtPickHandler(options: MvtPickOptions) {
         try {
           const provider = mvtLayer.imageryProvider
           if (provider?.pickFeatures) {
-            const cartesian = viewer.scene.pickPosition(movement.position)
+            const cartesian = viewer.camera.pickEllipsoid(movement.position)
             const cartographic = cartesian
               ? Cesium.Cartographic.fromCartesian(cartesian)
               : null
             if (cartographic) {
               const lon = Cesium.Math.toDegrees(cartographic.longitude)
               const lat = Cesium.Math.toDegrees(cartographic.latitude)
+              const cameraHeight = viewer.camera.positionCartographic.height
               const zoom = Math.max(
                 0,
                 Math.round(
                   Math.log2(
                     (Math.PI * 6378137) /
-                      (viewer.camera.positionCartographic.height * 0.5)
+                      (cameraHeight * 0.5)
                   )
                 )
               )
@@ -85,7 +86,6 @@ export function useMvtPickHandler(options: MvtPickOptions) {
                   props._description = features[0].description
                 }
                 if (Object.keys(props).length > 0) {
-                  // 飞入到点击位置
                   viewer.camera.flyTo({
                     destination: Cesium.Cartesian3.fromDegrees(lon, lat, viewer.camera.positionCartographic.height * 0.6),
                     orientation: {
@@ -102,7 +102,7 @@ export function useMvtPickHandler(options: MvtPickOptions) {
             }
           }
         } catch (e) {
-          console.warn('MVT pickFeatures 失败:', e)
+          console.warn('[MvtPick] MVT pickFeatures 异常:', e)
         }
       }
 

@@ -246,8 +246,13 @@ const initLineChart = (rawData: any[]) => {
     });
   });
 
-  // x轴时间
-  const xData = processedData.map((item) => dayjs(item.jcsj).format('HH:mm'));
+  // x轴时间：跨天时显示日期+时间，同天只显示时间
+  const timestamps = processedData.map((item) => item.jcsj);
+  const hasMultipleDays = new Set(
+    timestamps.map((ts: number) => dayjs(ts).format('YYYY-MM-DD'))
+  ).size > 1;
+  const timeFormat = hasMultipleDays ? 'MM-DD HH:mm' : 'HH:mm';
+  const xData = timestamps.map((ts: number) => dayjs(ts).format(timeFormat));
 
   // 系列数据
   const series = Object.keys(seriesData).map((key, index) => {
@@ -258,7 +263,7 @@ const initLineChart = (rawData: any[]) => {
       data: seriesData[key].map((item) => item.value),
       smooth: true,
       symbol: 'circle',
-      symbolSize: 4,
+      symbolSize: 6,
     };
   });
 
@@ -269,17 +274,20 @@ const initLineChart = (rawData: any[]) => {
     unit = (firstJcz as any).jcdw || "";
   }
 
+  // 图表字体大小（与燃气模块对齐）
+  const chartFontSize = FONT_SIZE.mini * 2; // 14 -> 28
+
   const option: echarts.EChartsOption = {
     tooltip: {
       trigger: "axis",
       backgroundColor: "rgba(0, 20, 40, 0.9)",
       borderColor: "rgba(13, 165, 190, 0.5)",
-      textStyle: { color: "#e4f3ff", fontSize: FONT_SIZE.mini },
+      textStyle: { color: "#e4f3ff", fontSize: chartFontSize },
       formatter: (params: any) => {
         if (!Array.isArray(params)) return '';
-        let html = `<div style="margin-bottom:4px;color:#9ec3e8">${params[0].axisValue}</div>`;
+        let html = `<div style="margin-bottom:4px;color:#9ec3e8;font-size:${chartFontSize}px">${params[0].axisValue}</div>`;
         params.forEach((p: any) => {
-          html += `<div style="display:flex;align-items:center;gap:6px">
+          html += `<div style="display:flex;align-items:center;gap:6px;font-size:${chartFontSize}px">
             <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${p.color}"></span>
             ${p.seriesName}: <b>${p.value}</b> ${unit}
           </div>`;
@@ -290,22 +298,22 @@ const initLineChart = (rawData: any[]) => {
     legend: {
       data: indicators,
       top: 0,
-      textStyle: { color: "#9ec3e8", fontSize: FONT_SIZE.mini },
+      textStyle: { color: "#9ec3e8", fontSize: chartFontSize },
       itemWidth: 16,
       itemHeight: 8,
     },
     grid: {
-      left: 44,
+      left: 60,
       right: 16,
-      top: 30,
-      bottom: 28,
+      top: 40,
+      bottom: 36,
     },
     xAxis: {
       type: "category",
       data: xData,
       axisLabel: {
         color: "#9ec3e8",
-        fontSize: FONT_SIZE.mini,
+        fontSize: chartFontSize,
         interval: Math.floor(xData.length / 6),
       },
       axisLine: { lineStyle: { color: "rgba(13, 165, 190, 0.3)" } },
@@ -315,7 +323,7 @@ const initLineChart = (rawData: any[]) => {
       type: "value",
       axisLabel: {
         color: "#9ec3e8",
-        fontSize: FONT_SIZE.mini,
+        fontSize: chartFontSize,
       },
       splitLine: {
         lineStyle: { color: "rgba(13, 165, 190, 0.15)" },
