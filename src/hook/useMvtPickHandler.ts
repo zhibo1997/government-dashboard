@@ -86,8 +86,11 @@ export function useMvtPickHandler(options: MvtPickOptions) {
                   props._description = features[0].description
                 }
                 if (Object.keys(props).length > 0) {
+                  // 固定飞行高度，避免每次点击不断放大
+                  const currentHeight = viewer.camera.positionCartographic.height
+                  const fixedHeight = Math.max(currentHeight, 3000)
                   viewer.camera.flyTo({
-                    destination: Cesium.Cartesian3.fromDegrees(lon, lat, viewer.camera.positionCartographic.height * 0.6),
+                    destination: Cesium.Cartesian3.fromDegrees(lon, lat, fixedHeight),
                     orientation: {
                       heading: viewer.camera.heading,
                       pitch: viewer.camera.pitch,

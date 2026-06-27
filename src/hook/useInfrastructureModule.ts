@@ -198,6 +198,11 @@ export function useInfrastructureModule(options: InfrastructureModuleOptions) {
     }
   }
 
+  /** 设置当前活跃的 MVT 图层（供外部加载的 MVT 图层注册点击） */
+  const setActiveMvtLayer = (layer: any) => {
+    activeMvtLayer = layer
+  }
+
   onBeforeUnmount(() => {
     hideAllMvtLayers()
   })
@@ -218,5 +223,7 @@ export function useInfrastructureModule(options: InfrastructureModuleOptions) {
     addPoints,
     clearPoints,
     setupClickHandler,
+    setActiveMvtLayer,
+    showMvtLayer,
   }
 }

@@ -1,5 +1,5 @@
 <template>
-  <div class="data-module monitoring-device-module" @click="switchToMonitorMode?.()">
+  <div class="data-module monitoring-device-module">
     <div class="module-header">
       <div class="module-title">监测设备</div>
     </div>
@@ -42,28 +42,51 @@
       <CommonTable
         :columns="deviceTableColumns"
         :data="flatDeviceList"
-        row-key="name"
+        row-key="sblx"
         empty-text="暂无数据"
+        :active-row-key="activeDeviceType"
+        @row-click="handleRowClick"
       />
     </div>
   </div>
+
+  <!-- 监测设备详情弹窗 -->
+  <EquipmentPointPopup
+    :visible="popupVisible"
+    :equipment-data="popupData"
+    :sblx-dict-keys="['jcsblx_rq', 'jcsblx_rqzdyh']"
+    @close="closePopup"
+  />
 </template>
 
 <script setup lang="ts">
 import { getCachedDictionary } from "@/services/dictionaryService";
-import { getEquipmentOperationStatusList } from "@/services/gasService";
+import { getEquipmentOperationStatusList, getEquipmentPageList } from "@/services/gasService";
 import { getSpecialRateList } from "@/services/commonService";
 
-import { ref, onMounted, inject, computed, type Ref } from "vue";
+import { ref, onMounted, computed } from "vue";
 import CommonTable from '@/components/CommonTable.vue';
+import EquipmentPointPopup from '@/components/EquipmentPointPopup.vue';
+import { useMonitoringDeviceScatter } from "@/hook/useMonitoringDeviceScatter";
 
-const switchToMonitorMode = inject<Ref<(() => void) | null>>('switchToMonitorMode', ref(null));
+const { activeDeviceType, popupVisible, popupData, init: initScatter, toggleDevicePoints, closePopup } = useMonitoringDeviceScatter({
+  // 燃气专用接口，返回 { rows: [...] }，坐标在 pointInfo.jd/wd
+  fetchPointsApi: async (sblx) => {
+    const res = await getEquipmentPageList({ sblx, rows: '1000' })
+    return res?.rows || []
+  },
+});
 
 const jcsblxMap = ref<any>({});
+
 // 初始化获取状态数据
 onMounted(async () => {
-  const rqDict = await getCachedDictionary("jcsblx_rq");
-  const rqzdyhDict = await getCachedDictionary("jcsblx_rqzdyh");
+  await initScatter();
+
+  const [rqDict, rqzdyhDict] = await Promise.all([
+    getCachedDictionary("jcsblx_rq"),
+    getCachedDictionary("jcsblx_rqzdyh"),
+  ]);
   jcsblxMap.value = [...rqDict, ...rqzdyhDict].reduce((acc, cur) => {
     acc[cur.f_ItemValue] = cur.f_ItemName;
     return acc;
@@ -72,6 +95,11 @@ onMounted(async () => {
   fetchSpecialRate();
   initGasOnlineStatus();
 });
+
+// 表格行点击 → 切换设备散点
+const handleRowClick = (row: any) => {
+  toggleDevicePoints(row.sblx, row.name);
+};
 
 // 从 getSpecialRateList 获取设备数量和在线率
 const fetchSpecialRate = async () => {
@@ -118,7 +146,6 @@ const initGasOnlineStatus = async () => {
         aggregated[item.bigType][item.sblx].offlineNum += item.number;
       }
     });
-    console.log("🚀 ~ initGasOnlineStatus ~ aggregated:", aggregated);
 
     // 更新设备分类数据
     deviceCategories.value = Object.keys(aggregated).map((bigType) => ({
@@ -141,6 +168,7 @@ const topStats = ref({
   total: 0,
   online: 0,
   offline: 0,
+  fault: 0,
   onlineRate: "-",
 });
 
@@ -157,6 +185,7 @@ const flatDeviceList = computed(() =>
   deviceCategories.value.flatMap((cat) =>
     cat.devices.map((d) => ({
       bigType: cat.title,
+      sblx: d.name,
       name: jcsblxMap.value[d.name] || d.name,
       onlineNum: d.onlineNum,
       offlineNum: d.offlineNum,

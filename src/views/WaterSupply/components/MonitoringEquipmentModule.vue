@@ -53,21 +53,35 @@
         <CommonTable
           :columns="deviceTableColumns"
           :data="monitoringData"
-          row-key="name"
+          row-key="sblx"
           empty-text="暂无设备数据"
           grid-template="60px 2fr 1fr 1fr 1fr"
+          :active-row-key="activeDeviceType"
+          @row-click="handleRowClick"
         />
       </div>
     </div>
   </div>
+
+  <!-- 监测设备详情弹窗 -->
+  <EquipmentPointPopup
+    :visible="popupVisible"
+    :equipment-data="popupData"
+    :sblx-dict-keys="[moduleConfig.dictKey.jcsblx]"
+    @close="closePopup"
+  />
 </template>
 
 <script setup lang="ts">
 import { getCachedDictionary } from "@/services/dictionaryService";
 import { getDeviceTypeStatusCount } from "@/services/waterSupplyService";
 import { getSpecialRateList } from "@/services/commonService";
-import { onMounted, ref, inject } from "vue";
+import { onMounted, ref, inject, computed } from "vue";
 import CommonTable from '@/components/CommonTable.vue';
+import EquipmentPointPopup from '@/components/EquipmentPointPopup.vue';
+import { useMonitoringDeviceScatter } from "@/hook/useMonitoringDeviceScatter";
+
+const { activeDeviceType, popupVisible, popupData, init: initScatter, toggleDevicePoints, closePopup } = useMonitoringDeviceScatter();
 
 // 从根组件接收模块配置
 const moduleConfig = inject('MODULE_CONFIG', {
@@ -124,6 +138,7 @@ const initDeviceDetail = async () => {
       index++;
       return {
         index,
+        sblx: item.deviceType,
         name: csblxMap.value[item.deviceType] || item.deviceType,
         online: item.statusCounts.find((s: any) => s.status === "sbyxzt001")?.count || 0,
         offline: item.statusCounts.find((s: any) => s.status === "sbyxzt002")?.count || 0,
@@ -137,6 +152,11 @@ const initDeviceDetail = async () => {
 
 const monitoringRate = ref<any[]>([]);
 
+// 表格行点击 → 切换设备散点
+const handleRowClick = (row: any) => {
+  toggleDevicePoints(row.sblx, row.name);
+};
+
 // 表格列配置
 const deviceTableColumns = [
   { key: 'index', title: '序号', width: '60px' },
@@ -146,7 +166,8 @@ const deviceTableColumns = [
   { key: 'fault', title: '故障', width: '1fr' },
 ];
 
-onMounted(() => {
+onMounted(async () => {
+  await initScatter();
   fetchSpecialRate();
   initDeviceDetail();
 });

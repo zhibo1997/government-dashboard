@@ -36,21 +36,39 @@
         <CommonTable
           :columns="tableColumns"
           :data="tableData"
-          row-key="sblxmc"
+          row-key="sblx"
           empty-text="暂无设备数据"
           :max-height="640"
           grid-template="2fr 1fr 1fr 1fr"
+          :active-row-key="activeDeviceType"
+          @row-click="handleRowClick"
         />
       </div>
     </div>
   </div>
+
+  <!-- 监测设备详情弹窗 -->
+  <EquipmentPointPopup
+    :visible="popupVisible"
+    :equipment-data="popupData"
+    :sblx-dict-keys="['jcsblx_ql']"
+    @close="closePopup"
+  />
 </template>
 
 <script setup lang="ts">
-import { getBridgeEquipmentRunStatusList } from "@/services/bridgeService";
 import { getSpecialRateList } from "@/services/commonService";
+import { getDeviceTypeStatusCount } from "@/services/waterSupplyService";
+import { getCachedDictionary } from "@/services/dictionaryService";
 import { ref, computed, onMounted } from "vue";
 import CommonTable from '@/components/CommonTable.vue';
+import EquipmentPointPopup from '@/components/EquipmentPointPopup.vue';
+import { useMonitoringDeviceScatter } from "@/hook/useMonitoringDeviceScatter";
+
+const { activeDeviceType, popupVisible, popupData, init: initScatter, toggleDevicePoints, closePopup } = useMonitoringDeviceScatter();
+
+// 字典：编码 → 名称
+const csblxMap = ref<Record<string, string>>({});
 
 // 在线率概览数据
 const monitoringRate = ref<any[]>([]);
@@ -82,45 +100,54 @@ const fetchSpecialRate = async () => {
   }
 };
 
-// 预警统计数据
-const warningStatistics = ref<
-  Array<{
-    sblxmc: string;
-    zx: string | number;
-    lx: string | number;
-  }>
->([]);
+// 设备分类数据
+const monitoringData = ref<any[]>([]);
+
+// 表格行点击 → 直接用 sblx 编码切换散点
+const handleRowClick = (row: any) => {
+  // console.log("点击设备类型行:", row);
+  toggleDevicePoints(row.sblx, row.name);
+};
 
 // 表格列配置
 const tableColumns = [
-  { key: 'sblxmc', title: '设备类型', width: '2fr' },
-  { key: 'zx', title: '在线', width: '1fr' },
-  { key: 'lx', title: '离线', width: '1fr' },
+  { key: 'name', title: '设备类型', width: '2fr' },
+  { key: 'online', title: '在线', width: '1fr' },
+  { key: 'offline', title: '离线', width: '1fr' },
   { key: 'fault', title: '故障', width: '1fr' }
 ];
 
-// 处理表格数据，添加故障字段
-const tableData = computed(() => {
-  return warningStatistics.value.map(item => ({
-    ...item,
-    fault: 0 // 默认故障数为0
-  }));
-});
+// 处理表格数据
+const tableData = computed(() => monitoringData.value);
 
 // 初始化获取数据
 onMounted(async () => {
+  await initScatter();
+
+  // 加载字典，建立 编码→名称 映射
+  const dict = await getCachedDictionary("jcsblx_ql");
+  csblxMap.value = dict.reduce((acc: Record<string, string>, cur: any) => {
+    acc[cur.f_ItemValue] = cur.f_ItemName;
+    return acc;
+  }, {});
+
   await fetchSpecialRate();
-  await initWarningStatistics();
+  await initDeviceDetail();
 });
 
-// 获取预警类型统计数据
-const initWarningStatistics = async () => {
+// 获取设备分类明细（通用接口，返回在线/离线/故障完整数据）
+const initDeviceDetail = async () => {
   try {
-    const res = await getBridgeEquipmentRunStatusList();
-
-    warningStatistics.value = res;
+    const res = await getDeviceTypeStatusCount({ Sszx: 'csaqzx_ql' });
+    monitoringData.value = res.map((item: any) => ({
+      sblx: item.deviceType,
+      name: csblxMap.value[item.deviceType] || item.deviceType,
+      online: item.statusCounts.find((s: any) => s.status === 'sbyxzt001')?.count || 0,
+      offline: item.statusCounts.find((s: any) => s.status === 'sbyxzt002')?.count || 0,
+      fault: item.statusCounts.find((s: any) => s.status === 'sbyxzt003')?.count || 0,
+    }));
   } catch (error) {
-    console.error("获取预警统计数据失败:", error);
+    console.error("获取设备分类明细失败:", error);
   }
 };
 </script>

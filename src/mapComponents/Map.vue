@@ -790,6 +790,16 @@ defineExpose({
   // 清除所有已加载的图层（路由切换时调用）
   clearAllLayers: () => {
     toolbarRef.value?.unloadAll()
+    toolbarRef.value?.resetExpandState()
+    isMapExpanded.value = false
+  },
+
+  // 切换地图展开状态（供子组件通过 inject 调用）
+  toggleMapExpand: () => {
+    isMapExpanded.value = !isMapExpanded.value
+    if (toolbarRef.value) {
+      toolbarRef.value.isMapExpanded = isMapExpanded.value
+    }
   },
 })
 </script>

@@ -1,5 +1,12 @@
 <template>
   <div class="map-toolbar" :class="{ collapsed: isCollapsed, expanded: isMapExpanded }">
+    <!-- 退出三维 -->
+    <div v-if="props.sceneMode === 3" class="toolbar-item exit-3d" @click="exit3DMode" title="退出三维">
+      <div class="tool-icon">
+        <n-icon size="28" color="#4FC3F7" :component="EnterOutline" />
+      </div>
+    </div>
+
     <!-- 展开/收起地图 -->
     <div class="toolbar-item" :class="{ active: isMapExpanded }" @click="toggleMapExpand" title="展开地图">
       <div class="tool-icon">
@@ -154,6 +161,8 @@
 
 <script setup lang="ts">
 import { ref, inject } from "vue";
+import { NIcon } from "naive-ui";
+import { EnterOutline } from "@vicons/ionicons5";
 import OptimizedLayerTree from "./OptimizedLayerTree.vue";
 import BridgeModelPanel from "./BridgeModelPanel.vue";
 import GasModelPanel from "./GasModelPanel.vue";
@@ -577,6 +586,18 @@ const toggleViewMode = () => {
   console.log(`✅ 请求切换视图模式: ${newMode === 2 ? '2D' : '3D'}`)
 }
 
+// 退出三维模式：卸载模型 + 切回2D + 收缩地图（显示侧边栏）+ 复位全域
+const exit3DMode = () => {
+  unloadAll()
+  emit('update:scene-mode', 2)
+  if (isMapExpanded.value) {
+    isMapExpanded.value = false
+    emit('toggle-map-expand')
+  }
+  emit('reset-map')
+  console.log('✅ 已退出三维模式')
+}
+
 // 重置指北
 const resetNorth = () => {
   if (!props.viewerInstance) {
@@ -606,6 +627,11 @@ const resetNorth = () => {
   }
 };
 
+// 重置展开状态（路由切换时调用）
+function resetExpandState() {
+  isMapExpanded.value = false;
+}
+
 // 暴露方法和状态
 defineExpose({
   isCollapsed,
@@ -615,6 +641,7 @@ defineExpose({
   showEquipmentDialog,
   activeEquipmentBridge,
   unloadAll,
+  resetExpandState,
 });
 
 /**

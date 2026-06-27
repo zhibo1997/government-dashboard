@@ -194,14 +194,26 @@ export const FIELD_LABEL_MAP: Record<string, string> = {
  * @param filterKeys 需要过滤掉的 key 列表（可选）
  * @returns 映射后的数组 [{ label, value }]
  */
-export function mapToLabelValue(data: Record<string, any>, filterKeys: string[] = []): { label: string; value: any }[] {
-  const defaultFilter = ['lsh', 'dsbm', 'qhbm', 'yskzjbz', 'sjtbzt', 'tbsj', 'sjly', 'sjbb', 'jd', 'wd']
+export function mapToLabelValue(
+  data: Record<string, any>,
+  filterKeys: string[] = [],
+  dictMap: Record<string, { value: string; label: string }[]> = {},
+): { label: string; value: any }[] {
+  const defaultFilter = ['lsh', 'dsbm', 'qhbm', 'yskzjbz', 'sjtbzt', 'tbsj', 'sjly', 'sjbb', 'jd', 'wd', 'qjdxx', 'qwdxx', 'objectid', '_description']
   const allFilter = [...defaultFilter, ...filterKeys]
 
   return Object.entries(data)
     .filter(([key]) => !allFilter.includes(key) && data[key] !== null && data[key] !== undefined)
-    .map(([key, value]) => ({
-      label: FIELD_LABEL_MAP[key] || key,
-      value,
-    }))
+    .map(([key, value]) => {
+      // 字典映射：将 code 转为中文
+      let displayValue = value
+      if (dictMap[key] && typeof value === 'string') {
+        const found = dictMap[key].find((d) => d.value === value)
+        if (found) displayValue = found.label
+      }
+      return {
+        label: FIELD_LABEL_MAP[key] || key,
+        value: displayValue,
+      }
+    })
 }

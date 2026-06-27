@@ -63,6 +63,28 @@ export function useMapHooks() {
       // 用修改后的样式对象创建 Provider（而非 URL）
       const provider = new MVTImageryProvider({ style: styleJson });
 
+      // 包装 requestImage，捕获并静默 MVT provider 内部的无害错误
+      const originalRequestImage = provider.requestImage.bind(provider)
+      const SUPPRESS_PATTERNS = ['no available tiles', 'canceled']
+      const shouldSuppress = (msg: string) => SUPPRESS_PATTERNS.some(p => msg.includes(p))
+
+      provider.requestImage = async (...args: any[]) => {
+        // 临时劫持 console.error，过滤掉 MVT 无害错误
+        const origError = console.error
+        console.error = (...a: any[]) => {
+          const msg = a.join(' ')
+          if (shouldSuppress(msg)) return
+          origError.apply(console, a)
+        }
+        try {
+          return await originalRequestImage(...args)
+        } catch (e: any) {
+          return undefined
+        } finally {
+          console.error = origError
+        }
+      }
+
       // 将图层添加到viewer的imageryLayers中，返回ImageryLayer对象
       if (viewer && viewer.imageryLayers) {
         const imageryLayer = viewer.imageryLayers.addImageryProvider(provider);

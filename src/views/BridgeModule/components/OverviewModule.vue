@@ -42,12 +42,14 @@
     :point-data="popupData"
     :position="{ x: 0, y: 0 }"
     point-type="桥梁"
+    :has-model="hasModel"
     @close="closePopup"
+    @show-model="handleShowModel"
   />
 </template>
 
 <script setup lang="ts">
-import { onMounted, onBeforeUnmount, ref, nextTick } from "vue";
+import { onMounted, onBeforeUnmount, ref, nextTick, inject, computed } from "vue";
 import { useVueCesium } from "vue-cesium";
 import * as echarts from "echarts";
 import { getBridgeCategoryStats, getBridgePageList, getBridgeDetail } from "@/services/bridgeService";
@@ -55,6 +57,9 @@ import { createChartOption, getGradientColor } from "./chartOption";
 import { getWaterOverview } from "@/services/waterSupplyService";
 import { getCachedDictionary } from "@/services/dictionaryService";
 import { useGasOverviewPoints } from "@/hook/useGasOverviewPoints";
+import { useMapHooks } from "@/hook/useMapHooks";
+import { useMapStore } from "@/stores/mapStore";
+import { BRIDGE_LAYER_CONFIG } from "@/config/layerConfig";
 import GasPointPopup from "@/views/GasModule/components/GasPointPopup.vue";
 
 defineOptions({
@@ -82,6 +87,17 @@ const selectedChartType = ref<string | null>(null);
 const popupVisible = ref(false);
 const popupData = ref<any>(null);
 
+// 当前桥梁是否有 3D 模型
+const hasModel = computed(() => {
+  if (!popupData.value?.qlbh) return false;
+  return BRIDGE_LAYER_CONFIG.some((c) => c.qlbh === popupData.value.qlbh);
+});
+
+// 3D 模型相关
+const cesiumUtils = useMapHooks();
+const mapStore = useMapStore();
+const mapRef = inject<any>('MAP_INSTANCE');
+
 // ==================== 点击处理 ====================
 
 // 卡片类型到筛选参数的映射
@@ -96,6 +112,66 @@ const cardTypeFilterMap: Record<string, string> = {
 const closePopup = () => {
   popupVisible.value = false;
   popupData.value = null;
+};
+
+// 查看模型 - 加载桥梁 3D 模型
+const handleShowModel = async () => {
+  if (!popupData.value) return;
+  const qlbh = popupData.value.qlbh;
+  if (!qlbh) {
+    console.warn('⚠️ 桥梁数据缺少 qlbh 字段');
+    return;
+  }
+
+  // 匹配桥梁模型配置
+  const cfg = BRIDGE_LAYER_CONFIG.find((c) => c.qlbh === qlbh);
+  if (!cfg) {
+    console.warn(`⚠️ 未找到 qlbh=${qlbh} 的桥梁模型配置`);
+    return;
+  }
+
+  // 从图层树获取 URL
+  const layer = mapStore.findLayerById(cfg.id);
+  if (!layer?.url) {
+    console.warn(`⚠️ 未找到桥梁图层 URL, id=${cfg.id}`);
+    return;
+  }
+
+  // 转换协议
+  const isProduction = import.meta.env.PROD || import.meta.env.MODE === 'production';
+  let url = layer.url;
+  if (isProduction && url.startsWith('http://')) {
+    url = url.replace('http://', 'https://');
+  }
+
+  // 加载 3D 模型
+  try {
+    await cesiumUtils.load3DTiles(viewer.value, url, { flyTo: true });
+    console.log(`✅ 桥梁模型加载成功: ${layer.name}`);
+
+    // 应用光照设置（抄自 bridge.html）
+    const Cesium = (window as any).Cesium;
+    if (Cesium && viewer.value) {
+      viewer.value.shadows = true;
+      viewer.value.scene.sun.show = true;
+      viewer.value.scene.sun.glowFactor = 0.0;
+      viewer.value.scene.globe.enableLighting = true;
+      viewer.value.scene.globe.baseColor = Cesium.Color.fromCssColorString('#8899aa');
+      viewer.value.shadowMap.size = 2048;
+      viewer.value.shadowMap.softShadows = true;
+      viewer.value.shadowMap.darkness = 0.6;
+      viewer.value.scene.globe.depthTestAgainstTerrain = true;
+    }
+  } catch (error) {
+    console.error('❌ 桥梁模型加载失败:', error);
+  }
+
+  // 清除散点和弹窗
+  clearPoints();
+  closePopup();
+
+  // 展开地图（隐藏侧边栏）
+  mapRef?.value?.toggleMapExpand?.();
 };
 
 // 点击地图点位回调
@@ -136,7 +212,7 @@ const loadBridgePoints = async (filter?: string) => {
         }));
       console.log('📍 有效点位:', points.length, points);
       if (points.length > 0) {
-        addPoints(points, '桥梁');
+        addPoints(points, '桥梁', new URL('@/assets/img/points/4个专项点位/桥梁.png', import.meta.url).href);
         setupClickHandler(handlePointClick);
         console.log('✅ addPoints 已调用, setupClickHandler 已注册');
       }

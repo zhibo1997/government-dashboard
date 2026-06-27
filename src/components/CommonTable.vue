@@ -26,8 +26,9 @@
             v-for="(row, index) in data"
             :key="getRowKey(row, index)"
             class="table-row"
-            :class="{ 'row-even': index % 2 === 1, 'row-odd': index % 2 === 0 }"
+            :class="{ 'row-even': index % 2 === 1, 'row-odd': index % 2 === 0, 'row-clickable': true, 'row-active': activeRowKey !== null && activeRowKey !== undefined && getRowKey(row, index) === activeRowKey }"
             :style="{ gridTemplateColumns: gridTemplate }"
+            @click="handleRowClick(row, index)"
           >
             <div
               v-for="column in columns"
@@ -92,6 +93,8 @@ interface Props {
   gridTemplate?: string
   // 表格内容最大高度（用于滚动）
   maxHeight?: string | number
+  // 高亮行的 key 值
+  activeRowKey?: string | number | null
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -100,8 +103,17 @@ const props = withDefaults(defineProps<Props>(), {
   emptyText: '暂无数据',
   rowKey: 'id',
   gridTemplate: '',
-  maxHeight: ''
+  maxHeight: '',
+  activeRowKey: null
 })
+
+const emit = defineEmits<{
+  (e: 'row-click', row: any, index: number): void
+}>()
+
+const handleRowClick = (row: any, index: number) => {
+  emit('row-click', row, index)
+}
 
 // 计算表格主体样式
 const tableBodyStyle = computed(() => {
@@ -246,6 +258,18 @@ const getCellTitle = (row: TableRow, column: TableColumn): string => {
       min-height: 58px;
       border-bottom: 1px solid rgba(22, 119, 255, 0.1);
       transition: background-color 0.2s ease;
+
+      &.row-clickable {
+        cursor: pointer;
+        &:hover {
+          background: rgba(22, 119, 255, 0.15);
+        }
+      }
+
+      &.row-active {
+        background: rgba(22, 119, 255, 0.25) !important;
+        border-left: 3px solid #1677ff;
+      }
       
       // 奇数行（浅色背景）
       &.row-odd {

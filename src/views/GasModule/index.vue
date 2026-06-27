@@ -10,7 +10,6 @@
 
     <!-- 中间侧边栏 -->
     <SidebarModule />
-
     <!-- 右侧数据展示区 -->
     <RightContent />
 
@@ -29,7 +28,7 @@ import LeftContent from './leftContent.vue'
 import RightContent from './rightContent.vue'
 import SidebarModule from './sidebarModule.vue'
 import EmergencyResourceListPanel from '@/components/EmergencyResourceListPanel.vue'
-import { onBeforeMount, ref, provide } from 'vue'
+import { onBeforeMount, ref } from 'vue'
 import { getCachedDictionaries } from '@/services/dictionaryService'
 
 // 定义组件名称
@@ -38,10 +37,6 @@ defineOptions({
 })
 
 const loading = ref(false)
-
-// 监测设备模块点击 → 展开列表并切换到监测设备模式
-const switchToMonitorMode = ref<(() => void) | null>(null)
-provide('switchToMonitorMode', switchToMonitorMode)
 
 // 在页面初始化时预加载所有字典数据
 onBeforeMount(async () => {

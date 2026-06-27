@@ -15,13 +15,18 @@ export interface GasOverviewPoint {
 
 export function useGasOverviewPoints() {
   const viewer = ref<any>(null)
-  const dataSource = ref<any>(null)
+  const dataSource = ref<any>(null)        // 点位/图标
+  const labelSourceA = ref<any>(null)      // label 双缓冲 A
+  const labelSourceB = ref<any>(null)      // label 双缓冲 B
+  let activeLabelIsA = true                // 当前显示的是 A
   const currentType = ref<string | null>(null)
   let clickHandler: any = null
   let cameraMoveEndListener: any = null
   let currentPoints: GasOverviewPoint[] = []
   let lastThinDistance: number | null = null
   let currentIconUrl: string | undefined = undefined
+  let currentIconWidth = 32
+  let currentIconHeight = 32
 
   const init = async (cesiumViewer: any) => {
     if (!cesiumViewer) {
@@ -32,21 +37,34 @@ export function useGasOverviewPoints() {
       viewer.value = cesiumViewer
       const Cesium = (window as any).Cesium
       const ds = new Cesium.CustomDataSource('gasOverviewPoints')
+      const lsA = new Cesium.CustomDataSource('gasLabelsA')
+      const lsB = new Cesium.CustomDataSource('gasLabelsB')
       await viewer.value.dataSources.add(ds)
+      await viewer.value.dataSources.add(lsA)
+      await viewer.value.dataSources.add(lsB)
       dataSource.value = ds
+      labelSourceA.value = lsA
+      labelSourceB.value = lsB
     } catch (error) {
       console.error('初始化 Cesium 失败:', error)
     }
   }
 
   const clearPoints = () => {
-    if (dataSource.value) {
-      dataSource.value.entities.removeAll()
-    }
+    if (dataSource.value) dataSource.value.entities.removeAll()
+    if (labelSourceA.value) labelSourceA.value.entities.removeAll()
+    if (labelSourceB.value) labelSourceB.value.entities.removeAll()
     currentType.value = null
+    currentPoints = []
+    currentIconUrl = undefined
+    lastThinDistance = null
+    if (cameraMoveEndListener) {
+      cameraMoveEndListener()
+      cameraMoveEndListener = null
+    }
   }
 
-  const setupClickHandler = (onPointClick?: (point: GasOverviewPoint) => void) => {
+  const setupClickHandler = (onPointClick?: (point: GasOverviewPoint) => void, shouldFly = true) => {
     if (!viewer.value) return
 
     const Cesium = (window as any).Cesium
@@ -64,10 +82,8 @@ export function useGasOverviewPoints() {
           if ((entity.point || entity.billboard) && entity.description) {
             try {
               const pointData = JSON.parse(entity.description.getValue())
-              flyToPoint(pointData)
-              if (onPointClick) {
-                onPointClick(pointData)
-              }
+              if (shouldFly) flyToPoint(pointData)
+              if (onPointClick) onPointClick(pointData)
             } catch (e) {
               console.warn('解析点位数据失败:', e)
             }
@@ -78,7 +94,7 @@ export function useGasOverviewPoints() {
     )
   }
 
-  // 四档抽稀配置：[相机高度阈值(米), 标签间距(经纬度)]
+  // 四档抽稀配置
   const THIN_LEVELS: [number, number][] = [
     [30000, 0.04],
     [15000, 0.025],
@@ -96,35 +112,66 @@ export function useGasOverviewPoints() {
   const thinLabels = (points: GasOverviewPoint[], minDistance: number): Set<number> => {
     const showLabel = new Set<number>()
     const used: boolean[] = new Array(points.length).fill(false)
-
     for (let i = 0; i < points.length; i++) {
       if (used[i]) continue
       showLabel.add(i)
       used[i] = true
-
       for (let j = i + 1; j < points.length; j++) {
         if (used[j]) continue
         const dx = points[i].jd - points[j].jd
         const dy = points[i].wd - points[j].wd
-        const dist = Math.sqrt(dx * dx + dy * dy)
-        if (dist < minDistance) {
-          used[j] = true
-        }
+        if (Math.sqrt(dx * dx + dy * dy) < minDistance) used[j] = true
       }
     }
-
     return showLabel
   }
 
-  /** 过滤不可见/控制 Unicode 字符，避免 Cesium 渲染崩溃 */
-  const sanitizeName = (name: string): string => {
-    return name.replace(/[\u0000-\u001f\u007f-\u009f\u00ad\u200b-\u200f\u2028-\u202f\u2060-\u206f\ufeff]/g, '')
+  /** 用 canvas 渲染带背景边框的文字图片 */
+  const createLabelCanvas = (text: string): HTMLCanvasElement => {
+    const canvas = document.createElement('canvas')
+    const ctx = canvas.getContext('2d')!
+    const font = '14px Microsoft YaHei, sans-serif'
+    ctx.font = font
+    const metrics = ctx.measureText(text)
+    const padH = 8
+    const padV = 4
+    const w = Math.ceil(metrics.width) + padH * 2
+    const h = 22 + padV * 2
+    canvas.width = w
+    canvas.height = h
+
+    ctx.fillStyle = 'rgba(6, 30, 52, 0.75)'
+    ctx.strokeStyle = 'rgba(0, 200, 255, 0.6)'
+    ctx.lineWidth = 1
+    const r = 4
+    ctx.beginPath()
+    ctx.moveTo(r, 0); ctx.lineTo(w - r, 0)
+    ctx.quadraticCurveTo(w, 0, w, r); ctx.lineTo(w, h - r)
+    ctx.quadraticCurveTo(w, h, w - r, h); ctx.lineTo(r, h)
+    ctx.quadraticCurveTo(0, h, 0, h - r); ctx.lineTo(0, r)
+    ctx.quadraticCurveTo(0, 0, r, 0)
+    ctx.closePath()
+    ctx.fill()
+    ctx.stroke()
+
+    ctx.font = font
+    ctx.fillStyle = '#ffffff'
+    ctx.textBaseline = 'middle'
+    ctx.fillText(text, padH, h / 2)
+    return canvas
   }
 
-  /**
-   * 首次渲染点位（billboard 图标 + label）
-   */
-  const renderPoints = (points: GasOverviewPoint[], thinDistance: number | null, iconUrl?: string) => {
+  const labelCanvasCache: Map<string, HTMLCanvasElement> = new Map()
+
+  const getLabelCanvas = (text: string): HTMLCanvasElement => {
+    if (!labelCanvasCache.has(text)) {
+      labelCanvasCache.set(text, createLabelCanvas(text))
+    }
+    return labelCanvasCache.get(text)!
+  }
+
+  /** 渲染点位/图标（只在首次或切换类型时调用） */
+  const renderPoints = (points: GasOverviewPoint[], iconUrl?: string, iconWidth = 32, iconHeight = 32) => {
     if (!dataSource.value || !viewer.value) return
 
     const Cesium = (window as any).Cesium
@@ -133,69 +180,86 @@ export function useGasOverviewPoints() {
     entities.suspendEvents()
     entities.removeAll()
 
-    const labelIndices = thinDistance !== null ? thinLabels(points, thinDistance) : new Set(points.map((_, i) => i))
-
-    points.forEach((point, index) => {
+    points.forEach((point) => {
       if (point.jd && point.wd) {
-        const showLabel = labelIndices.has(index)
-        const safeName = sanitizeName(point.name || '')
-        const entityOptions: any = {
-          position: Cesium.Cartesian3.fromDegrees(point.jd, point.wd),
-          label: {
-            text: safeName,
-            font: '14px Microsoft YaHei, sans-serif',
-            style: Cesium.LabelStyle.FILL_AND_OUTLINE,
-            fillColor: Cesium.Color.WHITE,
-            outlineColor: Cesium.Color.BLACK,
-            outlineWidth: 2,
-            backgroundColor: Cesium.Color.fromCssColorString('rgba(6, 30, 52, 0.75)'),
-            padding: new Cesium.Cartesian2(6, 3),
-            horizontalOrigin: Cesium.HorizontalOrigin.CENTER,
-            verticalOrigin: Cesium.VerticalOrigin.BOTTOM,
-            pixelOffset: new Cesium.Cartesian2(0, -15),
-            show: showLabel,
-          },
-          description: JSON.stringify(point),
-        }
+        const pos = Cesium.Cartesian3.fromDegrees(point.jd, point.wd)
+        const desc = JSON.stringify(point)
 
         if (iconUrl) {
-          entityOptions.billboard = {
-            image: iconUrl,
-            width: 32,
-            height: 32,
-            horizontalOrigin: Cesium.HorizontalOrigin.CENTER,
-            verticalOrigin: Cesium.VerticalOrigin.CENTER,
-          }
+          entities.add({
+            position: pos,
+            billboard: {
+              image: iconUrl,
+              width: iconWidth, height: iconHeight,
+              horizontalOrigin: Cesium.HorizontalOrigin.CENTER,
+              verticalOrigin: Cesium.VerticalOrigin.CENTER,
+            },
+            description: desc,
+          })
         } else {
-          entityOptions.point = {
-            pixelSize: 10,
-            color: Cesium.Color.fromCssColorString('#00ffff'),
-            outlineColor: Cesium.Color.WHITE,
-            outlineWidth: 2,
-          }
+          entities.add({
+            position: pos,
+            point: {
+              pixelSize: 10,
+              color: Cesium.Color.fromCssColorString('#00ffff'),
+              outlineColor: Cesium.Color.WHITE,
+              outlineWidth: 2,
+            },
+            description: desc,
+          })
         }
-
-        entities.add(entityOptions)
       }
     })
 
     entities.resumeEvents()
-    viewer.value.scene.requestRender()
   }
 
-  const updateLabelVisibility = (points: GasOverviewPoint[], thinDistance: number | null) => {
-    if (!dataSource.value || !viewer.value) return
+  /**
+   * 双缓冲更新 label：先写入后台 buffer，再切换显示，最后清空旧 buffer
+   * 全程无空窗
+   */
+  const renderLabels = (points: GasOverviewPoint[], thinDistance: number | null) => {
+    if (!labelSourceA.value || !labelSourceB.value || !viewer.value) return
 
-    const entities = dataSource.value.entities.values
-    const labelIndices = thinDistance !== null ? thinLabels(points, thinDistance) : null
+    const Cesium = (window as any).Cesium
+    const labelIndices = thinDistance !== null ? thinLabels(points, thinDistance) : new Set(points.map((_, i) => i))
 
-    for (let i = 0; i < entities.length; i++) {
-      const entity = entities[i]
-      if (entity.label) {
-        entity.label.show = thinDistance !== null ? labelIndices!.has(i) : true
+    // 写入后台 buffer
+    const backBuffer = activeLabelIsA ? labelSourceB.value : labelSourceA.value
+    const backEntities = backBuffer.entities
+    backEntities.suspendEvents()
+
+    points.forEach((point, index) => {
+      if (point.jd && point.wd && labelIndices.has(index)) {
+        const name = point.name || ''
+        if (!name) return
+        const canvas = getLabelCanvas(name)
+        backEntities.add({
+          position: Cesium.Cartesian3.fromDegrees(point.jd, point.wd),
+          billboard: {
+            image: canvas,
+            width: canvas.width,
+            height: canvas.height,
+            horizontalOrigin: Cesium.HorizontalOrigin.CENTER,
+            verticalOrigin: Cesium.VerticalOrigin.BOTTOM,
+            pixelOffset: new Cesium.Cartesian2(0, -20),
+            disableDepthTestDistance: Number.POSITIVE_INFINITY,
+          },
+        })
       }
-    }
+    })
 
+    backEntities.resumeEvents()
+
+    // 切换：显示新 buffer，隐藏旧 buffer
+    const frontBuffer = activeLabelIsA ? labelSourceA.value : labelSourceB.value
+    backBuffer.show = true
+    frontBuffer.show = false
+
+    // 清空旧 buffer
+    frontBuffer.entities.removeAll()
+
+    activeLabelIsA = !activeLabelIsA
     viewer.value.scene.requestRender()
   }
 
@@ -211,80 +275,65 @@ export function useGasOverviewPoints() {
       const thinDistance = getThinDistance(cameraHeight)
       if (thinDistance !== lastThinDistance) {
         lastThinDistance = thinDistance
-        updateLabelVisibility(currentPoints, thinDistance)
+        renderLabels(currentPoints, thinDistance)
       }
     })
   }
 
-  /**
-   * 添加散点
-   * @param points 点位数据
-   * @param name 模块名称
-   * @param iconUrl 散点图标 URL（可选，不传则用默认圆点）
-   * @param _onPointClick 点击回调（保留参数兼容，实际通过 setupClickHandler 注册）
-   */
-  const addPoints = (points: GasOverviewPoint[], name: string, iconUrl?: string, _onPointClick?: (point: GasOverviewPoint) => void) => {
+  const addPoints = (points: GasOverviewPoint[], name: string, iconUrl?: string, _onPointClick?: (point: GasOverviewPoint) => void, iconWidth = 32, iconHeight = 32) => {
     if (!dataSource.value || !viewer.value) return
 
     clearPoints()
     currentType.value = name
     currentPoints = points
     currentIconUrl = iconUrl
+    currentIconWidth = iconWidth
+    currentIconHeight = iconHeight
 
     const cameraHeight = getCameraHeight(viewer.value)
     const thinDistance = getThinDistance(cameraHeight)
     lastThinDistance = thinDistance
 
-    renderPoints(points, thinDistance, iconUrl)
+    renderPoints(points, iconUrl, iconWidth, iconHeight)
+    renderLabels(points, thinDistance)
     setupCameraListener()
   }
 
   const flyToPoint = (point: GasOverviewPoint) => {
     if (!viewer.value) return
-
     const Cesium = (window as any).Cesium
     viewer.value.camera.flyTo({
       destination: Cesium.Cartesian3.fromDegrees(point.jd, point.wd, 2000),
-      orientation: {
-        heading: 0,
-        pitch: Cesium.Math.toRadians(-90),
-        roll: 0,
-      },
+      orientation: { heading: 0, pitch: Cesium.Math.toRadians(-90), roll: 0 },
       duration: 1.5,
     })
   }
 
   const cleanup = () => {
     clearPoints()
-    if (clickHandler) {
-      clickHandler()
-      clickHandler = null
-    }
-    if (cameraMoveEndListener) {
-      cameraMoveEndListener()
-      cameraMoveEndListener = null
-    }
+    if (clickHandler) { clickHandler(); clickHandler = null }
+    if (cameraMoveEndListener) { cameraMoveEndListener(); cameraMoveEndListener = null }
     currentPoints = []
+    labelCanvasCache.clear()
     if (dataSource.value && viewer.value) {
       viewer.value.dataSources.remove(dataSource.value, true)
       dataSource.value = null
     }
+    if (labelSourceA.value && viewer.value) {
+      viewer.value.dataSources.remove(labelSourceA.value, true)
+      labelSourceA.value = null
+    }
+    if (labelSourceB.value && viewer.value) {
+      viewer.value.dataSources.remove(labelSourceB.value, true)
+      labelSourceB.value = null
+    }
     viewer.value = null
   }
 
-  onBeforeUnmount(() => {
-    cleanup()
-  })
+  onBeforeUnmount(() => { cleanup() })
 
   return {
-    viewer,
-    dataSource,
-    currentType,
-    init,
-    clearPoints,
-    addPoints,
-    flyToPoint,
-    setupClickHandler,
-    cleanup,
+    viewer, dataSource, currentType,
+    init, clearPoints, addPoints, flyToPoint, setupClickHandler, cleanup,
   }
 }
