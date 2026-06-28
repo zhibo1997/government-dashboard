@@ -44,7 +44,9 @@ export interface CameraPreviewParams {
 
 /** 视频流响应 */
 export interface CameraPreviewResult {
-  url: string  // 视频流地址
+  data: {
+    url: string  // 视频流地址
+  }
 }
 
 // ========== 接口方法 ==========

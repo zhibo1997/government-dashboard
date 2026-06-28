@@ -5,7 +5,7 @@
 
 import { ref } from 'vue'
 
-interface DevicePoint {
+export interface DevicePoint {
   sbbh: string
   position: any // Cesium.Cartesian3
   lng: number
@@ -18,12 +18,59 @@ interface DeviceEntry {
   type: 'equipment' | 'monitor'
   device: DevicePoint
   dotEl: HTMLDivElement
+  imgEl: HTMLImageElement
 }
+
+/** 保存的相机视角 */
+export interface SavedCameraView {
+  lng: number
+  lat: number
+  height: number
+  heading: number
+  pitch: number
+  roll: number
+}
+
+/** 视角数据条目 */
+export interface ViewRecord {
+  name: string
+  device: { name: string; type: string; lng: number; lat: number; height: number }
+  camera: SavedCameraView
+}
+
+/** 两档图标尺寸 (512:797 比例) */
+const ICON_SMALL = { w: 20, h: 31 }
+const ICON_LARGE = { w: 30, h: 47 }
+
+/** 切档相机高度阈值（米） */
+const ZOOM_THRESHOLD = 300
 
 export function useBridgeDevicePoints() {
   const allDevices = ref<DeviceEntry[]>([])
   let postRenderListener: any = null
   let dotContainer: HTMLDivElement | null = null
+  let viewRecords: ViewRecord[] = []
+
+  /** 加载视角数据 */
+  async function loadViewRecords(): Promise<void> {
+    try {
+    const baseUrl = import.meta.env.BASE_URL;
+      const res = await fetch(baseUrl+'/overpass-views.json')
+      console.log('🔍 加载视角数据文件:', res)
+      if (res.ok) {
+        viewRecords = await res.json()
+        console.log(`📐 加载视角数据: ${viewRecords.length} 条`)
+      }
+    } catch {
+      console.warn('未找到视角数据文件，使用默认俯视')
+    }
+  }
+
+  /** 根据设备名称查找保存的视角 */
+  function findSavedView(deviceName: string): SavedCameraView | null {
+    const record = viewRecords.find(r => r.device.name === deviceName)
+    return record?.camera ?? null
+  }
 
   /** 确保容器存在 */
   function ensureContainer(viewer: any): HTMLDivElement {
@@ -72,6 +119,47 @@ export function useBridgeDevicePoints() {
   }
 
   /**
+   * 飞入设备视角（有保存视角就用，没有就俯视）
+   * @returns Promise，飞入完成后 resolve
+   */
+  function flyToDevice(viewer: any, device: DevicePoint): Promise<void> {
+    return new Promise((resolve) => {
+      const Cesium = (window as any).Cesium
+      if (!Cesium || !viewer) { resolve(); return }
+
+      const saved = findSavedView(device.sbbh)
+
+      if (saved) {
+        // 有保存的视角 → 飞入
+        viewer.camera.flyTo({
+          destination: Cesium.Cartesian3.fromDegrees(saved.lng, saved.lat, saved.height),
+          orientation: {
+            heading: saved.heading,
+            pitch: saved.pitch,
+            roll: saved.roll,
+          },
+          duration: 2,
+          complete: () => resolve(),
+          cancel: () => resolve(),
+        })
+      } else {
+        // 没有保存视角 → 俯视
+        viewer.camera.flyTo({
+          destination: Cesium.Cartesian3.fromDegrees(device.lng, device.lat, 500),
+          orientation: {
+            heading: 0,
+            pitch: Cesium.Math.toRadians(-90),
+            roll: 0,
+          },
+          duration: 2,
+          complete: () => resolve(),
+          cancel: () => resolve(),
+        })
+      }
+    })
+  }
+
+  /**
    * 添加设备点位到地图（DOM 方式）
    */
   function addDevicePoints(
@@ -80,7 +168,7 @@ export function useBridgeDevicePoints() {
     type: 'equipment' | 'monitor',
     devices: DevicePoint[],
     iconUrl: string,
-    onClick?: (info: { sbbh: string; bridgeQlbh: string; type: string }) => void,
+    onClick?: (device: DevicePoint, type: string) => void,
   ) {
     if (!viewer || devices.length === 0) return
 
@@ -97,27 +185,26 @@ export function useBridgeDevicePoints() {
       const img = document.createElement('img')
       img.src = iconUrl
       img.alt = device.sbbh
-      img.style.cssText = 'width:28px;height:44px;display:block;'
+      img.style.cssText = `width:${ICON_SMALL.w}px;height:${ICON_SMALL.h}px;display:block;`
       img.draggable = false
       dot.appendChild(img)
 
       if (onClick) {
         dot.addEventListener('click', (e) => {
           e.stopPropagation()
-          onClick({ sbbh: device.sbbh, bridgeQlbh, type })
+          onClick(device, type)
         })
       }
 
       container.appendChild(dot)
-      allDevices.value.push({ bridgeQlbh, type, device, dotEl: dot })
+      allDevices.value.push({ bridgeQlbh, type, device, dotEl: dot, imgEl: img })
     }
 
-    // 启动 postRender 位置更新
     startPostRender(viewer)
   }
 
   /**
-   * postRender：3D 坐标 → 屏幕坐标 + 动态缩放
+   * postRender：两档缩放
    */
   function startPostRender(viewer: any) {
     if (postRenderListener) return
@@ -130,13 +217,8 @@ export function useBridgeDevicePoints() {
       const h = viewer.scene.canvas.clientHeight
       const cameraHeight = viewer.camera.positionCartographic.height
 
-      // 动态缩放：近小远大（同 bridge2.html）
-      let scale = 1.0
-      if (cameraHeight < 100) {
-        scale = 0.5
-      } else if (cameraHeight < 500) {
-        scale = 0.5 + (cameraHeight - 100) / 400 * 0.5
-      }
+      const isLarge = cameraHeight < ZOOM_THRESHOLD
+      const size = isLarge ? ICON_LARGE : ICON_SMALL
 
       for (const item of allDevices.value) {
         const dot = item.dotEl
@@ -146,14 +228,18 @@ export function useBridgeDevicePoints() {
           continue
         }
         dot.style.display = ''
-        dot.style.transform = `translate(${sp.x - 14 * scale}px, ${sp.y - 44 * scale}px) scale(${scale})`
+
+        const img = item.imgEl
+        if (img.width !== size.w) {
+          img.style.width = `${size.w}px`
+          img.style.height = `${size.h}px`
+        }
+
+        dot.style.transform = `translate(${sp.x - size.w / 2}px, ${sp.y - size.h}px)`
       }
     })
   }
 
-  /**
-   * 停止 postRender
-   */
   function stopPostRender(viewer: any) {
     if (postRenderListener) {
       postRenderListener()
@@ -161,25 +247,22 @@ export function useBridgeDevicePoints() {
     }
   }
 
-  /**
-   * 清除所有设备点位
-   */
   function clearAll(viewer?: any) {
-    // 移除 DOM
     if (dotContainer && dotContainer.parentNode) {
       dotContainer.parentNode.removeChild(dotContainer)
     }
     dotContainer = null
     allDevices.value = []
-
-    // 停止 postRender
     if (viewer) stopPostRender(viewer)
   }
 
   return {
     allDevices,
+    loadViewRecords,
+    findSavedView,
     loadScenetree,
     addDevicePoints,
+    flyToDevice,
     clearAll,
   }
 }

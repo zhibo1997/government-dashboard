@@ -53,6 +53,8 @@ import { onMounted, onBeforeUnmount, ref, nextTick, inject, computed } from "vue
 import { useVueCesium } from "vue-cesium";
 import * as echarts from "echarts";
 import { getBridgeCategoryStats, getBridgePageList, getBridgeDetail } from "@/services/bridgeService";
+import { getSurveillanceVideoByIp } from "@/services/surveillanceVideoService";
+import { getCameraPreviewUrl } from "@/services/hikvisionService";
 import { createChartOption, getGradientColor } from "./chartOption";
 import { getWaterOverview } from "@/services/waterSupplyService";
 import { getCachedDictionary } from "@/services/dictionaryService";
@@ -118,7 +120,7 @@ const closePopup = () => {
 };
 
 // 设备点位管理
-const { loadScenetree, addDevicePoints, clearAll: clearDevicePoints } = useBridgeDevicePoints();
+const { loadScenetree, addDevicePoints, flyToDevice, loadViewRecords, clearAll: clearDevicePoints } = useBridgeDevicePoints();
 
 // 设备图标
 const equipIconUrl = new URL('@/assets/img/points/cg_icon.png', import.meta.url).href;
@@ -154,8 +156,16 @@ const handleShowModel = async () => {
   }
 
   try {
+    // 切换到三维视角
+    if (mapRef?.value?.sceneMode !== 3) {
+      mapRef.value.sceneMode = 3;
+    }
+
     // 设置 viewer 引用（用于退出时移除 tileset）
     bridgeModelStore.setViewer(viewer.value);
+
+    // 加载视角数据（飞入用）
+    await loadViewRecords();
 
     // 1. 加载桥梁 3D 模型
     const bridgeUrl = convertUrl(bridgeLayer.url);
@@ -173,8 +183,12 @@ const handleShowModel = async () => {
       viewer.value.scene.globe.baseColor = Cesium.Color.fromCssColorString('#8899aa');
       viewer.value.shadowMap.size = 2048;
       viewer.value.shadowMap.softShadows = true;
-      viewer.value.shadowMap.darkness = 0.6;
+      viewer.value.shadowMap.darkness = 0.85;
       viewer.value.scene.globe.depthTestAgainstTerrain = true;
+      viewer.value.scene.light = new Cesium.DirectionalLight({
+        direction: new Cesium.Cartesian3(-0.5, -0.3, -1.0),
+        intensity: 0.6,
+      });
     }
 
     // 3. 加载监测设备模型 + 点位
@@ -189,9 +203,10 @@ const handleShowModel = async () => {
         // 从 scenetree 解析设备点位
         const equipDevices = await loadScenetree(equipUrl);
         if (equipDevices.length > 0) {
-          addDevicePoints(viewer.value, qlbh, 'equipment', equipDevices, equipIconUrl, (info) => {
-            console.log('🖱️ 点击监测设备:', info);
-            // TODO: 显示设备详情弹窗
+          addDevicePoints(viewer.value, qlbh, 'equipment', equipDevices, equipIconUrl, async (device) => {
+            console.log('🖱️ 点击监测设备:', device.sbbh);
+            await flyToDevice(viewer.value, device);
+            // TODO: 飞入后获取监测数据
           });
           console.log(`📍 监测设备点位: ${equipDevices.length} 个`);
         }
@@ -210,9 +225,30 @@ const handleShowModel = async () => {
         // 从 scenetree 解析设备点位
         const monitorDevices = await loadScenetree(monitorUrl);
         if (monitorDevices.length > 0) {
-          addDevicePoints(viewer.value, qlbh, 'monitor', monitorDevices, monitorIconUrl, (info) => {
-            console.log('🖱️ 点击监控设备:', info);
-            // TODO: 显示设备详情弹窗
+          addDevicePoints(viewer.value, qlbh, 'monitor', monitorDevices, monitorIconUrl, async (device) => {
+            console.log('🖱️ 点击监控设备:', device.sbbh);
+            await flyToDevice(viewer.value, device);
+            const ipMatch = device.sbbh.match(/^(\d+\.\d+\.\d+\.\d+)-\d+$/);
+            if (!ipMatch) {
+              console.warn('⚠️ 无法从设备名称提取 IP:', device.sbbh);
+              return;
+            }
+            const ip = ipMatch[1];
+            try {
+              const videoData = await getSurveillanceVideoByIp(ip);
+              console.log('📹 监控视频数据:', videoData);
+              if (videoData?.spbh) {
+                const preview = await getCameraPreviewUrl({
+                  cameraIndexCode: videoData.spbh,
+                  streamType: 1,
+                  protocol: 'wss',
+                });
+                console.log('🎬 视频流地址:', preview?.data?.url);
+                // TODO: 直接播放视频
+              }
+            } catch (e) {
+              console.error('❌ 获取监控视频失败:', e);
+            }
           });
           console.log(`📍 监控设备点位: ${monitorDevices.length} 个`);
         }
@@ -471,9 +507,13 @@ onMounted(async () => {
   await initMapPoints(readyObj.viewer);
   console.log('📍 initMapPoints 完成, dataSource:', !!dataSource.value, 'viewer:', !!viewer.value);
 
-  // 注册设备点位清除回调（供退出三维时调用）
+  // 注册清除回调（供退出三维/路由切换时调用，同步重置 UI 状态）
   bridgeModelStore.registerClearCallback(() => {
     clearDevicePoints(viewer.value);
+    clearPoints();
+    closePopup();
+    selectedCardType.value = null;
+    selectedChartType.value = null;
   });
 
   // 获取卡片数据

@@ -38,19 +38,17 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onBeforeUnmount } from "vue";
+import { ref, onMounted } from "vue";
 import { useVueCesium } from "vue-cesium";
 import {
   getGasStats,
   getGasEnterpriseCoordinateList,
   getBottleGasEnterpriseCoordinateList,
-  getManholeCoverCoordinateList,
   getManholeCoverDetail,
   getGasEnterpriseLedgerDetail,
   getBottleGasEnterpriseLedgerDetail,
 } from "@/services/gasService";
 import { useInfrastructureModule } from "@/hook/useInfrastructureModule";
-import { useMapHooks } from "@/hook/useMapHooks";
 import { useMapStore } from "@/stores/mapStore";
 import GasPointPopup from "./GasPointPopup.vue";
 
@@ -59,16 +57,14 @@ const overviewData = ref<any[]>([]);
 const popupPosition = ref({ x: 0, y: 0 });
 
 const mapStore = useMapStore();
-const { loadMVTLayer, load3DTiles } = useMapHooks();
 
 // 散点图标
 const pointIcon = (name: string) => new URL(`../../../assets/img/points/4个专项点位/${name}.png`, import.meta.url).href
 
-// 统一 hook（散点 + 详情 + 弹窗 + MVT）
+// 统一 hook（散点 + 详情 + 弹窗 + MVT 全部由 hook 管理）
 const {
-  selectedId, popupVisible, popupData, viewer,
-  init, handlePointClick, closePopup, clearPoints, clearAll,
-  addPoints, setupClickHandler, setActiveMvtLayer, showMvtLayer,
+  selectedId, popupVisible, popupData,
+  init, handleItemClick, closePopup,
 } = useInfrastructureModule({
   coordinateApiMap: {
     '燃气企业': getGasEnterpriseCoordinateList,
@@ -78,84 +74,18 @@ const {
     '燃气企业': getGasEnterpriseLedgerDetail,
     '液化气企业': getBottleGasEnterpriseLedgerDetail,
   },
-  mvtLayerIdMap: {
+  mvtLayerMap: {
+    '燃气管线': { id: 'c01a6292-e654-409f-a127-95a1f2011f30' },
+    '燃气井盖': { id: 'a0a68eaf-a734-4bbf-a3da-766e31bf9eae' },
   },
   iconUrlMap: {
     '燃气企业': pointIcon('燃气企业'),
     '液化气企业': pointIcon('液化气企业'),
   },
-  onMvtFeaturePick: (_props, moduleName) => {
+  onMvtFeaturePick: () => {
     popupPosition.value = { x: window.innerWidth / 2 + 100, y: window.innerHeight / 2 - 100 };
   },
 });
-
-// 燃气管线 MVT（按 name 查找，特殊逻辑）
-let pipelineMvtLayer: any = null;
-
-const findPipelineMvtUrl = (): string | null => {
-  const tree = mapStore.layerTreeNodes;
-  const search = (nodes: any[]): string | null => {
-    for (const node of nodes) {
-      if (node.name === "燃气管线" && node.type === "mvt" && node.url) return node.url;
-      if (node.child?.length) {
-        const found = search(node.child);
-        if (found) return found;
-      }
-    }
-    return null;
-  };
-  return search(tree);
-};
-
-const showPipelineMvt = async () => {
-  if (!viewer.value) return;
-  if (pipelineMvtLayer) {
-    pipelineMvtLayer.show = true;
-    setActiveMvtLayer(pipelineMvtLayer);
-    viewer.value.scene.requestRender();
-    return;
-  }
-  const url = findPipelineMvtUrl();
-  if (!url) return;
-  try {
-    pipelineMvtLayer = await loadMVTLayer(viewer.value, url);
-    setActiveMvtLayer(pipelineMvtLayer);
-  } catch (e) {
-    console.error("加载燃气管线 MVT 失败:", e);
-  }
-};
-
-const hidePipelineMvt = () => {
-  if (pipelineMvtLayer) {
-    pipelineMvtLayer.show = false;
-    viewer.value?.scene?.requestRender();
-  }
-};
-
-// 燃气井 3DTile
-let gasWellTileset: any = null;
-
-const showGasWell3DTile = async () => {
-  if (!viewer.value) return;
-  if (gasWellTileset) {
-    gasWellTileset.show = true;
-    viewer.value.scene.requestRender();
-    return;
-  }
-  const url = 'https://webres.cityfun.com.cn/CSSMX/model/RQ_TR_RQJ/tileset.json';
-  try {
-    gasWellTileset = await load3DTiles(viewer.value, url, { flyTo: false });
-  } catch (e) {
-    console.error("加载燃气井 3DTile 失败:", e);
-  }
-};
-
-const hideGasWell3DTile = () => {
-  if (gasWellTileset) {
-    gasWellTileset.show = false;
-    viewer.value?.scene?.requestRender();
-  }
-};
 
 // icon 映射
 const iconMapping: Record<string, string> = {
@@ -167,56 +97,6 @@ const iconMapping: Record<string, string> = {
 
 const getIconUrl = (iconName: string) => {
   return new URL(`../../../assets/img/waterSupply/${iconName}.png`, import.meta.url).href;
-};
-
-// 点击事件处理
-const handleItemClick = async (item: any) => {
-  if (selectedId.value === item.id) {
-    clearAll();
-    hidePipelineMvt();
-    hideGasWell3DTile();
-    return;
-  }
-
-  selectedId.value = item.id;
-  closePopup();
-  clearPoints();
-  hidePipelineMvt();
-  hideGasWell3DTile();
-
-  // 燃气管线：特殊 MVT（按 name 查找）
-  if (item.name === '燃气管线') {
-    await showPipelineMvt();
-    return;
-  }
-
-  // 燃气井盖：加载燃气井 3DTile 模型
-  if (item.name === '燃气井盖') {
-    await showGasWell3DTile();
-    return;
-  }
-
-  // 其他：加载散点
-  const apiMapping: Record<string, () => Promise<any>> = {
-    '燃气企业': getGasEnterpriseCoordinateList,
-    '液化气企业': getBottleGasEnterpriseCoordinateList,
-  };
-  const iconMap: Record<string, string> = {
-    '燃气企业': pointIcon('燃气企业'),
-    '液化气企业': pointIcon('液化气企业'),
-  };
-  const apiFn = apiMapping[item.name];
-  if (apiFn) {
-    try {
-      const data = await apiFn();
-      if (Array.isArray(data) && data.length > 0) {
-        addPoints(data, item.name, iconMap[item.name], handlePointClick);
-        setupClickHandler(handlePointClick);
-      }
-    } catch (error) {
-      console.error(`获取${item.name}数据失败:`, error);
-    }
-  }
 };
 
 // 初始化数据
@@ -247,11 +127,6 @@ onMounted(async () => {
   }
   await init(readyObj.viewer, mapStore);
   initData();
-});
-
-onBeforeUnmount(() => {
-  hidePipelineMvt();
-  hideGasWell3DTile();
 });
 </script>
 

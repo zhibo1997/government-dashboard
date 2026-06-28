@@ -67,3 +67,12 @@ export async function getSurveillanceVideoDetail(lsh: string): Promise<Surveilla
   const res = await get<any>(`/gspspDtransSurveillanceVideo/${lsh}`)
   return res.data
 }
+
+/**
+ * 根据 IP 获取监控视频信息
+ * @param ip 监控设备 IP 地址
+ */
+export async function getSurveillanceVideoByIp(ip: string): Promise<any> {
+  const res = await get<any>(`/gspspDtransSurveillanceVideo/ip/${ip}`)
+  return res.data
+}
