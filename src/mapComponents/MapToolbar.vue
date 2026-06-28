@@ -163,6 +163,7 @@
 import { ref, inject } from "vue";
 import { NIcon } from "naive-ui";
 import { EnterOutline } from "@vicons/ionicons5";
+import { useBridgeModelStore } from "@/stores/bridgeModelStore";
 import OptimizedLayerTree from "./OptimizedLayerTree.vue";
 import BridgeModelPanel from "./BridgeModelPanel.vue";
 import GasModelPanel from "./GasModelPanel.vue";
@@ -170,6 +171,7 @@ import RiskPointPanel from "./RiskPointPanel.vue";
 import { useMapHooks } from "@/hook/useMapHooks";
 
 const cesiumUtils = useMapHooks();
+const bridgeModelStore = useBridgeModelStore();
 
 // 注入监测点位管理 Hook（从 PersistentLayout 传递）
 const monitoringPointsHook = inject<any>('monitoringPointsHook');
@@ -589,6 +591,7 @@ const toggleViewMode = () => {
 // 退出三维模式：卸载模型 + 切回2D + 收缩地图（显示侧边栏）+ 复位全域
 const exit3DMode = () => {
   unloadAll()
+  bridgeModelStore.clearAll()
   emit('update:scene-mode', 2)
   if (isMapExpanded.value) {
     isMapExpanded.value = false

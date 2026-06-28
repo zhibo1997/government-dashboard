@@ -58,7 +58,9 @@ import { getWaterOverview } from "@/services/waterSupplyService";
 import { getCachedDictionary } from "@/services/dictionaryService";
 import { useGasOverviewPoints } from "@/hook/useGasOverviewPoints";
 import { useMapHooks } from "@/hook/useMapHooks";
+import { useBridgeDevicePoints } from "@/hook/useBridgeDevicePoints";
 import { useMapStore } from "@/stores/mapStore";
+import { useBridgeModelStore } from "@/stores/bridgeModelStore";
 import { BRIDGE_LAYER_CONFIG } from "@/config/layerConfig";
 import GasPointPopup from "@/views/GasModule/components/GasPointPopup.vue";
 
@@ -96,6 +98,7 @@ const hasModel = computed(() => {
 // 3D 模型相关
 const cesiumUtils = useMapHooks();
 const mapStore = useMapStore();
+const bridgeModelStore = useBridgeModelStore();
 const mapRef = inject<any>('MAP_INSTANCE');
 
 // ==================== 点击处理 ====================
@@ -114,7 +117,20 @@ const closePopup = () => {
   popupData.value = null;
 };
 
-// 查看模型 - 加载桥梁 3D 模型
+// 设备点位管理
+const { loadScenetree, addDevicePoints, clearAll: clearDevicePoints } = useBridgeDevicePoints();
+
+// 设备图标
+const equipIconUrl = new URL('@/assets/img/points/cg_icon.png', import.meta.url).href;
+const monitorIconUrl = new URL('@/assets/img/points/jk_icon.png', import.meta.url).href;
+
+// 协议转换
+const convertUrl = (url: string) => {
+  const isProduction = import.meta.env.PROD || import.meta.env.MODE === 'production';
+  return isProduction && url.startsWith('http://') ? url.replace('http://', 'https://') : url;
+};
+
+// 查看模型 - 加载桥梁 3D 模型 + 设备点位
 const handleShowModel = async () => {
   if (!popupData.value) return;
   const qlbh = popupData.value.qlbh;
@@ -131,25 +147,23 @@ const handleShowModel = async () => {
   }
 
   // 从图层树获取 URL
-  const layer = mapStore.findLayerById(cfg.id);
-  if (!layer?.url) {
+  const bridgeLayer = mapStore.findLayerById(cfg.id);
+  if (!bridgeLayer?.url) {
     console.warn(`⚠️ 未找到桥梁图层 URL, id=${cfg.id}`);
     return;
   }
 
-  // 转换协议
-  const isProduction = import.meta.env.PROD || import.meta.env.MODE === 'production';
-  let url = layer.url;
-  if (isProduction && url.startsWith('http://')) {
-    url = url.replace('http://', 'https://');
-  }
-
-  // 加载 3D 模型
   try {
-    await cesiumUtils.load3DTiles(viewer.value, url, { flyTo: true });
-    console.log(`✅ 桥梁模型加载成功: ${layer.name}`);
+    // 设置 viewer 引用（用于退出时移除 tileset）
+    bridgeModelStore.setViewer(viewer.value);
 
-    // 应用光照设置（抄自 bridge.html）
+    // 1. 加载桥梁 3D 模型
+    const bridgeUrl = convertUrl(bridgeLayer.url);
+    const bridgeTileset = await cesiumUtils.load3DTiles(viewer.value, bridgeUrl, { flyTo: true });
+    bridgeModelStore.addTileset(bridgeTileset);
+    console.log(`✅ 桥梁模型加载成功: ${bridgeLayer.name}`);
+
+    // 2. 应用光照设置（抄自 bridge.html）
     const Cesium = (window as any).Cesium;
     if (Cesium && viewer.value) {
       viewer.value.shadows = true;
@@ -162,6 +176,49 @@ const handleShowModel = async () => {
       viewer.value.shadowMap.darkness = 0.6;
       viewer.value.scene.globe.depthTestAgainstTerrain = true;
     }
+
+    // 3. 加载监测设备模型 + 点位
+    if (cfg.equipmentId) {
+      const equipLayer = mapStore.findLayerById(cfg.equipmentId);
+      if (equipLayer?.url) {
+        const equipUrl = convertUrl(equipLayer.url);
+        const equipTileset = await cesiumUtils.load3DTiles(viewer.value, equipUrl, { flyTo: false });
+        bridgeModelStore.addTileset(equipTileset);
+        console.log(`✅ 监测设备模型加载成功: ${equipLayer.name}`);
+
+        // 从 scenetree 解析设备点位
+        const equipDevices = await loadScenetree(equipUrl);
+        if (equipDevices.length > 0) {
+          addDevicePoints(viewer.value, qlbh, 'equipment', equipDevices, equipIconUrl, (info) => {
+            console.log('🖱️ 点击监测设备:', info);
+            // TODO: 显示设备详情弹窗
+          });
+          console.log(`📍 监测设备点位: ${equipDevices.length} 个`);
+        }
+      }
+    }
+
+    // 4. 加载监控设备模型 + 点位
+    if (cfg.monitorId) {
+      const monitorLayer = mapStore.findLayerById(cfg.monitorId);
+      if (monitorLayer?.url) {
+        const monitorUrl = convertUrl(monitorLayer.url);
+        const monitorTileset = await cesiumUtils.load3DTiles(viewer.value, monitorUrl, { flyTo: false });
+        bridgeModelStore.addTileset(monitorTileset);
+        console.log(`✅ 监控设备模型加载成功: ${monitorLayer.name}`);
+
+        // 从 scenetree 解析设备点位
+        const monitorDevices = await loadScenetree(monitorUrl);
+        if (monitorDevices.length > 0) {
+          addDevicePoints(viewer.value, qlbh, 'monitor', monitorDevices, monitorIconUrl, (info) => {
+            console.log('🖱️ 点击监控设备:', info);
+            // TODO: 显示设备详情弹窗
+          });
+          console.log(`📍 监控设备点位: ${monitorDevices.length} 个`);
+        }
+      }
+    }
+
   } catch (error) {
     console.error('❌ 桥梁模型加载失败:', error);
   }
@@ -414,6 +471,11 @@ onMounted(async () => {
   await initMapPoints(readyObj.viewer);
   console.log('📍 initMapPoints 完成, dataSource:', !!dataSource.value, 'viewer:', !!viewer.value);
 
+  // 注册设备点位清除回调（供退出三维时调用）
+  bridgeModelStore.registerClearCallback(() => {
+    clearDevicePoints(viewer.value);
+  });
+
   // 获取卡片数据
   await fetchCardData();
   // 获取桥梁分类统计数据
@@ -421,6 +483,10 @@ onMounted(async () => {
   // 渲染图表
   await nextTick();
   renderCharts();
+});
+
+onBeforeUnmount(() => {
+  bridgeModelStore.unregisterClearCallback();
 });
 </script>
 

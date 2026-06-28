@@ -52,10 +52,10 @@
       <div class="table-wrapper">
         <CommonTable
           :columns="deviceTableColumns"
-          :data="monitoringData"
+          :data="deviceList"
           row-key="sblx"
           empty-text="暂无设备数据"
-          grid-template="60px 2fr 1fr 1fr 1fr"
+          grid-template="1fr 2.4fr 0.6fr 0.6fr"
           :active-row-key="activeDeviceType"
           @row-click="handleRowClick"
         />
@@ -73,10 +73,8 @@
 </template>
 
 <script setup lang="ts">
-import { getCachedDictionary } from "@/services/dictionaryService";
-import { getDeviceTypeStatusCount } from "@/services/waterSupplyService";
-import { getSpecialRateList } from "@/services/commonService";
-import { onMounted, ref, inject, computed } from "vue";
+import { getSpecialRateList, getDeviceStatusList } from "@/services/commonService";
+import { onMounted, ref, inject } from "vue";
 import CommonTable from '@/components/CommonTable.vue';
 import EquipmentPointPopup from '@/components/EquipmentPointPopup.vue';
 import { useMonitoringDeviceScatter } from "@/hook/useMonitoringDeviceScatter";
@@ -86,13 +84,11 @@ const { activeDeviceType, popupVisible, popupData, init: initScatter, toggleDevi
 // 从根组件接收模块配置
 const moduleConfig = inject('MODULE_CONFIG', {
   sszx: 'csaqzx_gs',
-  dictKey: {
-    jcsblx: 'jcsblx_gs'
-  }
+  dictKey: { jcsblx: 'jcsblx_gs' }
 });
 
-const csblxMap = ref({});
-const monitoringData = ref<any[]>([]);
+// 设备列表数据
+const deviceList = ref<any[]>([]);
 
 // 顶部统计
 const topStats = ref({
@@ -102,7 +98,7 @@ const topStats = ref({
   fault: 0,
 });
 
-// 从 getSpecialRateList 获取设备数量和在线率
+// 获取设备在线率
 const fetchSpecialRate = async () => {
   try {
     const data = await getSpecialRateList();
@@ -122,54 +118,34 @@ const fetchSpecialRate = async () => {
   }
 };
 
-// 初始化设备分类明细表格数据
-const initDeviceDetail = async () => {
-  const jcsblx = moduleConfig.dictKey?.jcsblx || "jcsblx_gs";
-  const dictionaries = await getCachedDictionary(jcsblx);
-  csblxMap.value = dictionaries.reduce((acc, cur) => {
-    acc[cur.f_ItemValue] = cur.f_ItemName;
-    return acc;
-  }, {});
-
+// 获取设备状态列表
+const initDeviceStatus = async () => {
   try {
-    const res = await getDeviceTypeStatusCount({ Sszx: moduleConfig.sszx });
-    let index = 0;
-    monitoringData.value = res.map((item) => {
-      index++;
-      return {
-        index,
-        sblx: item.deviceType,
-        name: csblxMap.value[item.deviceType] || item.deviceType,
-        online: item.statusCounts.find((s: any) => s.status === "sbyxzt001")?.count || 0,
-        offline: item.statusCounts.find((s: any) => s.status === "sbyxzt002")?.count || 0,
-        fault: item.statusCounts.find((s: any) => s.status === "sbyxzt003")?.count || 0,
-      };
-    });
+    deviceList.value = await getDeviceStatusList(moduleConfig.sszx);
   } catch (error) {
-    console.error("获取设备分类明细失败:", error);
+    console.error("获取设备状态列表失败:", error);
   }
 };
 
 const monitoringRate = ref<any[]>([]);
 
-// 表格行点击 → 切换设备散点
+// 表格行点击
 const handleRowClick = (row: any) => {
-  toggleDevicePoints(row.sblx, row.name);
+  toggleDevicePoints(row.sblx, row.sblxmc);
 };
 
 // 表格列配置
 const deviceTableColumns = [
-  { key: 'index', title: '序号', width: '60px' },
-  { key: 'name', title: '设备类型', width: '2fr' },
-  { key: 'online', title: '在线', width: '1fr' },
-  { key: 'offline', title: '离线', width: '1fr' },
-  { key: 'fault', title: '故障', width: '1fr' },
+  { key: 'bigType', title: '分类', width: '1fr' },
+  { key: 'sblxmc', title: '设备', width: '2.4fr' },
+  { key: 'zx', title: '在线', width: '0.6fr' },
+  { key: 'lx', title: '离线', width: '0.6fr' },
 ];
 
 onMounted(async () => {
   await initScatter();
   fetchSpecialRate();
-  initDeviceDetail();
+  initDeviceStatus();
 });
 </script>
 

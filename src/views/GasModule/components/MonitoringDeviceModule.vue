@@ -41,7 +41,7 @@
       <!-- 设备列表 -->
       <CommonTable
         :columns="deviceTableColumns"
-        :data="flatDeviceList"
+        :data="deviceList"
         row-key="sblx"
         empty-text="暂无数据"
         :active-row-key="activeDeviceType"
@@ -60,48 +60,31 @@
 </template>
 
 <script setup lang="ts">
-import { getCachedDictionary } from "@/services/dictionaryService";
-import { getEquipmentOperationStatusList, getEquipmentPageList } from "@/services/gasService";
-import { getSpecialRateList } from "@/services/commonService";
+import { getSpecialRateList, getDeviceStatusList } from "@/services/commonService";
 
 import { ref, onMounted, computed } from "vue";
 import CommonTable from '@/components/CommonTable.vue';
 import EquipmentPointPopup from '@/components/EquipmentPointPopup.vue';
 import { useMonitoringDeviceScatter } from "@/hook/useMonitoringDeviceScatter";
 
-const { activeDeviceType, popupVisible, popupData, init: initScatter, toggleDevicePoints, closePopup } = useMonitoringDeviceScatter({
-  // 燃气专用接口，返回 { rows: [...] }，坐标在 pointInfo.jd/wd
-  fetchPointsApi: async (sblx) => {
-    const res = await getEquipmentPageList({ sblx, rows: '1000' })
-    return res?.rows || []
-  },
-});
+const { activeDeviceType, popupVisible, popupData, init: initScatter, toggleDevicePoints, closePopup } = useMonitoringDeviceScatter();
 
-const jcsblxMap = ref<any>({});
+// 设备列表数据（直接来自新接口）
+const deviceList = ref<any[]>([]);
 
-// 初始化获取状态数据
+// 初始化
 onMounted(async () => {
   await initScatter();
-
-  const [rqDict, rqzdyhDict] = await Promise.all([
-    getCachedDictionary("jcsblx_rq"),
-    getCachedDictionary("jcsblx_rqzdyh"),
-  ]);
-  jcsblxMap.value = [...rqDict, ...rqzdyhDict].reduce((acc, cur) => {
-    acc[cur.f_ItemValue] = cur.f_ItemName;
-    return acc;
-  }, {});
-
   fetchSpecialRate();
-  initGasOnlineStatus();
+  initDeviceStatus();
 });
 
 // 表格行点击 → 切换设备散点
 const handleRowClick = (row: any) => {
-  toggleDevicePoints(row.sblx, row.name);
+  toggleDevicePoints(row.sblx, row.sblxmc);
 };
 
-// 从 getSpecialRateList 获取设备数量和在线率
+// 获取设备在线率
 const fetchSpecialRate = async () => {
   try {
     const data = await getSpecialRateList();
@@ -121,42 +104,12 @@ const fetchSpecialRate = async () => {
   }
 };
 
-//获取设备情况并更新分类统计
-const initGasOnlineStatus = async () => {
+// 获取设备状态列表
+const initDeviceStatus = async () => {
   try {
-    const res = await getEquipmentOperationStatusList();
-
-    // 按 bigType 和 sblx 聚合数据
-    const aggregated: Record<
-      string,
-      Record<string, { onlineNum: number; offlineNum: number }>
-    > = {};
-
-    (res as Array<any>).forEach((item) => {
-      if (!aggregated[item.bigType]) {
-        aggregated[item.bigType] = {};
-      }
-      if (!aggregated[item.bigType][item.sblx]) {
-        aggregated[item.bigType][item.sblx] = { onlineNum: 0, offlineNum: 0 };
-      }
-
-      if (item.sbyxzt === "sbyxzt001") {
-        aggregated[item.bigType][item.sblx].onlineNum += item.number;
-      } else if (item.sbyxzt === "sbyxzt002") {
-        aggregated[item.bigType][item.sblx].offlineNum += item.number;
-      }
-    });
-
-    // 更新设备分类数据
-    deviceCategories.value = Object.keys(aggregated).map((bigType) => ({
-      title: bigType,
-      devices: Object.keys(aggregated[bigType]).map((sblx) => ({
-        name: sblx,
-        ...aggregated[bigType][sblx],
-      })),
-    }));
+    deviceList.value = await getDeviceStatusList('csaqzx_rq,csaqzx_rqzdyh,csaqzx_pzyhq');
   } catch (error) {
-    console.error("获取设备在线状态失败:", error);
+    console.error("获取设备状态列表失败:", error);
   }
 };
 
@@ -172,34 +125,13 @@ const topStats = ref({
   onlineRate: "-",
 });
 
-// 设备分类数据
-const deviceCategories = ref<
-  Array<{
-    title: string;
-    devices: Array<{ name: string; onlineNum: number; offlineNum: number }>;
-  }>
->([]);
-
-// 展平的设备列表
-const flatDeviceList = computed(() =>
-  deviceCategories.value.flatMap((cat) =>
-    cat.devices.map((d) => ({
-      bigType: cat.title,
-      sblx: d.name,
-      name: jcsblxMap.value[d.name] || d.name,
-      onlineNum: d.onlineNum,
-      offlineNum: d.offlineNum,
-    }))
-  )
-);
-
 // 表格列配置
-const deviceTableColumns = computed(() => [
+const deviceTableColumns = [
   { key: 'bigType', title: '分类', width: '1fr' },
-  { key: 'name', title: '设备', width: '2.4fr' },
-  { key: 'onlineNum', title: '在线', width: '0.6fr' },
-  { key: 'offlineNum', title: '离线', width: '0.6fr' },
-]);
+  { key: 'sblxmc', title: '设备', width: '2.4fr' },
+  { key: 'zx', title: '在线', width: '0.6fr' },
+  { key: 'lx', title: '离线', width: '0.6fr' },
+];
 </script>
 
 <style lang="scss" scoped>

@@ -27,13 +27,13 @@
           </div>
         </div>
 
-        <!-- 桥梁操作按钮（仅有 3D 模型的桥梁） -->
-        <template v-if="props.hasModel">
+        <!-- 桥梁操作按钮 -->
+        <template v-if="pointType === '桥梁'">
           <div class="popup-divider"></div>
           <div class="popup-actions">
             <button class="action-btn btn-monitoring" @click="$emit('show-equipment')">监测设备</button>
             <button class="action-btn btn-camera" @click="$emit('show-camera')">监控设备</button>
-            <button class="action-btn btn-model" @click="$emit('show-model')">查看模型</button>
+            <button v-if="props.hasModel" class="action-btn btn-model" @click="$emit('show-model')">查看模型</button>
           </div>
         </template>
       </div>

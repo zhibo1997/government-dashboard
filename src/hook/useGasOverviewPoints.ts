@@ -58,6 +58,7 @@ export function useGasOverviewPoints() {
     currentPoints = []
     currentIconUrl = undefined
     lastThinDistance = null
+    viewer.value?.scene?.requestRender()
     if (cameraMoveEndListener) {
       cameraMoveEndListener()
       cameraMoveEndListener = null

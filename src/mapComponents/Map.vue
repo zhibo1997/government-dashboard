@@ -95,6 +95,7 @@ import { VcCamera ,VcColor} from 'vue-cesium/lib/utils/types.js'
 import mapConfig from '@/config/mapConfig'
 import { DEFAULT_BUILDING_LAYER_ID } from '@/config/layerConfig'
 import { useMapStore } from '@/stores/mapStore'
+import { useBridgeModelStore } from '@/stores/bridgeModelStore'
 import MeasureTool from './MeasureTool.vue'
 import MapToolbar from './MapToolbar.vue'
 import EquipmentDialog from '@/views/BridgeModule/components/map/EquipmentDialog.vue'
@@ -338,6 +339,7 @@ const yangxinGeoJSON = ref<any>(null)
 
 // 默认3D Tiles URL
 const mapStore = useMapStore()
+const bridgeModelStore = useBridgeModelStore()
 
 // 建筑群模型 URL — 从 store 中按 ID 动态查找，接口无数据时 fallback
 const default3DTilesUrl = computed(() => {
@@ -790,6 +792,7 @@ defineExpose({
   // 清除所有已加载的图层（路由切换时调用）
   clearAllLayers: () => {
     toolbarRef.value?.unloadAll()
+    bridgeModelStore.clearAll()
     toolbarRef.value?.resetExpandState()
     isMapExpanded.value = false
   },

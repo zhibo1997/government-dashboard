@@ -7,6 +7,7 @@ import { ref } from 'vue'
 import { useVueCesium } from 'vue-cesium'
 import { useGasOverviewPoints } from './useGasOverviewPoints'
 import { getMonitoringPointLatestData } from '@/services/commonService'
+import { getMonitoringPointLatestData } from '@/services/commonService'
 
 /** 根据 sblx 编码获取图标 URL */
 const getDeviceIconUrl = (sblx: string): string => {
@@ -16,13 +17,13 @@ const getDeviceIconUrl = (sblx: string): string => {
 export interface MonitoringDeviceScatterOptions {
   /** 获取设备点位数据的 API，默认 getMonitoringPointLatestData */
   fetchPointsApi?: (sblx: string) => Promise<any[]>
-  /** 从 API 返回的单条数据中提取坐标，默认取 jdxx/wdxx 或 pointInfo.jd/wd */
+  /** 从 API 返回的单条数据中提取坐标，默认取 jdxx/wdxx */
   extractCoords?: (item: any) => { lsh: string; jd: number; wd: number; name: string; raw: any } | null
 }
 
 const defaultExtractCoords = (item: any) => {
-  const jd = item.jdxx ?? item.pointInfo?.jd
-  const wd = item.wdxx ?? item.pointInfo?.wd
+  const jd = item.pointInfo?.jd ?? item.jdxx
+  const wd = item.pointInfo?.wd ?? item.wdxx
   if (!jd || !wd) return null
   return {
     lsh: item.lsh || item.sbbh || '',
@@ -91,7 +92,7 @@ export function useMonitoringDeviceScatter(options: MonitoringDeviceScatterOptio
         // 512×797 比例，宽度 32 不变，高度 ≈ 50
         addPoints(points, displayName, iconUrl, undefined, 32, 50)
         setupClickHandler((point: any) => {
-          // 点击散点 → 将原始数据传给弹窗（不改变地图视角）
+          // 点击散点 → 将原始数据传给弹窗（包含 gldwbh）
           const matched = points.find(p => p.lsh === point.lsh)
           popupData.value = matched?.raw || point
           popupVisible.value = true

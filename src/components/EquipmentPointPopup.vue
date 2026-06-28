@@ -138,36 +138,36 @@ let lineChartInstance: echarts.ECharts | null = null
 let chartResizeObserver: ResizeObserver | null = null
 
 const switchToTrend = async () => {
+  console.log('[数据趋势] 点击切换, chartReady:', chartReady.value, 'chartLoading:', chartLoading.value)
   activeTab.value = 'trend'
-  if (chartReady.value || chartLoading.value) return
+  if (chartReady.value || chartLoading.value) {
+    console.log('[数据趋势] 跳过: chartReady 或 chartLoading 为 true')
+    return
+  }
 
   const data = props.equipmentData
   const sbbh = data?.sbbh || ''
   const sblx = data?.sblx || ''
-  if (!sbbh || !sblx) return
+  const gldwbh = data?.gldwbh || data?.dwbm || sbbh
+  console.log('[数据趋势] 参数:', { gldwbh, sbbh, sblx })
+  if (!sbbh || !sblx) {
+    console.log('[数据趋势] 跳过: sbbh 或 sblx 为空')
+    return
+  }
 
   chartLoading.value = true
   try {
-    // 先通过设备列表接口获取完整设备信息（含 gldwbh）
-    let gldwbh = data?.gldwbh || data?.dwbm || ''
-    if (!gldwbh) {
-      const pageRes = await getEquipmentPageList({ sblx, sbmc: sbbh, rows: '1' })
-      const eqp = pageRes?.rows?.[0]
-      gldwbh = eqp?.gldwbh || eqp?.dwbm || ''
-    }
-
-    if (!gldwbh) {
-      chartLoading.value = false
-      return
-    }
-
+    console.log('[数据趋势] 请求 /eqp/pubmnt/data ...')
     const res = await getEquipmentData({ gldwbh, sbbh, sblx, number: 20 })
+    console.log('[数据趋势] 返回:', res)
     if (res?.length > 1) {
       chartReady.value = true
       nextTick(() => initLineChart(res))
+    } else {
+      console.log('[数据趋势] 数据不足2条, 不渲染图表')
     }
   } catch (e) {
-    console.error('获取设备监测数据失败:', e)
+    console.error('[数据趋势] 请求失败:', e)
   } finally {
     chartLoading.value = false
   }

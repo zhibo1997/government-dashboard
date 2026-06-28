@@ -128,6 +128,21 @@ export async function getLayerTree({ SszxCode }: { SszxCode: string }) {
 // ========== 监测设备接口 ==========
 
 /**
+ * 获取各专项监测设备运行状态列表
+ * @param sszx 所属专项（支持逗号分隔，如燃气: 'csaqzx_rq,csaqzx_rqzdyh,csaqzx_pzyhq'）
+ */
+export async function getDeviceStatusList(sszx: string) {
+  const res = await get<any>('/gspspDtransPubmnteqpinfo/yxztSstj/list', { sszx })
+  return (res.data || []) as Array<{
+    sblx: string
+    sblxmc: string
+    bigType: string
+    zx: number
+    lx: number
+  }>
+}
+
+/**
  * 地图-获取监测点位最新监测数据
  * @param sszx 所属专项（可选）
  * @param sblx 设备类型（可选）

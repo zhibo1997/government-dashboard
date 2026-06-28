@@ -74,9 +74,8 @@ const routes: RouteRecordRaw[] = [
           desc: '桥梁专项',
           defaultLayerIds: [
             '06ad0be1-f8fd-44fb-92ec-be82de6f8f38',
-            '919829ed-9c4d-43ae-9a94-1ff0cef22a3f',
-            'ecb4e7b6-6a2e-4948-85b0-0c5975816e07',
             'aa50cee7-c4f6-4315-bcb1-f89aea7c00c0'
+            // 桥梁 3D 模型已移至"查看模型"按钮按需加载
           ]
         }
       },
