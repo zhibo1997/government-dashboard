@@ -28,24 +28,38 @@
   </div>
 
   <!-- 点位详情弹窗 -->
-  <GasPointPopup
+  <PointPopup
     :visible="popupVisible"
     :point-data="popupData"
     :position="{ x: 0, y: 0 }"
-    :point-type="selectedId || ''"
+    :title="popupTitle"
+    :display-fields="popupDisplayFields"
     @close="closePopup"
   />
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from "vue";
+import { ref, computed, onMounted } from "vue";
 import { useVueCesium } from "vue-cesium";
 import { getWaterSupplyStats, getWaterSourceCoordinateList, getWaterPlantCoordinateList, getWaterPumpStationCoordinateList, getWaterSourceDetail, getWaterPlantDetail, getWaterPumpStationDetail } from "@/services/waterSupplyService";
 import { useInfrastructureModule } from "@/hook/useInfrastructureModule";
-import GasPointPopup from "@/views/GasModule/components/GasPointPopup.vue";
+import { mapToLabelValue } from '@/config/fieldLabelConfig';
+import PointPopup from "@/components/PointPopup.vue";
 
 // 响应式数据
 const overviewData = ref<any[]>([]);
+
+// 弹窗标题 & 字段
+const popupTitle = computed(() => {
+  if (!popupData.value) return '详情'
+  const data = popupData.value
+  return data.mc || data.name || data.srmc || '详情'
+})
+
+const popupDisplayFields = computed(() => {
+  if (!popupData.value) return []
+  return mapToLabelValue(popupData.value) as { label: string; value: string | number | null }[]
+})
 
 // 散点图标
 const pointIcon = (name: string) => new URL(`../../../assets/img/points/4个专项点位/${name}.png`, import.meta.url).href

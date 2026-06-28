@@ -35,16 +35,18 @@
   </div>
 
   <!-- 点位详情弹窗 -->
-  <EmergencyPointPopup
+  <PointPopup
     :visible="popupVisible"
     :point-data="popupData"
-    :point-type="selectedType || ''"
+    :position="{ x: 0, y: 0 }"
+    :title="popupTitle"
+    :display-fields="popupDisplayFields"
     @close="closePopup"
   />
 </template>
 
 <script setup>
-import { ref, onMounted, inject } from "vue";
+import { ref, computed, onMounted, inject } from "vue";
 import { getEmergencyCapacityList } from "@/services/commonService";
 import {
   getWarehouseCoordinateList,
@@ -52,7 +54,8 @@ import {
 } from "@/services/commonService";
 import { useGasOverviewPoints } from "@/hook/useGasOverviewPoints";
 import { useBottomPanelStore } from "@/stores/bottomPanelStore";
-import EmergencyPointPopup from "@/views/GasModule/components/GasPointPopup.vue";
+import { mapToLabelValue } from '@/config/fieldLabelConfig';
+import PointPopup from "@/components/PointPopup.vue";
 import expertIcon from "@/assets/img/gasModule/expert.webp";
 import medicalIcon from "@/assets/img/gasModule/medical.webp";
 import shelterIcon from "@/assets/img/gasModule/shelter.webp";
@@ -74,6 +77,18 @@ const bottomPanelStore = useBottomPanelStore();
 const popupVisible = ref(false);
 const popupData = ref(null);
 const selectedType = ref(null);
+
+// 弹窗标题 & 字段
+const popupTitle = computed(() => {
+  if (!popupData.value) return '详情'
+  const data = popupData.value
+  return data.mc || data.name || data.ckmc || '详情'
+})
+
+const popupDisplayFields = computed(() => {
+  if (!popupData.value) return []
+  return mapToLabelValue(popupData.value)
+})
 
 // 救援车辆数量
 const vehicleCount = ref("0");

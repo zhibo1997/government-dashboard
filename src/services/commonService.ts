@@ -146,13 +146,15 @@ export async function getDeviceStatusList(sszx: string) {
  * 地图-获取监测点位最新监测数据
  * @param sszx 所属专项（可选）
  * @param sblx 设备类型（可选）
+ * @param sbbh 设备编号（可选）
  */
-export async function getMonitoringPointLatestData(sszx?: string, sblx?: string): Promise<MonitoringPointData[]> {
+export async function getMonitoringPointLatestData(sszx?: string, sblx?: string, sbbh?: string): Promise<MonitoringPointData[]> {
   // 构建参数对象，过滤掉 undefined 值
   const params: Record<string, string> = {}
   if (sszx) params.sszx = sszx
   if (sblx) params.sblx = sblx
-  
+  if (sbbh) params.sbbh = sbbh
+
   const res = await get<any>('/gspspDtransPubmnteqpinfo/new/pubmntdata', params)
   return (res.data || []) as MonitoringPointData[]
 }

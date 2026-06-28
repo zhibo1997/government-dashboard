@@ -28,17 +28,18 @@
   </div>
 
   <!-- 点位详情弹窗 -->
-  <GasPointPopup
+  <PointPopup
     :visible="popupVisible"
     :point-data="popupData"
     :position="popupPosition"
-    :point-type="selectedId || ''"
+    :title="popupTitle"
+    :display-fields="popupDisplayFields"
     @close="closePopup"
   />
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from "vue";
+import { ref, computed, onMounted } from "vue";
 import { useVueCesium } from "vue-cesium";
 import {
   getGasStats,
@@ -50,11 +51,27 @@ import {
 } from "@/services/gasService";
 import { useInfrastructureModule } from "@/hook/useInfrastructureModule";
 import { useMapStore } from "@/stores/mapStore";
-import GasPointPopup from "./GasPointPopup.vue";
+import { mapToLabelValue } from '@/config/fieldLabelConfig'
+import PointPopup from "@/components/PointPopup.vue";
 
 // 响应式数据
 const overviewData = ref<any[]>([]);
 const popupPosition = ref({ x: 0, y: 0 });
+
+// 弹窗标题 & 字段
+const popupTitle = computed(() => {
+  if (!popupData.value) return '详情'
+  const data = popupData.value
+  if (selectedId.value === '燃气井盖') return data.jgbh || '井盖详情'
+  if (selectedId.value === '燃气企业') return data.qymc || '企业详情'
+  if (selectedId.value === '液化气企业') return data.qymc || '企业详情'
+  return '详情'
+})
+
+const popupDisplayFields = computed(() => {
+  if (!popupData.value) return []
+  return mapToLabelValue(popupData.value) as { label: string; value: string | number | null }[]
+})
 
 const mapStore = useMapStore();
 

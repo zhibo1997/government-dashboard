@@ -1,7 +1,7 @@
 <template>
   <div class="map-toolbar" :class="{ collapsed: isCollapsed, expanded: isMapExpanded }">
     <!-- 退出三维 -->
-    <div v-if="props.sceneMode === 3" class="toolbar-item exit-3d" @click="exit3DMode" title="退出三维">
+    <div v-if="bridgeModelStore.loadedTilesets.length > 0" class="toolbar-item exit-3d" @click="exit3DMode" title="退出三维">
       <div class="tool-icon">
         <n-icon size="28" color="#4FC3F7" :component="EnterOutline" />
       </div>

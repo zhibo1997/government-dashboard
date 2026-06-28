@@ -335,11 +335,16 @@ export function useGasOverviewPoints() {
     setupCameraListener()
   }
 
+  const FLY_HEIGHT = 200
+
   const flyToPoint = (point: GasOverviewPoint) => {
     if (!viewer.value) return
     const Cesium = (window as any).Cesium
+    // 当前相机高度低于目标高度时不飞入，避免拉远
+    const currentHeight = viewer.value.camera.positionCartographic.height
+    if (currentHeight < FLY_HEIGHT) return
     viewer.value.camera.flyTo({
-      destination: Cesium.Cartesian3.fromDegrees(point.jd, point.wd, 200),
+      destination: Cesium.Cartesian3.fromDegrees(point.jd, point.wd, FLY_HEIGHT),
       orientation: { heading: 0, pitch: Cesium.Math.toRadians(-90), roll: 0 },
       duration: 1.5,
     })

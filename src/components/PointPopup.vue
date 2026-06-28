@@ -2,7 +2,7 @@
   <Teleport to="body">
     <div
       v-if="visible && pointData"
-      class="gas-point-popup"
+      class="point-popup"
       :style="popupStyle"
       @click.stop
     >
@@ -27,13 +27,11 @@
           </div>
         </div>
 
-        <!-- 桥梁操作按钮 -->
-        <template v-if="pointType === '桥梁'">
+        <!-- 操作按钮插槽 -->
+        <template v-if="$slots.actions">
           <div class="popup-divider"></div>
           <div class="popup-actions">
-            <button class="action-btn btn-monitoring" @click="$emit('show-equipment')">监测设备</button>
-            <button class="action-btn btn-camera" @click="$emit('show-camera')">监控设备</button>
-            <button v-if="props.hasModel" class="action-btn btn-model" @click="$emit('show-model')">查看模型</button>
+            <slot name="actions" />
           </div>
         </template>
       </div>
@@ -42,45 +40,29 @@
 </template>
 
 <script setup lang="ts">
-import { computed, inject, ref, watchEffect } from 'vue'
+import { computed, inject, ref } from 'vue'
 import { NIcon } from 'naive-ui'
 import { Close } from '@vicons/ionicons5'
-import { mapToLabelValue } from '@/config/fieldLabelConfig'
-import { getCachedDictionary } from '@/services/dictionaryService'
 
-interface DisplayField {
+export interface DisplayField {
   label: string
   value: string | number | null
 }
 
-const props = defineProps<{
+defineProps<{
   visible: boolean
   pointData: any | null
   position: { x: number; y: number }
-  pointType: string
-  hasModel?: boolean
+  title: string
+  displayFields: DisplayField[]
 }>()
 
 defineEmits<{
   (e: 'close'): void
-  (e: 'show-equipment'): void
-  (e: 'show-camera'): void
-  (e: 'show-model'): void
 }>()
 
 // 响应式缩放
 const scaleRatio = inject<any>('responsiveScale', ref(1))
-
-// 标题
-const title = computed(() => {
-  if (!props.pointData) return '详情'
-  const data = props.pointData
-  if (props.pointType === '燃气井盖') return data.jgbh || '井盖详情'
-  if (props.pointType === '燃气企业') return data.qymc || '企业详情'
-  if (props.pointType === '液化气企业') return data.qymc || '企业详情'
-  if (props.pointType === '桥梁') return data.llmc || data.qlmc || data.qlbh || '桥梁详情'
-  return '详情'
-})
 
 // 弹窗位置样式 - 左上角锚定屏幕中心 + 缩放
 const popupStyle = computed(() => {
@@ -91,28 +73,6 @@ const popupStyle = computed(() => {
     transformOrigin: 'left top',
   }
 })
-
-// 桥梁字典映射
-const bridgeDictCodes = ['qljglb', 'qlyhdj', 'qlhysx', 'qllx', 'ztdj'] as const
-const bridgeDictMap = ref<Record<string, { value: string; label: string }[]>>({})
-
-watchEffect(async () => {
-  if (!props.visible || props.pointType !== '桥梁') return
-  const results = await Promise.all(bridgeDictCodes.map((code) => getCachedDictionary(code)))
-  const map: Record<string, { value: string; label: string }[]> = {}
-  const fieldKeys = ['qljg', 'qlyhdj', 'hysx', 'qllx', 'ztdj']
-  bridgeDictCodes.forEach((_, i) => {
-    map[fieldKeys[i]] = results[i].map((item: any) => ({ value: item.f_ItemValue, label: item.f_ItemName }))
-  })
-  bridgeDictMap.value = map
-})
-
-// 统一使用 mapToLabelValue 映射字段
-const displayFields = computed<DisplayField[]>(() => {
-  if (!props.pointData) return []
-  const dictMap = props.pointType === '桥梁' ? bridgeDictMap.value : {}
-  return mapToLabelValue(props.pointData, [], dictMap) as DisplayField[]
-})
 </script>
 
 <style scoped lang="scss">
@@ -120,7 +80,7 @@ const displayFields = computed<DisplayField[]>(() => {
 $bg-ratio-w: 390;
 $bg-ratio-h: 229;
 
-.gas-point-popup {
+.point-popup {
   position: fixed;
   z-index: 9999;
   // 宽高严格遵守背景图比例：width:height = 390:229
@@ -249,7 +209,7 @@ $bg-ratio-h: 229;
     flex-shrink: 0;
     padding-top: 16px;
 
-    .action-btn {
+    :deep(.action-btn) {
       width: 200px;
       height: 56px;
       cursor: pointer;

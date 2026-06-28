@@ -27,15 +27,20 @@
   </div>
 
   <!-- 散点弹窗 -->
-  <GasPointPopup
+  <PointPopup
     :visible="popupVisible"
     :point-data="popupData"
     :position="{ x: 0, y: 0 }"
-    point-type="桥梁"
-    :has-model="bridge3d.hasModel.value"
+    :title="popupTitle"
+    :display-fields="popupDisplayFields"
     @close="closePopup"
-    @show-model="bridge3d.handleShowModel"
-  />
+  >
+    <template #actions>
+      <button class="action-btn btn-monitoring" @click="handleShowEquipment">监测设备</button>
+      <button class="action-btn btn-camera" @click="handleShowCamera">监控设备</button>
+      <button v-if="bridge3d.hasModel.value" class="action-btn btn-model" @click="bridge3d.handleShowModel">查看模型</button>
+    </template>
+  </PointPopup>
 
   <!-- 三维：视频播放 -->
   <VideoPopup v-model:visible="bridge3d.showVideoPopup.value" :video-url="bridge3d.currentVideoUrl.value" :camera-name="bridge3d.currentCameraName.value" />
@@ -48,14 +53,16 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, onBeforeUnmount, ref, nextTick } from "vue";
+import { onMounted, onBeforeUnmount, ref, computed, nextTick, watchEffect } from "vue";
 import { useVueCesium } from "vue-cesium";
 import * as echarts from "echarts";
 import { getBridgeCategoryStats, getBridgeDetail, getBridgeTypeCount, getBridgeCoordinateList } from "@/services/bridgeService";
 import { createChartOption, getGradientColor } from "./chartOption";
 import { useGasOverviewPoints } from "@/hook/useGasOverviewPoints";
 import { useBridge3DModel } from "@/hook/useBridge3DModel";
-import GasPointPopup from "@/views/GasModule/components/GasPointPopup.vue";
+import { mapToLabelValue } from '@/config/fieldLabelConfig';
+import { getCachedDictionary } from '@/services/dictionaryService';
+import PointPopup from "@/components/PointPopup.vue";
 import VideoPopup from "@/views/BridgeModule/components/map/VideoPopup.vue";
 import EquipmentPointPopup from "@/components/EquipmentPointPopup.vue";
 import Bridge3DList from "@/views/BridgeModule/components/Bridge3DList.vue";
@@ -69,6 +76,41 @@ const { init: initMapPoints, addPoints, clearPoints, setupClickHandler, dataSour
 const popupVisible = ref(false);
 const popupData = ref<any>(null);
 const closePopup = () => { popupVisible.value = false; popupData.value = null; };
+
+// 弹窗标题 & 字段
+const popupTitle = computed(() => {
+  if (!popupData.value) return '详情'
+  const data = popupData.value
+  return data.llmc || data.qlmc || data.qlbh || '桥梁详情'
+})
+
+// 桥梁字典映射
+const bridgeDictCodes = ['qljglb', 'qlyhdj', 'qlhysx', 'qllx', 'ztdj'] as const
+const bridgeDictMap = ref<Record<string, { value: string; label: string }[]>>({})
+
+watchEffect(async () => {
+  if (!popupVisible.value) return
+  const results = await Promise.all(bridgeDictCodes.map((code) => getCachedDictionary(code)))
+  const map: Record<string, { value: string; label: string }[]> = {}
+  const fieldKeys = ['qljg', 'qlyhdj', 'hysx', 'qllx', 'ztdj']
+  bridgeDictCodes.forEach((_, i) => {
+    map[fieldKeys[i]] = results[i].map((item: any) => ({ value: item.f_ItemValue, label: item.f_ItemName }))
+  })
+  bridgeDictMap.value = map
+})
+
+const popupDisplayFields = computed(() => {
+  if (!popupData.value) return []
+  return mapToLabelValue(popupData.value, [], bridgeDictMap.value) as { label: string; value: string | number | null }[]
+})
+
+// 桥梁操作按钮事件（占位，后续可接入真实逻辑）
+const handleShowEquipment = () => {
+  // TODO: 接入监测设备逻辑
+}
+const handleShowCamera = () => {
+  // TODO: 接入监控设备逻辑
+}
 
 // ==================== 卡片/图表状态 ====================
 const statsCards = ref<any[]>([]);

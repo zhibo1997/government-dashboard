@@ -190,7 +190,7 @@ const handleWatchVideo = async () => {
     const res: any = await getCameraPreviewUrl({
       cameraIndexCode: props.cameraData.spbh,
       streamType: 0,
-      protocol: 'hls',
+      protocol: 'wss',
       transmode: 1,
     });
     const videoUrl = res?.url || res?.data?.url;

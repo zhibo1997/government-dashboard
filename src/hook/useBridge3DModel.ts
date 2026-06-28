@@ -11,6 +11,7 @@ import { useBridgeModelStore } from '@/stores/bridgeModelStore'
 import { BRIDGE_LAYER_CONFIG } from '@/config/layerConfig'
 import { getSurveillanceVideoByIp } from '@/services/surveillanceVideoService'
 import { getCameraPreviewUrl } from '@/services/hikvisionService'
+import { getMonitoringPointLatestData } from '@/services/commonService'
 
 export function useBridge3DModel(options: {
   viewer: Ref<any>
@@ -118,7 +119,12 @@ export function useBridge3DModel(options: {
               closePopup()
               if (equipTilesetRef) highlightFeature(equipTilesetRef, device.sbbh)
               await flyToDevice(viewer.value, device)
-              equipPopupData.value = { sbbh: device.sbbh, sbmc: device.sbbh }
+              try {
+                const data = await getMonitoringPointLatestData(undefined, undefined, device.sbbh)
+                equipPopupData.value = data[0] || { sbbh: device.sbbh, sbmc: device.sbbh }
+              } catch {
+                equipPopupData.value = { sbbh: device.sbbh, sbmc: device.sbbh }
+              }
               equipPopupVisible.value = true
             })
           }
