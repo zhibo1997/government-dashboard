@@ -132,7 +132,7 @@ export function useInfrastructureModule(options: InfrastructureModuleOptions) {
     const v = viewer.value
     const Cesium = (window as any).Cesium
 
-    if (clickHandler) { clickHandler(); clickHandler = null }
+    if (clickHandler) { clickHandler.destroy(); clickHandler = null }
 
     clickHandler = new Cesium.ScreenSpaceEventHandler(v.canvas)
     clickHandler.setInputAction(async (movement: any) => {
@@ -264,7 +264,8 @@ export function useInfrastructureModule(options: InfrastructureModuleOptions) {
         const data = await coordinateApi()
         if (Array.isArray(data) && data.length > 0) {
           const iconUrl = iconUrlMap[item.name]
-          addPoints(data, item.name, iconUrl)
+          const tagged = data.map((p: any) => ({ ...p, _sourceType: 'infrastructure' }))
+          addPoints(tagged, item.name, iconUrl)
         }
       } catch (error) {
         console.error(`获取${item.name}数据失败:`, error)
@@ -276,7 +277,7 @@ export function useInfrastructureModule(options: InfrastructureModuleOptions) {
 
   onBeforeUnmount(() => {
     hideAllMvtLayers()
-    if (clickHandler) { clickHandler(); clickHandler = null }
+    if (clickHandler) { clickHandler.destroy(); clickHandler = null }
   })
 
   return {

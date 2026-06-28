@@ -6,11 +6,20 @@
 import { ref } from 'vue'
 
 export interface DevicePoint {
-  sbbh: string
+  sbbh: string       // scenetree 原始 name（用于高亮匹配）
+  baseName: string   // 去掉后缀的设备编号（用于 API 查询和视角匹配）
+  sblx: string       // 设备类型编码（如 jcsblx0502）
   position: any // Cesium.Cartesian3
   lng: number
   lat: number
   height: number
+}
+
+/** 从 scenetree name 提取 baseName 和 sblx */
+function parseDeviceName(name: string): { baseName: string; sblx: string } {
+  const match = name.match(/^(.+)-(jcsblx\d+)$/)
+  if (match) return { baseName: match[1], sblx: match[2] }
+  return { baseName: name, sblx: '' }
 }
 
 interface DeviceEntry {
@@ -19,6 +28,8 @@ interface DeviceEntry {
   device: DevicePoint
   dotEl: HTMLDivElement
   imgEl: HTMLImageElement
+  iconSmallH: number
+  iconLargeH: number
 }
 
 /** 保存的相机视角 */
@@ -67,9 +78,9 @@ export function useBridgeDevicePoints() {
     }
   }
 
-  /** 根据设备名称查找保存的视角 */
-  function findSavedView(deviceName: string): SavedCameraView | null {
-    const record = viewRecords.find(r => r.device.name === deviceName)
+  /** 根据设备名称查找保存的视角（用 baseName 匹配） */
+  function findSavedView(baseName: string): SavedCameraView | null {
+    const record = viewRecords.find(r => r.device.name === baseName)
     return record?.camera ?? null
   }
 
@@ -104,8 +115,11 @@ export function useBridgeDevicePoints() {
         if (el.type !== 'element' || !el.sphere || el.sphere.length < 3) continue
         const pos = Cesium.Cartesian3.fromElements(el.sphere[0], el.sphere[1], el.sphere[2])
         const carto = Cesium.Cartographic.fromCartesian(pos)
+        const { baseName, sblx } = parseDeviceName(el.name)
         devices.push({
           sbbh: el.name,
+          baseName,
+          sblx,
           position: pos,
           lng: Cesium.Math.toDegrees(carto.longitude),
           lat: Cesium.Math.toDegrees(carto.latitude),
@@ -128,7 +142,7 @@ export function useBridgeDevicePoints() {
       const Cesium = (window as any).Cesium
       if (!Cesium || !viewer) { resolve(); return }
 
-      const saved = findSavedView(device.sbbh)
+      const saved = findSavedView(device.baseName)
 
       if (saved) {
         // 有保存的视角 → 飞入
@@ -146,7 +160,7 @@ export function useBridgeDevicePoints() {
       } else {
         // 没有保存视角 → 俯视
         viewer.camera.flyTo({
-          destination: Cesium.Cartesian3.fromDegrees(device.lng, device.lat, 500),
+          destination: Cesium.Cartesian3.fromDegrees(device.lng, device.lat, 200),
           orientation: {
             heading: 0,
             pitch: Cesium.Math.toRadians(-90),
@@ -163,13 +177,24 @@ export function useBridgeDevicePoints() {
   /**
    * 添加设备点位到地图（DOM 方式）
    */
+  /** 根据图片 URL 和目标宽度计算高度（保持比例） */
+  function calcIconHeight(url: string, targetWidth: number): Promise<number> {
+    return new Promise((resolve) => {
+      const img = new Image()
+      img.onload = () => resolve(Math.round(targetWidth * (img.height / img.width)))
+      img.onerror = () => resolve(targetWidth)
+      img.src = url
+    })
+  }
+
   function addDevicePoints(
     viewer: any,
     bridgeQlbh: string,
     type: 'equipment' | 'monitor',
     devices: DevicePoint[],
-    iconUrl: string,
+    iconUrl: string | ((device: DevicePoint) => string),
     onClick?: (device: DevicePoint, type: string) => void,
+    sblxDict?: Record<string, string>,
   ) {
     if (!viewer || devices.length === 0) return
 
@@ -183,12 +208,24 @@ export function useBridgeDevicePoints() {
       dot.dataset.type = type
       dot.style.cssText = 'position:absolute;pointer-events:auto;cursor:pointer;'
 
+      const url = typeof iconUrl === 'function' ? iconUrl(device) : iconUrl
       const img = document.createElement('img')
-      img.src = iconUrl
-      img.alt = device.sbbh
+      img.src = url
+      const tooltip = (device.sblx && sblxDict?.[device.sblx]) || device.sblx || device.baseName
+      img.alt = tooltip
+      img.title = tooltip
       img.style.cssText = `width:${ICON_SMALL.w}px;height:${ICON_SMALL.h}px;display:block;`
       img.draggable = false
       dot.appendChild(img)
+
+      // 根据实际图片比例计算高度
+      calcIconHeight(url, ICON_SMALL.w).then((h) => {
+        const entry = allDevices.value.find(e => e.dotEl === dot)
+        if (entry) {
+          entry.iconSmallH = h
+          entry.iconLargeH = Math.round(ICON_LARGE.w * (h / ICON_SMALL.w))
+        }
+      })
 
       if (onClick) {
         dot.addEventListener('click', (e) => {
@@ -198,7 +235,7 @@ export function useBridgeDevicePoints() {
       }
 
       container.appendChild(dot)
-      allDevices.value.push({ bridgeQlbh, type, device, dotEl: dot, imgEl: img })
+      allDevices.value.push({ bridgeQlbh, type, device, dotEl: dot, imgEl: img, iconSmallH: ICON_SMALL.h, iconLargeH: ICON_LARGE.h })
     }
 
     startPostRender(viewer)
@@ -219,7 +256,7 @@ export function useBridgeDevicePoints() {
       const cameraHeight = viewer.camera.positionCartographic.height
 
       const isLarge = cameraHeight < ZOOM_THRESHOLD
-      const size = isLarge ? ICON_LARGE : ICON_SMALL
+      const baseW = isLarge ? ICON_LARGE.w : ICON_SMALL.w
 
       for (const item of allDevices.value) {
         const dot = item.dotEl
@@ -230,13 +267,14 @@ export function useBridgeDevicePoints() {
         }
         dot.style.display = ''
 
+        const iconH = isLarge ? item.iconLargeH : item.iconSmallH
         const img = item.imgEl
-        if (img.width !== size.w) {
-          img.style.width = `${size.w}px`
-          img.style.height = `${size.h}px`
+        if (img.width !== baseW) {
+          img.style.width = `${baseW}px`
+          img.style.height = `${iconH}px`
         }
 
-        dot.style.transform = `translate(${sp.x - size.w / 2}px, ${sp.y - size.h}px)`
+        dot.style.transform = `translate(${sp.x - baseW / 2}px, ${sp.y - iconH}px)`
       }
     })
   }

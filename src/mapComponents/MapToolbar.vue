@@ -202,6 +202,7 @@ const emit = defineEmits<{
   'toggle-measure': []
   'toggle-default-tileset': []
   'toggle-map-expand': []
+  'set-map-expand': [value: boolean]
   'equipment-activate': [bridge: any, active: boolean]
 }>()
 
@@ -613,18 +614,24 @@ const exit3DMode = () => {
   if (props.viewerInstance) {
     const Cesium = (window as any).Cesium
     if (Cesium) {
-      const pos = props.viewerInstance.camera.positionCartographic
-      props.viewerInstance.camera.flyTo({
+      const camera = props.viewerInstance.camera
+      const pos = camera.positionCartographic
+      console.log('📷 当前相机位置:', pos.longitude, pos.latitude, pos.height)
+      camera.flyTo({
         destination: Cesium.Cartesian3.fromRadians(pos.longitude, pos.latitude, 1000),
-        orientation: { heading: 0, pitch: Cesium.Math.toRadians(-90), roll: 0 },
+        orientation: {
+          heading: 0,
+          pitch: -Math.PI / 2,
+          roll: 0,
+        },
         duration: 1.5,
       })
+      console.log('📷 flyTo 俯视已触发')
     }
   }
-  if (isMapExpanded.value) {
-    isMapExpanded.value = false
-    emit('toggle-map-expand')
-  }
+  isMapExpanded.value = false
+  emit('set-map-expand', false)
+  console.log('🔄 exit3DMode: isMapExpanded set to false, emitted set-map-expand')
   bridgeModelStore.reloadScatter()
   console.log('✅ 已退出三维视角')
 }

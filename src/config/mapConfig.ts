@@ -23,9 +23,9 @@ export const mapConfig = {
 
   // 全域视角（正视图，展示阳新县全域）
   fullDomainCamera: {
-    center: [115.2, 29.8] as [number, number],
-    height: 80000,
-    heading: 0,
+    center: [115.227262, 29.850032] as [number, number],
+    height: 11447.60,
+    heading: 360,
     pitch: -90,
   },
   

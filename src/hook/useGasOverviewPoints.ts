@@ -11,6 +11,7 @@ export interface GasOverviewPoint {
   jd: number
   wd: number
   name?: string
+  _sourceType?: string
 }
 
 export function useGasOverviewPoints() {
@@ -27,6 +28,7 @@ export function useGasOverviewPoints() {
   let currentIconUrl: string | undefined = undefined
   let currentIconWidth = 32
   let currentIconHeight = 32
+  let currentSourceType: string | null = null
 
   // 图片尺寸缓存
   const iconSizeCache: Map<string, { w: number; h: number }> = new Map()
@@ -88,6 +90,7 @@ export function useGasOverviewPoints() {
     currentType.value = null
     currentPoints = []
     currentIconUrl = undefined
+    currentSourceType = null
     lastThinDistance = null
     viewer.value?.scene?.requestRender()
     if (cameraMoveEndListener) {
@@ -100,6 +103,7 @@ export function useGasOverviewPoints() {
   const setupClickHandler = (onPointClick?: (point: GasOverviewPoint) => void, shouldFly = true) => {
     if (!viewer.value) return
     const Cesium = (window as any).Cesium
+    const thisSourceType = currentSourceType
     if (clickHandler) { clickHandler(); clickHandler = null }
     clickHandler = viewer.value.screenSpaceEventHandler.setInputAction(
       (movement: any) => {
@@ -110,6 +114,8 @@ export function useGasOverviewPoints() {
           if ((entity.point || entity.billboard) && entity.description) {
             try {
               const pointData = JSON.parse(entity.description.getValue())
+              // 只处理与当前注册时相同 sourceType 的散点
+              if (pointData._sourceType !== thisSourceType) return
               if (shouldFly) flyToPoint(pointData)
               if (onPointClick) onPointClick(pointData)
             } catch (e) {
@@ -314,6 +320,7 @@ export function useGasOverviewPoints() {
     clearPoints()
     currentType.value = name
     currentPoints = points
+    currentSourceType = points[0]?._sourceType || null
     currentIconUrl = iconUrl
     currentIconWidth = iconWidth
 

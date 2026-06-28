@@ -49,6 +49,7 @@
         @toggle-measure="showMeasureTool = !showMeasureTool"
         @toggle-default-tileset="toggleDefaultTileset"
         @toggle-map-expand="isMapExpanded = !isMapExpanded"
+        @set-map-expand="handleSetMapExpand"
         @equipment-activate="handleEquipmentActivate" />
 
       <!-- 测量工具面板 -->
@@ -640,6 +641,13 @@ const handleSceneModeChange = (mode: 2 | 3) => {
       ? Cesium.SceneMode.SCENE3D
       : Cesium.SceneMode.SCENE2D
     console.log(`✅ 场景模式切换为: ${mode === 2 ? '2D' : '3D'}`)
+  }
+}
+
+const handleSetMapExpand = (value: boolean) => {
+  isMapExpanded.value = value
+  if (toolbarRef.value) {
+    toolbarRef.value.isMapExpanded = value
   }
 }
 

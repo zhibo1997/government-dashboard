@@ -164,6 +164,10 @@
     <div id="bridgeButtons"></div>
     <label><input type="checkbox" id="chkPopups" checked> 显示设备标签</label>
     <label><input type="checkbox" id="chkEquip" checked> 显示设备模型</label>
+    <hr style="border-color:#2a4a6a;margin:8px 0">
+    <button class="bridge-btn" onclick="recordCameraExtent()">📍 记录当前视角范围</button>
+    <button class="bridge-btn" onclick="resetCamera()">🔄 重置视角</button>
+    <div id="extentResult" style="margin-top:6px;font-size:11px;color:#4a9eff;word-break:break-all;"></div>
   </div>
   <div id="log"></div>
   <div id="devicePopup">
@@ -580,6 +584,61 @@
     document.getElementById('chkPopups').addEventListener('change', togglePopups);
     document.getElementById('chkEquip').addEventListener('change', toggleEquip);
 
+    // ===== 重置视角 =====
+    window.resetCamera = function() {
+      viewer.camera.flyTo({
+        destination: Cesium.Cartesian3.fromDegrees(115.227262, 29.850032, 11447.60),
+        orientation: {
+          heading: Cesium.Math.toRadians(360),
+          pitch: Cesium.Math.toRadians(-90),
+          roll: 0,
+        },
+        duration: 1.5,
+      });
+      log('🔄 视角已重置');
+    };
+
+    // ===== 记录当前视角范围 =====
+    window.recordCameraExtent = function() {
+      var camera = viewer.camera;
+      var carto = camera.positionCartographic;
+      var lng = Cesium.Math.toDegrees(carto.longitude);
+      var lat = Cesium.Math.toDegrees(carto.latitude);
+      var height = carto.height;
+      var heading = Cesium.Math.toDegrees(camera.heading);
+      var pitch = Cesium.Math.toDegrees(camera.pitch);
+      var roll = Cesium.Math.toDegrees(camera.roll);
+
+      // 计算视锥边界（矩形范围）
+      var frustum = camera.frustum;
+      var aspectRatio = frustum.aspectRatio;
+      var fov = frustum.fov;
+      var rect = viewer.camera.computeViewRectangle();
+      var extentStr = '';
+      if (rect) {
+        var west = Cesium.Math.toDegrees(rect.west).toFixed(6);
+        var south = Cesium.Math.toDegrees(rect.south).toFixed(6);
+        var east = Cesium.Math.toDegrees(rect.east).toFixed(6);
+        var north = Cesium.Math.toDegrees(rect.north).toFixed(6);
+        extentStr = 'west:' + west + ', south:' + south + ', east:' + east + ', north:' + north;
+      }
+
+      var data = {
+        center: { lng: lng.toFixed(6), lat: lat.toFixed(6) },
+        height: height.toFixed(2),
+        heading: heading.toFixed(2),
+        pitch: pitch.toFixed(2),
+        roll: roll.toFixed(2),
+        extent: extentStr,
+      };
+
+      var json = JSON.stringify(data, null, 2);
+      document.getElementById('extentResult').innerText = json;
+      log('📍 当前视角: center=[' + data.center.lng + ', ' + data.center.lat + '] height=' + data.height + 'm heading=' + data.heading + '° pitch=' + data.pitch + '°');
+      if (extentStr) log('📐 范围: ' + extentStr);
+      console.log('视角数据:', data);
+    };
+
     // ===== 主流程 =====
     (async function () {
       var loadingEl = document.getElementById('loading');
@@ -619,10 +678,15 @@
       renderToolbar();
       updatePointVisibility();
 
-      var defaultTs = bridgeTilesets['LHQ'];
-      if (defaultTs) {
-        viewer.zoomTo(defaultTs, new Cesium.HeadingPitchRange(0, Cesium.Math.toRadians(-45), 800));
-      }
+      viewer.camera.flyTo({
+        destination: Cesium.Cartesian3.fromDegrees(115.227262, 29.850032, 11447.60),
+        orientation: {
+          heading: Cesium.Math.toRadians(360),
+          pitch: Cesium.Math.toRadians(-90),
+          roll: 0,
+        },
+        duration: 0,
+      });
 
       loadingEl.classList.add('done');
       log('🎉 加载完成，点击设备查看弹窗');

@@ -41,15 +41,16 @@
 
   <!-- 视频播放弹窗 -->
   <VideoPopup
-    v-model:visible="showVideoPopup"
-    :video-url="currentVideoUrl"
-    :camera-name="currentCameraName"
+    v-model:visible="videoPlayer.visible.value"
+    :video-url="videoPlayer.videoUrl.value"
+    :camera-name="videoPlayer.cameraName.value"
   />
 </template>
 
 <script setup lang="ts">
 import { ref, watch } from "vue";
 import { useBottomPanelStore } from "@/stores/bottomPanelStore";
+import { useVideoPlayer } from "@/hook/useVideoPlayer";
 import BridgeListPanel from "./components/map/BridgeListPanel.vue";
 import BridgeDetailDialog from "./components/map/BridgeDetailDialog.vue";
 import EquipmentDialog from "./components/map/EquipmentDialog.vue";
@@ -68,12 +69,10 @@ const showBridgeList = ref(true);
 const showBridgeDetail = ref(false);
 const showEquipmentDetail = ref(false);
 const showCameraDetail = ref(false);
-const showVideoPopup = ref(false);
 const selectedBridge = ref<any>(null);
 const selectedEquipment = ref<any>({});
 const selectedCamera = ref<any>({});
-const currentVideoUrl = ref('');
-const currentCameraName = ref('');
+const videoPlayer = useVideoPlayer();
 
 // 侧边栏折叠状态同步
 const handleCollapsedChange = (collapsed: boolean) => {
@@ -130,9 +129,7 @@ const handleCameraView = (camera: any) => {
 
 // 观看视频
 const handleWatchVideo = (videoUrl: string, cameraName: string) => {
-  currentVideoUrl.value = videoUrl;
-  currentCameraName.value = cameraName;
-  showVideoPopup.value = true;
+  videoPlayer.playUrl(videoUrl, cameraName);
   showCameraDetail.value = false;
 };
 </script>

@@ -58,9 +58,9 @@
 
   <!-- 视频播放弹窗 -->
   <VideoPopup
-    v-model:visible="showVideoPopup"
-    :video-url="currentVideoUrl"
-    :camera-name="currentCameraName"
+    v-model:visible="videoPlayer.visible.value"
+    :video-url="videoPlayer.videoUrl.value"
+    :camera-name="videoPlayer.cameraName.value"
   />
 </template>
 
@@ -69,17 +69,15 @@ import { ref, onMounted, onBeforeUnmount } from "vue";
 import { useVueCesium } from "vue-cesium";
 import { NCarousel, NCarouselItem } from "naive-ui";
 import { getSurveillanceVideoCount, getSurveillanceVideoPage, getSurveillanceVideoDetail, type SurveillanceVideoCountResult } from "@/services/surveillanceVideoService";
-import { getCameraPreviewUrl } from "@/services/hikvisionService";
 import { DEFAULT_COMMON_PARAMS } from "@/services/config";
 import { useGasOverviewPoints } from "@/hook/useGasOverviewPoints";
+import { useVideoPlayer } from "@/hook/useVideoPlayer";
 import VideoPopup from "@/views/BridgeModule/components/map/VideoPopup.vue";
 
 const { init: initMapPoints, addPoints, clearPoints, setupClickHandler } = useGasOverviewPoints();
 
-// 视频弹窗状态
-const showVideoPopup = ref(false);
-const currentVideoUrl = ref('');
-const currentCameraName = ref('');
+// 视频播放
+const videoPlayer = useVideoPlayer();
 
 const countData = ref<SurveillanceVideoCountResult>({
   totalCount: 0,
@@ -141,6 +139,7 @@ const loadCameraPoints = async (bridgeName?: string) => {
         jd: c.spdwjd,
         wd: c.spdwwd,
         name: c.spmc || c.spbh || '',
+        _sourceType: 'bridge_camera',
       }));
 
     if (points.length > 0) {
@@ -160,17 +159,7 @@ const handleCameraClick = async (point: any) => {
   try {
     const detail = await getSurveillanceVideoDetail(point.lsh);
     if (detail?.spbh) {
-      const preview = await getCameraPreviewUrl({
-        cameraIndexCode: detail.spbh,
-        streamType: 1,
-        protocol: 'wss',
-      });
-      const videoUrl = preview?.url || preview?.data?.url;
-      if (videoUrl) {
-        currentVideoUrl.value = videoUrl;
-        currentCameraName.value = detail.spmc || point.name;
-        showVideoPopup.value = true;
-      }
+      await videoPlayer.play(detail.spbh, detail.spmc || point.name);
     }
   } catch (e) {
     console.error('获取监控视频失败:', e);

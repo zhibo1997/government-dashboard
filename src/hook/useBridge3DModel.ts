@@ -10,8 +10,9 @@ import { useMapStore } from '@/stores/mapStore'
 import { useBridgeModelStore } from '@/stores/bridgeModelStore'
 import { BRIDGE_LAYER_CONFIG } from '@/config/layerConfig'
 import { getSurveillanceVideoByIp } from '@/services/surveillanceVideoService'
-import { getCameraPreviewUrl } from '@/services/hikvisionService'
 import { getMonitoringPointLatestData } from '@/services/commonService'
+import { getCachedDictionary } from '@/services/dictionaryService'
+import { useVideoPlayer } from '@/hook/useVideoPlayer'
 
 export function useBridge3DModel(options: {
   viewer: Ref<any>
@@ -28,14 +29,12 @@ export function useBridge3DModel(options: {
   const bridgeModelStore = useBridgeModelStore()
   const mapRef = inject<any>('MAP_INSTANCE')
   const { loadScenetree, addDevicePoints, flyToDevice, highlightFeature, resetHighlight, loadViewRecords, clearAll: clearDevicePoints } = useBridgeDevicePoints()
+  const videoPlayer = useVideoPlayer()
 
   // 状态
   const activeBridgeQlbh = ref<string | null>(null)
   const equipPopupVisible = ref(false)
   const equipPopupData = ref<any>(null)
-  const showVideoPopup = ref(false)
-  const currentVideoUrl = ref('')
-  const currentCameraName = ref('')
 
   let equipTilesetRef: any = null
   let monitorTilesetRef: any = null
@@ -47,7 +46,11 @@ export function useBridge3DModel(options: {
     return BRIDGE_LAYER_CONFIG.some((c) => c.qlbh === popupData.value.qlbh)
   })
 
-  const equipIconUrl = new URL('@/assets/img/points/cg_icon.png', import.meta.url).href
+  const defaultEquipIconUrl = new URL('@/assets/img/points/cg_icon.png', import.meta.url).href
+  const getEquipIconUrl = (device: any) => {
+    if (device.sblx) return new URL(`../assets/img/points/监测设备图标/${device.sblx}.png`, import.meta.url).href
+    return defaultEquipIconUrl
+  }
   const monitorIconUrl = new URL('@/assets/img/points/jk_icon.png', import.meta.url).href
 
   const convertUrl = (url: string) => {
@@ -58,7 +61,7 @@ export function useBridge3DModel(options: {
   /** 关闭所有三维相关弹窗 */
   function closeAllPopups() {
     equipPopupVisible.value = false
-    showVideoPopup.value = false
+    videoPlayer.close()
   }
 
   /** 切换桥梁模型 */
@@ -95,6 +98,11 @@ export function useBridge3DModel(options: {
       bridgeModelStore.setViewer(viewer.value)
       await loadViewRecords()
 
+      // 加载设备类型字典
+      const sblxDictItems = await getCachedDictionary('jcsblx_ql')
+      const sblxDict: Record<string, string> = {}
+      sblxDictItems.forEach((item: any) => { sblxDict[item.f_ItemValue] = item.f_ItemName })
+
       // 加载桥梁模型
       const bridgeUrl = convertUrl(bridgeLayer.url)
       const bridgeTileset = await cesiumUtils.load3DTiles(viewer.value, bridgeUrl, { flyTo: true })
@@ -114,19 +122,19 @@ export function useBridge3DModel(options: {
 
           const devices = await loadScenetree(equipUrl)
           if (devices.length > 0) {
-            addDevicePoints(viewer.value, qlbh, 'equipment', devices, equipIconUrl, async (device) => {
+            addDevicePoints(viewer.value, qlbh, 'equipment', devices, getEquipIconUrl, async (device) => {
               closeAllPopups()
               closePopup()
               if (equipTilesetRef) highlightFeature(equipTilesetRef, device.sbbh)
               await flyToDevice(viewer.value, device)
               try {
-                const data = await getMonitoringPointLatestData(undefined, undefined, device.sbbh)
-                equipPopupData.value = data[0] || { sbbh: device.sbbh, sbmc: device.sbbh }
+                const data = await getMonitoringPointLatestData(undefined, undefined, device.baseName)
+                equipPopupData.value = data[0] || { sbbh: device.baseName, sbmc: device.baseName, sblx: device.sblx }
               } catch {
-                equipPopupData.value = { sbbh: device.sbbh, sbmc: device.sbbh }
+                equipPopupData.value = { sbbh: device.baseName, sbmc: device.baseName, sblx: device.sblx }
               }
               equipPopupVisible.value = true
-            })
+            }, sblxDict)
           }
         }
       }
@@ -148,7 +156,7 @@ export function useBridge3DModel(options: {
               if (monitorTilesetRef) highlightFeature(monitorTilesetRef, device.sbbh)
               await flyToDevice(viewer.value, device)
               await handleMonitorClick(device.sbbh)
-            })
+            }, sblxDict)
           }
         }
       }
@@ -172,13 +180,7 @@ export function useBridge3DModel(options: {
     try {
       const videoData = await getSurveillanceVideoByIp(ip)
       if (videoData?.spbh) {
-        const preview = await getCameraPreviewUrl({ cameraIndexCode: videoData.spbh, streamType: 1, protocol: 'wss' })
-        const url = preview?.url || preview?.data?.url
-        if (url) {
-          currentVideoUrl.value = url
-          currentCameraName.value = videoData.spmc || sbbh
-          showVideoPopup.value = true
-        }
+        await videoPlayer.play(videoData.spbh, videoData.spmc || sbbh)
       }
     } catch (e) {
       console.error('❌ 获取监控视频失败:', e)
@@ -231,8 +233,7 @@ export function useBridge3DModel(options: {
       closePopup()
       closeAllPopups()
       equipPopupData.value = null
-      currentVideoUrl.value = ''
-      currentCameraName.value = ''
+      videoPlayer.close()
       onClear?.()
     })
   }
@@ -249,9 +250,7 @@ export function useBridge3DModel(options: {
     hasModel,
     equipPopupVisible,
     equipPopupData,
-    showVideoPopup,
-    currentVideoUrl,
-    currentCameraName,
+    videoPlayer,
     // 方法
     handleBridgeSelect,
     handleShowModel,

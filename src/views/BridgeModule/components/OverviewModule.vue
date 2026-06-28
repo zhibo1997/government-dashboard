@@ -43,10 +43,16 @@
   </PointPopup>
 
   <!-- 三维：视频播放 -->
-  <VideoPopup v-model:visible="bridge3d.showVideoPopup.value" :video-url="bridge3d.currentVideoUrl.value" :camera-name="bridge3d.currentCameraName.value" />
+  <VideoPopup v-model:visible="bridge3d.videoPlayer.visible.value" :video-url="bridge3d.videoPlayer.videoUrl.value" :camera-name="bridge3d.videoPlayer.cameraName.value" />
 
   <!-- 三维：监测设备详情 -->
   <EquipmentPointPopup :visible="bridge3d.equipPopupVisible.value" :equipment-data="bridge3d.equipPopupData.value" :sblx-dict-keys="['jcsblx_ql']" @close="bridge3d.equipPopupVisible.value = false" />
+
+  <!-- 2D散点：监测设备详情 -->
+  <EquipmentPointPopup :visible="equipPopupVisible" :equipment-data="equipPopupData" :sblx-dict-keys="['jcsblx_ql']" @close="equipPopupVisible = false" />
+
+  <!-- 2D散点：监控视频播放 -->
+  <VideoPopup v-model:visible="videoPlayer.visible.value" :video-url="videoPlayer.videoUrl.value" :camera-name="videoPlayer.cameraName.value" />
 
   <!-- 三维：桥梁模型列表 -->
   <Bridge3DList v-if="bridge3d.is3DMode.value" :active-bridge="bridge3d.activeBridgeQlbh.value" @select="bridge3d.handleBridgeSelect" />
@@ -57,6 +63,9 @@ import { onMounted, onBeforeUnmount, ref, computed, nextTick, watchEffect } from
 import { useVueCesium } from "vue-cesium";
 import * as echarts from "echarts";
 import { getBridgeCategoryStats, getBridgeDetail, getBridgeTypeCount, getBridgeCoordinateList } from "@/services/bridgeService";
+import { getMonitoringPointLatestData } from "@/services/commonService";
+import { getSurveillanceVideoPage, getSurveillanceVideoDetail } from "@/services/surveillanceVideoService";
+import { useVideoPlayer } from "@/hook/useVideoPlayer";
 import { createChartOption, getGradientColor } from "./chartOption";
 import { useGasOverviewPoints } from "@/hook/useGasOverviewPoints";
 import { useBridge3DModel } from "@/hook/useBridge3DModel";
@@ -71,6 +80,8 @@ defineOptions({ name: "OverviewModule" });
 
 // ==================== 散点管理 ====================
 const { init: initMapPoints, addPoints, clearPoints, setupClickHandler, dataSource, viewer } = useGasOverviewPoints();
+// 叠加层散点（监测设备/监控设备，与桥梁散点互不影响）
+const overlay = useGasOverviewPoints();
 
 // ==================== 弹窗状态 ====================
 const popupVisible = ref(false);
@@ -104,12 +115,147 @@ const popupDisplayFields = computed(() => {
   return mapToLabelValue(popupData.value, [], bridgeDictMap.value) as { label: string; value: string | number | null }[]
 })
 
-// 桥梁操作按钮事件（占位，后续可接入真实逻辑）
-const handleShowEquipment = () => {
-  // TODO: 接入监测设备逻辑
+// ==================== 散点模式管理 ====================
+type ScatterMode = 'equipment' | 'camera' | null
+const scatterMode = ref<ScatterMode>(null)
+
+// 监测设备弹窗
+const equipPopupVisible = ref(false)
+const equipPopupData = ref<any>(null)
+
+// 视频播放
+const videoPlayer = useVideoPlayer()
+
+// 监控图标
+const cameraIconUrl = new URL('@/assets/img/points/jk_icon.png', import.meta.url).href
+
+// 监测设备图标（构建时全量导入）
+const deviceIconModules = import.meta.glob('@/assets/img/points/监测设备图标/*.png', { eager: true, import: 'default' }) as Record<string, string>
+const deviceIconMap: Record<string, string> = {}
+for (const [path, url] of Object.entries(deviceIconModules)) {
+  const name = path.split('/').pop()?.replace('.png', '') || ''
+  deviceIconMap[name] = url
 }
-const handleShowCamera = () => {
-  // TODO: 接入监控设备逻辑
+const getDeviceIconUrl = (sblx: string): string => deviceIconMap[sblx] || Object.values(deviceIconMap)[0] || ''
+
+// 预加载图标尺寸
+const deviceIconSizes: Record<string, { w: number; h: number }> = {}
+const loadDeviceIconSizes = async () => {
+  const entries = Object.entries(deviceIconMap)
+  await Promise.all(entries.map(([name, url]) => new Promise<void>((resolve) => {
+    const img = new Image()
+    img.onload = () => { deviceIconSizes[name] = { w: img.width, h: img.height }; resolve() }
+    img.onerror = () => { deviceIconSizes[name] = { w: 1, h: 1 }; resolve() }
+    img.src = url
+  })))
+}
+
+// 清理叠加层散点
+const clearOverlay = () => {
+  overlay.clearPoints()
+  equipPopupVisible.value = false
+  videoPlayer.close()
+  scatterMode.value = null
+}
+
+// 监测设备：加载监测设备散点（叠加在桥梁散点上）
+const handleShowEquipment = async () => {
+  const bridgeName = popupData.value?.llmc
+  if (!bridgeName) return
+  closePopup()
+  clearOverlay()
+  scatterMode.value = 'equipment'
+
+  try {
+    const rows = await getMonitoringPointLatestData('csaqzx_ql')
+    const points = rows
+      .filter((r: any) => r.jdxx && r.wdxx)
+      .map((r: any) => ({
+        lsh: r.lsh || r.sbbh || '',
+        jd: r.jdxx,
+        wd: r.wdxx,
+        name: (r.gldwbh || r.sbmc || '').replace(/^420200420222/, ''),
+        raw: r,
+      }))
+    if (points.length > 0) {
+      const Cesium = (window as any).Cesium
+      const ds = overlay.dataSource.value
+      if (ds) {
+        const entities = ds.entities
+        entities.suspendEvents()
+        for (const p of points) {
+          const sblx = p.raw?.sblx || 'jcsblx0101'
+          const iconUrl = getDeviceIconUrl(sblx)
+          const size = deviceIconSizes[sblx]
+          const w = 24
+          const h = size ? Math.round(w * (size.h / size.w)) : 24
+          entities.add({
+            position: Cesium.Cartesian3.fromDegrees(p.jd, p.wd),
+            billboard: {
+              image: iconUrl,
+              width: w, height: h,
+              horizontalOrigin: Cesium.HorizontalOrigin.CENTER,
+              verticalOrigin: Cesium.VerticalOrigin.CENTER,
+            },
+            description: JSON.stringify(p),
+          })
+        }
+        entities.resumeEvents()
+      }
+      overlay.setupClickHandler((point: any) => {
+        const matched = points.find(p => p.lsh === point.lsh)
+        equipPopupData.value = matched?.raw || point
+        equipPopupVisible.value = true
+      }, true)
+    }
+  } catch (e) {
+    console.error('获取监测设备数据失败:', e)
+  }
+}
+
+// 监控设备：加载监控散点（叠加在桥梁散点上）
+const handleShowCamera = async () => {
+  const bridgeName = popupData.value?.llmc
+  if (!bridgeName) return
+  closePopup()
+  clearOverlay()
+  scatterMode.value = 'camera'
+
+  try {
+    const res = await getSurveillanceVideoPage({
+      page: '1',
+      rows: '1000',
+      spszwz: bridgeName,
+      sszx: 'csaqzx_ql',
+    })
+    const cameras = res?.rows || []
+    const points = cameras
+      .filter((c: any) => c.spdwjd && c.spdwwd)
+      .map((c: any) => ({
+        lsh: c.lsh,
+        jd: c.spdwjd,
+        wd: c.spdwwd,
+        name: c.spmc || c.spbh || '',
+      }))
+    if (points.length > 0) {
+      overlay.addPoints(points, '监控设备', cameraIconUrl, 32)
+      overlay.setupClickHandler(handleCameraPointClick)
+    }
+  } catch (e) {
+    console.error('获取监控列表失败:', e)
+  }
+}
+
+// 点击监控散点 → 获取详情 → 播放视频
+const handleCameraPointClick = async (point: any) => {
+  try {
+    const detail = await getSurveillanceVideoDetail(point.lsh)
+    if (detail?.spbh) {
+      await videoPlayer.play(detail.spbh, detail.spmc || point.name)
+    }
+  } catch (e) {
+    console.error('获取监控视频失败:', e)
+  }
 }
 
 // ==================== 卡片/图表状态 ====================
@@ -127,7 +273,7 @@ const loadBridgePoints = async (qllx?: string) => {
     if (Array.isArray(data) && data.length > 0) {
       const points = data
         .filter((p: any) => p.jd && p.wd)
-        .map((p: any) => ({ lsh: p.lsh, jd: p.jd, wd: p.wd, name: p.name || '' }));
+        .map((p: any) => ({ lsh: p.lsh, jd: p.jd, wd: p.wd, name: p.name || '', _sourceType: 'bridge_overview' }));
       lastLoadedPoints.value = points;
       if (points.length > 0) {
         addPoints(points, '桥梁', new URL('@/assets/img/points/4个专项点位/桥梁.png', import.meta.url).href);
@@ -160,11 +306,13 @@ const handleCardClick = async (card: any) => {
   if (selectedCardType.value === card.id) {
     selectedCardType.value = null;
     clearPoints();
+    clearOverlay();
     closePopup();
     return;
   }
   selectedCardType.value = card.id;
   selectedChartType.value = null;
+  clearOverlay();
   closePopup();
   clearPoints();
   const qllx = card.type === 'total' ? undefined : card.qllx;
@@ -253,6 +401,8 @@ const $vc = useVueCesium();
 onMounted(async () => {
   const readyObj = await $vc.creatingPromise;
   await initMapPoints(readyObj.viewer);
+  await overlay.init(readyObj.viewer);
+  await loadDeviceIconSizes();
 
   bridge3d.registerCallbacks();
 
@@ -277,7 +427,7 @@ onBeforeUnmount(() => {
 
 .stats-cards-container {
   display: flex;
-  gap: 30px;
+  gap: 12px;
   margin-bottom: 40px;
   flex: 0 0 auto;
 }

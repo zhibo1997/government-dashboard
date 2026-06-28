@@ -86,7 +86,7 @@ export function useMonitoringDeviceScatter(options: MonitoringDeviceScatterOptio
 
     try {
       const rows = await fetchPointsApi(sblx)
-      const points = rows.map(extractCoords).filter(Boolean) as Array<{ lsh: string; jd: number; wd: number; name: string; raw: any }>
+      const points = rows.map(extractCoords).filter(Boolean).map(p => ({ ...p, _sourceType: 'monitoring_device' })) as Array<{ lsh: string; jd: number; wd: number; name: string; raw: any; _sourceType: string }>
 
       if (points.length > 0) {
         const iconUrl = getDeviceIconUrl(sblx)
