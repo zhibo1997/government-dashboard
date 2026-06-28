@@ -7,7 +7,6 @@ import { ref } from 'vue'
 import { useVueCesium } from 'vue-cesium'
 import { useGasOverviewPoints } from './useGasOverviewPoints'
 import { getMonitoringPointLatestData } from '@/services/commonService'
-import { getMonitoringPointLatestData } from '@/services/commonService'
 
 /** 根据 sblx 编码获取图标 URL */
 const getDeviceIconUrl = (sblx: string): string => {
@@ -25,11 +24,13 @@ const defaultExtractCoords = (item: any) => {
   const jd = item.pointInfo?.jd ?? item.jdxx
   const wd = item.pointInfo?.wd ?? item.wdxx
   if (!jd || !wd) return null
+  // label 使用 gldwbh，去掉 420200420222 前缀
+  const gldwbh = (item.gldwbh || item.dwbm || '').replace(/^420200420222/, '')
   return {
     lsh: item.lsh || item.sbbh || '',
     jd,
     wd,
-    name: item.sbmc || item.sbbh || '',
+    name: gldwbh || item.sbmc || item.sbbh || '',
     raw: item,
   }
 }
@@ -89,8 +90,8 @@ export function useMonitoringDeviceScatter(options: MonitoringDeviceScatterOptio
 
       if (points.length > 0) {
         const iconUrl = getDeviceIconUrl(sblx)
-        // 512×797 比例，宽度 32 不变，高度 ≈ 50
-        addPoints(points, displayName, iconUrl, undefined, 32, 50)
+        // 根据图片真实比例自动计算高度
+        addPoints(points, displayName, iconUrl, 32)
         setupClickHandler((point: any) => {
           // 点击散点 → 将原始数据传给弹窗（包含 gldwbh）
           const matched = points.find(p => p.lsh === point.lsh)

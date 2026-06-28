@@ -27,11 +27,15 @@ export function useMvtPickHandler(options: MvtPickOptions) {
 
     handler = new Cesium.ScreenSpaceEventHandler(viewer.canvas)
     handler.setInputAction(async (movement: any) => {
+      if (!viewer) return
+      console.log('[MvtPick] 点击事件触发')
       // 1. MVT 要素拾取
       const mvtLayer = getMvtLayer()
+      console.log('[MvtPick] mvtLayer:', !!mvtLayer, 'show:', mvtLayer?.show)
       if (mvtLayer?.show) {
         try {
           const provider = mvtLayer.imageryProvider
+          console.log('[MvtPick] provider:', !!provider, 'pickFeatures:', !!provider?.pickFeatures)
           if (provider?.pickFeatures) {
             const cartesian = viewer.camera.pickEllipsoid(movement.position)
             const cartographic = cartesian
@@ -63,6 +67,7 @@ export function useMvtPickHandler(options: MvtPickOptions) {
                   n
               )
 
+              console.log(`[MvtPick] 查询: lon=${lon.toFixed(4)}, lat=${lat.toFixed(4)}, zoom=${zoom}, tileX=${tileX}, tileY=${tileY}`)
               const features = await provider.pickFeatures(
                 tileX,
                 tileY,
@@ -70,9 +75,11 @@ export function useMvtPickHandler(options: MvtPickOptions) {
                 cartographic.longitude,
                 cartographic.latitude
               )
+              console.log('[MvtPick] pickFeatures 返回:', features?.length ?? 'null/undefined', features)
               if (features?.length > 0) {
                 const props: Record<string, any> = {}
                 const data = features[0].data
+                console.log('[MvtPick] feature data:', data)
                 if (data && typeof data === 'object') {
                   const firstKey = Object.keys(data)[0]
                   const feature = Array.isArray(data[firstKey])
@@ -85,6 +92,7 @@ export function useMvtPickHandler(options: MvtPickOptions) {
                 if (features[0].description) {
                   props._description = features[0].description
                 }
+                console.log('[MvtPick] 解析后的 props:', props)
                 if (Object.keys(props).length > 0) {
                   // 固定飞行高度，避免每次点击不断放大
                   const currentHeight = viewer.camera.positionCartographic.height

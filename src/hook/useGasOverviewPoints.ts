@@ -28,6 +28,37 @@ export function useGasOverviewPoints() {
   let currentIconWidth = 32
   let currentIconHeight = 32
 
+  // 图片尺寸缓存
+  const iconSizeCache: Map<string, { w: number; h: number }> = new Map()
+
+  /** 动态加载图片获取真实尺寸 */
+  const getIconDimensions = (url: string): Promise<{ w: number; h: number }> => {
+    // 检查缓存
+    if (iconSizeCache.has(url)) {
+      return Promise.resolve(iconSizeCache.get(url)!)
+    }
+
+    return new Promise((resolve) => {
+      const img = new Image()
+      img.onload = () => {
+        const size = { w: img.width, h: img.height }
+        iconSizeCache.set(url, size)
+        resolve(size)
+      }
+      img.onerror = () => {
+        // 加载失败时返回默认尺寸
+        resolve({ w: 32, h: 32 })
+      }
+      img.src = url
+    })
+  }
+
+  /** 根据目标宽度和图片比例计算高度 */
+  const calcIconHeight = async (url: string, targetWidth: number): Promise<number> => {
+    const size = await getIconDimensions(url)
+    return Math.round(targetWidth * (size.h / size.w))
+  }
+
   const init = async (cesiumViewer: any) => {
     if (!cesiumViewer) {
       console.warn('[useGasOverviewPoints] viewer 未就绪')
@@ -65,18 +96,14 @@ export function useGasOverviewPoints() {
     }
   }
 
+  /** 点击事件处理（供桥梁等直接使用 useGasOverviewPoints 的模块调用） */
   const setupClickHandler = (onPointClick?: (point: GasOverviewPoint) => void, shouldFly = true) => {
     if (!viewer.value) return
-
     const Cesium = (window as any).Cesium
-
-    if (clickHandler) {
-      clickHandler()
-      clickHandler = null
-    }
-
+    if (clickHandler) { clickHandler(); clickHandler = null }
     clickHandler = viewer.value.screenSpaceEventHandler.setInputAction(
       (movement: any) => {
+        if (!viewer.value) return
         const pickedObject = viewer.value.scene.pick(movement.position)
         if (Cesium.defined(pickedObject) && pickedObject.id) {
           const entity = pickedObject.id
@@ -281,7 +308,7 @@ export function useGasOverviewPoints() {
     })
   }
 
-  const addPoints = (points: GasOverviewPoint[], name: string, iconUrl?: string, _onPointClick?: (point: GasOverviewPoint) => void, iconWidth = 32, iconHeight = 32) => {
+  const addPoints = async (points: GasOverviewPoint[], name: string, iconUrl?: string, iconWidth = 32, iconHeight?: number) => {
     if (!dataSource.value || !viewer.value) return
 
     clearPoints()
@@ -289,13 +316,21 @@ export function useGasOverviewPoints() {
     currentPoints = points
     currentIconUrl = iconUrl
     currentIconWidth = iconWidth
-    currentIconHeight = iconHeight
+
+    // 如果没有指定高度，则根据图片真实比例自动计算
+    let finalIconHeight = iconHeight
+    if (iconUrl && !iconHeight) {
+      finalIconHeight = await calcIconHeight(iconUrl, iconWidth)
+    } else {
+      finalIconHeight = iconHeight || iconWidth
+    }
+    currentIconHeight = finalIconHeight
 
     const cameraHeight = getCameraHeight(viewer.value)
     const thinDistance = getThinDistance(cameraHeight)
     lastThinDistance = thinDistance
 
-    renderPoints(points, iconUrl, iconWidth, iconHeight)
+    renderPoints(points, iconUrl, iconWidth, finalIconHeight)
     renderLabels(points, thinDistance)
     setupCameraListener()
   }
@@ -304,7 +339,7 @@ export function useGasOverviewPoints() {
     if (!viewer.value) return
     const Cesium = (window as any).Cesium
     viewer.value.camera.flyTo({
-      destination: Cesium.Cartesian3.fromDegrees(point.jd, point.wd, 2000),
+      destination: Cesium.Cartesian3.fromDegrees(point.jd, point.wd, 200),
       orientation: { heading: 0, pitch: Cesium.Math.toRadians(-90), roll: 0 },
       duration: 1.5,
     })

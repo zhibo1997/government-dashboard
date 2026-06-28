@@ -51,10 +51,8 @@
 import { onMounted, onBeforeUnmount, ref, nextTick } from "vue";
 import { useVueCesium } from "vue-cesium";
 import * as echarts from "echarts";
-import { getBridgeCategoryStats, getBridgePageList, getBridgeDetail } from "@/services/bridgeService";
+import { getBridgeCategoryStats, getBridgeDetail, getBridgeTypeCount, getBridgeCoordinateList } from "@/services/bridgeService";
 import { createChartOption, getGradientColor } from "./chartOption";
-import { getWaterOverview } from "@/services/waterSupplyService";
-import { getCachedDictionary } from "@/services/dictionaryService";
 import { useGasOverviewPoints } from "@/hook/useGasOverviewPoints";
 import { useBridge3DModel } from "@/hook/useBridge3DModel";
 import GasPointPopup from "@/views/GasModule/components/GasPointPopup.vue";
@@ -75,22 +73,19 @@ const closePopup = () => { popupVisible.value = false; popupData.value = null; }
 // ==================== 卡片/图表状态 ====================
 const statsCards = ref<any[]>([]);
 const chartConfigs = ref<any[]>([]);
-const qlTypeMap = ref<any>({});
 const selectedCardType = ref<string | null>(null);
 const selectedChartType = ref<string | null>(null);
 
 // ==================== 散点加载 ====================
 const lastLoadedPoints = ref<any[]>([]);
 
-const loadBridgePoints = async (filter?: Record<string, string>) => {
+const loadBridgePoints = async (qllx?: string) => {
   try {
-    const params: any = { page: '1', rows: '50', ...filter };
-    const res = await getBridgePageList(params);
-    const data = res?.rows || res || [];
+    const data = await getBridgeCoordinateList(qllx);
     if (Array.isArray(data) && data.length > 0) {
       const points = data
-        .filter((p: any) => p.qjdxx && p.qwdxx)
-        .map((p: any) => ({ lsh: p.lsh, jd: p.qjdxx, wd: p.qwdxx, name: p.llmc || p.qlbh || '' }));
+        .filter((p: any) => p.jd && p.wd)
+        .map((p: any) => ({ lsh: p.lsh, jd: p.jd, wd: p.wd, name: p.name || '' }));
       lastLoadedPoints.value = points;
       if (points.length > 0) {
         addPoints(points, '桥梁', new URL('@/assets/img/points/4个专项点位/桥梁.png', import.meta.url).href);
@@ -98,7 +93,7 @@ const loadBridgePoints = async (filter?: Record<string, string>) => {
       }
     }
   } catch (error) {
-    console.error("获取桥梁列表失败:", error);
+    console.error("获取桥梁点位失败:", error);
   }
 };
 
@@ -130,8 +125,8 @@ const handleCardClick = async (card: any) => {
   selectedChartType.value = null;
   closePopup();
   clearPoints();
-  const filter = card.type === 'total' ? undefined : { Jcsslx: card.jcsslx };
-  await loadBridgePoints(filter);
+  const qllx = card.type === 'total' ? undefined : card.qllx;
+  await loadBridgePoints(qllx);
 };
 
 // ==================== 数据获取 ====================
@@ -146,32 +141,34 @@ const fetchBridgeData = async () => {
 
 const fetchCardData = async () => {
   try {
-    const dictionaries = await getCachedDictionary("jcssdstjlx_ql");
-    qlTypeMap.value = dictionaries.reduce((acc, cur) => { acc[cur.f_ItemValue] = cur.f_ItemName; return acc; }, {});
-    const data = await getWaterOverview({ Sszx: "csaqzx_ql" }) as any[];
+    const data = await getBridgeTypeCount() as any[];
     processCardData(data);
   } catch (error) {
-    console.error("获取卡片数据失败:", error);
+    console.error("获取桥梁类型统计失败:", error);
   }
 };
 
 const processCardData = (data: any[]) => {
-  data = [...data].sort((a, b) => {
-    if (a.jcsslx === 'jcssdstj0601') return -1;
-    if (b.jcsslx === 'jcssdstj0601') return 1;
-    return 0;
-  });
-  statsCards.value = data.map((item, index) => ({
-    id: index + 1,
-    value: item.jcsstjsl || 0,
-    label: qlTypeMap.value[item.jcsslx] || item.jcsslx,
-    type: getTypeByCode(item.jcsslx),
-  }));
+  // 计算总数
+  const total = data.reduce((sum, item) => sum + (item.count || 0), 0);
+  // 按指定顺序排列：总数、大桥、小桥、立交桥
+  const order = ['qllx002', 'qllx004', 'qllx003'];
+  const ordered = order.map(code => data.find(item => item.code === code)).filter(Boolean);
+  statsCards.value = [
+    { id: 0, value: total, label: '桥梁总数', type: 'total', qllx: '' },
+    ...ordered.map((item, index) => ({
+      id: index + 1,
+      value: item.count || 0,
+      label: item.name,
+      type: getTypeByCode(item.code),
+      qllx: item.code,
+    })),
+  ];
 };
 
 const getTypeByCode = (code: string) => {
   const typeMap: Record<string, string> = {
-    "jcssdstj0601": "total", "jcssdstj0602": "large", "jcssdstj0603": "overpass", "jcssdstj0604": "culvert",
+    "qllx002": "large", "qllx003": "overpass", "qllx004": "default",
   };
   return typeMap[code] || "default";
 };
@@ -195,14 +192,6 @@ const processChartData = (data: any[]) => {
 // ==================== 图表渲染 ====================
 const chartInstances: Record<number, echarts.ECharts> = {};
 
-const legendFilterMap: Record<string, string> = {
-  '梁式桥': 'qljglb001', '拱式桥': 'qljglb002', '悬索桥': 'qljglb003', '斜拉桥': 'qljglb004',
-  '刚构桥': 'qljglb005', '组合体系桥': 'qljglb006',
-  'I 等养护': 'qlyhdj001', 'II 等养护': 'qlyhdj002', 'III 等养护': 'qlyhdj003',
-  'IV 等养护': 'qlyhdj004', 'V 等养护': 'qlyhdj005',
-  'I 级': 'qlyhdj006', 'II 级': 'qlyhdj007', 'III 级': 'qlyhdj008',
-};
-
 const renderCharts = () => {
   chartConfigs.value.forEach((chart, chartIndex) => {
     const chartDom = document.getElementById(`chart-${chart.id}`);
@@ -210,15 +199,8 @@ const renderCharts = () => {
     const myChart = echarts.init(chartDom);
     chartInstances[chart.id] = myChart;
     myChart.setOption(createChartOption(chart, chartIndex));
-    myChart.on('legendselectchanged', async (params: any) => {
+    myChart.on('legendselectchanged', () => {
       myChart.dispatchAction({ type: 'legendAllSelect' });
-      const filter = legendFilterMap[params.name];
-      if (filter) {
-        clearPoints();
-        closePopup();
-        selectedCardType.value = null;
-        await loadBridgePoints({ Qljg: filter });
-      }
     });
   });
 };
@@ -324,7 +306,7 @@ onBeforeUnmount(() => {
 
     &.large { background-image: url("@/assets/img/bridgeModule/large_bridges.webp"); .card-value { background: linear-gradient(90deg, #FFFFFF 0%, #FEC854 100%); } }
     &.overpass { background-image: url("@/assets/img/bridgeModule/interchanges.webp"); .card-value { background: linear-gradient(90deg, #FFFFFF 0%, #1475D1 100%); } }
-    &.culvert { background-image: url("@/assets/img/bridgeModule/culverts.webp"); .card-value { background: linear-gradient(90deg, #FFFFFF 0%, #1475D1 100%); } }
+    &.default { background-image: url("@/assets/img/bridgeModule/culverts.webp"); .card-value { background: linear-gradient(90deg, #FFFFFF 0%, #1475D1 100%); } }
   }
 }
 

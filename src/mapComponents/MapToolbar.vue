@@ -609,14 +609,24 @@ const resetBridgeView = () => {
 const exit3DMode = () => {
   unloadAll()
   bridgeModelStore.clearAll()
-  emit('update:scene-mode', 2)
+  // 视角切到俯视（保持 3D 模式）
+  if (props.viewerInstance) {
+    const Cesium = (window as any).Cesium
+    if (Cesium) {
+      const pos = props.viewerInstance.camera.positionCartographic
+      props.viewerInstance.camera.flyTo({
+        destination: Cesium.Cartesian3.fromRadians(pos.longitude, pos.latitude, 1000),
+        orientation: { heading: 0, pitch: Cesium.Math.toRadians(-90), roll: 0 },
+        duration: 1.5,
+      })
+    }
+  }
   if (isMapExpanded.value) {
     isMapExpanded.value = false
     emit('toggle-map-expand')
   }
-  // 重新加载全部桥梁散点
   bridgeModelStore.reloadScatter()
-  console.log('✅ 已退出三维模式')
+  console.log('✅ 已退出三维视角')
 }
 
 // 重置指北

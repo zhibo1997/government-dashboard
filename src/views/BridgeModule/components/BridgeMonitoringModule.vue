@@ -2,13 +2,10 @@
   <div class="data-module bridge-monitoring-module">
     <div class="module-header">
       <div class="module-title">桥梁监控</div>
-      <div class="module-actions">
-        <button class="show-all-btn" :class="{ active: showAllActive }" @click="handleShowAll">显示全部</button>
-      </div>
     </div>
     <div class="module-content">
-      <!-- 顶部统计卡片 -->
-      <div class="top-stats">
+      <!-- 顶部统计卡片（点击显示全部） -->
+      <div class="top-stats" :class="{ active: showAllActive }" @click="handleShowAll">
         <div class="stat-card">
           <div class="stat-icon">
             <img src="@/assets/img/device_count.webp" alt="监测设备" />
@@ -147,8 +144,8 @@ const loadCameraPoints = async (bridgeName?: string) => {
       }));
 
     if (points.length > 0) {
-      // 512×939 比例，宽度 32，高度 ≈ 59
-      addPoints(points, bridgeName || '全部监控', cameraIconUrl, undefined, 32, 59);
+      // 根据图片真实比例自动计算高度
+      addPoints(points, bridgeName || '全部监控', cameraIconUrl, 32);
       setupClickHandler(handleCameraClick);
     } else {
       clearPoints();
@@ -251,43 +248,24 @@ defineOptions({
   flex: 1;
 }
 
-.module-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding-right: 16px;
-
-  .show-all-btn {
-    padding: 4px 16px;
-    border-radius: 4px;
-    font-family: SourceHanSansSC, SourceHanSansSC;
-    font-size: var(--font-size-caption);
-    color: #7fd3f2;
-    background: rgba(0, 60, 80, 0.4);
-    border: 1px solid rgba(13, 165, 190, 0.4);
-    cursor: pointer;
-    transition: all 0.2s;
-
-    &:hover {
-      background: rgba(13, 165, 190, 0.2);
-      border-color: rgba(13, 165, 190, 0.6);
-    }
-
-    &.active {
-      background: rgba(13, 165, 190, 0.3);
-      border-color: #0da5be;
-      color: #ffffff;
-    }
-  }
-}
-
-// 顶部统计卡片
+// 顶部统计卡片（可点击显示全部）
 .top-stats {
   display: flex;
   background-image: url("@/assets/img/gasModule/device_bg.webp");
   background-size: 100% 100%;
   width: 100%;
   margin-bottom: 24px;
+  cursor: pointer;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+
+  &:hover {
+    box-shadow: inset 0 0 0 2px rgba(13, 165, 190, 0.3);
+  }
+
+  &.active {
+    box-shadow: inset 0 0 0 2px #0da5be, 0 0 12px rgba(13, 165, 190, 0.3);
+  }
 
   .stat-card {
     border-radius: 8px;

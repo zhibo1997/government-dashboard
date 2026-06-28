@@ -204,12 +204,15 @@ export function useBridge3DModel(options: {
       const lat = popupData.value?.qwdxx
       if (Cesium && viewer.value && lng && lat) {
         viewer.value.camera.flyTo({
-          destination: Cesium.Cartesian3.fromDegrees(lng, lat, 20000),
+          destination: Cesium.Cartesian3.fromDegrees(lng, lat, 1000),
           orientation: { heading: 0, pitch: Cesium.Math.toRadians(-90), roll: 0 },
           duration: 1.5,
+          complete: () => loadBridgePoints(),
+          cancel: () => loadBridgePoints(),
         })
+      } else {
+        await loadBridgePoints()
       }
-      await loadBridgePoints()
     })
 
     bridgeModelStore.registerClearCallback(() => {
