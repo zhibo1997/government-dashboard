@@ -68,7 +68,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, watch, ref, inject, nextTick, onBeforeUnmount } from 'vue'
+import { computed, watch, ref, inject, onBeforeUnmount } from 'vue'
 import { NIcon } from 'naive-ui'
 import { Close } from '@vicons/ionicons5'
 import { FONT_SIZE } from '@/assets/styles/font-sizes'
@@ -138,36 +138,37 @@ let lineChartInstance: echarts.ECharts | null = null
 let chartResizeObserver: ResizeObserver | null = null
 
 const switchToTrend = async () => {
-  console.log('[数据趋势] 点击切换, chartReady:', chartReady.value, 'chartLoading:', chartLoading.value)
   activeTab.value = 'trend'
-  if (chartReady.value || chartLoading.value) {
-    console.log('[数据趋势] 跳过: chartReady 或 chartLoading 为 true')
-    return
-  }
+  if (chartReady.value || chartLoading.value) return
 
   const data = props.equipmentData
   const sbbh = data?.sbbh || ''
   const sblx = data?.sblx || ''
-  const gldwbh = data?.gldwbh || data?.dwbm || sbbh
-  console.log('[数据趋势] 参数:', { gldwbh, sbbh, sblx })
-  if (!sbbh || !sblx) {
-    console.log('[数据趋势] 跳过: sbbh 或 sblx 为空')
-    return
-  }
+  if (!sbbh || !sblx) return
 
   chartLoading.value = true
   try {
-    console.log('[数据趋势] 请求 /eqp/pubmnt/data ...')
+    // 获取 gldwbh：先从 equipmentData 取，没有则通过设备列表接口查询
+    let gldwbh = data?.gldwbh || data?.dwbm || ''
+    if (!gldwbh) {
+      const pageRes = await getEquipmentPageList({ sblx, rows: '1000' })
+      const matched = pageRes?.rows?.find((r: any) => r.sbbh === sbbh)
+      gldwbh = matched?.gldwbh || matched?.dwbm || ''
+    }
+
+    if (!gldwbh) {
+      chartLoading.value = false
+      return
+    }
+
     const res = await getEquipmentData({ gldwbh, sbbh, sblx, number: 20 })
-    console.log('[数据趋势] 返回:', res)
     if (res?.length > 1) {
       chartReady.value = true
-      nextTick(() => initLineChart(res))
-    } else {
-      console.log('[数据趋势] 数据不足2条, 不渲染图表')
+      // 等待 DOM 渲染完成后再初始化图表
+      setTimeout(() => initLineChart(res), 200)
     }
   } catch (e) {
-    console.error('[数据趋势] 请求失败:', e)
+    console.error('获取设备监测数据失败:', e)
   } finally {
     chartLoading.value = false
   }

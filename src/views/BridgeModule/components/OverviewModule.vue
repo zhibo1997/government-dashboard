@@ -6,11 +6,10 @@
     <div class="module-content">
       <!-- 上方：统计卡片区域 -->
       <div class="stats-cards-container">
-        <div class="stats-card" v-for="(item, idx) in statsCards" :key="item.id"
+        <div class="stats-card" v-for="item in statsCards" :key="item.id"
           :class="{ active: selectedCardType === item.id }" @click="handleCardClick(item)">
           <div class="card-info" :class="item.type">
-            <div class="card-value gradient-text">{{ item.value }}<span class="unit">座</span>
-            </div>
+            <div class="card-value gradient-text">{{ item.value }}<span class="unit">座</span></div>
             <span class="card-label" :class="{ 'gradient-text': item.type == 'total' }">{{ item.label }}</span>
           </div>
         </div>
@@ -22,292 +21,80 @@
           <div class="chart-wrapper">
             <div :id="`chart-${chart.id}`" class="chart-echart"></div>
           </div>
-          <!-- 暂时注释 DOM 图例，使用 ECharts 内置图例 -->
-          <!-- <div class="chart-legend" v-if="chart.legendData && chart.legendData.length > 0">
-            <div class="legend-group" v-for="(group, groupIndex) in groupLegends(chart.legendData)" :key="groupIndex">
-              <div class="legend-item" v-for="item in group" :key="item.name">
-                <span class="legend-color" :style="{ backgroundColor: item.color }"></span>
-                <span class="legend-text">{{ item.name }}</span>
-              </div>
-            </div>
-          </div> -->
         </div>
       </div>
     </div>
   </div>
 
-  <!-- 点位详情弹窗 -->
+  <!-- 散点弹窗 -->
   <GasPointPopup
     :visible="popupVisible"
     :point-data="popupData"
     :position="{ x: 0, y: 0 }"
     point-type="桥梁"
-    :has-model="hasModel"
+    :has-model="bridge3d.hasModel.value"
     @close="closePopup"
-    @show-model="handleShowModel"
+    @show-model="bridge3d.handleShowModel"
   />
+
+  <!-- 三维：视频播放 -->
+  <VideoPopup v-model:visible="bridge3d.showVideoPopup.value" :video-url="bridge3d.currentVideoUrl.value" :camera-name="bridge3d.currentCameraName.value" />
+
+  <!-- 三维：监测设备详情 -->
+  <EquipmentPointPopup :visible="bridge3d.equipPopupVisible.value" :equipment-data="bridge3d.equipPopupData.value" :sblx-dict-keys="['jcsblx_ql']" @close="bridge3d.equipPopupVisible.value = false" />
+
+  <!-- 三维：桥梁模型列表 -->
+  <Bridge3DList v-if="bridge3d.is3DMode.value" :active-bridge="bridge3d.activeBridgeQlbh.value" @select="bridge3d.handleBridgeSelect" />
 </template>
 
 <script setup lang="ts">
-import { onMounted, onBeforeUnmount, ref, nextTick, inject, computed } from "vue";
+import { onMounted, onBeforeUnmount, ref, nextTick } from "vue";
 import { useVueCesium } from "vue-cesium";
 import * as echarts from "echarts";
 import { getBridgeCategoryStats, getBridgePageList, getBridgeDetail } from "@/services/bridgeService";
-import { getSurveillanceVideoByIp } from "@/services/surveillanceVideoService";
-import { getCameraPreviewUrl } from "@/services/hikvisionService";
 import { createChartOption, getGradientColor } from "./chartOption";
 import { getWaterOverview } from "@/services/waterSupplyService";
 import { getCachedDictionary } from "@/services/dictionaryService";
 import { useGasOverviewPoints } from "@/hook/useGasOverviewPoints";
-import { useMapHooks } from "@/hook/useMapHooks";
-import { useBridgeDevicePoints } from "@/hook/useBridgeDevicePoints";
-import { useMapStore } from "@/stores/mapStore";
-import { useBridgeModelStore } from "@/stores/bridgeModelStore";
-import { BRIDGE_LAYER_CONFIG } from "@/config/layerConfig";
+import { useBridge3DModel } from "@/hook/useBridge3DModel";
 import GasPointPopup from "@/views/GasModule/components/GasPointPopup.vue";
+import VideoPopup from "@/views/BridgeModule/components/map/VideoPopup.vue";
+import EquipmentPointPopup from "@/components/EquipmentPointPopup.vue";
+import Bridge3DList from "@/views/BridgeModule/components/Bridge3DList.vue";
 
-defineOptions({
-  name: "OverviewModule",
-});
+defineOptions({ name: "OverviewModule" });
 
-// ==================== 数据状态 ====================
-// 统计卡片数据（从接口获取）
-const statsCards = ref<any[]>([]);
-
-// 图表配置
-const chartConfigs = ref<any[]>([]);
-
-// 字典映射
-const qlTypeMap = ref<any>({});
-
-// 地图点位管理
+// ==================== 散点管理 ====================
 const { init: initMapPoints, addPoints, clearPoints, setupClickHandler, dataSource, viewer } = useGasOverviewPoints();
 
-// 选中状态
+// ==================== 弹窗状态 ====================
+const popupVisible = ref(false);
+const popupData = ref<any>(null);
+const closePopup = () => { popupVisible.value = false; popupData.value = null; };
+
+// ==================== 卡片/图表状态 ====================
+const statsCards = ref<any[]>([]);
+const chartConfigs = ref<any[]>([]);
+const qlTypeMap = ref<any>({});
 const selectedCardType = ref<string | null>(null);
 const selectedChartType = ref<string | null>(null);
 
-// 弹窗状态
-const popupVisible = ref(false);
-const popupData = ref<any>(null);
+// ==================== 散点加载 ====================
+const lastLoadedPoints = ref<any[]>([]);
 
-// 当前桥梁是否有 3D 模型
-const hasModel = computed(() => {
-  if (!popupData.value?.qlbh) return false;
-  return BRIDGE_LAYER_CONFIG.some((c) => c.qlbh === popupData.value.qlbh);
-});
-
-// 3D 模型相关
-const cesiumUtils = useMapHooks();
-const mapStore = useMapStore();
-const bridgeModelStore = useBridgeModelStore();
-const mapRef = inject<any>('MAP_INSTANCE');
-
-// ==================== 点击处理 ====================
-
-// 卡片类型到筛选参数的映射
-const cardTypeFilterMap: Record<string, string> = {
-  "jcssdstj0601": "",  // 桥梁总数 - 不筛选
-  "jcssdstj0602": "qllx002",  // 大桥及特大桥
-  "jcssdstj0603": "qllx004",  // 立交桥
-  "jcssdstj0604": "qllx005",  // 涵洞
-};
-
-// 关闭弹窗
-const closePopup = () => {
-  popupVisible.value = false;
-  popupData.value = null;
-};
-
-// 设备点位管理
-const { loadScenetree, addDevicePoints, flyToDevice, loadViewRecords, clearAll: clearDevicePoints } = useBridgeDevicePoints();
-
-// 设备图标
-const equipIconUrl = new URL('@/assets/img/points/cg_icon.png', import.meta.url).href;
-const monitorIconUrl = new URL('@/assets/img/points/jk_icon.png', import.meta.url).href;
-
-// 协议转换
-const convertUrl = (url: string) => {
-  const isProduction = import.meta.env.PROD || import.meta.env.MODE === 'production';
-  return isProduction && url.startsWith('http://') ? url.replace('http://', 'https://') : url;
-};
-
-// 查看模型 - 加载桥梁 3D 模型 + 设备点位
-const handleShowModel = async () => {
-  if (!popupData.value) return;
-  const qlbh = popupData.value.qlbh;
-  if (!qlbh) {
-    console.warn('⚠️ 桥梁数据缺少 qlbh 字段');
-    return;
-  }
-
-  // 匹配桥梁模型配置
-  const cfg = BRIDGE_LAYER_CONFIG.find((c) => c.qlbh === qlbh);
-  if (!cfg) {
-    console.warn(`⚠️ 未找到 qlbh=${qlbh} 的桥梁模型配置`);
-    return;
-  }
-
-  // 从图层树获取 URL
-  const bridgeLayer = mapStore.findLayerById(cfg.id);
-  if (!bridgeLayer?.url) {
-    console.warn(`⚠️ 未找到桥梁图层 URL, id=${cfg.id}`);
-    return;
-  }
-
+const loadBridgePoints = async (filter?: Record<string, string>) => {
   try {
-    // 切换到三维视角
-    if (mapRef?.value?.sceneMode !== 3) {
-      mapRef.value.sceneMode = 3;
-    }
-
-    // 设置 viewer 引用（用于退出时移除 tileset）
-    bridgeModelStore.setViewer(viewer.value);
-
-    // 加载视角数据（飞入用）
-    await loadViewRecords();
-
-    // 1. 加载桥梁 3D 模型
-    const bridgeUrl = convertUrl(bridgeLayer.url);
-    const bridgeTileset = await cesiumUtils.load3DTiles(viewer.value, bridgeUrl, { flyTo: true });
-    bridgeModelStore.addTileset(bridgeTileset);
-    console.log(`✅ 桥梁模型加载成功: ${bridgeLayer.name}`);
-
-    // 2. 应用光照设置（抄自 bridge.html）
-    const Cesium = (window as any).Cesium;
-    if (Cesium && viewer.value) {
-      viewer.value.shadows = true;
-      viewer.value.scene.sun.show = true;
-      viewer.value.scene.sun.glowFactor = 0.0;
-      viewer.value.scene.globe.enableLighting = true;
-      viewer.value.scene.globe.baseColor = Cesium.Color.fromCssColorString('#8899aa');
-      viewer.value.shadowMap.size = 2048;
-      viewer.value.shadowMap.softShadows = true;
-      viewer.value.shadowMap.darkness = 0.85;
-      viewer.value.scene.globe.depthTestAgainstTerrain = true;
-      viewer.value.scene.light = new Cesium.DirectionalLight({
-        direction: new Cesium.Cartesian3(-0.5, -0.3, -1.0),
-        intensity: 0.6,
-      });
-    }
-
-    // 3. 加载监测设备模型 + 点位
-    if (cfg.equipmentId) {
-      const equipLayer = mapStore.findLayerById(cfg.equipmentId);
-      if (equipLayer?.url) {
-        const equipUrl = convertUrl(equipLayer.url);
-        const equipTileset = await cesiumUtils.load3DTiles(viewer.value, equipUrl, { flyTo: false });
-        bridgeModelStore.addTileset(equipTileset);
-        console.log(`✅ 监测设备模型加载成功: ${equipLayer.name}`);
-
-        // 从 scenetree 解析设备点位
-        const equipDevices = await loadScenetree(equipUrl);
-        if (equipDevices.length > 0) {
-          addDevicePoints(viewer.value, qlbh, 'equipment', equipDevices, equipIconUrl, async (device) => {
-            console.log('🖱️ 点击监测设备:', device.sbbh);
-            await flyToDevice(viewer.value, device);
-            // TODO: 飞入后获取监测数据
-          });
-          console.log(`📍 监测设备点位: ${equipDevices.length} 个`);
-        }
-      }
-    }
-
-    // 4. 加载监控设备模型 + 点位
-    if (cfg.monitorId) {
-      const monitorLayer = mapStore.findLayerById(cfg.monitorId);
-      if (monitorLayer?.url) {
-        const monitorUrl = convertUrl(monitorLayer.url);
-        const monitorTileset = await cesiumUtils.load3DTiles(viewer.value, monitorUrl, { flyTo: false });
-        bridgeModelStore.addTileset(monitorTileset);
-        console.log(`✅ 监控设备模型加载成功: ${monitorLayer.name}`);
-
-        // 从 scenetree 解析设备点位
-        const monitorDevices = await loadScenetree(monitorUrl);
-        if (monitorDevices.length > 0) {
-          addDevicePoints(viewer.value, qlbh, 'monitor', monitorDevices, monitorIconUrl, async (device) => {
-            console.log('🖱️ 点击监控设备:', device.sbbh);
-            await flyToDevice(viewer.value, device);
-            const ipMatch = device.sbbh.match(/^(\d+\.\d+\.\d+\.\d+)-\d+$/);
-            if (!ipMatch) {
-              console.warn('⚠️ 无法从设备名称提取 IP:', device.sbbh);
-              return;
-            }
-            const ip = ipMatch[1];
-            try {
-              const videoData = await getSurveillanceVideoByIp(ip);
-              console.log('📹 监控视频数据:', videoData);
-              if (videoData?.spbh) {
-                const preview = await getCameraPreviewUrl({
-                  cameraIndexCode: videoData.spbh,
-                  streamType: 1,
-                  protocol: 'wss',
-                });
-                console.log('🎬 视频流地址:', preview?.data?.url);
-                // TODO: 直接播放视频
-              }
-            } catch (e) {
-              console.error('❌ 获取监控视频失败:', e);
-            }
-          });
-          console.log(`📍 监控设备点位: ${monitorDevices.length} 个`);
-        }
-      }
-    }
-
-  } catch (error) {
-    console.error('❌ 桥梁模型加载失败:', error);
-  }
-
-  // 清除散点和弹窗
-  clearPoints();
-  closePopup();
-
-  // 展开地图（隐藏侧边栏）
-  mapRef?.value?.toggleMapExpand?.();
-};
-
-// 点击地图点位回调
-const handlePointClick = async (point: any) => {
-  try {
-    const detail = await getBridgeDetail(point.lsh);
-    // 合并列表的 name 字段到详情数据
-    popupData.value = { ...detail, _name: detail._name || point.name };
-    popupVisible.value = true;
-  } catch (error) {
-    console.error('获取桥梁详情失败:', error);
-  }
-};
-
-// 请求桥梁列表并展示点位
-const loadBridgePoints = async (filter?: string) => {
-  try {
-    const params: any = {
-      page: '1',
-      rows: '50',
-    };
-    if (filter) {
-      params.Qllx = filter;
-    }
-    console.log('🔍 请求桥梁列表参数:', params);
+    const params: any = { page: '1', rows: '50', ...filter };
     const res = await getBridgePageList(params);
-    console.log('📦 桥梁列表返回:', res);
     const data = res?.rows || res || [];
-    console.log('📊 数据条数:', data.length);
     if (Array.isArray(data) && data.length > 0) {
       const points = data
         .filter((p: any) => p.qjdxx && p.qwdxx)
-        .map((p: any) => ({
-          lsh: p.lsh,
-          jd: p.qjdxx,
-          wd: p.qwdxx,
-          name: p.llmc || p.qlbh || '',
-        }));
-      console.log('📍 有效点位:', points.length, points);
+        .map((p: any) => ({ lsh: p.lsh, jd: p.qjdxx, wd: p.qwdxx, name: p.llmc || p.qlbh || '' }));
+      lastLoadedPoints.value = points;
       if (points.length > 0) {
         addPoints(points, '桥梁', new URL('@/assets/img/points/4个专项点位/桥梁.png', import.meta.url).href);
         setupClickHandler(handlePointClick);
-        console.log('✅ addPoints 已调用, setupClickHandler 已注册');
       }
     }
   } catch (error) {
@@ -315,7 +102,23 @@ const loadBridgePoints = async (filter?: string) => {
   }
 };
 
-// 点击卡片
+// ==================== 三维模型管理 ====================
+const bridge3d = useBridge3DModel({
+  viewer, popupData, clearPoints, closePopup, loadBridgePoints,
+  onClear: () => { selectedCardType.value = null; selectedChartType.value = null; },
+});
+
+// ==================== 点击处理 ====================
+const handlePointClick = async (point: any) => {
+  try {
+    const detail = await getBridgeDetail(point.lsh);
+    popupData.value = { ...detail, _name: detail._name || point.name };
+    popupVisible.value = true;
+  } catch (error) {
+    console.error('获取桥梁详情失败:', error);
+  }
+};
+
 const handleCardClick = async (card: any) => {
   if (selectedCardType.value === card.id) {
     selectedCardType.value = null;
@@ -327,17 +130,11 @@ const handleCardClick = async (card: any) => {
   selectedChartType.value = null;
   closePopup();
   clearPoints();
-
-  // 获取对应类型的桥梁列表
-  const jcsslx = `jcssdstj060${card.id}`;
-  const filter = cardTypeFilterMap[jcsslx] || '';
+  const filter = card.type === 'total' ? undefined : { Jcsslx: card.jcsslx };
   await loadBridgePoints(filter);
 };
 
-// ==================== 数据获取与处理 ====================
-/**
- * 获取桥梁分类统计数据
- */
+// ==================== 数据获取 ====================
 const fetchBridgeData = async () => {
   try {
     const data = await getBridgeCategoryStats() as any[];
@@ -347,17 +144,10 @@ const fetchBridgeData = async () => {
   }
 };
 
-// 获取卡片数据
 const fetchCardData = async () => {
   try {
-    // 获取字典数据
     const dictionaries = await getCachedDictionary("jcssdstjlx_ql");
-    qlTypeMap.value = dictionaries.reduce((acc, cur) => {
-      acc[cur.f_ItemValue] = cur.f_ItemName;
-      return acc;
-    }, {});
-    
-    // 获取统计数据
+    qlTypeMap.value = dictionaries.reduce((acc, cur) => { acc[cur.f_ItemValue] = cur.f_ItemName; return acc; }, {});
     const data = await getWaterOverview({ Sszx: "csaqzx_ql" }) as any[];
     processCardData(data);
   } catch (error) {
@@ -365,135 +155,69 @@ const fetchCardData = async () => {
   }
 };
 
-/**
- * 处理卡片数据
- */
 const processCardData = (data: any[]) => {
-  // 将 jcssdstj0601 排到第一个
   data = [...data].sort((a, b) => {
     if (a.jcsslx === 'jcssdstj0601') return -1;
     if (b.jcsslx === 'jcssdstj0601') return 1;
     return 0;
   });
-  // 映射数据到卡片
   statsCards.value = data.map((item, index) => ({
     id: index + 1,
-    value: item.jcsstjsl || 0, // 使用 jcsstjsl 作为数量
-    label: qlTypeMap.value[item.jcsslx] || item.jcsslx, // 使用字典映射
-    type: getTypeByCode(item.jcsslx) // 根据代码确定类型
+    value: item.jcsstjsl || 0,
+    label: qlTypeMap.value[item.jcsslx] || item.jcsslx,
+    type: getTypeByCode(item.jcsslx),
   }));
 };
 
-/**
- * 根据代码确定卡片类型
- */
 const getTypeByCode = (code: string) => {
   const typeMap: Record<string, string> = {
-    "jcssdstj0601": "total",    // 桥梁总数
-    "jcssdstj0602": "large",    // 大桥及特大桥
-    "jcssdstj0603": "overpass", // 立交桥
-    "jcssdstj0604": "culvert"   // 涵洞
+    "jcssdstj0601": "total", "jcssdstj0602": "large", "jcssdstj0603": "overpass", "jcssdstj0604": "culvert",
   };
   return typeMap[code] || "default";
 };
 
-/**
- * 处理图表数据
- */
 const processChartData = (data: any[]) => {
-  // 按分类分组数据
   const grouped = data.reduce((acc, item) => {
     const existing = acc.find((g) => g.category === item.category);
-    if (existing) {
-      existing.items.push(item);
-    } else {
-      acc.push({
-        category: item.category,
-        items: [item],
-      });
-    }
+    if (existing) { existing.items.push(item); } else { acc.push({ category: item.category, items: [item] }); }
     return acc;
   }, []);
-
-  // 生成图表配置（只取前三个分类）
   chartConfigs.value = grouped.slice(0, 3).map((group, index) => ({
     id: index,
     title: group.category,
     data: group.items,
-    legendData: group.items.map((item, dataIndex) => ({
-      name: item.type,
-      value: item.number,
-      color: getGradientColor(index, dataIndex),
+    legendData: group.items.map((item: any, dataIndex: number) => ({
+      name: item.type, value: item.number, color: getGradientColor(index, dataIndex),
     })),
   }));
 };
 
-/**
- * 按组分解图例（每行显示2个）
- */
-const groupLegends = (legends: any[]) => {
-  const groups = [];
-  for (let i = 0; i < legends.length; i += 2) {
-    groups.push(legends.slice(i, i + 2));
-  }
-  return groups;
-};
-
-// ==================== 图表配置 ====================
-/**
- * 生成圆环图 ECharts 配置项
- * 已移至 chartOption.ts 中的 createChartOption 函数
- */
-
 // ==================== 图表渲染 ====================
-
-// 图表实例缓存
 const chartInstances: Record<number, echarts.ECharts> = {};
 
-// 图例名称到筛选参数的映射
 const legendFilterMap: Record<string, string> = {
-  // 桥梁结构
-  '梁式桥': 'qljglb001',
-  '拱式桥': 'qljglb002',
-  '悬索桥': 'qljglb003',
-  '斜拉桥': 'qljglb004',
-  '刚构桥': 'qljglb005',
-  '组合体系桥': 'qljglb006',
-  // 养护等级
-  'I 等养护': 'qlyhdj001',
-  'II 等养护': 'qlyhdj002',
-  'III 等养护': 'qlyhdj003',
-  'IV 等养护': 'qlyhdj004',
-  'V 等养护': 'qlyhdj005',
-  'I 级': 'qlyhdj006',
-  'II 级': 'qlyhdj007',
-  'III 级': 'qlyhdj008',
+  '梁式桥': 'qljglb001', '拱式桥': 'qljglb002', '悬索桥': 'qljglb003', '斜拉桥': 'qljglb004',
+  '刚构桥': 'qljglb005', '组合体系桥': 'qljglb006',
+  'I 等养护': 'qlyhdj001', 'II 等养护': 'qlyhdj002', 'III 等养护': 'qlyhdj003',
+  'IV 等养护': 'qlyhdj004', 'V 等养护': 'qlyhdj005',
+  'I 级': 'qlyhdj006', 'II 级': 'qlyhdj007', 'III 级': 'qlyhdj008',
 };
 
-/**
- * 渲染圆环图表
- */
 const renderCharts = () => {
   chartConfigs.value.forEach((chart, chartIndex) => {
     const chartDom = document.getElementById(`chart-${chart.id}`);
     if (!chartDom) return;
-
     const myChart = echarts.init(chartDom);
     chartInstances[chart.id] = myChart;
-    const option = createChartOption(chart, chartIndex);
-    myChart.setOption(option);
-
-    // 监听图例点击事件
+    myChart.setOption(createChartOption(chart, chartIndex));
     myChart.on('legendselectchanged', async (params: any) => {
-      console.log('🖱️ 图例点击:', params.name);
-      // 禁用图例的默认切换行为，保持所有项显示
       myChart.dispatchAction({ type: 'legendAllSelect' });
       const filter = legendFilterMap[params.name];
       if (filter) {
         clearPoints();
         closePopup();
         selectedCardType.value = null;
-        await loadBridgePoints(filter);
+        await loadBridgePoints({ Qljg: filter });
       }
     });
   });
@@ -505,28 +229,17 @@ const $vc = useVueCesium();
 onMounted(async () => {
   const readyObj = await $vc.creatingPromise;
   await initMapPoints(readyObj.viewer);
-  console.log('📍 initMapPoints 完成, dataSource:', !!dataSource.value, 'viewer:', !!viewer.value);
 
-  // 注册清除回调（供退出三维/路由切换时调用，同步重置 UI 状态）
-  bridgeModelStore.registerClearCallback(() => {
-    clearDevicePoints(viewer.value);
-    clearPoints();
-    closePopup();
-    selectedCardType.value = null;
-    selectedChartType.value = null;
-  });
+  bridge3d.registerCallbacks();
 
-  // 获取卡片数据
   await fetchCardData();
-  // 获取桥梁分类统计数据
   await fetchBridgeData();
-  // 渲染图表
   await nextTick();
   renderCharts();
 });
 
 onBeforeUnmount(() => {
-  bridgeModelStore.unregisterClearCallback();
+  bridge3d.unregisterCallbacks();
 });
 </script>
 
@@ -535,9 +248,9 @@ onBeforeUnmount(() => {
   flex: 1;
   display: flex;
   flex-direction: column;
+  position: relative;
 }
 
-// ==================== 统计卡片 ====================
 .stats-cards-container {
   display: flex;
   gap: 30px;
@@ -580,8 +293,6 @@ onBeforeUnmount(() => {
       color: #FFFFFF;
       line-height: 42px;
       text-align: center;
-      font-style: normal;
-
     }
 
     .unit {
@@ -600,61 +311,23 @@ onBeforeUnmount(() => {
       font-size: var(--font-size-subtitle);
       color: #EFFAFF;
       line-height: 35px;
-      text-align: center;
-      font-style: normal;
     }
 
     &.total {
       width: 191.5px;
       height: 120px;
       background-image: url("@/assets/img/bridgeModule/total_bridges.webp");
-
-      .card-value {
-        font-size: var(--font-size-title);
-        line-height: 52px;
-        background: linear-gradient(180deg, #FFFFFF 0%, #10ADC0 100%);
-      }
-
-      .unit {
-        font-size: var(--font-size-heading);
-        line-height: 26px;
-      }
-      .card-label {
-        font-size: var(--font-size-title);
-        font-weight: var(--font-weight-bold);
-        line-height: 42px;
-        background: linear-gradient(180deg, #FFFFFF 0%, #10ADC0 100%);
-      }
+      .card-value { font-size: var(--font-size-title); line-height: 52px; background: linear-gradient(180deg, #FFFFFF 0%, #10ADC0 100%); }
+      .unit { font-size: var(--font-size-heading); line-height: 26px; }
+      .card-label { font-size: var(--font-size-title); font-weight: var(--font-weight-bold); line-height: 42px; background: linear-gradient(180deg, #FFFFFF 0%, #10ADC0 100%); }
     }
 
-
-    &.large {
-      background-image: url("@/assets/img/bridgeModule/large_bridges.webp");
-
-      .card-value {
-        background: linear-gradient(90deg, #FFFFFF 0%, #FEC854 100%);
-      }
-    }
-
-    &.overpass {
-      background-image: url("@/assets/img/bridgeModule/interchanges.webp");
-
-      .card-value {
-        background: linear-gradient(90deg, #FFFFFF 0%, #1475D1 100%);
-      }
-    }
-
-    &.culvert {
-      background-image: url("@/assets/img/bridgeModule/culverts.webp");
-
-      .card-value {
-        background: linear-gradient(90deg, #FFFFFF 0%, #1475D1 100%);
-      }
-    }
+    &.large { background-image: url("@/assets/img/bridgeModule/large_bridges.webp"); .card-value { background: linear-gradient(90deg, #FFFFFF 0%, #FEC854 100%); } }
+    &.overpass { background-image: url("@/assets/img/bridgeModule/interchanges.webp"); .card-value { background: linear-gradient(90deg, #FFFFFF 0%, #1475D1 100%); } }
+    &.culvert { background-image: url("@/assets/img/bridgeModule/culverts.webp"); .card-value { background: linear-gradient(90deg, #FFFFFF 0%, #1475D1 100%); } }
   }
 }
 
-// ==================== 圆环图表 ====================
 .charts-container {
   flex: 1;
   display: flex;
@@ -676,42 +349,6 @@ onBeforeUnmount(() => {
   align-items: center;
   width: 100%;
   height: 33.3%;
-  .chart-echart {
-    width: 100%;
-    height: 100%;
-  }
+  .chart-echart { width: 100%; height: 100%; }
 }
-
-// 暂时注释的 DOM 图例样式
-// .chart-legend {
-//   display: flex;
-//   flex-direction: column;
-//   gap: 8px;
-//   padding: 10px 0;
-// }
-
-// .legend-group {
-//   display: flex;
-//   gap: 20px;
-//   justify-content: flex-start;
-// }
-
-// .legend-item {
-//   display: flex;
-//   align-items: center;
-//   gap: 8px;
-//   font-size: var(--font-size-mini);
-//   color: #a0bfc9;
-
-//   .legend-color {
-//     width: 8px;
-//     height: 8px;
-//     border-radius: 2px;
-//     flex-shrink: 0;
-//   }
-
-//   .legend-text {
-//     white-space: nowrap;
-//   }
-// }
 </style>

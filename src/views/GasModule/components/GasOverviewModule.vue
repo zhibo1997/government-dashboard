@@ -76,7 +76,7 @@ const {
   },
   mvtLayerMap: {
     '燃气管线': { id: 'c01a6292-e654-409f-a127-95a1f2011f30' },
-    '燃气井盖': { id: 'a0a68eaf-a734-4bbf-a3da-766e31bf9eae' },
+    '燃气井盖': { id: '5e76d4d2-1c48-4b6d-bbd2-a488938dd695' },
   },
   iconUrlMap: {
     '燃气企业': pointIcon('燃气企业'),

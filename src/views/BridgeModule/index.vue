@@ -8,8 +8,8 @@
     <!-- 左侧数据展示区 -->
     <LeftContent />
     
-    <!-- 中间侧边栏 -->
-    <SidebarModule />
+    <!-- 中间侧边栏（暂不启用） -->
+    <!-- <SidebarModule /> -->
 
     <!-- 右侧数据展示区 -->
     <RightContent />
@@ -24,7 +24,7 @@
 <script setup lang="ts">
 import LeftContent from './leftContent.vue'
 import RightContent from './rightContent.vue'
-import SidebarModule from './sidebarModule.vue'
+// import SidebarModule from './sidebarModule.vue'
 import { onBeforeMount, ref } from 'vue'
 import { getCachedDictionaries } from '@/services/dictionaryService'
 

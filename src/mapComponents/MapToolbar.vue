@@ -25,6 +25,13 @@
       </div>
     </div>
 
+    <!-- 复位桥梁视角 -->
+    <div v-if="props.sceneMode === 3 && bridgeModelStore.loadedTilesets.length > 0" class="toolbar-item" @click="resetBridgeView" title="复位桥梁视角">
+      <div class="tool-icon">
+        <img src="@/assets/map/reset_map.webp" alt="" />
+      </div>
+    </div>
+
     <!-- 收缩按钮 -->
     <div class="toolbar-item" @click="toggleCollapse" title="收缩/展开">
       <div class="tool-icon">
@@ -588,6 +595,16 @@ const toggleViewMode = () => {
   console.log(`✅ 请求切换视图模式: ${newMode === 2 ? '2D' : '3D'}`)
 }
 
+// 复位到当前桥梁模型视角
+const resetBridgeView = () => {
+  if (!props.viewerInstance) return
+  const tilesets = bridgeModelStore.loadedTilesets
+  if (tilesets.length > 0) {
+    // 第一个 tileset 是桥梁模型
+    props.viewerInstance.zoomTo(tilesets[0])
+  }
+}
+
 // 退出三维模式：卸载模型 + 切回2D + 收缩地图（显示侧边栏）+ 复位全域
 const exit3DMode = () => {
   unloadAll()
@@ -597,7 +614,8 @@ const exit3DMode = () => {
     isMapExpanded.value = false
     emit('toggle-map-expand')
   }
-  emit('reset-map')
+  // 重新加载全部桥梁散点
+  bridgeModelStore.reloadScatter()
   console.log('✅ 已退出三维模式')
 }
 

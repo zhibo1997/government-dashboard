@@ -77,3 +77,22 @@ export async function getBridgeDetail(lsh: string) {
   const res = await get<any>(`/bridgebscinfo/${lsh}`)
   return res.data || {}
 }
+
+/**
+ * 获取桥梁类型数量统计
+ */
+export async function getBridgeTypeCount() {
+  const res = await get<any>('/gspspDtransBridge/bridgebscinfo/qllx/count', defaultParams)
+  return res.data || []
+}
+
+/**
+ * 获取桥梁点位列表（坐标）
+ * @param qllx 桥梁类型筛选（可选）
+ */
+export async function getBridgeCoordinateList(qllx?: string) {
+  const params: any = { ...defaultParams }
+  if (qllx) params.qllx = qllx
+  const res = await get<any>('/gspspDtransBridge/bridgebscinfo/coordinate/list', params)
+  return res.data || []
+}

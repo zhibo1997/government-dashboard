@@ -9,6 +9,9 @@ export const useBridgeModelStore = defineStore('bridgeModel', () => {
   /** 清除设备点位的回调（由 OverviewModule 注册） */
   let clearDevicePointsCallback: (() => void) | null = null
 
+  /** 退出三维后重新加载散点的回调 */
+  let reloadScatterCallback: (() => void) | null = null
+
   /** 已加载的 tileset 引用（由 OverviewModule 注册，退出时移除） */
   const loadedTilesets = ref<any[]>([])
 
@@ -31,6 +34,11 @@ export const useBridgeModelStore = defineStore('bridgeModel', () => {
       } catch { /* ignore */ }
     }
     loadedTilesets.value = []
+    // 清除设备点位 DOM 容器
+    const dotContainer = viewerRef.container?.querySelector('#bridgeDeviceDots')
+    if (dotContainer?.parentNode) {
+      dotContainer.parentNode.removeChild(dotContainer)
+    }
     viewerRef?.scene?.requestRender()
   }
 
@@ -44,6 +52,18 @@ export const useBridgeModelStore = defineStore('bridgeModel', () => {
 
   function clearDevicePoints() {
     clearDevicePointsCallback?.()
+  }
+
+  function registerReloadScatter(cb: () => void) {
+    reloadScatterCallback = cb
+  }
+
+  function unregisterReloadScatter() {
+    reloadScatterCallback = null
+  }
+
+  function reloadScatter() {
+    reloadScatterCallback?.()
   }
 
   /** 退出三维时一键清除所有 */
@@ -60,6 +80,9 @@ export const useBridgeModelStore = defineStore('bridgeModel', () => {
     registerClearCallback,
     unregisterClearCallback,
     clearDevicePoints,
+    registerReloadScatter,
+    unregisterReloadScatter,
+    reloadScatter,
     clearAll,
   }
 })

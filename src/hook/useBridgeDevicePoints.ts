@@ -50,6 +50,7 @@ export function useBridgeDevicePoints() {
   let postRenderListener: any = null
   let dotContainer: HTMLDivElement | null = null
   let viewRecords: ViewRecord[] = []
+  let activeTileset: any = null // 当前高亮的 tileset
 
   /** 加载视角数据 */
   async function loadViewRecords(): Promise<void> {
@@ -247,7 +248,39 @@ export function useBridgeDevicePoints() {
     }
   }
 
+  /**
+   * 高亮 3D Tileset 中的指定要素
+   */
+  function highlightFeature(tileset: any, featureName: string) {
+    const Cesium = (window as any).Cesium
+    if (!Cesium || !tileset) return
+
+    resetHighlight()
+    tileset.style = new Cesium.Cesium3DTileStyle({
+      color: {
+        conditions: [
+          [`\${name} === '${featureName}'`, "color('#00BFFF', 1.0)"],
+          ['true', "color('white', 1.0)"],
+        ],
+      },
+    })
+    activeTileset = tileset
+  }
+
+  /**
+   * 重置高亮
+   */
+  function resetHighlight() {
+    const Cesium = (window as any).Cesium
+    if (!Cesium || !activeTileset) return
+    activeTileset.style = new Cesium.Cesium3DTileStyle({
+      color: "color('white', 1.0)",
+    })
+    activeTileset = null
+  }
+
   function clearAll(viewer?: any) {
+    resetHighlight()
     if (dotContainer && dotContainer.parentNode) {
       dotContainer.parentNode.removeChild(dotContainer)
     }
@@ -263,6 +296,8 @@ export function useBridgeDevicePoints() {
     loadScenetree,
     addDevicePoints,
     flyToDevice,
+    highlightFeature,
+    resetHighlight,
     clearAll,
   }
 }

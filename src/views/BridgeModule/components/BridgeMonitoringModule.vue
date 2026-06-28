@@ -2,6 +2,9 @@
   <div class="data-module bridge-monitoring-module">
     <div class="module-header">
       <div class="module-title">桥梁监控</div>
+      <div class="module-actions">
+        <button class="show-all-btn" :class="{ active: showAllActive }" @click="handleShowAll">显示全部</button>
+      </div>
     </div>
     <div class="module-content">
       <!-- 顶部统计卡片 -->
@@ -14,8 +17,6 @@
             <div class="stat-label">监控设备总数</div>
             <div class="stat-value">
               <span class="value-total gradient-text">{{ countData.totalCount }}</span>
-              <!-- <span class="value-separator">/</span>
-              <span class="value-offline gradient-text">{{ countData.onlineCount }}</span> -->
             </div>
           </div>
         </div>
@@ -48,7 +49,7 @@
           next-slide-style="transform: translateX(50%) translateZ(-800px) translateY(-20px);"
         >
           <n-carousel-item v-for="(item, index) in bridgeCarouselList" :key="index" :style="{ width: '65%' }">
-            <div class="carousel-item">
+            <div class="carousel-item" :class="{ active: selectedBridge === item.name }" @click="handleBridgeClick(item)">
               <img class="carousel-image" :src="getImagePath(item.filename)" alt="bridge" />
               <span class="carousel-label">{{ item.name }}</span>
             </div>
@@ -57,13 +58,31 @@
       </div>
     </div>
   </div>
+
+  <!-- 视频播放弹窗 -->
+  <VideoPopup
+    v-model:visible="showVideoPopup"
+    :video-url="currentVideoUrl"
+    :camera-name="currentCameraName"
+  />
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from "vue";
+import { ref, onMounted, onBeforeUnmount } from "vue";
+import { useVueCesium } from "vue-cesium";
 import { NCarousel, NCarouselItem } from "naive-ui";
-import { getSurveillanceVideoCount, type SurveillanceVideoCountResult } from "@/services/surveillanceVideoService";
+import { getSurveillanceVideoCount, getSurveillanceVideoPage, getSurveillanceVideoDetail, type SurveillanceVideoCountResult } from "@/services/surveillanceVideoService";
+import { getCameraPreviewUrl } from "@/services/hikvisionService";
 import { DEFAULT_COMMON_PARAMS } from "@/services/config";
+import { useGasOverviewPoints } from "@/hook/useGasOverviewPoints";
+import VideoPopup from "@/views/BridgeModule/components/map/VideoPopup.vue";
+
+const { init: initMapPoints, addPoints, clearPoints, setupClickHandler } = useGasOverviewPoints();
+
+// 视频弹窗状态
+const showVideoPopup = ref(false);
+const currentVideoUrl = ref('');
+const currentCameraName = ref('');
 
 const countData = ref<SurveillanceVideoCountResult>({
   totalCount: 0,
@@ -71,6 +90,97 @@ const countData = ref<SurveillanceVideoCountResult>({
   onlineRate: '0%',
 });
 
+// 状态
+const showAllActive = ref(false);
+const selectedBridge = ref<string | null>(null);
+
+// 监控图标
+const cameraIconUrl = new URL('@/assets/img/points/jk_icon.png', import.meta.url).href;
+
+// 显示全部监控散点
+const handleShowAll = async () => {
+  if (showAllActive.value) {
+    showAllActive.value = false;
+    selectedBridge.value = null;
+    clearPoints();
+    return;
+  }
+  showAllActive.value = true;
+  selectedBridge.value = null;
+  await loadCameraPoints();
+};
+
+// 点击轮播图桥梁 → 显示该桥梁的监控散点
+const handleBridgeClick = async (item: BridgeItem) => {
+  if (selectedBridge.value === item.name) {
+    selectedBridge.value = null;
+    showAllActive.value = false;
+    clearPoints();
+    return;
+  }
+  selectedBridge.value = item.name;
+  showAllActive.value = false;
+  await loadCameraPoints(item.name);
+};
+
+// 加载监控散点
+const loadCameraPoints = async (bridgeName?: string) => {
+  try {
+    const params: any = {
+      page: '1',
+      rows: '1000',
+      sszx: 'csaqzx_ql',
+    };
+    if (bridgeName) {
+      params.spszwz = bridgeName;
+    }
+    const res = await getSurveillanceVideoPage(params);
+    const cameras = res?.rows || [];
+
+    const points = cameras
+      .filter((c: any) => c.spdwjd && c.spdwwd)
+      .map((c: any) => ({
+        lsh: c.lsh,
+        jd: c.spdwjd,
+        wd: c.spdwwd,
+        name: c.spmc || c.spbh || '',
+      }));
+
+    if (points.length > 0) {
+      // 512×939 比例，宽度 32，高度 ≈ 59
+      addPoints(points, bridgeName || '全部监控', cameraIconUrl, undefined, 32, 59);
+      setupClickHandler(handleCameraClick);
+    } else {
+      clearPoints();
+    }
+  } catch (e) {
+    console.error('获取监控列表失败:', e);
+  }
+};
+
+// 点击监控散点 → 通过 lsh 获取详情 → 播放视频
+const handleCameraClick = async (point: any) => {
+  try {
+    const detail = await getSurveillanceVideoDetail(point.lsh);
+    if (detail?.spbh) {
+      const preview = await getCameraPreviewUrl({
+        cameraIndexCode: detail.spbh,
+        streamType: 1,
+        protocol: 'wss',
+      });
+      const videoUrl = preview?.url || preview?.data?.url;
+      if (videoUrl) {
+        currentVideoUrl.value = videoUrl;
+        currentCameraName.value = detail.spmc || point.name;
+        showVideoPopup.value = true;
+      }
+    }
+  } catch (e) {
+    console.error('获取监控视频失败:', e);
+  }
+};
+
+// 获取统计数据
 async function fetchCount() {
   try {
     const res = await getSurveillanceVideoCount({
@@ -85,8 +195,15 @@ async function fetchCount() {
   }
 }
 
-onMounted(() => {
+onMounted(async () => {
+  const $vc = useVueCesium();
+  const readyObj = await $vc.creatingPromise;
+  await initMapPoints(readyObj.viewer);
   fetchCount();
+});
+
+onBeforeUnmount(() => {
+  clearPoints();
 });
 
 interface BridgeItem {
@@ -132,6 +249,36 @@ defineOptions({
 <style lang="scss" scoped>
 .bridge-monitoring-module {
   flex: 1;
+}
+
+.module-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-right: 16px;
+
+  .show-all-btn {
+    padding: 4px 16px;
+    border-radius: 4px;
+    font-family: SourceHanSansSC, SourceHanSansSC;
+    font-size: var(--font-size-caption);
+    color: #7fd3f2;
+    background: rgba(0, 60, 80, 0.4);
+    border: 1px solid rgba(13, 165, 190, 0.4);
+    cursor: pointer;
+    transition: all 0.2s;
+
+    &:hover {
+      background: rgba(13, 165, 190, 0.2);
+      border-color: rgba(13, 165, 190, 0.6);
+    }
+
+    &.active {
+      background: rgba(13, 165, 190, 0.3);
+      border-color: #0da5be;
+      color: #ffffff;
+    }
+  }
 }
 
 // 顶部统计卡片
@@ -195,18 +342,6 @@ defineOptions({
           background: linear-gradient(90deg, #ffffff 0%, #1677ff 100%);
         }
 
-        .value-separator {
-          color: #fff;
-        }
-
-        .value-online {
-          background: linear-gradient(90deg, #fffeed 0%, #cdab06 100%);
-        }
-
-        .value-offline {
-          background: linear-gradient(90deg, #ffe9da 0%, #ce5a0d 100%);
-        }
-
         .value-rate {
           background: linear-gradient(0deg, #3ffefd 0%, #fff407 100%);
         }
@@ -237,6 +372,7 @@ defineOptions({
   flex-direction: column;
   align-items: center;
   gap: 6px;
+  cursor: pointer;
 
   .carousel-image {
     width: 100%;
@@ -267,9 +403,18 @@ defineOptions({
     text-overflow: ellipsis;
     white-space: nowrap;
   }
+
+  &.active .carousel-image {
+    border-color: rgba(0, 212, 212, 0.8);
+    box-shadow: 0 0 24px rgba(0, 212, 212, 0.5);
+  }
+
+  &.active .carousel-label {
+    color: #FFFFFF;
+    font-weight: bold;
+  }
 }
 
-// Naive UI card effect - 中间活跃项样式
 :deep(.n-carousel__slide-item--current) {
   .carousel-item .carousel-image {
     border-color: rgba(0, 212, 212, 0.6);

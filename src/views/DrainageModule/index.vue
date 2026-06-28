@@ -11,8 +11,8 @@
     <!-- 左侧数据展示区 -->
     <LeftNav />
 
-    <!-- 中间侧边栏（易涝点） -->
-    <SidebarModule />
+    <!-- 中间侧边栏（易涝点，暂不启用） -->
+    <!-- <SidebarModule /> -->
 
     <!-- 右侧数据展示区 -->
     <RightNav />
@@ -29,7 +29,7 @@ import { onBeforeMount, ref, provide } from 'vue'
 // 引入左右内容组件
 import LeftNav from './leftContent.vue'
 import RightNav from '../WaterSupply/RightContent.vue'
-import SidebarModule from './sidebarModule.vue'
+// import SidebarModule from './sidebarModule.vue'
 // 引入字典缓存服务
 import { getCachedDictionaries } from '@/services/dictionaryService'
 
