@@ -79,6 +79,13 @@ export function useBridge3DModel(options: {
     if (!qlbh) return
     activeBridgeQlbh.value = qlbh
 
+    // 先收侧边栏（立即生效，不等模型加载）
+    clearPoints()
+    closePopup()
+    if (mapRef?.value && !mapRef.value.isMapExpanded) {
+      mapRef.value.toggleMapExpand()
+    }
+
     // 清除旧的
     resetHighlight()
     bridgeModelStore.removeAllTilesets()
@@ -164,17 +171,12 @@ export function useBridge3DModel(options: {
       console.error('❌ 桥梁模型加载失败:', e)
     }
 
-    clearPoints()
-    closePopup()
-
-    if (mapRef?.value && !mapRef.value.isMapExpanded) {
-      mapRef.value.toggleMapExpand()
-    }
   }
 
   /** 监控设备点击 → 获取视频 */
   async function handleMonitorClick(sbbh: string) {
-    const ipMatch = sbbh.match(/^(\d+\.\d+\.\d+\.\d+)-\d+$/)
+    // 兼容两种格式：10.92.8.157-1 或 10.92.8.230
+    const ipMatch = sbbh.match(/^(\d+\.\d+\.\d+\.\d+)(?:-\d+)?$/)
     if (!ipMatch) return
     const ip = ipMatch[1]
     try {

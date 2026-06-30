@@ -35,11 +35,18 @@
     :title="popupTitle"
     :display-fields="popupDisplayFields"
     @close="closePopup"
-  />
+  >
+    <template #actions>
+      <button class="action-btn btn-camera" @click="handleShowCamera">监控设备</button>
+    </template>
+  </PointPopup>
+
+  <!-- 监控视频播放 -->
+  <VideoPopup v-model:visible="videoPlayer.visible.value" :video-url="videoPlayer.videoUrl.value" :camera-name="videoPlayer.cameraName.value" />
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from "vue";
+import { ref, computed, onMounted, watchEffect } from "vue";
 import { useVueCesium } from "vue-cesium";
 import {
   getDrainageStats,
@@ -50,13 +57,28 @@ import {
   getDrainRiverDetail,
   getSewageTreatmentPlantDetail,
 } from "@/services/waterSupplyService";
+import { getSurveillanceVideoPage, getSurveillanceVideoDetail } from "@/services/surveillanceVideoService";
 import { useInfrastructureModule } from "@/hook/useInfrastructureModule";
+import { useVideoPlayer } from "@/hook/useVideoPlayer";
 import { useMapStore } from "@/stores/mapStore";
 import { mapToLabelValue } from '@/config/fieldLabelConfig';
+import { getCachedDictionary } from '@/services/dictionaryService';
 import PointPopup from "@/components/PointPopup.vue";
+import VideoPopup from "@/views/BridgeModule/components/map/VideoPopup.vue";
 
 // 响应式数据
 const overviewData = ref<any[]>([]);
+
+// 字典映射（易积水点详情用）
+const dictMap = ref<Record<string, { value: string; label: string }[]>>({})
+
+watchEffect(async () => {
+  if (!popupVisible.value) return
+  const zgztDict = await getCachedDictionary('zgzt')
+  dictMap.value = {
+    zgzt: zgztDict.map((item: any) => ({ value: item.f_ItemValue, label: item.f_ItemName })),
+  }
+})
 
 // 弹窗标题 & 字段
 const popupTitle = computed(() => {
@@ -67,8 +89,37 @@ const popupTitle = computed(() => {
 
 const popupDisplayFields = computed(() => {
   if (!popupData.value) return []
-  return mapToLabelValue(popupData.value) as { label: string; value: string | number | null }[]
+  return mapToLabelValue(popupData.value, [], dictMap.value) as { label: string; value: string | number | null }[]
 })
+
+// 视频播放
+const videoPlayer = useVideoPlayer()
+
+// 监控设备：查询排水专项监控视频
+const handleShowCamera = async () => {
+  const jsdmc = popupData.value?.jsdmc
+  if (!jsdmc) return
+  closePopup()
+
+  try {
+    const res = await getSurveillanceVideoPage({
+      page: '1',
+      rows: '1000',
+      spszwz: jsdmc,
+      sszx: 'csaqzx_ps',
+    })
+    const cameras = res?.rows || []
+    if (cameras.length > 0) {
+      // 直接播放第一个监控视频
+      const detail = await getSurveillanceVideoDetail(cameras[0].lsh)
+      if (detail?.spbh) {
+        await videoPlayer.play(detail.spbh, detail.spmc || jsdmc)
+      }
+    }
+  } catch (e) {
+    console.error('获取监控视频失败:', e)
+  }
+}
 
 const mapStore = useMapStore();
 

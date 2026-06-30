@@ -9,7 +9,7 @@
         <div class="stat-card">
           <div class="stat-icon">
             <img
-              src="@/assets/img/device_count.webp"
+              src="@/assets/img/monitoring_equipment.webp"
               alt="监测设备"
             />
           </div>
@@ -66,6 +66,7 @@ import { ref, onMounted, computed } from "vue";
 import CommonTable from '@/components/CommonTable.vue';
 import EquipmentPointPopup from '@/components/EquipmentPointPopup.vue';
 import { useMonitoringDeviceScatter } from "@/hook/useMonitoringDeviceScatter";
+import { getCachedDictionaries, getCachedDictionary } from "@/services/dictionaryService";
 
 const { activeDeviceType, popupVisible, popupData, init: initScatter, toggleDevicePoints, closePopup } = useMonitoringDeviceScatter();
 
@@ -104,10 +105,27 @@ const fetchSpecialRate = async () => {
   }
 };
 
+// TODO: 后端返回的 sblxmc 名称不准确，前端临时用 jcsblx_rq 字典做映射修正，后续后端修正后移除
 // 获取设备状态列表
 const initDeviceStatus = async () => {
   try {
-    deviceList.value = await getDeviceStatusList('csaqzx_rq,csaqzx_rqzdyh,csaqzx_pzyhq');
+    const list = await getDeviceStatusList('csaqzx_rq,csaqzx_rqzdyh,csaqzx_pzyhq');
+    // 用 jcsblx_rq 字典映射设备名称
+    try {
+      const dict = await getCachedDictionary('jcsblx_rq');
+      if (Array.isArray(dict)) {
+        const dictMap: Record<string, string> = {};
+        dict.forEach((d: any) => { dictMap[d.f_ItemValue] = d.f_ItemName; });
+        list.forEach((item: any) => {
+          if (item.sblx && dictMap[item.sblx]) {
+            item.sblxmc = dictMap[item.sblx];
+          }
+        });
+      }
+    } catch (e) {
+      console.warn('jcsblx_rq 字典映射失败，使用原始名称:', e);
+    }
+    deviceList.value = list;
   } catch (error) {
     console.error("获取设备状态列表失败:", error);
   }

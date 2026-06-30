@@ -94,6 +94,20 @@ export const FIELD_LABEL_MAP: Record<string, string> = {
   clgm: '处理规模',
   gldwmc: '管理单位名称',
 
+  // ========== 排水易积水点 ==========
+  jsdbh: '积水点编号',
+  jsdmc: '积水点名称',
+  jssd: '积水深度',
+  zdjsmj: '最大积水面积(㎡)',
+  jsyy: '积水原因',
+  fzrlxfs: '负责人联系方式',
+  jsdcssj: '积水点产生时间',
+  zgzt: '整改状态',
+  zgsj: '整改时间',
+  zgcs: '整改措施',
+  szdl: '所在道路',
+  zcjssj: '最初积水时间',
+
   // ========== 排水河道 ==========
   hlbh: '河流编号',
   hlmc: '河流名称',

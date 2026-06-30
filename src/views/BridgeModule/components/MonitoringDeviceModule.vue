@@ -8,7 +8,7 @@
       <div class="top-stats">
         <div class="stat-card">
           <div class="stat-icon">
-            <img src="@/assets/img/device_count.webp" alt="监测设备" />
+            <img src="@/assets/img/monitoring_equipment.webp" alt="监测设备" />
           </div>
           <div class="stat-info">
             <div class="stat-label">监测设备</div>

@@ -130,6 +130,12 @@ export function useMapHooks() {
 
       console.log(`开始加载3D Tiles: ${url}`);
 
+      // 检查 viewer 和 scene 是否就绪
+      if (!viewer || !viewer.scene || !viewer.scene.primitives) {
+        console.warn('⚠️ Viewer 或 Scene 未就绪，跳过加载 3D Tiles');
+        return null;
+      }
+
       // 使用构造函数方式创建3D Tileset（修复fromUrl不是函数的问题）
       const tileset = new Cesium.Cesium3DTileset({
         url,
@@ -548,21 +554,32 @@ export function useMapHooks() {
     return restrictCameraBounds(viewer, bounds, options);
   }
 
+  /** 清除所有已加载的 MVT 图层 */
+  function clearAllMvtLayers() {
+    loadedLayers.value.forEach((layer) => {
+      if (layer.type === 'mvt' && layer.instance) {
+        layer.instance.show = false
+      }
+    })
+    loadedLayers.value.clear()
+  }
+
   return {
     // 图层加载相关
     loadMVTLayer,
     load3DTiles,
-    
+
     // 3D Tiles控制相关
     set3DTilesVisibility,
     set3DTilesStyle,
     remove3DTiles,
-    
+
     // 图层管理相关
     getLoadedLayers,
     setLoadedLayer,
     getLoadedLayer,
-    
+    clearAllMvtLayers,
+
     // 相机控制相关
     restrictCameraBounds,
     restrictCameraBoundsByGeoJSON

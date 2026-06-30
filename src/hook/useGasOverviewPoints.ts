@@ -227,6 +227,7 @@ export function useGasOverviewPoints() {
               width: iconWidth, height: iconHeight,
               horizontalOrigin: Cesium.HorizontalOrigin.CENTER,
               verticalOrigin: Cesium.VerticalOrigin.CENTER,
+              disableDepthTestDistance: Number.POSITIVE_INFINITY,
             },
             description: desc,
           })

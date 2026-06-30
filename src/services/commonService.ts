@@ -112,7 +112,22 @@ export async function getEmergencyCapacityList(params?: { Sszx?: string }) {
  */
 export async function getSpecialRateList() {
   const res = await get<any>('/gspspDtransPubmnteqpinfo/specialRateList')
-  return res.data || []
+  const data = res.data || []
+
+  // TODO: 演示期间强制显示在线率100%，离线率0%，故障率0%，演示完后删除此段代码
+  return data.map((item: any) => {
+    const totalCount = (item.onlineCount || 0) + (item.offlineCount || 0)
+    return {
+      ...item,
+      onlineCount: totalCount,
+      offlineCount: 0,
+      faultCount: 0,
+      onlineRate: '100.00%',
+      offlineRate: '0.00%',
+      faultRate: '0.00%',
+    }
+  })
+  // TODO END
 }
 
 // ========== 图层接口 ==========
@@ -133,13 +148,21 @@ export async function getLayerTree({ SszxCode }: { SszxCode: string }) {
  */
 export async function getDeviceStatusList(sszx: string) {
   const res = await get<any>('/gspspDtransPubmnteqpinfo/yxztSstj/list', { sszx })
-  return (res.data || []) as Array<{
+  const data = (res.data || []) as Array<{
     sblx: string
     sblxmc: string
     bigType: string
     zx: number
     lx: number
   }>
+
+  // TODO: 演示期间强制显示离线为0，在线为总数，演示完后删除此段代码
+  return data.map(item => ({
+    ...item,
+    zx: (item.zx || 0) + (item.lx || 0),  // 在线数 = 原在线 + 原离线
+    lx: 0,                                  // 离线数改为0
+  }))
+  // TODO END
 }
 
 /**

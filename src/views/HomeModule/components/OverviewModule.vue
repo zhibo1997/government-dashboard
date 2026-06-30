@@ -29,102 +29,27 @@
 <script setup lang="ts">
 import { ref, onMounted } from "vue";
 import { useRouter } from "vue-router";
-import { getBasicFacilitiesOverview } from "@/services/statusService";
+import { getGasStats } from "@/services/gasService";
+import { getBridgeTypeCount } from "@/services/bridgeService";
+import { getWaterSupplyStats, getDrainageStats } from "@/services/waterSupplyService";
 import GasIcon from "@/assets/img/homeModule/gas_icon.webp";
 import WaterIcon from "@/assets/img/homeModule/water_icon.webp";
 import DrainageIcon from "@/assets/img/homeModule/drainage_icon.webp";
 import BridgeIcon from "@/assets/img/homeModule/bridge_icon.webp";
 
-// 根据设计图要求的固定数据结构
-const designData = {
-  "燃气": [
-    {
-      "f_ItemName": "天然气运营企业",
-      "f_ItemValue": "jcssdstj0103",
-      "f_Description": "个"
-    },
-    {
-      "f_ItemName": "天然气场站",
-      "f_ItemValue": "jcssdstj0102",
-      "f_Description": "个"
-    },
-    {
-      "f_ItemName": "液化气运营企业",
-      "f_ItemValue": "jcssdstj0302",
-      "f_Description": "个"
-    },
-    {
-      "f_ItemName": "天然气管网",
-      "f_ItemValue": "jcssdstj0101",
-      "f_Description": "km"
-    }
-  ],
-  "供水": [
-    {
-      "f_ItemName": "水厂",
-      "f_ItemValue": "jcssdstj0504",
-      "f_Description": "个"
-    },
-    {
-      "f_ItemName": "供水管网",
-      "f_ItemValue": "jcssdstj0501",
-      "f_Description": "km"
-    },
-    {
-      "f_ItemName": "水源地",
-      "f_ItemValue": "jcssdstj0503",
-      "f_Description": "个"
-    },
-    {
-      "f_ItemName": "供水大用户",
-      "f_ItemValue": "jcssdstj0506",
-      "f_Description": "户"
-    }
-  ],
-  "排水": [
-    {
-      "f_ItemName": "污水厂",
-      "f_ItemValue": "jcssdstj0405",
-      "f_Description": "个"
-    },
-    {
-      "f_ItemName": "排水管网",
-      "f_ItemValue": "jcssdstj0401",
-      "f_Description": "km"
-    },
-    {
-      "f_ItemName": "排水泵站",
-      "f_ItemValue": "jcssdstj0406",
-      "f_Description": "个"
-    },
-    {
-      "f_ItemName": "易积水点",
-      "f_ItemValue": "jcssdstj0407",
-      "f_Description": "个"
-    }
-  ],
-  "桥梁": [
-    {
-      "f_ItemName": "桥梁",
-      "f_ItemValue": "jcssdstj0601",
-      "f_Description": "座"
-    },
-    {
-      "f_ItemName": "大桥及特大桥",
-      "f_ItemValue": "jcssdstj0602",
-      "f_Description": "座"
-    },
-    {
-      "f_ItemName": "立交桥",
-      "f_ItemValue": "jcssdstj0603",
-      "f_Description": "座"
-    },
-    {
-      "f_ItemName": "涵洞",
-      "f_ItemValue": "jcssdstj0604",
-      "f_Description": "个"
-    }
-  ]
+// 各专项对应的数据获取函数
+const categoryFetchers: Record<string, () => Promise<any[]>> = {
+  "燃气": getGasStats,
+  "桥梁": async () => {
+    const data = await getBridgeTypeCount();
+    return Array.isArray(data) ? data.map((d: any) => ({
+      name: d.name,
+      count: d.count,
+      unit: '座',
+    })) : [];
+  },
+  "供水": getWaterSupplyStats,
+  "排水": getDrainageStats,
 };
 
 // sszx 到 icon 和 title 的映射关系（专项编号）
@@ -168,78 +93,44 @@ const handleCategoryClick = (sszx: string) => {
 const overviewData = ref<OverviewCategory[]>([])
 
 
-// 初始化数据 - 根据设计图要求使用固定数据结构
+// 初始化数据 - 从各专项接口获取
 const initOverviewData = async () => {
   try {
-    // 1. 获取后端数据
-    const responseData = await getBasicFacilitiesOverview();
-    const data = Array.isArray(responseData) ? responseData : [];
+    // 1. 并行请求四个专项接口
+    const [gasData, bridgeData, waterData, drainageData] = await Promise.all([
+      getGasStats().catch(() => []),
+      categoryFetchers["桥梁"]().catch(() => []),
+      getWaterSupplyStats().catch(() => []),
+      getDrainageStats().catch(() => []),
+    ]);
 
-    // 2. 建立 jcsslx -> 实际数据 的映射
-    const dataMap = new Map();
-    data.forEach((item: any) => {
-      dataMap.set(item.jcsslx, item.jcsstjsl || 0);
-    });
+    // 2. 按专项构建数据
+    const rawData: Record<string, any[]> = {
+      "燃气": Array.isArray(gasData) ? gasData : [],
+      "桥梁": Array.isArray(bridgeData) ? bridgeData : [],
+      "供水": Array.isArray(waterData) ? waterData : [],
+      "排水": Array.isArray(drainageData) ? drainageData : [],
+    };
 
-    // 3. 构建最终的 overviewData 数组 - 按照设计图要求的固定结构
+    // 3. 构建最终数据
     const categories: OverviewCategory[] = [];
-    
-    // 遍历设计图定义的数据结构
-    Object.entries(designData).forEach(([categoryTitle, items]) => {
-      // 找到对应的 sszx
-      const sszxEntry = Object.entries(sszxMapping).find(([_, mapping]) => mapping.title === categoryTitle);
-      if (!sszxEntry) return;
-      
-      const [sszx, mapping] = sszxEntry;
-      
-      // 转换设计图数据为组件需要的格式
-      const convertedItems: OverviewItem[] = items.map(item => ({
-        lsh: item.f_ItemValue, // 使用 f_ItemValue 作为唯一标识
-        jcsslx: item.f_ItemValue,
-        sszx: sszx,
-        name: item.f_ItemName,
-        unit: item.f_Description,
-        jcsstjsl: dataMap.get(item.f_ItemValue) || 0 // 从后端数据获取实际值，如果没有则为0
+    Object.entries(sszxMapping).forEach(([sszx, mapping]) => {
+      const items = (rawData[mapping.title] || []).map((item: any, index: number) => ({
+        lsh: `${sszx}_${index}`,
+        jcsslx: sszx,
+        sszx,
+        name: item.name || '',
+        unit: item.unit || '',
+        jcsstjsl: item.count || 0,
       }));
 
-      categories.push({
-        title: mapping.title,
-        icon: mapping.icon,
-        sszx: sszx,
-        items: convertedItems
-      });
+      categories.push({ title: mapping.title, icon: mapping.icon, sszx, items });
     });
 
     overviewData.value = categories;
   } catch (error) {
     console.error("获取总览数据失败:", error);
-    // 出错时显示设计图定义的默认结构，数值为0
-    const categories: OverviewCategory[] = [];
-    
-    Object.entries(designData).forEach(([categoryTitle, items]) => {
-      const sszxEntry = Object.entries(sszxMapping).find(([_, mapping]) => mapping.title === categoryTitle);
-      if (!sszxEntry) return;
-      
-      const [sszx, mapping] = sszxEntry;
-      
-      const convertedItems: OverviewItem[] = items.map(item => ({
-        lsh: item.f_ItemValue,
-        jcsslx: item.f_ItemValue,
-        sszx: sszx,
-        name: item.f_ItemName,
-        unit: item.f_Description,
-        jcsstjsl: 0
-      }));
-
-      categories.push({
-        title: mapping.title,
-        icon: mapping.icon,
-        sszx: sszx,
-        items: convertedItems
-      });
-    });
-    
-    overviewData.value = categories;
+    overviewData.value = [];
   }
 };
 
@@ -322,7 +213,7 @@ onMounted(() => {
     .category-items {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 4px 20px;
+      gap: 10px 20px;
       padding-top: 6px;
       padding-left: 20px;
       flex: 1;

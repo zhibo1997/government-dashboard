@@ -10,7 +10,7 @@
           <div class="top-stats">
             <div class="stat-card">
               <div class="stat-icon">
-                <img src="@/assets/img/device_count.webp" :alt="mod.name" />
+                <img src="@/assets/img/monitoring_equipment.webp" :alt="mod.name" />
               </div>
               <div class="stat-info">
                 <div class="stat-label">{{ mod.name }}监测设备</div>
@@ -66,10 +66,10 @@ interface ModuleStat {
 }
 
 const moduleStats = ref<ModuleStat[]>([
-  { key: "bridge", name: "桥梁", sszx: "csaqzx_ql", onlineCount: 0, offlineCount: 0, onlineRate: "0%", offlineRate: "0%", faultRate: "0%" },
-  { key: "water", name: "供水", sszx: "csaqzx_gs", onlineCount: 0, offlineCount: 0, onlineRate: "0%", offlineRate: "0%", faultRate: "0%" },
-  { key: "drainage", name: "排水", sszx: "csaqzx_ps", onlineCount: 0, offlineCount: 0, onlineRate: "0%", offlineRate: "0%", faultRate: "0%" },
   { key: "gas", name: "燃气", sszx: "csaqzx_rq", onlineCount: 0, offlineCount: 0, onlineRate: "0%", offlineRate: "0%", faultRate: "0%" },
+  { key: "bridge", name: "桥梁", sszx: "csaqzx_ql", onlineCount: 0, offlineCount: 0, onlineRate: "0%", offlineRate: "0%", faultRate: "0%" },
+  { key: "drainage", name: "排水", sszx: "csaqzx_ps", onlineCount: 0, offlineCount: 0, onlineRate: "0%", offlineRate: "0%", faultRate: "0%" },
+  { key: "water", name: "供水", sszx: "csaqzx_gs", onlineCount: 0, offlineCount: 0, onlineRate: "0%", offlineRate: "0%", faultRate: "0%" },
 ]);
 
 onMounted(async () => {

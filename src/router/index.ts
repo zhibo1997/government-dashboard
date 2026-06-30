@@ -49,10 +49,7 @@ const routes: RouteRecordRaw[] = [
         meta: {
           requiresAuth: true,
           desc: '供水专项',
-          defaultLayerIds: [
-            '5b42b88c-8fec-46b0-a9b5-3f35c8eb2067',
-            'c665ebf0-7327-473a-9743-42fc5ea2d111'
-          ]
+          defaultLayerIds: []
         }
       },
       {

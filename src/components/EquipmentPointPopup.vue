@@ -245,7 +245,7 @@ const initLineChart = (rawData: any[]) => {
     grid: { left: 60, right: 16, top: 40, bottom: 36 },
     xAxis: {
       type: 'category', data: xData,
-      axisLabel: { color: '#9ec3e8', fontSize, interval: Math.floor(xData.length / 6) },
+      axisLabel: { color: '#9ec3e8', fontSize, interval: 'auto' },
       axisLine: { lineStyle: { color: 'rgba(13, 165, 190, 0.3)' } },
       axisTick: { show: false },
     },

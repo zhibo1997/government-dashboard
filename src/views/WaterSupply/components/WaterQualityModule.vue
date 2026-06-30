@@ -101,7 +101,8 @@ onMounted(async () => {
         parameters.push({
           id: key,
           name: dictItem?.name || key,
-          value: jcz[key]?.jcz,
+          // TODO: 后端返回的水质数据暂时不展示真实值，统一显示为-，后续后端数据修正后恢复
+          value: '-',
           unit: dictItem?.unit || jcz[key]?.jcdw || "",
           status: "normal",
         });

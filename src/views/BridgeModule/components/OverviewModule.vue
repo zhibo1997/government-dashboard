@@ -236,6 +236,7 @@ const handleShowCamera = async () => {
         jd: c.spdwjd,
         wd: c.spdwwd,
         name: c.spmc || c.spbh || '',
+        _sourceType: 'bridge_camera',
       }))
     if (points.length > 0) {
       overlay.addPoints(points, '监控设备', cameraIconUrl, 32)

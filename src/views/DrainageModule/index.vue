@@ -63,7 +63,7 @@ onBeforeMount(async () => {
       'gwcz',           // PipelineModule
       'yhlx_ps',        // PipelineModule
       'jcsblx_ps',      // MonitoringEquipmentModule
-      'zgzt',           // RiskHazardModule
+      'zgzt',           // RiskHazardModule & 易积水点详情
       'yjlx_ps',        // EarlyWarningModule
       'ps_szjcsb',      // WaterQualityModule
       'glmblx_ps',      // WaterQualityModule

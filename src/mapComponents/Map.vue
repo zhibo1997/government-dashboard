@@ -108,7 +108,7 @@ import { useMapHooks } from '@/hook/useMapHooks'
 const defaultAccessToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiI1Njk0MWFkNy00NjAzLTRhYTAtYWM4Yi04YjM4Njg4M2IyMzEiLCJpZCI6Mjg1NTg3LCJpYXQiOjE3NDIzNTA2NDR9.tZ0ZoIsk2bMtMFtzNrO0WrRhS0VPfBhr0_78mtSYpMo';
 
 // 使用地图Hooks（MVT矢量切片加载）
-const { loadMVTLayer } = useMapHooks()
+const { loadMVTLayer, clearAllMvtLayers } = useMapHooks()
 
 // 使用监测点位 Hook
 const monitoringPoints = useMonitoringPoints()
@@ -270,11 +270,11 @@ const route = useRoute()
 // 默认3D Tiles显示状态
 const defaultTilesetVisible = ref(false)
 
-// 首页默认展示白膜，其他模块关闭
+// 首页不再默认展示白膜
 watch(
   () => route.name,
-  (name) => {
-    defaultTilesetVisible.value = name === 'home'
+  (_name) => {
+    defaultTilesetVisible.value = false
   },
   { immediate: true }
 )
@@ -801,6 +801,7 @@ defineExpose({
   clearAllLayers: () => {
     toolbarRef.value?.unloadAll()
     bridgeModelStore.clearAll()
+    clearAllMvtLayers()
     toolbarRef.value?.resetExpandState()
     isMapExpanded.value = false
   },

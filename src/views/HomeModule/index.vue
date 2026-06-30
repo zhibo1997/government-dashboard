@@ -10,11 +10,8 @@
 
     <!-- 右侧数据展示区 -->
     <RightContent />
-    
-    <!-- 地图图例 -->
-    <MapLegend />
   </template>
-  
+
   <!-- 加载状态 -->
   <div v-else class="loading-placeholder">
     <span>数据加载中...</span>
@@ -24,7 +21,6 @@
 <script setup lang="ts">
 import LeftContent from './leftContent.vue'
 import RightContent from './rightContent.vue'
-import MapLegend from './components/MapLegend.vue'
 import { onMounted, ref, onBeforeMount } from 'vue'
 import { getCachedDictionaries } from '@/services/dictionaryService'
 
@@ -39,14 +35,13 @@ const loading = ref(false)
 const preloadDictionaries = async () => {
   try {
     loading.value = true
-    // 批量预加载所有需要的字典数据
     await getCachedDictionaries([
-      'jcsstjlx',   // OverviewModule
-      'fxdj',       // RiskHazardModule
-      'yhdj',       // RiskHazardModule
-      'bjjb',       // MonitoringAlarmModule
-      'yjczzt',     // MonitoringEarlyWarningModule
-      'jcsblx',     // MapLegend
+      'jcsstjlx',
+      'fxdj',
+      'yhdj',
+      'bjjb',
+      'yjczzt',
+      'jcsblx'
     ])
     console.log('首页模块字典数据预加载完成')
     loading.value = false
@@ -56,7 +51,6 @@ const preloadDictionaries = async () => {
   }
 }
 
-// 使用 onBeforeMount 和 onMounted 确保数据加载
 onBeforeMount(() => {
   console.log('HomeModule 即将挂载')
 })
@@ -70,9 +64,9 @@ onMounted(async () => {
 <style lang="scss">
 .module-title {
   -webkit-background-clip: text !important;
-  background-clip: text !important; /* 标准属性 */
+  background-clip: text !important;
   -webkit-text-fill-color: transparent !important;
-  color: transparent !important; /* 标准属性回退 */
+  color: transparent !important;
   background: linear-gradient(180deg, #FFFFFF 0%, #10ADC0 100%);
 }
 </style>

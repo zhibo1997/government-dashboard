@@ -31,7 +31,7 @@ export function useInfrastructureModule(options: InfrastructureModuleOptions) {
   const { coordinateApiMap, detailApiMap, mvtLayerMap = {}, iconUrlMap = {}, onMvtFeaturePick } = options
 
   // 散点管理
-  const { init: initMapPoints, addPoints, clearPoints, dataSource, viewer } = useGasOverviewPoints()
+  const { init: initMapPoints, addPoints, clearPoints, flyToPoint, dataSource, viewer } = useGasOverviewPoints()
 
   // MVT 图层管理
   const { loadMVTLayer } = useMapHooks()
@@ -60,6 +60,7 @@ export function useInfrastructureModule(options: InfrastructureModuleOptions) {
     if ((entity.point || entity.billboard) && entity.description) {
       try {
         const pointData = JSON.parse(entity.description.getValue())
+        flyToPoint(pointData)
         const detailApi = detailApiMap[selectedId.value || '']
         if (detailApi) {
           const detail = await detailApi(pointData.lsh)
