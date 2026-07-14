@@ -64,7 +64,7 @@ export function useInfrastructureModule(options: InfrastructureModuleOptions) {
         const detailApi = detailApiMap[selectedId.value || '']
         if (detailApi) {
           const detail = await detailApi(pointData.lsh)
-          popupData.value = { ...detail, _name: detail._name || pointData.name }
+          popupData.value = { ...pointData, ...detail, _name: detail._name || pointData.name }
           popupVisible.value = true
         }
         return true

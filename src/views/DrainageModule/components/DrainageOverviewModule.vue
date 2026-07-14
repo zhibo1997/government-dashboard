@@ -37,7 +37,7 @@
     @close="closePopup"
   >
     <template #actions>
-      <button class="action-btn btn-camera" @click="handleShowCamera">监控设备</button>
+      <button v-if="hasCamera" class="action-btn btn-camera" @click="handleShowCamera">监控设备</button>
     </template>
   </PointPopup>
 
@@ -46,7 +46,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, watchEffect } from "vue";
+import { ref, computed, onMounted, watchEffect, watch } from "vue";
 import { useVueCesium } from "vue-cesium";
 import {
   getDrainageStats,
@@ -72,14 +72,6 @@ const overviewData = ref<any[]>([]);
 // 字典映射（易积水点详情用）
 const dictMap = ref<Record<string, { value: string; label: string }[]>>({})
 
-watchEffect(async () => {
-  if (!popupVisible.value) return
-  const zgztDict = await getCachedDictionary('zgzt')
-  dictMap.value = {
-    zgzt: zgztDict.map((item: any) => ({ value: item.f_ItemValue, label: item.f_ItemName })),
-  }
-})
-
 // 弹窗标题 & 字段
 const popupTitle = computed(() => {
   if (!popupData.value) return '详情'
@@ -95,29 +87,47 @@ const popupDisplayFields = computed(() => {
 // 视频播放
 const videoPlayer = useVideoPlayer()
 
-// 监控设备：查询排水专项监控视频
-const handleShowCamera = async () => {
-  const jsdmc = popupData.value?.jsdmc
-  if (!jsdmc) return
-  closePopup()
+// 监控列表缓存（按积水点 lsh 缓存，避免重复请求）
+const cameraListMap = new Map<string, any[]>()
+// 当前弹窗是否有监控
+const hasCamera = ref(false)
 
+// 获取积水点监控列表（用详情返回的 bh 作为 glmbbh 查询，不再用名字）
+const fetchCameraList = async (lsh: string, bh: string) => {
+  if (cameraListMap.has(lsh)) {
+    hasCamera.value = cameraListMap.get(lsh)!.length > 0
+    return cameraListMap.get(lsh)!
+  }
   try {
     const res = await getSurveillanceVideoPage({
       page: '1',
       rows: '1000',
-      spszwz: jsdmc,
+      glmbbh: bh,
       sszx: 'csaqzx_ps',
     })
     const cameras = res?.rows || []
-    if (cameras.length > 0) {
-      // 直接播放第一个监控视频
-      const detail = await getSurveillanceVideoDetail(cameras[0].lsh)
-      if (detail?.spbh) {
-        await videoPlayer.play(detail.spbh, detail.spmc || jsdmc)
-      }
-    }
+    cameraListMap.set(lsh, cameras)
+    hasCamera.value = cameras.length > 0
+    return cameras
   } catch (e) {
     console.error('获取监控视频失败:', e)
+    cameraListMap.set(lsh, [])
+    hasCamera.value = false
+    return []
+  }
+}
+
+// 监控设备：播放第一个监控视频
+const handleShowCamera = async () => {
+  const point = popupData.value
+  if (!point?.bh) return
+  const cameras = cameraListMap.get(point.lsh) || await fetchCameraList(point.lsh, point.bh)
+  if (cameras.length > 0) {
+    closePopup()
+    const detail = await getSurveillanceVideoDetail(cameras[0].lsh)
+    if (detail?.spbh) {
+      await videoPlayer.play(detail.spbh, detail.spmc || point.jsdmc)
+    }
   }
 }
 
@@ -157,6 +167,24 @@ const {
     '污水厂': pointIcon('污水厂'),
   },
 });
+
+// 弹窗打开时加载字典
+watchEffect(async () => {
+  if (!popupVisible.value) return
+  const zgztDict = await getCachedDictionary('zgzt')
+  dictMap.value = {
+    zgzt: zgztDict.map((item: any) => ({ value: item.f_ItemValue, label: item.f_ItemName })),
+  }
+})
+
+// 弹窗打开时请求监控列表，关闭时重置
+watch(popupVisible, async (visible) => {
+  if (visible && popupData.value?.bh) {
+    await fetchCameraList(popupData.value.lsh, popupData.value.bh)
+  } else if (!visible) {
+    hasCamera.value = false
+  }
+})
 
 // icon 映射
 const iconMapping: Record<string, string> = {

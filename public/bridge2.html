@@ -159,7 +159,15 @@
   <div id="loading">加载模型中...</div>
 
   <div id="toolbar">
-    <h3>🌉 陵园大道立交桥</h3>
+    <h3>🌉 桥梁三维</h3>
+    <div id="bridgeSelector" style="margin-bottom:10px;">
+      <select id="bridgeSelect" onchange="switchBridge(this.value)" style="width:100%;padding:6px;background:#0a1e30;border:1px solid #2a4a6a;color:#ccc;border-radius:4px;font-size:12px;">
+        <option value="LYDDLJQ">陵园大道立交桥</option>
+        <option value="LHQ">莲花湖大桥</option>
+        <option value="MYWDQ">明月湾大桥</option>
+        <option value="DSHDQ">独山湖大桥</option>
+      </select>
+    </div>
     <label><input type="checkbox" id="chkBridge" checked> 桥梁模型</label>
     <label><input type="checkbox" id="chkMonitor" checked> 监控设备</label>
     <label><input type="checkbox" id="chkSensor" checked> 传感设备</label>
@@ -231,17 +239,30 @@
     viewer.clock.currentTime = Cesium.JulianDate.fromDate(new Date());
     viewer.scene.globe.depthTestAgainstTerrain = true;
 
-    // 模型配置
+    // 桥梁模型配置
+    var bridges = {
+      LYDDLJQ: { name: '陵园大道立交桥', bridge: 'LYDDLJQ', monitor: 'LYDDLJQ_JKSB', sensor: 'LYDDLJQ_CGSB' },
+      LHQ:     { name: '莲花湖大桥',     bridge: 'LHQ',     monitor: 'LHQ_JKSB',     sensor: 'LHQ_SB' },
+      MYWDQ:   { name: '明月湾大桥',     bridge: 'MYWDQ',   monitor: 'MYWDQ_JKSB',   sensor: 'MYWDQ_SB' },
+      DSHDQ:   { name: '独山湖大桥',     bridge: 'DSHDQ',   monitor: 'DSHDQ_JKJJZ',  sensor: 'DSHDQ_SB' },
+    };
+    var baseUrl = 'https://webres.cityfun.com.cn/CSSMX/model/';
+
+    // 当前模型状态
     var models = {
-      bridge:  { name: '桥梁模型', url: 'https://webres.cityfun.com.cn/CSSMX/model/LYDDLJQ/tileset.json', tileset: null },
-      monitor: { name: '监控设备', url: 'https://webres.cityfun.com.cn/CSSMX/model/LYDDLJQ_JKSB/tileset.json', tileset: null, icon: 'images/equipmentIcons/jcsblx0405.svg' },
-      sensor:  { name: '传感设备', url: 'https://webres.cityfun.com.cn/CSSMX/model/LYDDLJQ_CGSB/tileset.json', tileset: null, icon: 'images/equipmentIcons/jcsblx0406.svg' },
+      bridge:  { name: '桥梁模型', url: '', tileset: null },
+      monitor: { name: '监控设备', url: '', tileset: null, icon: 'images/equipmentIcons/jcsblx0405.svg' },
+      sensor:  { name: '传感设备', url: '', tileset: null, icon: 'images/equipmentIcons/jcsblx0406.svg' },
     };
 
     var allDevices = [];
     var selectedDot = null;
     var selectedDevice = null;
+    var currentBridge = 'LYDDLJQ'; // 当前桥梁
     var dotContainer = document.getElementById('dotContainer');
+
+    // 按桥梁获取存储 key
+    function getViewsKey() { return 'overpassViews_' + currentBridge; }
 
     // 加载 3D Tiles
     async function loadTileset(url, name) {
@@ -352,7 +373,7 @@
           document.getElementById('selectedName').textContent = item.device.name;
 
           // 查找该设备已保存的视角
-          var views = JSON.parse(localStorage.getItem('overpassViews') || '[]');
+          var views = JSON.parse(localStorage.getItem(getViewsKey()) || '[]');
           var savedView = views.find(function(v) { return v.device && v.device.name === item.device.name; });
 
           if (savedView) {
@@ -413,7 +434,7 @@
         time: new Date().toISOString(),
       };
 
-      var views = JSON.parse(localStorage.getItem('overpassViews') || '[]');
+      var views = JSON.parse(localStorage.getItem(getViewsKey()) || '[]');
       // 查找已有视角，有则覆盖，无则新增
       var existIndex = views.findIndex(function(v) { return v.deviceName === selectedDevice.device.name; });
       if (existIndex >= 0) {
@@ -424,7 +445,7 @@
         log('💾 视角已保存: ' + selectedDevice.device.name);
       }
 
-      localStorage.setItem('overpassViews', JSON.stringify(views));
+      localStorage.setItem(getViewsKey(), JSON.stringify(views));
       refreshViewList();
       refreshDeviceList();
     }
@@ -443,7 +464,7 @@
     window.toggleViewPanel = toggleViewPanel;
 
     function refreshViewList() {
-      var views = JSON.parse(localStorage.getItem('overpassViews') || '[]');
+      var views = JSON.parse(localStorage.getItem(getViewsKey()) || '[]');
       var html = '';
       views.forEach(function(v, i) {
         var time = new Date(v.time).toLocaleString('zh-CN');
@@ -462,7 +483,7 @@
     }
 
     function flyToView(index) {
-      var views = JSON.parse(localStorage.getItem('overpassViews') || '[]');
+      var views = JSON.parse(localStorage.getItem(getViewsKey()) || '[]');
       var v = views[index];
       if (!v) return;
 
@@ -491,10 +512,10 @@
     window.flyToView = flyToView;
 
     function deleteView(index) {
-      var views = JSON.parse(localStorage.getItem('overpassViews') || '[]');
+      var views = JSON.parse(localStorage.getItem(getViewsKey()) || '[]');
       var name = views[index].deviceName;
       views.splice(index, 1);
-      localStorage.setItem('overpassViews', JSON.stringify(views));
+      localStorage.setItem(getViewsKey(), JSON.stringify(views));
       refreshViewList();
       refreshDeviceList();
       log('🗑️ 删除视角: ' + name);
@@ -504,7 +525,7 @@
     // 清空所有视角
     function clearAllViews() {
       if (!confirm('确定要清空所有保存的视角吗？')) return;
-      localStorage.removeItem('overpassViews');
+      localStorage.removeItem(getViewsKey());
       refreshViewList();
       refreshDeviceList();
       log('🗑️ 已清空所有视角');
@@ -513,7 +534,7 @@
 
     // ===== 设备列表 =====
     function refreshDeviceList() {
-      var views = JSON.parse(localStorage.getItem('overpassViews') || '[]');
+      var views = JSON.parse(localStorage.getItem(getViewsKey()) || '[]');
       var savedDeviceNames = new Set(views.filter(v => v.device).map(v => v.device.name));
 
       var groups = { monitor: [], sensor: [] };
@@ -561,7 +582,7 @@
       document.getElementById('selectedName').textContent = item.device.name;
 
       // 查找该设备已保存的视角
-      var views = JSON.parse(localStorage.getItem('overpassViews') || '[]');
+      var views = JSON.parse(localStorage.getItem(getViewsKey()) || '[]');
       var savedView = views.find(function(v) { return v.device && v.device.name === deviceName; });
 
       if (savedView) {
@@ -584,12 +605,12 @@
 
     // 导出视角
     function exportViews() {
-      var data = localStorage.getItem('overpassViews') || '[]';
+      var data = localStorage.getItem(getViewsKey()) || '[]';
       var blob = new Blob([data], { type: 'application/json' });
       var url = URL.createObjectURL(blob);
       var a = document.createElement('a');
       a.href = url;
-      a.download = 'overpass-views-' + new Date().toISOString().slice(0,10) + '.json';
+      a.download = 'overpass-views-' + currentBridge + '-' + new Date().toISOString().slice(0,10) + '.json';
       a.click();
       URL.revokeObjectURL(url);
       log('📤 视角已导出');
@@ -609,9 +630,9 @@
       reader.onload = function(e) {
         try {
           var imported = JSON.parse(e.target.result);
-          var existing = JSON.parse(localStorage.getItem('overpassViews') || '[]');
+          var existing = JSON.parse(localStorage.getItem(getViewsKey()) || '[]');
           var merged = existing.concat(imported);
-          localStorage.setItem('overpassViews', JSON.stringify(merged));
+          localStorage.setItem(getViewsKey(), JSON.stringify(merged));
           refreshViewList();
           log('📥 导入 ' + imported.length + ' 个视角');
         } catch (err) {
@@ -632,26 +653,70 @@
       });
     });
 
-    // 主流程
-    (async function() {
-      var loadingEl = document.getElementById('loading');
+    // 清除当前模型和点位
+    function clearCurrent() {
+      for (var key of ['bridge', 'monitor', 'sensor']) {
+        if (models[key].tileset) {
+          viewer.scene.primitives.remove(models[key].tileset);
+          models[key].tileset = null;
+        }
+      }
+      allDevices = [];
+      dotContainer.innerHTML = '';
+      document.getElementById('monitorList').innerHTML = '';
+      document.getElementById('sensorList').innerHTML = '';
+      document.getElementById('deviceCount').textContent = '(0)';
+    }
 
-      models.bridge.tileset = await loadTileset(models.bridge.url, '陵园大道立交桥');
+    // 加载指定桥梁
+    async function loadBridge(qlbh) {
+      var loadingEl = document.getElementById('loading');
+      loadingEl.classList.remove('done');
+      loadingEl.textContent = '加载 ' + bridges[qlbh].name + ' 中...';
+
+      clearCurrent();
+      var cfg = bridges[qlbh];
+
+      // 设置 URL
+      models.bridge.url = baseUrl + cfg.bridge + '/tileset.json';
+      models.monitor.url = baseUrl + cfg.monitor + '/tileset.json';
+      models.sensor.url  = baseUrl + cfg.sensor + '/tileset.json';
+
+      // 加载桥梁模型
+      models.bridge.tileset = await loadTileset(models.bridge.url, cfg.name);
       if (models.bridge.tileset) {
         models.bridge.tileset.style = new Cesium.Cesium3DTileStyle({ color: "color('white', 1.0)" });
       }
 
+      // 加载监控和传感设备
       for (var key of ['monitor', 'sensor']) {
         models[key].tileset = await loadTileset(models[key].url, models[key].name);
         var devices = await loadScenetree(models[key].url);
         if (devices.length > 0) createDots(key, devices, models[key].icon);
       }
 
+      // 飞到桥梁
       if (models.bridge.tileset) {
         viewer.zoomTo(models.bridge.tileset, new Cesium.HeadingPitchRange(0, Cesium.Math.toRadians(-45), 800));
       }
 
       loadingEl.classList.add('done');
+      log('🎉 ' + cfg.name + ' 加载完成');
+    }
+
+    // 切换桥梁
+    async function switchBridge(qlbh) {
+      currentBridge = qlbh;
+      // 更新下拉框选中状态
+      document.getElementById('bridgeSelect').value = qlbh;
+      await loadBridge(qlbh);
+    }
+    window.switchBridge = switchBridge;
+
+    // 主流程 - 默认加载第一个桥梁
+    (async function() {
+      currentBridge = 'LYDDLJQ';
+      await loadBridge('LYDDLJQ');
       log('🎉 加载完成，点击设备图标开始');
     })();
 
