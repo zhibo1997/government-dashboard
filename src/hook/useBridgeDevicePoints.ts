@@ -44,10 +44,9 @@ export interface SavedCameraView {
 
 /** 视角数据条目 */
 export interface ViewRecord {
-  deviceName: string
+  name: string
   device: { name: string; type: string; lng: number; lat: number; height: number }
   camera: SavedCameraView
-  time?: string
 }
 
 /** 两档图标尺寸 (512:797 比例) */
