@@ -63,15 +63,22 @@ export function useBridgeDevicePoints() {
   let viewRecords: ViewRecord[] = []
   let activeTileset: any = null // 当前高亮的 tileset
 
-  /** 加载视角数据 */
-  async function loadViewRecords(): Promise<void> {
+  /** 加载视角数据（按桥梁 qlbh 拉对应文件，找不到则回退到旧的单文件） */
+  async function loadViewRecords(qlbh?: string): Promise<void> {
+    const baseUrl = import.meta.env.BASE_URL
+    // 候选文件：按桥梁命名的独立文件，最后回退到旧的全量文件
+    const candidates = qlbh
+      ? [`${baseUrl}/overpass-views-${qlbh}.json`, `${baseUrl}/overpass-views.json`]
+      : [`${baseUrl}/overpass-views.json`]
     try {
-    const baseUrl = import.meta.env.BASE_URL;
-      const res = await fetch(baseUrl+'/overpass-views.json')
-      console.log('🔍 加载视角数据文件:', res)
-      if (res.ok) {
-        viewRecords = await res.json()
-        console.log(`📐 加载视角数据: ${viewRecords.length} 条`)
+      for (const url of candidates) {
+        const res = await fetch(url)
+        console.log('🔍 加载视角数据文件:', url, res)
+        if (res.ok) {
+          viewRecords = await res.json()
+          console.log(`📐 加载视角数据: ${viewRecords.length} 条 (${url})`)
+          break
+        }
       }
     } catch {
       console.warn('未找到视角数据文件，使用默认俯视')

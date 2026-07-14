@@ -103,7 +103,7 @@ export function useBridge3DModel(options: {
         mapRef.value.sceneMode = 3
       }
       bridgeModelStore.setViewer(viewer.value)
-      await loadViewRecords()
+      await loadViewRecords(qlbh)
 
       // 加载设备类型字典
       const sblxDictItems = await getCachedDictionary('jcsblx_ql')
