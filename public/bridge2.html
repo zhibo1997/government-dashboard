@@ -163,7 +163,7 @@
     <div id="bridgeSelector" style="margin-bottom:10px;">
       <select id="bridgeSelect" onchange="switchBridge(this.value)" style="width:100%;padding:6px;background:#0a1e30;border:1px solid #2a4a6a;color:#ccc;border-radius:4px;font-size:12px;">
         <option value="LYDDLJQ">陵园大道立交桥</option>
-        <option value="LHQ">莲花湖大桥</option>
+        <option value="LHHDQ">莲花湖大桥</option>
         <option value="MYWDQ">明月湾大桥</option>
         <option value="DSHDQ">独山湖大桥</option>
       </select>
@@ -239,10 +239,10 @@
     viewer.clock.currentTime = Cesium.JulianDate.fromDate(new Date());
     viewer.scene.globe.depthTestAgainstTerrain = true;
 
-    // 桥梁模型配置
+    // 桥梁模型配置（qlbh 与 layerConfig.ts 对齐；莲花湖大桥已从 LHQ 改为 LHHDQ）
     var bridges = {
       LYDDLJQ: { name: '陵园大道立交桥', bridge: 'LYDDLJQ', monitor: 'LYDDLJQ_JKSB', sensor: 'LYDDLJQ_CGSB' },
-      LHQ:     { name: '莲花湖大桥',     bridge: 'LHQ',     monitor: 'LHQ_JKSB',     sensor: 'LHQ_SB' },
+      LHHDQ:   { name: '莲花湖大桥',     bridge: 'LHHDQ',   monitor: 'LHHDQ_JKSB',   sensor: 'LHHDQ_SB' },
       MYWDQ:   { name: '明月湾大桥',     bridge: 'MYWDQ',   monitor: 'MYWDQ_JKSB',   sensor: 'MYWDQ_SB' },
       DSHDQ:   { name: '独山湖大桥',     bridge: 'DSHDQ',   monitor: 'DSHDQ_JKJJZ',  sensor: 'DSHDQ_SB' },
     };
@@ -263,6 +263,26 @@
 
     // 按桥梁获取存储 key
     function getViewsKey() { return 'overpassViews_' + currentBridge; }
+
+    // 与 dashboard 对齐：把 "xxx-jcsblxNNNN" 剥成 base（/dashboard 端 parseDeviceName 只做这件事）
+    function parseDeviceName(name) {
+      var m = name.match(/^(.+)-(jcsblx\d+)$/);
+      return m ? { base: m[1], sblx: m[2] } : { base: name, sblx: '' };
+    }
+
+    // 8 字符随机 id（与 LYDDLJQ 文件格式一致）
+    function randId() {
+      var c = 'abcdefghijklmnopqrstuvwxyz0123456789', s = '';
+      for (var i = 0; i < 8; i++) s += c.charAt(Math.floor(Math.random() * c.length));
+      return s;
+    }
+
+    // 简易 32 位 hex hash（FNV-1a）用作 device.id；dashboard 不用于匹配，仅为格式对齐
+    function hexId(str) {
+      var h = 0x811c9dc5;
+      for (var i = 0; i < str.length; i++) { h ^= str.charCodeAt(i); h = (h * 0x01000193) >>> 0; }
+      return ('00000000' + h.toString(16)).slice(-8);
+    }
 
     // 加载 3D Tiles
     async function loadTileset(url, name) {
@@ -405,6 +425,9 @@
     }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
 
     // 保存当前视角（一个设备只保留一个视角）
+    // 输出与 LYDDLJQ 原始格式对齐：{ id, name, device:{id,name,type,lng,lat,height}, camera, time }
+    // device.name 用剥掉 "-jcsblxNNNN" 后的 base —— 与 dashboard parseDeviceName() 剥出来的 baseName 一致，
+    // 这样导出的 JSON 放进 public/ 后 dashboard 就能用 baseName 直接匹配 r.device.name。
     function saveCurrentView() {
       if (!selectedDevice) {
         log('⚠️ 请先选中一个设备');
@@ -414,10 +437,24 @@
       var camera = viewer.camera;
       var pos = camera.positionCartographic;
 
+      var rawName = selectedDevice.device.name;
+      var parsed = parseDeviceName(rawName);          // base 用于匹配，raw 用于展示
+      var base = parsed.base;
+
+      // time 字段只用来生成展示用的 name（HH:MM:SS 取本地场景），不参与匹配
+      var now = new Date();
+      var hh = ('0' + now.getHours()).slice(-2);
+      var mm = ('0' + now.getMinutes()).slice(-2);
+      var ss = ('0' + now.getSeconds()).slice(-2);
+      var stamp = hh + ':' + mm + ':' + ss;
+      var name = base + '_' + stamp;                   // 例：10.92.8.160-1_14:50:30
+
       var view = {
-        deviceName: selectedDevice.device.name,
+        id: randId(),
+        name: name,
         device: {
-          name: selectedDevice.device.name,
+          id: hexId(base),
+          name: base,                                   // ★ 关键：用 base，不带 jcsblx 后缀
           type: selectedDevice.type,
           lng: selectedDevice.device.lng,
           lat: selectedDevice.device.lat,
@@ -431,18 +468,18 @@
           pitch: camera.pitch,
           roll: camera.roll,
         },
-        time: new Date().toISOString(),
+        time: now.toISOString(),
       };
 
       var views = JSON.parse(localStorage.getItem(getViewsKey()) || '[]');
-      // 查找已有视角，有则覆盖，无则新增
-      var existIndex = views.findIndex(function(v) { return v.deviceName === selectedDevice.device.name; });
+      // 按 base（= device.name）查找，有则覆盖，无则新增
+      var existIndex = views.findIndex(function(v) { return v.device && v.device.name === base; });
       if (existIndex >= 0) {
         views[existIndex] = view;
-        log('💾 视角已更新: ' + selectedDevice.device.name);
+        log('💾 视角已更新: ' + rawName + ' → ' + base);
       } else {
         views.push(view);
-        log('💾 视角已保存: ' + selectedDevice.device.name);
+        log('💾 视角已保存: ' + rawName + ' → ' + base);
       }
 
       localStorage.setItem(getViewsKey(), JSON.stringify(views));
@@ -467,11 +504,12 @@
       var views = JSON.parse(localStorage.getItem(getViewsKey()) || '[]');
       var html = '';
       views.forEach(function(v, i) {
-        var time = new Date(v.time).toLocaleString('zh-CN');
+        var time = v.time ? new Date(v.time).toLocaleString('zh-CN') : '';
+        var label = v.name || (v.device && v.device.name) || v.deviceName || ('视角' + (i + 1));
         html += '<div class="view-item">' +
           '<div class="name" onclick="flyToView(' + i + ')">' +
-            '<div>' + v.deviceName + '</div>' +
-            '<div class="time">' + time + '</div>' +
+            '<div>' + label + '</div>' +
+            (time ? '<div class="time">' + time + '</div>' : '') +
           '</div>' +
           '<div class="actions">' +
             '<span class="fly" onclick="flyToView(' + i + ')" title="切换到此视角">✈️</span>' +
@@ -493,12 +531,13 @@
         orientation: { heading: v.camera.heading, pitch: v.camera.pitch, roll: v.camera.roll },
       });
 
-      // 高亮对应点位
+      // 高亮对应点位（用 base 匹配原始 scenetree name：剥掉 jcsblx 后缀后再比较）
       if (v.device) {
         document.getElementById('selectedInfo').style.display = 'block';
         document.getElementById('selectedName').textContent = v.device.name;
+        var baseName = v.device.name;
         allDevices.forEach(function(item) {
-          if (item.device.name === v.deviceName) {
+          if (parseDeviceName(item.device.name).base === baseName) {
             if (selectedDot) selectedDot.classList.remove('selected');
             item.dotEl.classList.add('selected');
             selectedDot = item.dotEl;
@@ -507,13 +546,14 @@
         });
       }
 
-      log('🎯 切换视角: ' + v.deviceName);
+      log('🎯 切换视角: ' + (v.name || v.device.name));
     }
     window.flyToView = flyToView;
 
     function deleteView(index) {
       var views = JSON.parse(localStorage.getItem(getViewsKey()) || '[]');
-      var name = views[index].deviceName;
+      var v = views[index];
+      var name = v ? (v.name || (v.device && v.device.name) || v.deviceName) : '';
       views.splice(index, 1);
       localStorage.setItem(getViewsKey(), JSON.stringify(views));
       refreshViewList();

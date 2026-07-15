@@ -87,7 +87,15 @@ export function useBridgeDevicePoints() {
 
   /** 根据设备名称查找保存的视角（用 baseName 匹配） */
   function findSavedView(baseName: string): SavedCameraView | null {
-    const record = viewRecords.find(r => r.device.name === baseName)
+    const matched = viewRecords.filter(r => r.device.name === baseName)
+    const record = matched[0]
+    console.log(
+      `[bridge-view] 设备 ${baseName} → 视角 ${record ? '命中 ' + matched.length + ' 条' : '未命中（俯视）'}`
+      + (record ? `\n   device.lng=${record.device.lng} device.lat=${record.device.lat} device.height=${record.device.height}`
+        + `\n   cam.lng=${record.camera.lng} cam.lat=${record.camera.lat} cam.height=${record.camera.height}`
+        + `\n   cam.heading=${record.camera.heading} cam.pitch=${record.camera.pitch} cam.roll=${record.camera.roll}`
+        + `\n   time=${record.time}` : '')
+    )
     return record?.camera ?? null
   }
 

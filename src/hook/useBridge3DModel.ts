@@ -79,7 +79,8 @@ export function useBridge3DModel(options: {
     if (!qlbh) return
     activeBridgeQlbh.value = qlbh
 
-    // 先收侧边栏（立即生效，不等模型加载）
+    // 先收侧边栏 + 关掉上一个桥的弹窗/视频（立即生效，不等模型加载）
+    closeAllPopups()
     clearPoints()
     closePopup()
     if (mapRef?.value && !mapRef.value.isMapExpanded) {
