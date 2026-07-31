@@ -48,7 +48,9 @@ export function useBridge3DModel(options: {
 
   const defaultEquipIconUrl = new URL('@/assets/img/points/cg_icon.png', import.meta.url).href
   const getEquipIconUrl = (device: any) => {
-    if (device.sblx) return new URL(`../assets/img/points/监测设备图标/${device.sblx}.png`, import.meta.url).href
+    if (device.sblx) {
+      return new URL(`../assets/img/points/监测设备图标/${device.sblx}.png`, import.meta.url).href
+    }
     return defaultEquipIconUrl
   }
   const monitorIconUrl = new URL('@/assets/img/points/jk_icon.png', import.meta.url).href

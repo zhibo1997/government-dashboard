@@ -160,8 +160,9 @@ export function useGasOverviewPoints() {
     return showLabel
   }
 
-  /** 用 canvas 渲染带背景边框的文字图片 */
+  /** 用 canvas 渲染带背景边框的文字图片（支持高 DPI） */
   const createLabelCanvas = (text: string): HTMLCanvasElement => {
+    const dpr = window.devicePixelRatio || 1
     const canvas = document.createElement('canvas')
     const ctx = canvas.getContext('2d')!
     const font = '14px Microsoft YaHei, sans-serif'
@@ -171,8 +172,10 @@ export function useGasOverviewPoints() {
     const padV = 4
     const w = Math.ceil(metrics.width) + padH * 2
     const h = 22 + padV * 2
-    canvas.width = w
-    canvas.height = h
+    // 高 DPI：实际像素放大，显示尺寸不变
+    canvas.width = w * dpr
+    canvas.height = h * dpr
+    ctx.scale(dpr, dpr)
 
     ctx.fillStyle = 'rgba(6, 30, 52, 0.75)'
     ctx.strokeStyle = 'rgba(0, 200, 255, 0.6)'
@@ -273,8 +276,8 @@ export function useGasOverviewPoints() {
           position: Cesium.Cartesian3.fromDegrees(point.jd, point.wd),
           billboard: {
             image: canvas,
-            width: canvas.width,
-            height: canvas.height,
+            width: canvas.width / (window.devicePixelRatio || 1),
+            height: canvas.height / (window.devicePixelRatio || 1),
             horizontalOrigin: Cesium.HorizontalOrigin.CENTER,
             verticalOrigin: Cesium.VerticalOrigin.BOTTOM,
             pixelOffset: new Cesium.Cartesian2(0, -20),

@@ -183,27 +183,30 @@ print(json.loads(resp.read()))
 
 ---
 
-## 7. 现有图层树结构
+## 7. 现有图层树结构（正式环境 2026-07 迁移后）
+
+> 资源域名：`https://172.22.2.24/CSSMX/...`  
+> 结论：**ID 与测试环境一致**，前端 `layerConfig.ts` / 路由 `defaultLayerIds` / 首页 MVT ID **无需修改**。
 
 ### 顶层分组 (parent=0)
 
 | 名称 | ID | 类型 |
 |------|----|------|
+| 重要防护目标 | `3622fe5a-017b-4f06-bcf4-ff66fca721fd` | group |
 | 桥梁专项 | `87bc3fec-18c3-46e8-93d9-952b68472bbf` | group |
 | 燃气专项 | `9821ec73-3e97-4a72-a205-ae7e5c269ff3` | group |
-| 排水专项 | `1da95417-72e8-4c74-a85c-642918bdcba7` | group |
-| 三维模型 | `ea50e3a5-d465-4319-9f80-aa6fef99693b` | group |
 | 监测设备 | `9f686624-fa76-4ab4-9462-774e27e3513d` | group |
-| 重要防护目标 | `3622fe5a-017b-4f06-bcf4-ff66fca721fd` | group |
+| 三维模型 | `ea50e3a5-d465-4319-9f80-aa6fef99693b` | group |
+| 排水专项 | `1da95417-72e8-4c74-a85c-642918bdcba7` | group |
 
 ### 重要防护目标
-| 名称 | 类型 | ID |
-|------|------|----|
-| 妇幼保健院 | 3dTile | `e22672a8-d9d6-44bb-a53d-3ce98f1a4605` |
-| 高铁站 | 3dTile | `2f29c301-11b9-4010-b5cc-f0276a113f96` |
-| 市民之家 | 3dTile | `d6b9761b-5420-4197-8099-70931f259701` |
-| 图书馆 | 3dTile | `3912cb5a-2263-4637-8a61-1b39c4f3390d` |
-| 兴国高级中学-光谷实验小学 | 3dTile | `1bcd4b91-f2b1-4a73-a678-b3e23381f5b4` |
+| 名称 | 类型 | ID | URL |
+|------|------|----|-----|
+| 妇幼保健院 | 3dTile | `e22672a8-d9d6-44bb-a53d-3ce98f1a4605` | `/CSSMX/model/ZYFHMB/FYBJY/tileset.json` |
+| 高铁站 | 3dTile | `2f29c301-11b9-4010-b5cc-f0276a113f96` | `/CSSMX/model/ZYFHMB/GTZ/tileset.json` |
+| 市民之家 | 3dTile | `d6b9761b-5420-4197-8099-70931f259701` | `/CSSMX/model/ZYFHMB/SMZJ/tileset.json` |
+| 图书馆 | 3dTile | `3912cb5a-2263-4637-8a61-1b39c4f3390d` | `/CSSMX/model/ZYFHMB/TSG/tileset.json` |
+| 兴国高级中学-光谷实验小学 | 3dTile | `1bcd4b91-f2b1-4a73-a678-b3e23381f5b4` | `/CSSMX/model/ZYFHMB/XGGJZX/tileset.json` |
 
 ### 桥梁专项
 | 名称 | 类型 | ID |
@@ -221,6 +224,9 @@ print(json.loads(resp.read()))
 | 燃气井 | 3dTile | `a0a68eaf-a734-4bbf-a3da-766e31bf9eae` |
 | 燃气可燃气体检测设备 | 3dTile | `389bf6c1-16bd-4ec3-a7c6-7e2e0cc0e4fa` |
 | 管道施工监测仪 | 3dTile | `88cdddbb-2f7f-48e0-a49e-d6a3730f8b3d` |
+| 燃气（分组） | group | `8472de9a-6f6a-4031-8b2d-2f7d3fdae58d` |
+| 燃气管线 | mvt | `c01a6292-e654-409f-a127-95a1f2011f30` |
+| 燃气井(矢量切片) | mvt | `5e76d4d2-1c48-4b6d-bbd2-a488938dd695` |
 
 ### 排水专项
 | 名称 | 类型 | ID |
@@ -228,27 +234,45 @@ print(json.loads(resp.read()))
 | 圆形井盖 | 3dTile | `d5e7265b-bd14-420b-a2dc-d25a948f5b63` |
 | 圆形管线 | 3dTile | `815800c5-3ed7-47ea-b1e3-77553cbdb25d` |
 | 方形管线 | 3dTile | `ec360d09-8bb6-4d09-adb5-224f29ea63d4` |
+| 合水 | group | `a972d76b-22bd-4fd3-8d4b-ff2a2f6e6334` |
+| 污水 | group | `5995375f-952c-4a53-9161-ce55af67e117` |
+| 雨水 | group | `2f489b98-35df-40e7-a9a9-193ee7bc8526` |
+| 渍水点设备 | group | `9ed4f1c3-2425-41f3-b006-45589df53017` |
+| 排水河道 | mvt | `8957f558-a82f-4243-8d45-5ae0d04f7b81` |
+| 雨污合流管线 | mvt | `a7d508cb-65e6-49d5-a42a-cd8865a8fb92` |
 
 ### 三维模型
-| 名称 | 类型 | ID |
-|------|------|----|
-| 陵园大道立交桥 | 3dTile | `919829ed-9c4d-43ae-9a94-1ff0cef22a3f` |
-| 明月湾大桥 | 3dTile | `ecb4e7b6-6a2e-4948-85b0-0c5975816e07` |
-| 独山湖大桥 | 3dTile | `b4cc6305-bfce-4f60-926c-0dff3e7a7a78` |
-| 莲花湖大桥设备 | 3dTile | `ad960df4-4bd4-414c-a69c-6257d86982b2` |
-| 陵园大道立交桥监测设备 | 3dTile | `aa50cee7-c4f6-4315-bcb1-f89aea7c00c0` |
-| 独山湖大桥设备 | 3dTile | `430c03ed-dce2-463a-8ce0-02b310b2685c` |
-| 陵园大道立交桥设备 | 3dTile | `a046b72f-e018-49db-b6a8-7bd4b91c21cb` |
-| 明月湾大桥设备 | 3dTile | `19e96888-190a-45fa-bcc1-c8f90ed6765a` |
+| 名称 | 类型 | ID | 备注 |
+|------|------|----|------|
+| 莲花湖大桥 | 3dTile | `cea5650d-878b-4440-834b-64ddbc5ddf93` | 前端绑定 |
+| 莲花湖大桥设备 | 3dTile | `ad960df4-4bd4-414c-a69c-6257d86982b2` | 前端绑定 |
+| 莲花湖大桥监控设备 | 3dTile | `357c8870-5013-43e7-af73-547e01bb9809` | 前端绑定 |
+| 陵园大道立交桥 | 3dTile | `919829ed-9c4d-43ae-9a94-1ff0cef22a3f` | 前端绑定 |
+| 陵园大道立交桥传感设备 | 3dTile | `088c8814-cb09-41e8-bc87-ffa6a49ea94a` | 前端绑定 |
+| 陵园大道立交桥监控 | 3dTile | `d2fc0dc7-0b20-471e-86c0-bda308d35edd` | 前端绑定 |
+| 明月湾大桥 | 3dTile | `ecb4e7b6-6a2e-4948-85b0-0c5975816e07` | 前端绑定 |
+| 明月湾大桥设备 | 3dTile | `19e96888-190a-45fa-bcc1-c8f90ed6765a` | 前端绑定 |
+| 明月湾大桥监控设备 | 3dTile | `911a8a6d-bbd2-425f-aab2-b1f8956a0417` | 前端绑定 |
+| 独山湖大桥 | 3dTile | `b4cc6305-bfce-4f60-926c-0dff3e7a7a78` | 前端绑定 |
+| 独山湖大桥设备 | 3dTile | `430c03ed-dce2-463a-8ce0-02b310b2685c` | 前端绑定 |
+| 独山湖大桥监控及基站 | 3dTile | `29ed01bd-c99a-4667-a54b-ac245724c2dc` | 前端绑定 |
+| 建筑群 | 3dTile | `28e7c821-50f4-454d-a565-5e2c10f95110` | 默认白膜 |
+| 其余桥梁及人行天桥监控设备 | 3dTile | `e82da0de-ca9b-458c-8ac5-3ccb1e851b9e` | |
 
 ### 监测设备
 | 名称 | 类型 | ID |
 |------|------|----|
 | 桥梁监测 | group | `232015f8-829c-4fa5-acd6-47bf1b6eb18d` |
 | 燃气监测 | group | `ad424d51-7db7-4625-b3cd-5bfe3650bda0` |
-| 应变传感器 | specialLayer | `d1a3b927-7a8e-4185-97e6-9277767295a0` |
-| 裂缝计 | specialLayer | `5ff936f3-b303-4d00-acb0-9eb2d28e97e6` |
 | 可燃气体智能监测仪 | specialLayer | `e137a3b6-4a18-44fe-88fd-f6f2019c940b` |
+
+### 前端关键绑定（无需修改）
+| 配置项 | ID |
+|--------|----|
+| `GAS_LAYER_PARENT_ID` | `9821ec73-3e97-4a72-a205-ae7e5c269ff3` |
+| `DEFAULT_BUILDING_LAYER_ID` | `28e7c821-50f4-454d-a565-5e2c10f95110` |
+| 首页/燃气 MVT 燃气管线 | `c01a6292-e654-409f-a127-95a1f2011f30` |
+| 排水 MVT 雨污合流管线 | `a7d508cb-65e6-49d5-a42a-cd8865a8fb92` |
 
 #### 桥梁监测设备类型（字典 jcsblx_ql）
 | 设备名称 | 设备类型编码 | 对应图标 |
