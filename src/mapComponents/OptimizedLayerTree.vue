@@ -91,20 +91,10 @@ const emit = defineEmits<{
 }>();
 
 /**
- * 根据环境转换URL协议
- * 在生产环境中将HTTP转换为HTTPS
- * @param url 原始URL
- * @returns 转换后的URL
+ * URL 协议转换（已移除 HTTP→HTTPS 强制转换，服务器不支持 HTTPS）
+ * 保留函数以避免调用处报错，直接返回原始 URL
  */
 function convertUrlProtocol(url: string): string {
-  // 检查是否为生产环境
-  const isProduction = import.meta.env.PROD || import.meta.env.MODE === 'production';
-  
-  // 只有在生产环境中才进行协议转换
-  if (isProduction && url && url.startsWith('http://')) {
-    return url.replace('http://', 'https://');
-  }
-  
   return url;
 }
 

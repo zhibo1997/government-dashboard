@@ -55,10 +55,8 @@ export function useBridge3DModel(options: {
   }
   const monitorIconUrl = new URL('@/assets/img/points/jk_icon.png', import.meta.url).href
 
-  const convertUrl = (url: string) => {
-    const isProduction = import.meta.env.PROD || import.meta.env.MODE === 'production'
-    return isProduction && url.startsWith('http://') ? url.replace('http://', 'https://') : url
-  }
+  // 已移除 HTTP→HTTPS 强制转换，服务器不支持 HTTPS
+  const convertUrl = (url: string) => url
 
   /** 关闭所有三维相关弹窗 */
   function closeAllPopups() {

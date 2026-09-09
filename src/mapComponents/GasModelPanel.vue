@@ -57,10 +57,7 @@ const gasList = computed<GasModel[]>(() => {
 const activeIds = reactive(new Set<string>());
 
 function convertUrlProtocol(url: string): string {
-  const isProduction = import.meta.env.PROD || import.meta.env.MODE === "production";
-  if (isProduction && url && url.startsWith("http://")) {
-    return url.replace("http://", "https://");
-  }
+  // 已移除 HTTP→HTTPS 强制转换，服务器不支持 HTTPS
   return url;
 }
 

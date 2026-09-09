@@ -197,7 +197,9 @@ export async function getEquipmentData(params: {
   gldwbh: string
   sbbh: string
   sblx: string
-  number?: number
+  number?: number | string
+  startTime?: string
+  endTime?: string
 }) {
   const res = await get<any>('/eqp/pubmnt/data', params)
   return res.data || []

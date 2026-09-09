@@ -200,6 +200,9 @@ export const FIELD_LABEL_MAP: Record<string, string> = {
   fzr: '负责人',
   fzrdh: '负责人电话',
   zgjgdw: '主管监管单位',
+
+  // ========== 监测设备 ==========
+  azwz: '安装位置',
 }
 
 /**

@@ -40,6 +40,10 @@
               <label class="info-label">设备编号：</label>
               <span class="info-value">{{ equipmentData?.sbbh || '—' }}</span>
             </div>
+            <div class="info-row">
+              <label class="info-label">安装位置：</label>
+              <span class="info-value">{{ equipmentData.azwz || '—' }}</span>
+            </div>
             <div class="info-row" v-if="monitorTime">
               <label class="info-label">监测时间：</label>
               <span class="info-value">{{ formatTime(monitorTime) }}</span>
@@ -55,6 +59,21 @@
 
           <!-- 数据趋势 -->
           <div v-show="activeTab === 'trend'" class="trend-section">
+            <div class="filter-toolbar">
+              <n-date-picker
+                v-model:value="dateRange"
+                type="daterange"
+                clearable
+                :to="false"
+                :is-date-disabled="disableFutureDate"
+                start-placeholder="开始时间"
+                end-placeholder="结束时间"
+                class="filter-date-picker"
+                format="yyyy-MM-dd"
+              />
+              <button class="filter-btn btn-search" @click="handleSearch">查询</button>
+              <button class="filter-btn btn-reset" @click="handleReset">重置</button>
+            </div>
             <div v-if="chartLoading" class="empty-tip">加载中...</div>
             <div v-else-if="chartReady">
               <div ref="lineChartRef" class="line-chart"></div>
@@ -69,7 +88,7 @@
 
 <script setup lang="ts">
 import { computed, watch, ref, inject, onBeforeUnmount } from 'vue'
-import { NIcon } from 'naive-ui'
+import { NIcon, NDatePicker } from 'naive-ui'
 import { Close } from '@vicons/ionicons5'
 import { FONT_SIZE } from '@/assets/styles/font-sizes'
 import { getEquipmentData, getEquipmentPageList } from '@/services/gasService'
@@ -129,7 +148,7 @@ const formatTime = (ts: number) => {
   return dayjs(ts).format('YYYY-MM-DD HH:mm:ss')
 }
 
-// ============ Tab 切换 ============
+// ============ Tab 切换与筛选 ============
 const activeTab = ref<'info' | 'trend'>('info')
 const chartLoading = ref(false)
 const chartReady = ref(false)
@@ -137,10 +156,17 @@ const lineChartRef = ref<HTMLDivElement | null>(null)
 let lineChartInstance: echarts.ECharts | null = null
 let chartResizeObserver: ResizeObserver | null = null
 
-const switchToTrend = async () => {
-  activeTab.value = 'trend'
-  if (chartReady.value || chartLoading.value) return
+// 自由时间范围筛选
+const dateRange = ref<[number, number] | null>(null)
+const allRawRecords = ref<any[]>([])
 
+// 限制不能选择之后的时间（今天之后的日期禁用）
+const disableFutureDate = (ts: number) => {
+  return ts > dayjs().endOf('day').valueOf()
+}
+
+// 获取监测历史趋势数据
+const fetchTrendData = async () => {
   const data = props.equipmentData
   const sbbh = data?.sbbh || ''
   const sblx = data?.sblx || ''
@@ -161,17 +187,75 @@ const switchToTrend = async () => {
       return
     }
 
-    const res = await getEquipmentData({ gldwbh, sbbh, sblx, number: 20 })
-    if (res?.length > 1) {
-      chartReady.value = true
-      // 等待 DOM 渲染完成后再初始化图表
-      setTimeout(() => initLineChart(res), 200)
+    const params: any = {
+      gldwbh,
+      sbbh,
+      sblx,
     }
+
+    if (dateRange.value && dateRange.value[0] && dateRange.value[1]) {
+      const start = dayjs(dateRange.value[0]).startOf('day')
+      const end = dayjs(dateRange.value[1]).endOf('day')
+      params.startTime = start.format('YYYY-MM-DD HH:mm:ss')
+      params.endTime = end.format('YYYY-MM-DD HH:mm:ss')
+    } else {
+      params.number = 20
+    }
+
+    const res = await getEquipmentData(params)
+    allRawRecords.value = res || []
+    applyFilterAndRender()
   } catch (e) {
     console.error('获取设备监测数据失败:', e)
+    allRawRecords.value = []
+    applyFilterAndRender()
   } finally {
     chartLoading.value = false
   }
+}
+
+// 筛选并渲染图表
+const applyFilterAndRender = () => {
+  let records = allRawRecords.value || []
+  if (dateRange.value && dateRange.value[0] && dateRange.value[1]) {
+    const startMs = dayjs(dateRange.value[0]).startOf('day').valueOf()
+    const endMs = dayjs(dateRange.value[1]).endOf('day').valueOf()
+    records = records.filter((item: any) => {
+      const ts = Number(item.jcsj)
+      return ts >= startMs && ts <= endMs
+    })
+  }
+
+  if (records.length > 0) {
+    chartReady.value = true
+    setTimeout(() => initLineChart(records), 150)
+  } else {
+    chartReady.value = false
+    if (lineChartInstance) {
+      lineChartInstance.dispose()
+      lineChartInstance = null
+    }
+  }
+}
+
+const switchToTrend = async () => {
+  activeTab.value = 'trend'
+  if (allRawRecords.value.length > 0) {
+    applyFilterAndRender()
+    return
+  }
+  await fetchTrendData()
+}
+
+// 查询操作
+const handleSearch = async () => {
+  await fetchTrendData()
+}
+
+// 重置操作
+const handleReset = async () => {
+  dateRange.value = null
+  await fetchTrendData()
 }
 
 // 折线图
@@ -182,7 +266,9 @@ const initLineChart = (rawData: any[]) => {
   const chart = echarts.init(lineChartRef.value)
   lineChartInstance = chart
 
-  const processed = rawData.map(item => {
+  // 按时间升序排序
+  const sorted = [...rawData].sort((a, b) => Number(a.jcsj) - Number(b.jcsj))
+  const processed = sorted.map(item => {
     let jcz = {}
     try { jcz = JSON.parse(item.jcz) } catch {}
     return { jcsj: item.jcsj, jcz }
@@ -208,7 +294,7 @@ const initLineChart = (rawData: any[]) => {
   const multiDay = new Set(timestamps.map((ts: number) => dayjs(ts).format('YYYY-MM-DD'))).size > 1
   const fmt = multiDay ? 'MM-DD HH:mm' : 'HH:mm'
   const xData = timestamps.map((ts: number) => dayjs(ts).format(fmt))
-  const fontSize = FONT_SIZE.mini * 2
+  const fontSize = 32
 
   const series = Object.keys(seriesData).map((key, i) => ({
     name: indicators[i] || key,
@@ -242,7 +328,7 @@ const initLineChart = (rawData: any[]) => {
       },
     },
     legend: { data: indicators, top: 0, textStyle: { color: '#9ec3e8', fontSize }, itemWidth: 16, itemHeight: 8 },
-    grid: { left: 60, right: 16, top: 40, bottom: 36 },
+    grid: { left: 16, right: 20, top: 32, bottom: 10, containLabel: true },
     xAxis: {
       type: 'category', data: xData,
       axisLabel: { color: '#9ec3e8', fontSize, interval: 'auto' },
@@ -291,11 +377,26 @@ watch(() => props.visible, async (v) => {
     activeTab.value = 'info'
     chartReady.value = false
     chartLoading.value = false
+    dateRange.value = null
+    allRawRecords.value = []
     if (lineChartInstance) { lineChartInstance.dispose(); lineChartInstance = null }
     chartResizeObserver?.disconnect()
     chartResizeObserver = null
   }
 })
+
+watch(
+  () => props.equipmentData,
+  () => {
+    allRawRecords.value = []
+    chartReady.value = false
+    dateRange.value = null
+    if (props.visible && activeTab.value === 'trend') {
+      fetchTrendData()
+    }
+  },
+  { deep: true }
+)
 
 const handleClose = () => emit('close')
 
@@ -313,7 +414,7 @@ $bg-ratio-h: 229;
   position: fixed;
   z-index: 9999;
   width: 840px;
-  height: calc(840px * #{$bg-ratio-h} / #{$bg-ratio-w});
+  height: 620px;
   pointer-events: auto;
   display: flex;
   flex-direction: column;
@@ -331,7 +432,7 @@ $bg-ratio-h: 229;
   .popup-header {
     position: relative;
     flex-shrink: 0;
-    height: calc(100% * 6 / 45);
+    height: 92px;
     padding: 0 32px;
     display: flex;
     align-items: center;
@@ -341,8 +442,8 @@ $bg-ratio-h: 229;
     .popup-title {
       font-family: SourceHanSansSC, SourceHanSansSC;
       font-weight: var(--font-weight-medium);
-      font-size: var(--font-size-subtitle);
-      line-height: calc(var(--font-size-subtitle) * 1.3);
+      font-size: var(--font-size-title);
+      line-height: calc(var(--font-size-title) * 1.3);
       color: #ffffff;
       font-weight: bold;
       position: relative;
@@ -362,7 +463,7 @@ $bg-ratio-h: 229;
   .popup-content {
     flex: 1;
     min-height: 0;
-    padding: 16px 40px 24px;
+    padding: 16px 40px 16px;
     z-index: 1;
     overflow: hidden;
     display: flex;
@@ -375,7 +476,7 @@ $bg-ratio-h: 229;
     overflow-y: auto;
     display: flex;
     flex-direction: column;
-    gap: 16px;
+    gap: 12px;
 
     &::-webkit-scrollbar { width: 5px; }
     &::-webkit-scrollbar-track { background: rgba(0, 0, 0, 0.2); border-radius: 3px; }
@@ -392,11 +493,11 @@ $bg-ratio-h: 229;
 
     .toggle-btn {
       flex: 1;
-      padding: 10px 0;
+      padding: 8px 0;
       text-align: center;
       font-family: SourceHanSansSC, SourceHanSansSC;
       font-weight: var(--font-weight-medium);
-      font-size: var(--font-size-heading);
+      font-size: var(--font-size-subtitle);
       color: #7fd3f2;
       background: rgba(0, 30, 45, 0.4);
       cursor: pointer;
@@ -423,6 +524,7 @@ $bg-ratio-h: 229;
     display: flex;
     flex-direction: column;
     gap: 10px;
+    padding: 4px 0;
 
     .info-row {
       display: flex;
@@ -432,8 +534,8 @@ $bg-ratio-h: 229;
       .info-label {
         font-family: SourceHanSansSC, SourceHanSansSC;
         font-weight: var(--font-weight-normal);
-        font-size: var(--font-size-heading);
-        line-height: calc(var(--font-size-heading) * 1.3);
+        font-size: var(--font-size-subtitle);
+        line-height: calc(var(--font-size-subtitle) * 1.3);
         color: #ffffff;
         white-space: nowrap;
         flex-shrink: 0;
@@ -442,8 +544,8 @@ $bg-ratio-h: 229;
       .info-value {
         font-family: SourceHanSansSC, SourceHanSansSC;
         font-weight: var(--font-weight-normal);
-        font-size: var(--font-size-heading);
-        line-height: calc(var(--font-size-heading) * 1.3);
+        font-size: var(--font-size-subtitle);
+        line-height: calc(var(--font-size-subtitle) * 1.3);
         color: #7fd3f2;
         flex: 1;
         min-width: 0;
@@ -458,18 +560,123 @@ $bg-ratio-h: 229;
   .trend-section {
     flex: 1;
     min-height: 0;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  // 自由时间范围筛选栏
+  .filter-toolbar {
+    display: flex;
+    align-items: center;
+    position: relative;
+    z-index: 10;
+    margin-bottom: 8px;
+    flex-shrink: 0;
+
+    .filter-btn {
+      height: 38px;
+      padding: 0 16px;
+      font-family: SourceHanSansSC, SourceHanSansSC;
+      font-weight: var(--font-weight-medium);
+      font-size: var(--font-size-caption);
+      border-radius: 4px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+      border: 1px solid #1890ff;
+
+      &.btn-search {
+        margin-left: 10px;
+        background: #1890ff;
+        color: #ffffff;
+        &:hover {
+          background: #40a9ff;
+          border-color: #40a9ff;
+        }
+      }
+
+      &.btn-reset {
+        margin-left: 8px;
+        background: #1890ff;
+        color: #ffffff;
+        &:hover {
+          background: #40a9ff;
+          border-color: #40a9ff;
+        }
+      }
+    }
+  }
+
+  :deep(.filter-date-picker) {
+    width: 340px;
+
+    .n-input {
+      background-color: rgba(9, 67, 88, 0.7);
+      border: 1px solid #11a7e2;
+      border-radius: 6px;
+      height: 38px;
+      color: #ffffff;
+
+      &:hover {
+        border-color: #1890ff;
+      }
+
+      &:focus-within {
+        border-color: #1890ff;
+        box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2);
+      }
+
+      .n-input__input-el {
+        color: #ffffff;
+        font-size: var(--font-size-caption);
+        text-align: center;
+      }
+
+      .n-input__placeholder {
+        color: rgba(255, 255, 255, 0.45);
+        font-size: var(--font-size-caption);
+        text-align: center;
+      }
+
+      .n-input__separator {
+        color: #7fd3f2;
+        font-size: var(--font-size-caption);
+      }
+
+      .n-input__prefix,
+      .n-input__suffix {
+        .n-base-icon {
+          color: #11a7e2;
+          font-size: 20px;
+        }
+      }
+
+      .n-input__state-border {
+        display: none;
+      }
+    }
+
+    .n-base-clear {
+      color: rgba(255, 255, 255, 0.6);
+      &:hover {
+        color: #ff4d4f;
+      }
+    }
   }
 
   .line-chart {
     width: 100%;
-    height: 280px;
+    height: 345px;
   }
 
   .empty-tip {
     text-align: center;
     color: rgba(127, 211, 242, 0.5);
-    font-size: var(--font-size-body);
-    padding: 32px 0;
+    font-size: var(--font-size-heading);
+    padding: 36px 0;
   }
 }
 </style>

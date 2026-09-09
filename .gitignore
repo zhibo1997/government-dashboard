@@ -151,3 +151,6 @@ tmp/
 # Package lock files (keep one)
 # package-lock.json
 # pnpm-lock.yaml
+
+# IDE / Tool settings
+.claude/

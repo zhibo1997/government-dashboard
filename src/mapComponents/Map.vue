@@ -161,11 +161,8 @@ async function loadScenetreeForBridge(equipUrl: string) {
   const Cesium = (window as any).Cesium
   if (!Cesium) return []
 
-  const isProduction = import.meta.env.PROD || import.meta.env.MODE === 'production'
+  // 已移除 HTTP→HTTPS 强制转换，服务器不支持 HTTPS
   let scenetreeUrl = equipUrl.replace('tileset.json', 'scenetree.json')
-  if (isProduction && scenetreeUrl.startsWith('http://')) {
-    scenetreeUrl = scenetreeUrl.replace('http://', 'https://')
-  }
 
   try {
     const res = await fetch(scenetreeUrl)
