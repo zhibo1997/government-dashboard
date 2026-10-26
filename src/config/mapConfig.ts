@@ -50,6 +50,12 @@ export const mapConfig = {
     minZoom: 3,
     maxZoom: 15,
   },
+
+  // ArcGIS 瓦片底图（阳新县，MapServer 根 URL；tile/{z}/{y}/{x} 由 ImageryProvider 自动拼接）
+  arcgis: {
+    basemapBlue: "http://119.100.22.131:8081/esrilocalhosting/cf/Service/EsriTile/yxx_basemap_blue/MapServer",
+    image2026: "http://119.100.22.131:8081/esrilocalhosting/cf/Service/EsriTile/yxx_image_2026/MapServer",
+  },
 };
 
 export default mapConfig;

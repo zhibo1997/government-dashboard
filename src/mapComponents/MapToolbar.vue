@@ -48,13 +48,158 @@
         </div>
         <!-- 底图切换面板 -->
         <transition name="slide-left">
-          <div v-if="showBaseMapPanel" class="base-map-panel">
-            <div class="panel-title">底图切换</div>
+          <div v-if="showBaseMapPanel" class="base-map-panel" @click.stop>
+            <div class="panel-header">
+              <span class="panel-title">底图切换</span>
+              <span class="panel-badge">GIS MAPS</span>
+            </div>
             <div class="base-map-options">
-              <div v-for="item in baseMapTypes" :key="item.value" class="base-map-option"
-                :class="{ active: props.currentBaseMap === item.value }" @click.stop="switchBaseMap(item.value)">
-                <div class="option-icon">{{ item.icon }}</div>
-                <div class="option-label">{{ item.label }}</div>
+              <div
+                v-for="item in baseMapTypes"
+                :key="item.value"
+                class="base-map-option"
+                :class="{ active: props.currentBaseMap === item.value }"
+                @click.stop="switchBaseMap(item.value)"
+              >
+                <!-- 精美科技矢量图标 -->
+                <div class="option-icon-box">
+                  <!-- yxx_image (阳新影像) -->
+                  <svg v-if="item.value === 'yxx_image'" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" class="map-svg-icon">
+                    <defs>
+                      <linearGradient id="lensGrad" x1="6" y1="6" x2="42" y2="42" gradientUnits="userSpaceOnUse">
+                        <stop offset="0%" stop-color="#00f0ff" />
+                        <stop offset="100%" stop-color="#0066ff" />
+                      </linearGradient>
+                      <radialGradient id="apertureGlow" cx="24" cy="24" r="14" gradientUnits="userSpaceOnUse">
+                        <stop offset="0%" stop-color="#00f0ff" stop-opacity="0.6"/>
+                        <stop offset="70%" stop-color="#0055ff" stop-opacity="0.2"/>
+                        <stop offset="100%" stop-color="#001840" stop-opacity="0.8"/>
+                      </radialGradient>
+                    </defs>
+                    <path d="M 10 16 V 10 H 16" stroke="#00f0ff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M 38 16 V 10 H 32" stroke="#00f0ff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M 10 32 V 38 H 16" stroke="#00f0ff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M 38 32 V 38 H 32" stroke="#00f0ff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+                    <circle cx="24" cy="24" r="15" stroke="url(#lensGrad)" stroke-width="2.5" fill="url(#apertureGlow)"/>
+                    <circle cx="24" cy="24" r="10" stroke="#00f0ff" stroke-width="1.5" stroke-dasharray="4 3" opacity="0.8"/>
+                    <line x1="24" y1="17" x2="24" y2="21" stroke="#ffffff" stroke-width="2" stroke-linecap="round"/>
+                    <line x1="24" y1="27" x2="24" y2="31" stroke="#ffffff" stroke-width="2" stroke-linecap="round"/>
+                    <line x1="17" y1="24" x2="21" y2="24" stroke="#ffffff" stroke-width="2" stroke-linecap="round"/>
+                    <line x1="27" y1="24" x2="31" y2="24" stroke="#ffffff" stroke-width="2" stroke-linecap="round"/>
+                    <circle cx="24" cy="24" r="2.5" fill="#ffffff"/>
+                  </svg>
+
+                  <!-- yxx_blue (蓝色底图) -->
+                  <svg v-else-if="item.value === 'yxx_blue'" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" class="map-svg-icon">
+                    <defs>
+                      <linearGradient id="globeGrad" x1="8" y1="8" x2="40" y2="40" gradientUnits="userSpaceOnUse">
+                        <stop offset="0%" stop-color="#00d2ff"/>
+                        <stop offset="100%" stop-color="#1890ff"/>
+                      </linearGradient>
+                      <radialGradient id="globeSphere" cx="24" cy="24" r="17" gradientUnits="userSpaceOnUse">
+                        <stop offset="0%" stop-color="#00a8ff" stop-opacity="0.35"/>
+                        <stop offset="85%" stop-color="#003366" stop-opacity="0.7"/>
+                        <stop offset="100%" stop-color="#001a33" stop-opacity="0.9"/>
+                      </radialGradient>
+                    </defs>
+                    <circle cx="24" cy="24" r="17" stroke="url(#globeGrad)" stroke-width="2.5" fill="url(#globeSphere)"/>
+                    <line x1="7" y1="24" x2="41" y2="24" stroke="#00f0ff" stroke-width="1.5" opacity="0.8"/>
+                    <path d="M 10 16 Q 24 20 38 16" stroke="#00d2ff" stroke-width="1.5" fill="none" opacity="0.7"/>
+                    <path d="M 10 32 Q 24 28 38 32" stroke="#00d2ff" stroke-width="1.5" fill="none" opacity="0.7"/>
+                    <ellipse cx="24" cy="24" rx="8" ry="17" stroke="#00f0ff" stroke-width="1.5" fill="none" opacity="0.75"/>
+                    <line x1="24" y1="7" x2="24" y2="41" stroke="#00f0ff" stroke-width="1.5" opacity="0.7"/>
+                    <circle cx="24" cy="16" r="2" fill="#ffffff"/>
+                    <circle cx="32" cy="24" r="2" fill="#ffffff"/>
+                    <circle cx="16" cy="24" r="1.5" fill="#00f0ff"/>
+                    <circle cx="24" cy="32" r="1.5" fill="#00f0ff"/>
+                  </svg>
+
+                  <!-- img (影像地图) -->
+                  <svg v-else-if="item.value === 'img'" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" class="map-svg-icon">
+                    <defs>
+                      <linearGradient id="satBody" x1="18" y1="10" x2="30" y2="22" gradientUnits="userSpaceOnUse">
+                        <stop offset="0%" stop-color="#48c6ef"/>
+                        <stop offset="100%" stop-color="#6f86d6"/>
+                      </linearGradient>
+                      <linearGradient id="scanBeam" x1="24" y1="22" x2="24" y2="42" gradientUnits="userSpaceOnUse">
+                        <stop offset="0%" stop-color="#00f0ff" stop-opacity="0.6"/>
+                        <stop offset="100%" stop-color="#00f0ff" stop-opacity="0.05"/>
+                      </linearGradient>
+                    </defs>
+                    <polygon points="24,20 10,42 38,42" fill="url(#scanBeam)"/>
+                    <path d="M 9 42 Q 24 38 39 42" stroke="#00f0ff" stroke-width="2" stroke-linecap="round"/>
+                    <path d="M 14 34 Q 24 31 34 34" stroke="#00f0ff" stroke-width="1.5" opacity="0.6" stroke-dasharray="3 2"/>
+                    <rect x="7" y="12" width="10" height="7" rx="1.5" fill="#1e3c72" stroke="#00f0ff" stroke-width="1.5"/>
+                    <line x1="12" y1="12" x2="12" y2="19" stroke="#00f0ff" stroke-width="1"/>
+                    <line x1="17" y1="15.5" x2="20" y2="15.5" stroke="#00f0ff" stroke-width="2"/>
+                    <rect x="31" y="12" width="10" height="7" rx="1.5" fill="#1e3c72" stroke="#00f0ff" stroke-width="1.5"/>
+                    <line x1="36" y1="12" x2="36" y2="19" stroke="#00f0ff" stroke-width="1"/>
+                    <line x1="28" y1="15.5" x2="31" y2="15.5" stroke="#00f0ff" stroke-width="2"/>
+                    <rect x="20" y="10" width="8" height="11" rx="2" fill="url(#satBody)" stroke="#ffffff" stroke-width="1.5"/>
+                    <circle cx="24" cy="7" r="1.5" fill="#00f0ff"/>
+                    <line x1="24" y1="8.5" x2="24" y2="10" stroke="#00f0ff" stroke-width="1.5"/>
+                  </svg>
+
+                  <!-- vec (矢量地图) -->
+                  <svg v-else-if="item.value === 'vec'" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" class="map-svg-icon">
+                    <defs>
+                      <linearGradient id="mapCardGrad" x1="8" y1="8" x2="40" y2="40" gradientUnits="userSpaceOnUse">
+                        <stop offset="0%" stop-color="#16222f"/>
+                        <stop offset="100%" stop-color="#0f3460"/>
+                      </linearGradient>
+                      <linearGradient id="pinGrad" x1="24" y1="10" x2="24" y2="26" gradientUnits="userSpaceOnUse">
+                        <stop offset="0%" stop-color="#ff9f43"/>
+                        <stop offset="100%" stop-color="#ee5253"/>
+                      </linearGradient>
+                    </defs>
+                    <path d="M 8 13 L 18 9 L 30 14 L 40 10 V 35 L 30 39 L 18 34 L 8 38 Z" fill="url(#mapCardGrad)" stroke="#00f0ff" stroke-width="1.5" stroke-linejoin="round"/>
+                    <path d="M 18 9 V 34" stroke="#00f0ff" stroke-width="1.5" opacity="0.6" stroke-dasharray="2 2"/>
+                    <path d="M 30 14 V 39" stroke="#00f0ff" stroke-width="1.5" opacity="0.6" stroke-dasharray="2 2"/>
+                    <path d="M 10 26 Q 22 18 38 24" stroke="#feca57" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+                    <path d="M 14 32 L 26 22 L 36 30" stroke="#00f0ff" stroke-width="1.5" stroke-linecap="round" fill="none" opacity="0.7"/>
+                    <path d="M 24 10 C 20.7 10 18 12.7 18 16 C 18 20.8 24 26 24 26 C 24 26 30 20.8 30 16 C 30 12.7 27.3 10 24 10 Z" fill="url(#pinGrad)"/>
+                    <circle cx="24" cy="15.5" r="2" fill="#ffffff"/>
+                  </svg>
+
+                  <!-- ter (地形地图) -->
+                  <svg v-else-if="item.value === 'ter'" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" class="map-svg-icon">
+                    <defs>
+                      <linearGradient id="mountFront" x1="18" y1="18" x2="36" y2="38" gradientUnits="userSpaceOnUse">
+                        <stop offset="0%" stop-color="#00f2fe"/>
+                        <stop offset="100%" stop-color="#4facfe"/>
+                      </linearGradient>
+                      <linearGradient id="mountBack" x1="10" y1="20" x2="26" y2="38" gradientUnits="userSpaceOnUse">
+                        <stop offset="0%" stop-color="#38ef7d"/>
+                        <stop offset="100%" stop-color="#11998e"/>
+                      </linearGradient>
+                    </defs>
+                    <polygon points="17,14 6,36 28,36" fill="url(#mountBack)" opacity="0.75"/>
+                    <polygon points="17,14 17,36 28,36" fill="#094d46" opacity="0.4"/>
+                    <path d="M 7 39 Q 24 33 41 39" stroke="#00f0ff" stroke-width="1.5" stroke-linecap="round" fill="none" opacity="0.8"/>
+                    <path d="M 10 43 Q 24 38 38 43" stroke="#00f0ff" stroke-width="1" stroke-linecap="round" fill="none" opacity="0.5"/>
+                    <polygon points="31,18 19,38 43,38" fill="url(#mountFront)"/>
+                    <polygon points="31,18 31,38 43,38" fill="#003566" opacity="0.45"/>
+                    <polygon points="31,18 28,23 31,22 34,24" fill="#ffffff"/>
+                    <polygon points="17,14 14,19 17,18 20,20" fill="#ffffff" opacity="0.9"/>
+                  </svg>
+                </div>
+
+                <!-- 文字标签与副标题 -->
+                <div class="option-content">
+                  <div class="option-label">{{ item.label }}</div>
+                  <div class="option-desc">{{ item.desc }}</div>
+                </div>
+
+                <!-- 选中状态指示器 -->
+                <div class="option-indicator">
+                  <div v-if="props.currentBaseMap === item.value" class="indicator-active">
+                    <svg viewBox="0 0 20 20" fill="none" class="indicator-icon">
+                      <circle cx="10" cy="10" r="9" fill="rgba(0, 229, 255, 0.2)" stroke="#00e5ff" stroke-width="2"/>
+                      <path d="M6 10.5L8.5 13L14 7.5" stroke="#00e5ff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                  </div>
+                  <div v-else class="indicator-default"></div>
+                </div>
               </div>
             </div>
           </div>
@@ -187,7 +332,7 @@ const monitoringPointsHook = inject<any>('monitoringPointsHook');
 interface Props {
   viewerInstance: any
   sceneMode: 2 | 3
-  currentBaseMap: 'vec' | 'img' | 'ter' | 'arcgis'
+  currentBaseMap: 'vec' | 'img' | 'ter' | 'yxx_blue' | 'yxx_image'
   compassRotation: number
   defaultTilesetVisible: boolean
 }
@@ -197,7 +342,7 @@ const props = defineProps<Props>()
 // Emits - 通知父组件
 const emit = defineEmits<{
   'update:scene-mode': [mode: 2 | 3]
-  'update:base-map': [type: 'vec' | 'img' | 'ter' | 'arcgis']
+  'update:base-map': [type: 'vec' | 'img' | 'ter' | 'yxx_blue' | 'yxx_image']
   'reset-map': []
   'toggle-measure': []
   'toggle-default-tileset': []
@@ -223,10 +368,11 @@ const loadedLayers = ref<Map<string, any>>(new Map());
 
 // 底图类型配置
 const baseMapTypes = [
-  { value: "img", label: "影像地图", icon: "🛰️" },
-  { value: "vec", label: "矢量地图", icon: "🗺️" },
-  { value: "ter", label: "地形地图", icon: "🏔️" },
-  // { value: "arcgis", label: "ArcGIS影像", icon: "📡" },
+  { value: "yxx_image", label: "阳新影像", desc: "本地高分卫星遥感" },
+  { value: "yxx_blue", label: "蓝色底图", desc: "深蓝科技主题底图" },
+  { value: "img", label: "影像地图", desc: "国家天地图遥感影像" },
+  { value: "vec", label: "矢量地图", desc: "国家天地图标准路网" },
+  { value: "ter", label: "地形地图", desc: "国家天地图高程晕渲" },
 ] as const;
 
 // 切换收缩状态
@@ -571,12 +717,13 @@ const handleToggleDeviceType = async (sblx: string, visible: boolean) => {
 };
 
 // 切换底图
-const switchBaseMap = (type: "vec" | "img" | "ter" | "arcgis") => {
-  const typeNames: Record<'vec' | 'img' | 'ter' | 'arcgis', string> = {
+const switchBaseMap = (type: "vec" | "img" | "ter" | "yxx_blue" | "yxx_image") => {
+  const typeNames: Record<'vec' | 'img' | 'ter' | 'yxx_blue' | 'yxx_image', string> = {
     'img': '影像',
     'vec': '矢量',
     'ter': '地形',
-    'arcgis': 'ArcGIS影像'
+    'yxx_blue': '阳新蓝色底图',
+    'yxx_image': '阳新2026影像'
   }
   emit('update:base-map', type)
   showBaseMapPanel.value = false
@@ -822,21 +969,39 @@ function unloadAll() {
     right: 100%;
     top: 0;
     margin-right: 16px;
-    width: 380px;
-    background: rgba(11, 28, 45, 0.65);
-    backdrop-filter: blur(10px);
-    border: 2px solid rgba(22, 119, 255, 0.3);
+    width: 410px;
+    background: rgba(11, 28, 45, 0.88);
+    backdrop-filter: blur(16px);
+    border: 2px solid rgba(22, 119, 255, 0.4);
     border-radius: 12px;
-    padding: 24px;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+    padding: 20px;
+    box-shadow: 0 12px 36px rgba(0, 0, 0, 0.7), inset 0 0 20px rgba(22, 119, 255, 0.15);
 
-    .panel-title {
-      font-size: var(--font-size-subtitle);
-      font-weight: 700;
-      color: #ffffff;
+    .panel-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
       margin-bottom: 16px;
       padding-bottom: 12px;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+
+      .panel-title {
+        font-size: var(--font-size-subtitle);
+        font-weight: 700;
+        color: #ffffff;
+        letter-spacing: 1px;
+      }
+
+      .panel-badge {
+        font-size: var(--font-size-mini);
+        color: #00e5ff;
+        background: rgba(0, 229, 255, 0.12);
+        border: 1px solid rgba(0, 229, 255, 0.35);
+        border-radius: 4px;
+        padding: 2px 8px;
+        letter-spacing: 1px;
+        font-weight: 600;
+      }
     }
 
     .base-map-options {
@@ -847,38 +1012,112 @@ function unloadAll() {
       .base-map-option {
         display: flex;
         align-items: center;
-        gap: 16px;
-        padding: 16px 20px;
-        background: rgba(255, 255, 255, 0.05);
+        gap: 14px;
+        padding: 12px 16px;
+        background: rgba(255, 255, 255, 0.04);
         border: 1px solid rgba(255, 255, 255, 0.1);
-        border-radius: 8px;
+        border-radius: 10px;
         cursor: pointer;
-        transition: all 0.3s ease;
+        transition: all 0.25s ease;
 
         &:hover {
-          background: rgba(255, 255, 255, 0.08);
-          border-color: rgba(255, 255, 255, 0.2);
+          background: rgba(0, 229, 255, 0.08);
+          border-color: rgba(0, 229, 255, 0.4);
           transform: translateX(-4px);
         }
 
         &.active {
-          background: rgba(255, 255, 255, 0.08);
-          border-color: rgba(255, 255, 255, 0.2);
+          background: linear-gradient(90deg, rgba(0, 229, 255, 0.2) 0%, rgba(22, 119, 255, 0.12) 100%);
+          border-color: #00e5ff;
+          box-shadow: 0 0 16px rgba(0, 229, 255, 0.25), inset 0 0 12px rgba(0, 229, 255, 0.1);
+
+          .option-icon-box {
+            border-color: #00e5ff;
+            background: linear-gradient(135deg, rgba(0, 229, 255, 0.25), rgba(22, 119, 255, 0.4));
+            box-shadow: 0 0 12px rgba(0, 229, 255, 0.4);
+          }
 
           .option-label {
-            color: #1890ff;
+            color: #00f0ff;
             font-weight: 700;
+            text-shadow: 0 0 8px rgba(0, 240, 255, 0.4);
+          }
+
+          .option-desc {
+            color: rgba(0, 229, 255, 0.85);
           }
         }
 
-        .option-icon {
-          font-size: var(--font-size-subtitle);
+        .option-icon-box {
+          width: 50px;
+          height: 50px;
+          flex-shrink: 0;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          border-radius: 8px;
+          background: linear-gradient(135deg, rgba(22, 119, 255, 0.15), rgba(0, 229, 255, 0.05));
+          border: 1px solid rgba(0, 229, 255, 0.25);
+          transition: all 0.3s ease;
+
+          .map-svg-icon {
+            width: 36px;
+            height: 36px;
+          }
         }
 
-        .option-label {
-          font-size: var(--font-size-heading);
-          color: #ffffff;
+        .option-content {
           flex: 1;
+          display: flex;
+          flex-direction: column;
+          gap: 4px;
+          min-width: 0;
+
+          .option-label {
+            font-size: var(--font-size-heading);
+            color: #ffffff;
+            font-weight: 600;
+            transition: color 0.3s ease;
+          }
+
+          .option-desc {
+            font-size: var(--font-size-mini);
+            color: rgba(255, 255, 255, 0.55);
+            transition: color 0.3s ease;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+          }
+        }
+
+        .option-indicator {
+          flex-shrink: 0;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+
+          .indicator-active {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            .indicator-icon {
+              width: 22px;
+              height: 22px;
+            }
+          }
+
+          .indicator-default {
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            transition: all 0.3s ease;
+          }
+        }
+
+        &:hover .indicator-default {
+          border-color: rgba(0, 229, 255, 0.5);
         }
       }
     }

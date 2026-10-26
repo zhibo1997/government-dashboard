@@ -13,7 +13,7 @@
       <div class="popup-header">
         <div class="popup-title">{{ displayTitle }}</div>
         <div class="popup-close" @click="handleClose">
-          <n-icon size="42" color="#11a7e2" :component="Close" />
+          <n-icon size="48" color="#11a7e2" :component="Close" />
         </div>
       </div>
 
@@ -63,9 +63,11 @@
               <n-date-picker
                 v-model:value="dateRange"
                 type="daterange"
+                size="large"
                 clearable
                 :to="false"
                 :is-date-disabled="disableFutureDate"
+                :theme-overrides="datePickerThemeOverrides"
                 start-placeholder="开始时间"
                 end-placeholder="结束时间"
                 class="filter-date-picker"
@@ -163,6 +165,22 @@ const allRawRecords = ref<any[]>([])
 // 限制不能选择之后的时间（今天之后的日期禁用）
 const disableFutureDate = (ts: number) => {
   return ts > dayjs().endOf('day').valueOf()
+}
+
+// 日历展开面板超大尺寸配置（字号、单元格尺寸、年月标题等全面放大）
+const datePickerThemeOverrides = {
+  itemFontSize: '26px',
+  calendarDaysFontSize: '24px',
+  calendarTitleFontSize: '26px',
+  itemSize: '48px',
+  itemCellWidth: '62px',
+  itemCellHeight: '52px',
+  calendarTitleHeight: '56px',
+  arrowSize: '26px',
+  calendarDaysHeight: '52px',
+  calendarTitleGridTempateColumns: '48px 48px 1fr 48px 48px',
+  calendarLeftPaddingDaterange: '8px 10px 6px 10px',
+  calendarRightPaddingDaterange: '8px 10px 6px 10px',
 }
 
 // 获取监测历史趋势数据
@@ -413,8 +431,8 @@ $bg-ratio-h: 229;
 .equipment-point-popup {
   position: fixed;
   z-index: 9999;
-  width: 840px;
-  height: 620px;
+  width: 1008px;
+  height: 744px;
   pointer-events: auto;
   display: flex;
   flex-direction: column;
@@ -432,8 +450,8 @@ $bg-ratio-h: 229;
   .popup-header {
     position: relative;
     flex-shrink: 0;
-    height: 92px;
-    padding: 0 32px;
+    height: 110px;
+    padding: 0 36px;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -447,7 +465,7 @@ $bg-ratio-h: 229;
       color: #ffffff;
       font-weight: bold;
       position: relative;
-      left: 24px;
+      left: 28px;
     }
 
     .popup-close {
@@ -476,7 +494,7 @@ $bg-ratio-h: 229;
     overflow-y: auto;
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 0;
 
     &::-webkit-scrollbar { width: 5px; }
     &::-webkit-scrollbar-track { background: rgba(0, 0, 0, 0.2); border-radius: 3px; }
@@ -490,14 +508,16 @@ $bg-ratio-h: 229;
     border: 2px solid rgba(13, 165, 190, 0.4);
     border-radius: 6px;
     overflow: hidden;
+    margin-bottom: 36px;
 
     .toggle-btn {
       flex: 1;
-      padding: 8px 0;
+      padding: 5px 0;
       text-align: center;
       font-family: SourceHanSansSC, SourceHanSansSC;
       font-weight: var(--font-weight-medium);
-      font-size: var(--font-size-subtitle);
+      font-size: var(--font-size-heading);
+      line-height: calc(var(--font-size-heading) * 1.3);
       color: #7fd3f2;
       background: rgba(0, 30, 45, 0.4);
       cursor: pointer;
@@ -562,7 +582,7 @@ $bg-ratio-h: 229;
     min-height: 0;
     display: flex;
     flex-direction: column;
-    overflow: hidden;
+    overflow: visible;
   }
 
   // 自由时间范围筛选栏
@@ -571,86 +591,104 @@ $bg-ratio-h: 229;
     align-items: center;
     position: relative;
     z-index: 10;
-    margin-bottom: 8px;
+    margin-bottom: 36px;
     flex-shrink: 0;
 
     .filter-btn {
-      height: 38px;
-      padding: 0 16px;
+      height: 54px;
+      padding: 0 32px;
       font-family: SourceHanSansSC, SourceHanSansSC;
       font-weight: var(--font-weight-medium);
-      font-size: var(--font-size-caption);
-      border-radius: 4px;
+      font-size: var(--font-size-body);
+      border-radius: 6px;
       cursor: pointer;
       display: flex;
       align-items: center;
       justify-content: center;
       transition: all 0.2s;
-      border: 1px solid #1890ff;
 
       &.btn-search {
-        margin-left: 10px;
-        background: #1890ff;
+        margin-left: 14px;
+        background: rgba(9, 67, 88, 0.85);
+        border: 1px solid rgba(17, 167, 226, 0.8);
         color: #ffffff;
         &:hover {
-          background: #40a9ff;
-          border-color: #40a9ff;
+          background: rgba(17, 105, 145, 0.95);
+          border-color: #38bdf8;
+          box-shadow: 0 0 10px rgba(17, 167, 226, 0.3);
         }
       }
 
       &.btn-reset {
-        margin-left: 8px;
-        background: #1890ff;
-        color: #ffffff;
+        margin-left: 10px;
+        background: rgba(0, 30, 45, 0.65);
+        border: 1px solid rgba(13, 165, 190, 0.5);
+        color: #7fd3f2;
         &:hover {
-          background: #40a9ff;
-          border-color: #40a9ff;
+          background: rgba(13, 165, 190, 0.25);
+          border-color: #11a7e2;
+          color: #ffffff;
+          box-shadow: 0 0 10px rgba(17, 167, 226, 0.2);
         }
       }
     }
   }
 
   :deep(.filter-date-picker) {
-    width: 340px;
+    width: 480px;
 
     .n-input {
-      background-color: rgba(9, 67, 88, 0.7);
-      border: 1px solid #11a7e2;
+      --n-height: 54px !important;
+      --n-font-size: var(--font-size-body) !important;
+      background-color: rgba(9, 67, 88, 0.7) !important;
+      border: 1px solid #11a7e2 !important;
       border-radius: 6px;
-      height: 38px;
+      height: 54px !important;
       color: #ffffff;
 
       &:hover {
-        border-color: #1890ff;
+        border-color: #1890ff !important;
       }
 
       &:focus-within {
-        border-color: #1890ff;
+        border-color: #1890ff !important;
         box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2);
       }
 
+      .n-input-wrapper {
+        height: 54px !important;
+        line-height: 54px !important;
+        padding-left: 16px !important;
+        padding-right: 16px !important;
+      }
+
       .n-input__input-el {
-        color: #ffffff;
-        font-size: var(--font-size-caption);
+        color: #ffffff !important;
+        font-size: var(--font-size-body) !important;
+        height: 54px !important;
+        line-height: 54px !important;
         text-align: center;
+        font-weight: 500;
       }
 
       .n-input__placeholder {
-        color: rgba(255, 255, 255, 0.45);
-        font-size: var(--font-size-caption);
+        color: rgba(255, 255, 255, 0.45) !important;
+        font-size: var(--font-size-body) !important;
+        line-height: 54px !important;
         text-align: center;
       }
 
       .n-input__separator {
-        color: #7fd3f2;
-        font-size: var(--font-size-caption);
+        color: #7fd3f2 !important;
+        font-size: var(--font-size-body) !important;
+        line-height: 54px !important;
       }
 
       .n-input__prefix,
       .n-input__suffix {
         .n-base-icon {
           color: #11a7e2;
-          font-size: 20px;
+          font-size: 28px !important;
         }
       }
 
@@ -661,15 +699,85 @@ $bg-ratio-h: 229;
 
     .n-base-clear {
       color: rgba(255, 255, 255, 0.6);
+      font-size: 24px !important;
       &:hover {
         color: #ff4d4f;
       }
     }
   }
 
+  // 展开日历面板样式增强（超大尺寸展示）
+  :deep(.n-date-panel) {
+    box-shadow: 0 16px 48px rgba(0, 0, 0, 0.85);
+    border: 1px solid rgba(17, 167, 226, 0.6);
+    border-radius: 10px;
+
+    .n-date-panel-month {
+      height: 56px !important;
+    }
+
+    .n-date-panel-month__text {
+      font-size: 26px !important;
+      line-height: 30px !important;
+      font-weight: bold;
+    }
+
+    .n-date-panel-weekdays {
+      margin-bottom: 6px !important;
+    }
+
+    .n-date-panel-weekdays__day {
+      font-size: 24px !important;
+      line-height: 1 !important;
+      font-weight: 600;
+      width: 48px !important;
+      height: 48px !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+    }
+
+    .n-date-panel-date {
+      font-size: 26px !important;
+      font-weight: 500;
+
+      .n-date-panel-date__trigger {
+        font-size: 26px !important;
+      }
+    }
+
+    .n-date-panel-month__prev,
+    .n-date-panel-month__next,
+    .n-date-panel-month__fast-prev,
+    .n-date-panel-month__fast-next {
+      font-size: 26px !important;
+      width: 32px !important;
+      height: 32px !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+
+      .n-base-icon,
+      svg {
+        width: 26px !important;
+        height: 26px !important;
+      }
+    }
+
+    .n-date-panel-actions {
+      padding: 10px 16px !important;
+
+      .n-button {
+        font-size: 20px !important;
+        height: 40px !important;
+        padding: 0 18px !important;
+      }
+    }
+  }
+
   .line-chart {
     width: 100%;
-    height: 345px;
+    height: 400px;
   }
 
   .empty-tip {

@@ -15,6 +15,23 @@
         />
       </vc-layer-imagery>
 
+      <!-- ArcGIS 阳新蓝色底图 / 2026 影像底图（v-if 按需创建，仅在切换到对应底图时才请求服务） -->
+      <vc-layer-imagery v-if="showArcgisBlue" :sort-order="1">
+        <vc-imagery-provider-arcgis
+          :url="arcgisBlueUrl"
+          @readyPromise="onArcGISReady"
+          @errorEvent="onArcGISError"
+        />
+      </vc-layer-imagery>
+
+      <vc-layer-imagery v-if="showArcgisImage" :sort-order="1">
+        <vc-imagery-provider-arcgis
+          :url="arcgisImageUrl"
+          @readyPromise="onArcGISReady"
+          @errorEvent="onArcGISError"
+        />
+      </vc-layer-imagery>
+
       <!-- 注意：自定义MVT矢量切片使用 Cesium 原生命令式加载，在 handleBaseMapChange 中处理 -->
 
       <!-- 阳新县行政区域边界 -->
@@ -105,6 +122,23 @@ import { inject } from 'vue'
 import ResponsiveWrapper from '@/components/ResponsiveWrapper.vue'
 import { useMonitoringPoints, type EnhancedMonitoringPoint } from '@/hook/useMonitoringPoints'
 import { useMapHooks } from '@/hook/useMapHooks'
+// ArcGIS 底图连接超时兜底（服务不可达时元数据请求会一直挂起，不触发 ready/error 事件）
+let arcgisLoadTimer: ReturnType<typeof setTimeout> | null = null
+
+const clearArcgisLoadTimer = () => {
+  if (arcgisLoadTimer) {
+    clearTimeout(arcgisLoadTimer)
+    arcgisLoadTimer = null
+  }
+}
+
+const armArcgisLoadTimer = () => {
+  clearArcgisLoadTimer()
+  arcgisLoadTimer = setTimeout(() => {
+    console.warn('⚠️ ArcGIS 底图服务连接超时，请确认底图服务网络可达')
+  }, 8000)
+}
+
 const defaultAccessToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiI1Njk0MWFkNy00NjAzLTRhYTAtYWM4Yi04YjM4Njg4M2IyMzEiLCJpZCI6Mjg1NTg3LCJpYXQiOjE3NDIzNTA2NDR9.tZ0ZoIsk2bMtMFtzNrO0WrRhS0VPfBhr0_78mtSYpMo';
 
 // 使用地图Hooks（MVT矢量切片加载）
@@ -277,7 +311,7 @@ watch(
 )
 
 // 底图类型
-const currentBaseMapType = ref<'vec' | 'img' | 'ter' | 'arcgis'>('img')
+const currentBaseMapType = ref<'vec' | 'img' | 'ter' | 'yxx_blue' | 'yxx_image'>('yxx_image')
 
 // 天地图 Token
 const tiandituToken = import.meta.env ? import.meta.env.VITE_TIANDITU_KEY || '' : ''
@@ -286,6 +320,14 @@ const tiandituToken = import.meta.env ? import.meta.env.VITE_TIANDITU_KEY || '' 
 const showTianditu = computed(() => {
   return ['vec', 'img', 'ter'].includes(currentBaseMapType.value)
 })
+
+// 是否显示 ArcGIS 阳新底图（v-if 按需创建，切换时才初始化 provider 请求服务）
+const showArcgisBlue = computed(() => currentBaseMapType.value === 'yxx_blue')
+const showArcgisImage = computed(() => currentBaseMapType.value === 'yxx_image')
+
+// ArcGIS 阳新底图 MapServer 地址（tile/{z}/{y}/{x} 由 ImageryProvider 自动拼接）
+const arcgisBlueUrl = mapConfig.arcgis.basemapBlue
+const arcgisImageUrl = mapConfig.arcgis.image2026
 
 // 天地图地图样式映射
 const tiandituMapStyleMap: Record<'img' | 'vec' | 'ter', 'img_c' | 'vec_c' | 'ter_c'> = {
@@ -516,6 +558,11 @@ async function onViewerReady({ Cesium, viewer }: any) {
   // 初始化监测点位功能
   await initMonitoringPoints(viewer)
 
+  // 默认底图为 ArcGIS 时，启动连接超时兜底提示
+  if (currentBaseMapType.value === 'yxx_blue' || currentBaseMapType.value === 'yxx_image') {
+    armArcgisLoadTimer()
+  }
+
   // 方式2：等待GeoJSON加载后基于实际边界限制（可选）
   console.log("🚀 ~ onViewerReady ~ yangxinGeoJSON.value:", yangxinGeoJSON.value)
   // if (yangxinGeoJSON.value) {
@@ -650,25 +697,36 @@ const handleSetMapExpand = (value: boolean) => {
 
 /**
  * 处理底图切换 (来自工具栏)
- * 只支持天地图和ArcGIS影像底图
+ * 支持天地图、ArcGIS 阳新蓝色底图与 2026 影像底图
  */
-const handleBaseMapChange = async (type: 'vec' | 'img' | 'ter' | 'arcgis') => {
+const handleBaseMapChange = async (type: 'vec' | 'img' | 'ter' | 'yxx_blue' | 'yxx_image') => {
   currentBaseMapType.value = type
 
   const typeNames = {
     'img': '影像',
     'vec': '矢量',
     'ter': '地形',
-    'arcgis': 'ArcGIS影像'
+    'yxx_blue': '阳新蓝色底图',
+    'yxx_image': '阳新2026影像'
   }
 
   const providerInfo = type === 'ter'
     ? '(Cesium Ion - Asset ID: 3)'
-    : type === 'arcgis'
-    ? '(ArcGIS影像服务)'
+    : type === 'yxx_blue'
+    ? '(ArcGIS - yxx_basemap_blue)'
+    : type === 'yxx_image'
+    ? '(ArcGIS - yxx_image_2026)'
     : `(天地图 - ${type === 'img' ? '影像' : '矢量'})`
 
   console.log(`✅ 底图切换为: ${typeNames[type]} ${providerInfo}`)
+
+  // ArcGIS 底图连接超时兜底提示
+  if (type === 'yxx_blue' || type === 'yxx_image') {
+    armArcgisLoadTimer()
+  }
+  else {
+    clearArcgisLoadTimer()
+  }
 }
 
 /**
@@ -682,14 +740,17 @@ function onTiandituReady({ Cesium, cesiumObject }: any) {
  * ArcGIS影像加载完成回调
  */
 function onArcGISReady({ Cesium, cesiumObject }: any) {
+  clearArcgisLoadTimer()
   console.log('✅ ArcGIS影像底图加载完成')
 }
 
 /**
  * ArcGIS影像加载错误回调
+ * 注：仅在控制台记录警告，不在页面弹窗提示，避免边界瓦片缺失时频繁刷屏
  */
 function onArcGISError(error: any) {
-  console.error(`❌ ArcGIS影像加载失败: ${error?.message || error}`)
+  clearArcgisLoadTimer()
+  console.warn(`⚠️ ArcGIS 瓦片加载告警: ${error?.message || error}`)
 }
 
 /**
@@ -741,6 +802,9 @@ watch(yangxinGeoJSON, (newVal, oldVal) => {
  */
 onBeforeUnmount(() => {
   console.log('地图组件即将卸载')
+
+  // 清理 ArcGIS 底图超时定时器
+  clearArcgisLoadTimer()
 
   // 清理点击查询事件
   if (clickQueryCleanup) {
