@@ -56,13 +56,18 @@ onBeforeMount(async () => {
     // 批量预加载所有需要的字典数据
     await getCachedDictionaries([
       'jcssdstjlx_gs',  // OverviewModule
-      'gwcz',           // PipelineModule
+      'gwcz',           // PipelineModule (管网材质)
       'yhlx_gs',        // PipelineModule
       'jcsblx_gs',      // MonitoringEquipmentModule
       'zgzt',           // RiskHazardModule
       'yjlx_gs',        // EarlyWarningModule
       'gs_szjcsb',      // WaterQualityModule
       'glmblx_gs',      // WaterQualityModule
+      'jglx',           // 井盖类型
+      'jgcz',           // 井盖材质
+      'jgwzlx',         // 井盖位置类型
+      'jgxh',           // 井盖型号
+      'sydlx',          // 水源地类型
     ])
     loading.value = false
     console.log('供水模块字典数据预加载完成')

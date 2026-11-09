@@ -16,6 +16,7 @@
       </vc-layer-imagery>
 
       <!-- ArcGIS 阳新蓝色底图 / 2026 影像底图（v-if 按需创建，仅在切换到对应底图时才请求服务） -->
+      <!-- ArcGIS 阳新蓝色底图 -->
       <vc-layer-imagery v-if="showArcgisBlue" :sort-order="1">
         <vc-imagery-provider-arcgis
           :url="arcgisBlueUrl"
@@ -24,7 +25,16 @@
         />
       </vc-layer-imagery>
 
+      <!-- 倾斜影像底图：黄石市全域影像(底层 sort-order=1) + 阳新县影像(上层叠加 sort-order=2) -->
       <vc-layer-imagery v-if="showArcgisImage" :sort-order="1">
+        <vc-imagery-provider-arcgis
+          :url="arcgisHssImageUrl"
+          @readyPromise="onArcGISReady"
+          @errorEvent="onArcGISError"
+        />
+      </vc-layer-imagery>
+
+      <vc-layer-imagery v-if="showArcgisImage" :sort-order="2">
         <vc-imagery-provider-arcgis
           :url="arcgisImageUrl"
           @readyPromise="onArcGISReady"
@@ -325,9 +335,10 @@ const showTianditu = computed(() => {
 const showArcgisBlue = computed(() => currentBaseMapType.value === 'yxx_blue')
 const showArcgisImage = computed(() => currentBaseMapType.value === 'yxx_image')
 
-// ArcGIS 阳新底图 MapServer 地址（tile/{z}/{y}/{x} 由 ImageryProvider 自动拼接）
+// ArcGIS 阳新底图与黄石市影像 MapServer 地址（tile/{z}/{y}/{x} 由 ImageryProvider 自动拼接）
 const arcgisBlueUrl = mapConfig.arcgis.basemapBlue
 const arcgisImageUrl = mapConfig.arcgis.image2026
+const arcgisHssImageUrl = mapConfig.arcgis.hssImage
 
 // 天地图地图样式映射
 const tiandituMapStyleMap: Record<'img' | 'vec' | 'ter', 'img_c' | 'vec_c' | 'ter_c'> = {
@@ -715,7 +726,7 @@ const handleBaseMapChange = async (type: 'vec' | 'img' | 'ter' | 'yxx_blue' | 'y
     : type === 'yxx_blue'
     ? '(ArcGIS - yxx_basemap_blue)'
     : type === 'yxx_image'
-    ? '(ArcGIS - yxx_image_2026)'
+    ? '(ArcGIS - yxx_hss_image + yxx_image_2026 双层叠加)'
     : `(天地图 - ${type === 'img' ? '影像' : '矢量'})`
 
   console.log(`✅ 底图切换为: ${typeNames[type]} ${providerInfo}`)

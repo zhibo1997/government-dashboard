@@ -50,6 +50,15 @@ export function useMapHooks() {
         throw new Error('样式文件缺少必需字段 (version/sources/layers)');
       }
 
+      // 修复服务配置中可能存在的 https:8081 协议错误（8081 端口实际仅支持 HTTP）
+      let jsonStr = JSON.stringify(styleJson);
+      if (jsonStr.includes('https://119.100.22.131:8081')) {
+        jsonStr = jsonStr.replaceAll('https://119.100.22.131:8081', 'http://119.100.22.131:8081');
+        const fixed = JSON.parse(jsonStr);
+        for (const k of Object.keys(styleJson)) delete styleJson[k];
+        Object.assign(styleJson, fixed);
+      }
+
       // 降低图层 minzoom，使 MVT 在低 zoom 级别也能显示
       const MIN_ZOOM_OVERRIDE = 8;
       if (styleJson.layers) {

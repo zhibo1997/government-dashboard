@@ -90,6 +90,21 @@ export const FIELD_LABEL_MAP: Record<string, string> = {
   bzdz: '泵站地址',
   bzlz: '泵站类型',
 
+  // ========== 供水管线 / 基础管网 ==========
+  gxbm: '管线编码',
+  gxcd: '管线长度',
+  gxlb: '管线类别',
+  gwcz: '管网材质',
+  cz: '管网材质',
+  bz: '管径规格',
+  gxtdqsdw: '权属单位',
+  dqzt: '当前状态',
+  qdwtdh: '起点物探点号',
+  zdwtdh: '终点物探点号',
+  sjhqfs: '数据获取方式',
+  sjzt: '数据状态',
+  xtbm: '系统编码',
+
   // ========== 排水污水厂 ==========
   csbz: '出水标准',
   jsbz: '进水标准',
@@ -213,6 +228,7 @@ export const FIELD_LABEL_MAP: Record<string, string> = {
  * 将数据对象的 key 映射为中文标签
  * @param data 原始数据对象
  * @param filterKeys 需要过滤掉的 key 列表（可选）
+ * @param dictMap 动态字典映射对象，由调用方通过 getCachedDictionary(code) 从后端获取传入
  * @returns 映射后的数组 [{ label, value }]
  */
 export function mapToLabelValue(
@@ -247,14 +263,21 @@ export function mapToLabelValue(
       if (key.startsWith('_')) return false
       const lowerKey = key.toLowerCase()
       if (allFilter.includes(lowerKey)) return false
-      return data[key] !== null && data[key] !== undefined && data[key] !== ''
+      return data[key] !== null && data[key] !== undefined && String(data[key]).trim() !== ''
     })
     .map(([key, value]) => {
-      // 字典映射：将 code 转为中文（支持前缀容错如 yhdj001 与 qlyhdj001）
       let displayValue = value
-      if (dictMap[key] && value !== null && value !== undefined && value !== '') {
+      const lowerKey = key.toLowerCase()
+
+      // 1. 后端动态字典映射：支持直接字段名、小写字段名以及别名（sswzlx -> jgwzlx, cz -> gwcz）
+      const dictList =
+        dictMap[key] ||
+        dictMap[lowerKey] ||
+        (lowerKey === 'sswzlx' ? dictMap['jgwzlx'] : undefined) ||
+        (lowerKey === 'cz' ? dictMap['gwcz'] : undefined)
+      if (dictList && value !== null && value !== undefined && value !== '') {
         const strVal = String(value).trim().toLowerCase()
-        const found = dictMap[key].find((d) => {
+        const found = dictList.find((d) => {
           const dictVal = String(d.value).trim().toLowerCase()
           if (dictVal === strVal) return true
           if (dictVal.replace(/^ql/, '') === strVal.replace(/^ql/, '')) return true
@@ -262,6 +285,70 @@ export function mapToLabelValue(
         })
         if (found) displayValue = found.label
       }
+
+      // 2. 通用布尔标识转换（如 sfjc, sfgnxwh 等 sf 开头字段）
+      if (lowerKey.startsWith('sf') && displayValue === value) {
+        if (displayValue === 1 || displayValue === '1' || displayValue === true || displayValue === 'true') {
+          displayValue = '是'
+        } else if (displayValue === 0 || displayValue === '0' || displayValue === false || displayValue === 'false') {
+          displayValue = '否'
+        }
+      }
+
+      // 3. 状态枚举转换（如 jgzt 1:正常 0:异常）
+      if (lowerKey === 'jgzt' && displayValue === value) {
+        if (displayValue === 1 || displayValue === '1') {
+          displayValue = '正常'
+        } else if (displayValue === 0 || displayValue === '0') {
+          displayValue = '异常'
+        }
+      }
+
+      // 4. 管线类别编码转换（如 JS: 给水, WS: 污水, YS: 雨水, HS: 合流）
+      if (lowerKey === 'gxlb' && displayValue === value) {
+        const lbMap: Record<string, string> = {
+          JS: '给水',
+          WS: '污水',
+          YS: '雨水',
+          HS: '雨污合流',
+          RQ: '燃气',
+          DL: '电力',
+          DX: '电信',
+          RL: '热力',
+        }
+        const strVal = String(value).trim().toUpperCase()
+        if (lbMap[strVal]) {
+          displayValue = lbMap[strVal]
+        }
+      }
+
+      // 5. 当前状态枚举转换（如 dqzt 0:在用 1:废弃 2:规划）
+      if (lowerKey === 'dqzt' && displayValue === value) {
+        const dqztMap: Record<string, string> = {
+          '0': '在用',
+          '1': '废弃',
+          '2': '规划',
+        }
+        const strVal = String(value).trim()
+        if (dqztMap[strVal]) {
+          displayValue = dqztMap[strVal]
+        }
+      }
+
+      // 6. 数据获取方式（sjhqfs 1:测量探测 2:规划设计 3:竣工验收 4:普查补测）
+      if (lowerKey === 'sjhqfs' && displayValue === value) {
+        const hqfsMap: Record<string, string> = {
+          '1': '测量探测',
+          '2': '规划设计',
+          '3': '竣工验收',
+          '4': '普查补测',
+        }
+        const strVal = String(value).trim()
+        if (hqfsMap[strVal]) {
+          displayValue = hqfsMap[strVal]
+        }
+      }
+
       return {
         label: FIELD_LABEL_MAP[key] || FIELD_LABEL_MAP[key.toLowerCase()] || key,
         value: displayValue,

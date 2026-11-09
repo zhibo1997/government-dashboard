@@ -39,26 +39,73 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from "vue";
+import { ref, computed, onMounted, watchEffect } from "vue";
 import { useVueCesium } from "vue-cesium";
 import { getWaterSupplyStats, getWaterSourceCoordinateList, getWaterPlantCoordinateList, getWaterPumpStationCoordinateList, getWaterSourceDetail, getWaterPlantDetail, getWaterPumpStationDetail } from "@/services/waterSupplyService";
 import { useInfrastructureModule } from "@/hook/useInfrastructureModule";
+import { useMapStore } from "@/stores/mapStore";
 import { mapToLabelValue } from '@/config/fieldLabelConfig';
+import { getCachedDictionary } from '@/services/dictionaryService';
 import PointPopup from "@/components/PointPopup.vue";
+
+const mapStore = useMapStore();
 
 // 响应式数据
 const overviewData = ref<any[]>([]);
+
+// 字典映射
+const dictMap = ref<Record<string, { value: string; label: string }[]>>({});
+const waterDictCodes = ['jglx', 'jgcz', 'jgxh', 'jgwzlx', 'gwcz', 'sydlx'];
+
+const loadDictionaries = async () => {
+  try {
+    const results = await Promise.all(waterDictCodes.map((code) => getCachedDictionary(code)));
+    const map: Record<string, { value: string; label: string }[]> = {};
+    waterDictCodes.forEach((code, idx) => {
+      const list = results[idx];
+      if (list?.length) {
+        map[code] = list.map((item: any) => ({
+          value: item.f_ItemValue,
+          label: item.f_ItemName,
+        }));
+      }
+    });
+    if (map['jgwzlx']) {
+      map['sswzlx'] = map['jgwzlx'];
+    }
+    if (map['gwcz']) {
+      map['cz'] = map['gwcz'];
+    }
+    dictMap.value = map;
+  } catch (e) {
+    console.warn('加载供水字典失败:', e);
+  }
+};
+
+// 预先加载字典，并在弹窗打开时兜底重新拉取
+loadDictionaries();
+watchEffect(() => {
+  if (popupVisible.value && Object.keys(dictMap.value).length === 0) {
+    loadDictionaries();
+  }
+});
 
 // 弹窗标题 & 字段
 const popupTitle = computed(() => {
   if (!popupData.value) return '详情'
   const data = popupData.value
-  return data.mc || data.name || data.srmc || '详情'
+  if (selectedId.value === '供水管网' || selectedId.value === '供水管线') {
+    return data.gxbm ? `供水管网 (${data.gxbm})` : (data.mc || '供水管网详情')
+  }
+  if (selectedId.value === '供水井' || selectedId.value === '供水井盖') {
+    return data.jgbh ? `供水井 (${data.jgbh})` : (data.mc || '供水井详情')
+  }
+  return data.mc || data.name || data.srmc || data.jgbh || data.gxbm || '详情'
 })
 
 const popupDisplayFields = computed(() => {
   if (!popupData.value) return []
-  return mapToLabelValue(popupData.value) as { label: string; value: string | number | null }[]
+  return mapToLabelValue(popupData.value, [], dictMap.value) as { label: string; value: string | number | null }[]
 })
 
 // 散点图标
@@ -79,6 +126,12 @@ const {
     '水厂': getWaterPlantDetail,
     '供水泵站': getWaterPumpStationDetail,
   },
+  mvtLayerMap: {
+    '供水管网': { id: 'c976e93b-0c08-439c-ab66-966d0b916305' },
+    '供水管线': { id: 'c976e93b-0c08-439c-ab66-966d0b916305' },
+    '供水井': { id: '8ad09ca8-5d62-45e1-a9d2-88b04922222b' },
+    '供水井盖': { id: '8ad09ca8-5d62-45e1-a9d2-88b04922222b' },
+  },
   iconUrlMap: {
     '水源地': pointIcon('水源地'),
     '水厂': pointIcon('水厂'),
@@ -91,8 +144,11 @@ const iconMapping: Record<string, string> = {
   '水源地': 'water_source',
   '水厂': 'water_treatment',
   '供水管网': 'pipeline',
+  '供水管线': 'pipeline',
   '供水泵站': 'pump_station',
   '市政消火栓': 'fire_hydrant',
+  '供水井': 'pump_station',
+  '供水井盖': 'pump_station',
 };
 
 // 动态获取图标路径
@@ -126,7 +182,11 @@ const initData = async () => {
 onMounted(async () => {
   const $vc = useVueCesium();
   const readyObj = await $vc.creatingPromise;
-  await init(readyObj.viewer);
+  // 确保图层树已加载
+  if (!mapStore.layerTreeLoaded) {
+    await mapStore.fetchLayerTree();
+  }
+  await init(readyObj.viewer, mapStore);
   initData();
 });
 </script>
