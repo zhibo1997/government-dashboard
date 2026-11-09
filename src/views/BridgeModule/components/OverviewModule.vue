@@ -95,24 +95,59 @@ const popupTitle = computed(() => {
   return data.llmc || data.qlmc || data.qlbh || '桥梁详情'
 })
 
-// 桥梁字典映射
-const bridgeDictCodes = ['qljglb', 'qlyhdj', 'qlhysx', 'qllx', 'ztdj'] as const
+// 桥梁字典映射（包含 qljglb/桥梁结构, qlyhdj/养护等级, qlhysx/行业属性, qllx/桥梁类型, ztdj/状态等级, yhdj/养护等级备用）
+const bridgeDictCodes = ['qljglb', 'qlyhdj', 'qlhysx', 'qllx', 'ztdj', 'yhdj'] as const
 const bridgeDictMap = ref<Record<string, { value: string; label: string }[]>>({})
+
+// 养护等级保底对照表（防止后端字典表未同步时显示原始代码）
+const DEFAULT_YHDJ_MAP: Record<string, string> = {
+  qlyhdj001: '一级',
+  qlyhdj002: '二级',
+  qlyhdj003: '三级',
+  yhdj001: '一级',
+  yhdj002: '二级',
+  yhdj003: '三级',
+}
 
 watchEffect(async () => {
   if (!popupVisible.value) return
   const results = await Promise.all(bridgeDictCodes.map((code) => getCachedDictionary(code)))
   const map: Record<string, { value: string; label: string }[]> = {}
   const fieldKeys = ['qljg', 'qlyhdj', 'hysx', 'qllx', 'ztdj']
-  bridgeDictCodes.forEach((_, i) => {
-    map[fieldKeys[i]] = results[i].map((item: any) => ({ value: item.f_ItemValue, label: item.f_ItemName }))
+  bridgeDictCodes.slice(0, 5).forEach((_, i) => {
+    map[fieldKeys[i]] = (results[i] || []).map((item: any) => ({ value: item.f_ItemValue, label: item.f_ItemName }))
   })
+
+  // 融合 yhdj 备选字典
+  const yhdjDict = results[5] || []
+  if (yhdjDict.length > 0) {
+    if (!map['qlyhdj']) map['qlyhdj'] = []
+    yhdjDict.forEach((item: any) => {
+      if (!map['qlyhdj'].some((d) => d.value === item.f_ItemValue)) {
+        map['qlyhdj'].push({ value: item.f_ItemValue, label: item.f_ItemName })
+      }
+    })
+  }
+
+  // 若字典中暂无养护等级项，使用保底映射补全
+  if (!map['qlyhdj'] || map['qlyhdj'].length === 0) {
+    map['qlyhdj'] = Object.entries(DEFAULT_YHDJ_MAP).map(([value, label]) => ({ value, label }))
+  }
+
+  // 是否监测（sfjc）：1 -> 是，0 -> 否
+  map['sfjc'] = [
+    { value: '1', label: '是' },
+    { value: '0', label: '否' },
+    { value: 'true', label: '是' },
+    { value: 'false', label: '否' },
+  ]
+
   bridgeDictMap.value = map
 })
 
 const popupDisplayFields = computed(() => {
   if (!popupData.value) return []
-  return mapToLabelValue(popupData.value, [], bridgeDictMap.value) as { label: string; value: string | number | null }[]
+  return mapToLabelValue(popupData.value, ['_name'], bridgeDictMap.value) as { label: string; value: string | number | null }[]
 })
 
 // ==================== 散点模式管理 ====================
@@ -204,7 +239,11 @@ const handleShowEquipment = async () => {
       }
       overlay.setupClickHandler((point: any) => {
         const matched = points.find(p => p.lsh === point.lsh)
-        equipPopupData.value = matched?.raw || point
+        const raw = matched?.raw || point
+        equipPopupData.value = {
+          ...raw,
+          _pointName: matched?.name || point.name,
+        }
         equipPopupVisible.value = true
       }, true)
     }

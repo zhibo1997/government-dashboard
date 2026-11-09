@@ -58,6 +58,7 @@ import { Close } from "@vicons/ionicons5";
 import { FONT_SIZE } from "@/assets/styles/font-sizes";
 import { getEquipmentData } from "@/services/gasService";
 import { getCachedDictionary } from "@/services/dictionaryService";
+import { parseMonitoringValues } from "@/utils/monitoringData";
 import dayjs from "dayjs";
 import * as echarts from "echarts";
 
@@ -106,20 +107,9 @@ const jczbDictMap = ref<Record<string, { name: string; unit: string }>>({});
 const monitorRecords = ref<any[]>([]);
 const latestRecord = computed(() => monitorRecords.value[monitorRecords.value.length - 1] || null);
 
-// 解析监测值
+// 解析监测值（使用统一解析工具）
 const monitorValues = computed(() => {
-  if (!latestRecord.value?.jcz) return [];
-  try {
-    const jcz = JSON.parse(latestRecord.value.jcz);
-    return Object.entries(jcz).map(([key, val]: [string, any]) => ({
-      key,
-      name: jczbDictMap.value[key]?.name || key,
-      value: val.jcz || '—',
-      unit: val.jcdw || '',
-    }));
-  } catch {
-    return [];
-  }
+  return parseMonitoringValues(latestRecord.value?.jcz, jczbDictMap.value, props.equipmentData);
 });
 
 const formatTime = (ts: number) => {

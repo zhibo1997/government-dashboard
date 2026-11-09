@@ -184,10 +184,9 @@
                   </svg>
                 </div>
 
-                <!-- 文字标签与副标题 -->
+                <!-- 文字标签 -->
                 <div class="option-content">
                   <div class="option-label">{{ item.label }}</div>
-                  <div class="option-desc">{{ item.desc }}</div>
                 </div>
 
                 <!-- 选中状态指示器 -->
@@ -368,11 +367,11 @@ const loadedLayers = ref<Map<string, any>>(new Map());
 
 // 底图类型配置
 const baseMapTypes = [
-  { value: "yxx_image", label: "阳新影像", desc: "本地高分卫星遥感" },
-  { value: "yxx_blue", label: "蓝色底图", desc: "深蓝科技主题底图" },
-  { value: "img", label: "影像地图", desc: "国家天地图遥感影像" },
-  { value: "vec", label: "矢量地图", desc: "国家天地图标准路网" },
-  { value: "ter", label: "地形地图", desc: "国家天地图高程晕渲" },
+  { value: "yxx_image", label: "阳新影像" },
+  { value: "yxx_blue", label: "蓝色底图" },
+  { value: "img", label: "影像地图" },
+  { value: "vec", label: "矢量地图" },
+  { value: "ter", label: "地形地图" },
 ] as const;
 
 // 切换收缩状态
@@ -1042,10 +1041,6 @@ function unloadAll() {
             font-weight: 700;
             text-shadow: 0 0 8px rgba(0, 240, 255, 0.4);
           }
-
-          .option-desc {
-            color: rgba(0, 229, 255, 0.85);
-          }
         }
 
         .option-icon-box {
@@ -1070,7 +1065,6 @@ function unloadAll() {
           flex: 1;
           display: flex;
           flex-direction: column;
-          gap: 4px;
           min-width: 0;
 
           .option-label {
@@ -1078,15 +1072,6 @@ function unloadAll() {
             color: #ffffff;
             font-weight: 600;
             transition: color 0.3s ease;
-          }
-
-          .option-desc {
-            font-size: var(--font-size-mini);
-            color: rgba(255, 255, 255, 0.55);
-            transition: color 0.3s ease;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
           }
         }
 

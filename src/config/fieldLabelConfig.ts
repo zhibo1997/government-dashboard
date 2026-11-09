@@ -15,6 +15,10 @@ export const FIELD_LABEL_MAP: Record<string, string> = {
   tbsj: '同步时间',
   sjly: '数据来源',
   sjbb: '数据版本',
+  name: '名称',
+  Name: '名称',
+  bh: '编号',
+  Bh: '编号',
 
   // ========== 燃气井盖 ==========
   jgbh: '编号',
@@ -33,7 +37,6 @@ export const FIELD_LABEL_MAP: Record<string, string> = {
   wxdwmc: '维修单位名称',
   zjycdwxsj: '最后一次维修时间',
   zjycdwxjl: '最后一次维修记录',
-  sfjc: '是否检查',
   glgxbm: '关联管线编码',
 
   // ========== 燃气企业 ==========
@@ -140,7 +143,7 @@ export const FIELD_LABEL_MAP: Record<string, string> = {
   qljbxxms: '桥梁基本信息描述',
   qljsgm: '桥梁建设规模',
   qlyhdj: '桥梁养护等级',
-  zynl: '主要年限',
+  zynl: '在役年限',
   qltp: '桥梁图片',
   hysx: '行业属性',
   qllx: '桥梁类型',
@@ -150,6 +153,7 @@ export const FIELD_LABEL_MAP: Record<string, string> = {
   kfsj: '开放时间',
   jgrq: '竣工日期',
   ztdj: '状态等级',
+  sfjc: '是否监测',
 
   // ========== 应急专家 ==========
   xm: '姓名',
@@ -216,20 +220,50 @@ export function mapToLabelValue(
   filterKeys: string[] = [],
   dictMap: Record<string, { value: string; label: string }[]> = {},
 ): { label: string; value: any }[] {
-  const defaultFilter = ['lsh', 'dsbm', 'qhbm', 'yskzjbz', 'sjtbzt', 'tbsj', 'sjly', 'sjbb', 'jd', 'wd', 'qjdxx', 'qwdxx', 'objectid', '_description']
-  const allFilter = [...defaultFilter, ...filterKeys]
+  const defaultFilter = [
+    'lsh',
+    'dsbm',
+    'qhbm',
+    'yskzjbz',
+    'sjtbzt',
+    'tbsj',
+    'sjly',
+    'sjbb',
+    'jd',
+    'wd',
+    'qjdxx',
+    'qwdxx',
+    'objectid',
+    '_description',
+    '_name',
+    '_pointname',
+    '_sourcetype',
+    'sourcetype',
+  ]
+  const allFilter = [...defaultFilter, ...filterKeys].map(k => k.toLowerCase())
 
   return Object.entries(data)
-    .filter(([key]) => !allFilter.includes(key) && data[key] !== null && data[key] !== undefined)
+    .filter(([key]) => {
+      if (key.startsWith('_')) return false
+      const lowerKey = key.toLowerCase()
+      if (allFilter.includes(lowerKey)) return false
+      return data[key] !== null && data[key] !== undefined && data[key] !== ''
+    })
     .map(([key, value]) => {
-      // 字典映射：将 code 转为中文
+      // 字典映射：将 code 转为中文（支持前缀容错如 yhdj001 与 qlyhdj001）
       let displayValue = value
-      if (dictMap[key] && typeof value === 'string') {
-        const found = dictMap[key].find((d) => d.value === value)
+      if (dictMap[key] && value !== null && value !== undefined && value !== '') {
+        const strVal = String(value).trim().toLowerCase()
+        const found = dictMap[key].find((d) => {
+          const dictVal = String(d.value).trim().toLowerCase()
+          if (dictVal === strVal) return true
+          if (dictVal.replace(/^ql/, '') === strVal.replace(/^ql/, '')) return true
+          return false
+        })
         if (found) displayValue = found.label
       }
       return {
-        label: FIELD_LABEL_MAP[key] || key,
+        label: FIELD_LABEL_MAP[key] || FIELD_LABEL_MAP[key.toLowerCase()] || key,
         value: displayValue,
       }
     })

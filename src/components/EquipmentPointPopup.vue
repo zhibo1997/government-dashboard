@@ -36,6 +36,10 @@
 
           <!-- 基础信息 -->
           <div v-show="activeTab === 'info'" class="info-section">
+            <div class="info-row" v-if="equipmentData?.sbmc && equipmentData.sbmc !== displayTitle">
+              <label class="info-label">设备名称：</label>
+              <span class="info-value">{{ equipmentData.sbmc }}</span>
+            </div>
             <div class="info-row">
               <label class="info-label">设备编号：</label>
               <span class="info-value">{{ equipmentData?.sbbh || '—' }}</span>
@@ -95,6 +99,7 @@ import { Close } from '@vicons/ionicons5'
 import { FONT_SIZE } from '@/assets/styles/font-sizes'
 import { getEquipmentData, getEquipmentPageList } from '@/services/gasService'
 import { getCachedDictionary } from '@/services/dictionaryService'
+import { getPointDisplayName, parseMonitoringValues, formatIndicatorItem } from '@/utils/monitoringData'
 import dayjs from 'dayjs'
 import * as echarts from 'echarts'
 
@@ -118,31 +123,15 @@ const popupStyle = computed(() => ({
 // 字典
 const jczbDictMap = ref<Record<string, { name: string; unit: string }>>({})
 
-// 标题
-const displayTitle = computed(() => {
-  const data = props.equipmentData
-  if (!data) return '设备详情'
-  return data.sbmc || data.sbbh || '设备详情'
-})
+// 标题：使用统一工具提取，与地图上点击的点位 icon 标注保持一致
+const displayTitle = computed(() => getPointDisplayName(props.equipmentData))
 
 // 监测时间
 const monitorTime = computed(() => props.equipmentData?.jcsj || null)
 
-// 解析最新监测值
+// 解析最新监测值：使用统一解析工具（自动处理水浸等状态量映射、错别字修正及单位清洗）
 const monitorValues = computed(() => {
-  const raw = props.equipmentData?.jcz
-  if (!raw) return []
-  try {
-    const jcz = typeof raw === 'string' ? JSON.parse(raw) : raw
-    return Object.entries(jcz).map(([key, val]: [string, any]) => ({
-      key,
-      name: jczbDictMap.value[key]?.name || key,
-      value: val.jcz || '—',
-      unit: val.jcdw || '',
-    }))
-  } catch {
-    return []
-  }
+  return parseMonitoringValues(props.equipmentData?.jcz, jczbDictMap.value, props.equipmentData)
 })
 
 const formatTime = (ts: number) => {
@@ -294,10 +283,26 @@ const initLineChart = (rawData: any[]) => {
 
   const indicators: string[] = []
   const seriesData: Record<string, { t: number; v: number }[]> = {}
+  const unitsMap: Record<string, string> = {}
+
   if (processed.length && Object.keys(processed[0].jcz).length) {
     Object.keys(processed[0].jcz).forEach(key => {
-      indicators.push(jczbDictMap.value[key]?.name || key)
+      const rawName = jczbDictMap.value[key]?.name || key
+      let rawUnit = ''
+      for (const item of processed) {
+        const u = (item.jcz as any)?.[key]?.jcdw
+        if (u && String(u).trim()) {
+          rawUnit = String(u).trim()
+          break
+        }
+      }
+      if (!rawUnit && jczbDictMap.value[key]?.unit) {
+        rawUnit = jczbDictMap.value[key].unit
+      }
+      const formatted = formatIndicatorItem(rawName, 0, rawUnit, key)
+      indicators.push(formatted.name)
       seriesData[key] = []
+      unitsMap[formatted.name] = formatted.unit
     })
   }
   processed.forEach(item => {
@@ -323,10 +328,6 @@ const initLineChart = (rawData: any[]) => {
     symbolSize: 6,
   }))
 
-  let unit = ''
-  const first = Object.values(processed[0]?.jcz || {})[0]
-  if (first && typeof first === 'object') unit = (first as any).jcdw || ''
-
   chart.setOption({
     tooltip: {
       trigger: 'axis',
@@ -337,9 +338,12 @@ const initLineChart = (rawData: any[]) => {
         if (!Array.isArray(params)) return ''
         let html = `<div style="margin-bottom:4px;color:#9ec3e8;font-size:${fontSize}px">${params[0].axisValue}</div>`
         params.forEach((p: any) => {
+          const sName = p.seriesName || ''
+          const formatted = formatIndicatorItem(sName, p.value, unitsMap[sName])
+          const unitDisplay = formatted.unit ? ` ${formatted.unit}` : ''
           html += `<div style="display:flex;align-items:center;gap:6px;font-size:${fontSize}px">
             <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${p.color}"></span>
-            ${p.seriesName}: <b>${p.value}</b> ${unit}
+            ${formatted.name}: <b>${formatted.value}</b>${unitDisplay}
           </div>`
         })
         return html

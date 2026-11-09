@@ -137,9 +137,12 @@ export function useBridge3DModel(options: {
               await flyToDevice(viewer.value, device)
               try {
                 const data = await getMonitoringPointLatestData(undefined, undefined, device.baseName)
-                equipPopupData.value = data[0] || { sbbh: device.baseName, sbmc: device.baseName, sblx: device.sblx }
+                const firstData = data[0]
+                equipPopupData.value = firstData
+                  ? { ...firstData, _pointName: device.baseName }
+                  : { sbbh: device.baseName, sbmc: device.baseName, sblx: device.sblx, _pointName: device.baseName }
               } catch {
-                equipPopupData.value = { sbbh: device.baseName, sbmc: device.baseName, sblx: device.sblx }
+                equipPopupData.value = { sbbh: device.baseName, sbmc: device.baseName, sblx: device.sblx, _pointName: device.baseName }
               }
               equipPopupVisible.value = true
             }, sblxDict)

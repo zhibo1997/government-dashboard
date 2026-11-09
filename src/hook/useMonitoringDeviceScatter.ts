@@ -93,9 +93,14 @@ export function useMonitoringDeviceScatter(options: MonitoringDeviceScatterOptio
         // 根据图片真实比例自动计算高度
         addPoints(points, displayName, iconUrl, 32)
         setupClickHandler((point: any) => {
-          // 点击散点 → 将原始数据传给弹窗（包含 gldwbh）
+          // 点击散点 → 将原始数据传给弹窗（包含 gldwbh，并附加点位名称以保持与 icon 标注一致）
           const matched = points.find(p => p.lsh === point.lsh)
-          popupData.value = matched?.raw || point
+          const raw = matched?.raw || point
+          popupData.value = {
+            ...raw,
+            _pointName: matched?.name || point.name,
+            _deviceTypeName: displayName,
+          }
           popupVisible.value = true
         }, true)
       } else {

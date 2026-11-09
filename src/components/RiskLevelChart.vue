@@ -51,6 +51,18 @@ const riskColorMap: Record<string, string> = {
   低风险: "#9bb8c7",
 };
 
+// 风险等级展示顺序（与默认等级、环形图层级保持一致）
+const riskLevelOrder = ["重大风险", "较大风险", "一般风险", "低风险"];
+
+const sortByRiskLevel = (a: { name: string }, b: { name: string }) => {
+  const indexA = riskLevelOrder.indexOf(a.name);
+  const indexB = riskLevelOrder.indexOf(b.name);
+  if (indexA === -1 && indexB === -1) return 0;
+  if (indexA === -1) return 1;
+  if (indexB === -1) return -1;
+  return indexA - indexB;
+};
+
 // ==================== 数据状态 ====================
 const riskLegend = ref<any[]>([]);
 const isLoading = ref(false);
@@ -140,11 +152,22 @@ const fetchRiskLevelData = async (): Promise<void> => {
     }
 
     // 转换数据格式
-    riskLegend.value = data.map((item) => ({
+    const mappedData = data.map((item) => ({
       name: riskLevelMap[item.riskType]?.name || item.riskType,
       color: riskLevelMap[item.riskType]?.color || "#FFFFFF",
       value: item.count || 0,
     }));
+
+    // 接口未返回的风险等级补 0，保证重大风险等等级无数据时也展示
+    const mappedNames = new Set(mappedData.map((item) => item.name));
+    Object.keys(riskLevelMap).forEach((key) => {
+      const level = riskLevelMap[key];
+      if (mappedNames.has(level.name)) return;
+      mappedData.push({ name: level.name, color: level.color, value: 0 });
+    });
+
+    // 按 重大 → 低 的顺序排列，保持环形图与图例层级一致
+    riskLegend.value = mappedData.sort(sortByRiskLevel);
     console.info("🚀 RiskLevelChart ~ riskLegend:", JSON.stringify(riskLegend.value));
 
     emit("dataLoaded", riskLegend.value);
